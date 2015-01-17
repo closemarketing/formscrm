@@ -1130,12 +1130,12 @@ class GFVtiger {
     }
 
     //Returns the url of the plugin's root folder
-    protected function get_base_url(){
+    protected static function get_base_url(){
         return plugins_url(null, __FILE__);
     }
 
     //Returns the physical path of the plugin's root folder
-    protected function get_base_path(){
+    protected static function get_base_path(){
         $folder = basename(dirname(__FILE__));
         return WP_PLUGIN_DIR . "/" . $folder;
     }
