@@ -104,7 +104,6 @@ class GFVtiger {
 
             add_action('wp_ajax_rg_update_feed_active', array('GFVtiger', 'update_feed_active'));
             add_action('wp_ajax_gf_select_vtiger_form', array('GFVtiger', 'select_form'));
-            add_action('wp_ajax_gf_select_vtiger_client', array('GFVtiger', 'select_client'));
 
         }
         else{
@@ -186,7 +185,7 @@ class GFVtiger {
         // Adding submenu if user has access
         $permission = self::has_access("gravityforms_vtiger");
         if(!empty($permission))
-            $menus[] = array("name" => "gf_vtiger", "label" => __("vTiger", "gravityforms-vtiger"), "callback" =>  array("GFVtiger", "vtiger_page"), "permission" => $permission);
+            $menus[] = array("name" => "gf_vtiger", "label" => "vTiger", "callback" =>  array("GFVtiger", "vtiger_page"), "permission" => $permission);
 
         return $menus;
     }
@@ -331,7 +330,7 @@ class GFVtiger {
         ?>
         <div class="wrap">
             <img alt="<?php _e("VTiger Feeds", "gravityforms-vtiger") ?>" src="<?php echo self::get_base_url()?>/images/vtiger_wordpress_icon_32.png" style="float:left; margin:15px 7px 0 0;"/>
-            <h2><?php _e("vtiger Feeds", "gravityforms-vtiger"); ?>
+            <h2><?php _e("vTiger Feeds", "gravityforms-vtiger"); ?>
             <a class="button add-new-h2" href="admin.php?page=gf_vtiger&view=edit&id=0"><?php _e("Add New", "gravityforms-vtiger") ?></a>
             </h2>
 
@@ -500,15 +499,6 @@ class GFVtiger {
         //updating meta information
         if(rgpost("gf_vtiger_submit")){
 
-            list($client_id, $client_name) = explode("|:|", stripslashes($_POST["gf_vtiger_client"]));
-            $config["meta"]["client_id"] = $client_id;
-            $config["meta"]["client_name"] = $client_name;
-
-            list($list_id, $list_name) = explode("|:|", stripslashes($_POST["gf_vtiger_list"]));
-            $config["meta"]["contact_list_id"] = $list_id;
-            $config["meta"]["contact_list_name"] = $list_name;
-            $config["form_id"] = absint($_POST["gf_vtiger_form"]);
-
             $merge_vars = self::get_custom_fields($list_id);
             $field_map = array();
             foreach($merge_vars as $var){
@@ -589,7 +579,7 @@ class GFVtiger {
                     ?>
                     </div>
                 </div>
-<?php /* Optin condition
+                <?php // Optin condition ?>
                 <div id="vtiger_optin_container" valign="top" class="margin_vertical_10">
                     <label for="vtiger_optin" class="left_header"><?php _e("Opt-In Condition", "gravityforms-vtiger"); ?> <?php gform_tooltip("vtiger_optin_condition") ?></label>
                     <div id="vtiger_optin">
@@ -624,7 +614,7 @@ class GFVtiger {
                                 </td>
                             </tr>
                         </table>
-                    </div> */?>
+                    </div>
 
                     <script type="text/javascript">
                         <?php
@@ -805,6 +795,7 @@ class GFVtiger {
     }
 
     private static function get_custom_fields($list_id){
+        /** Borrado ya que no se cogera del CRM nada 
         self::include_api();
         $api = new CS_REST_Lists($list_id, self::get_api_key());
 
@@ -818,12 +809,12 @@ class GFVtiger {
 		}
 
         $custom_field_objects = $response->response;
-        self::log_debug("Custom fields retrieved: " . print_r($custom_field_objects,true));
+        self::log_debug("Custom fields retrieved: " . print_r($custom_field_objects,true));*/
 
         $custom_fields = array(array("FieldName" => "Email Address", "Key" => "[email]"), array("FieldName" => "Full Name", "Key" => "[fullname]"));
 
-        foreach($custom_field_objects as $custom_field)
-            $custom_fields[] = get_object_vars($custom_field);
+        //foreach($custom_field_objects as $custom_field)
+        //    $custom_fields[] = get_object_vars($custom_field);
 
         return $custom_fields;
     }
@@ -845,6 +836,8 @@ class GFVtiger {
             die("EndSelectForm();");
 
         $custom_fields = self::get_custom_fields($list_id);
+        
+        print_r($custom_fields);
 
         //getting configuration
         $config = GFVtigerData::get_feed($setting_id);
