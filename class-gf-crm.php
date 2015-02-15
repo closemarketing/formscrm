@@ -303,20 +303,40 @@ class GFCRM extends GFFeedAddOn {
         
         } elseif($crm_type == 'SugarCRM') {
             /*/SugarCRM Method
-            $lead = array(
-                'EmailAddress' => $email,
-                'lastname'     => $name,
-                'CustomFields' => $merge_vars
-            );
-            //$this->include_api();
+              $login_result = call("login", $login_parameters, $url);
 
-            $record = $client_crm->doCreate('Leads', $lead￼);
-    ￼
-            if( $record ) {
-                $recordid = $client_crm->getRecordId($record['id']); 
-                $this->log_debug( __('Added Lead ID', 'gravityformscrm' ).' '.$recordid );
-            }
-            // end SugarCRM Method
+                /*
+                echo "<pre>";
+                print_r($login_result);
+                echo "</pre>";
+                */
+
+                //get session id
+                $session_id = $login_result->id;
+
+                //create account -------------------------------------     $set_entry_parameters = array(
+                     //session id
+                     "session" => $session_id,
+
+                     //The name of the module from which to retrieve records.
+                     "module_name" => "Accounts",
+
+                     //Record attributes
+                     "name_value_list" => array(
+                          //to update a record, you will nee to pass in a record id as commented below
+                          //array("name" => "id", "value" => "9b170af9-3080-e22b-fbc1-4fea74def88f"),
+                          array("name" => "name", "value" => "Test Account"),
+                     ),
+                );
+
+                $set_entry_result = call("set_entry", $set_entry_parameters, $url);
+
+                echo "<pre>";
+                print_r($set_entry_result);
+                echo "</pre>";
+            // end SugarCRM Method 
+            
+            */
         }
 
 	}
