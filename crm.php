@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Gravity Forms VTiger CRM Add-On
+Plugin Name: Gravity Forms CRM Add-On
 Plugin URI: http://www.gravityforms.com
-Description: Integrates Gravity Forms with VTiger CRM allowing form submissions to be automatically sent to your VTiger CRM.
+Description: Integrates Gravity Forms with CRM allowing form submissions to be automatically sent to your CRM.
 Version: 0.2
 Author: closemarketing
 Author URI: http://www.closemarketing.es
@@ -26,11 +26,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
 
-define( 'GF_VTIGER_VERSION', '3.2' );
+define( 'GF_CRM_VERSION', '0.2' );
 
-add_action( 'gform_loaded', array( 'GF_vTiger_Bootstrap', 'load' ), 5 );
+add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 
-class GF_vTiger_Bootstrap {
+class GF_CRM_Bootstrap {
 
 	public static function load(){
 
@@ -38,12 +38,12 @@ class GF_vTiger_Bootstrap {
 			return;
 		}
 
-		require_once( 'class-gf-vtiger.php' );
+		require_once( 'class-gf-crm.php' );
 
-		GFAddOn::register( 'GFvTiger' );
+		GFAddOn::register( 'GFCRM' );
 	}
 }
 
-function gf_vtiger(){
-	return GFvTiger::get_instance();
+function gf_crm(){
+	return GFCRM::get_instance();
 }

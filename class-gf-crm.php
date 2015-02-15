@@ -2,31 +2,31 @@
 
 GFForms::include_feed_addon_framework();
 
-class GFvTiger extends GFFeedAddOn {
+class GFCRM extends GFFeedAddOn {
 
-	protected $_version = GF_VTIGER_VERSION;
+	protected $_version = GF_CRM_VERSION;
 	protected $_min_gravityforms_version = '1.8.17';
-	protected $_slug = 'gravityformsvtiger';
-	protected $_path = 'gravityformsvtiger/vtiger.php';
+	protected $_slug = 'gravityformscrm';
+	protected $_path = 'gravityformscrm/crm.php';
 	protected $_full_path = __FILE__;
 	protected $_url = 'http://www.gravityforms.com';
-	protected $_title = 'vTiger Add-On';
-	protected $_short_title = 'vTiger';
+	protected $_title = 'CRM Add-On';
+	protected $_short_title = 'CRM';
 
 	// Members plugin integration
-	protected $_capabilities = array( 'gravityforms_vtiger', 'gravityforms_vtiger_uninstall' );
+	protected $_capabilities = array( 'gravityforms_crm', 'gravityforms_crm_uninstall' );
 
 	// Permissions
-	protected $_capabilities_settings_page = 'gravityforms_vtiger';
-	protected $_capabilities_form_settings = 'gravityforms_vtiger';
-	protected $_capabilities_uninstall = 'gravityforms_vtiger_uninstall';
+	protected $_capabilities_settings_page = 'gravityforms_crm';
+	protected $_capabilities_form_settings = 'gravityforms_crm';
+	protected $_capabilities_uninstall = 'gravityforms_crm_uninstall';
 	protected $_enable_rg_autoupgrade = true;
 
 	private static $_instance = null;
 
 	public static function get_instance() {
 		if ( self::$_instance == null ) {
-			self::$_instance = new GFvTiger();
+			self::$_instance = new GFCRM();
 		}
 
 		return self::$_instance;
@@ -48,26 +48,31 @@ class GFvTiger extends GFFeedAddOn {
 	public function plugin_settings_fields() {
 		return array(
 			array(
-				'title'       => __( 'vTiger Account Information', 'gravityformsvtiger' ),
-				'description' => sprintf( __( 'vTiger is a CRM software. Use Gravity Forms to collect customer information and automatically add them to your vtiger Leads.', 'gravityformsvtiger' ),
-					'<a href="http://www.vtiger.com" target="_blank">', '</a>.' ),
+				'title'       => __( 'CRM Account Information', 'gravityformscrm' ),
+				'description' => sprintf( __( 'CRM is a CRM software. Use Gravity Forms to collect customer information and automatically add them to your crm Leads.', 'gravityformscrm' ),
+					'<a href="http://www.crm.com" target="_blank">', '</a>.' ),
 				'fields'      => array(
 					array(
-						'name'              => 'gf_vtiger_url',
-						'label'             => __( 'CRM URL', 'gravityformsvtiger' ),
+						'name'              => 'gf_crm_type',
+						'label'             => __( 'CRM Type', 'gravityformscrm' ),
+						'type'              => 'select',
+						'class'             => 'medium',
+					),
+					array(
+						'name'              => 'gf_crm_url',
+						'label'             => __( 'CRM URL', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
 					),
 					array(
-						'name'              => 'gf_vtiger_username',
-						'label'             => __( 'Username', 'gravityformsvtiger' ),
+						'name'              => 'gf_crm_username',
+						'label'             => __( 'Username', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
-
 					),
 					array(
-						'name'  => 'gf_vtiger_password',
-						'label' => __( 'API Password for User', 'gravityformsvtiger' ),
+						'name'  => 'gf_crm_password',
+						'label' => __( 'API Password for User', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
 						//'feedback_callback' => array( $this, 'is_valid_key' )
@@ -87,7 +92,7 @@ class GFvTiger extends GFFeedAddOn {
 		//switch type="text" to type="password" so the key is not visible
 		$api_key_field = str_replace( 'type="text"','type="password"', $api_key_field );
 
-		$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your vTiger screen.", 'gravityformsvtiger' ) ) . '</small>';
+		$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen.", 'gravityformscrm' ) ) . '</small>';
 
 		if ( $echo ) {
 			echo $api_key_field . '</br>' . $caption;
@@ -103,7 +108,7 @@ class GFvTiger extends GFFeedAddOn {
 		// ensures valid credentials were entered in the settings page
 		if ( $this->is_valid_key() === false ) {
 			?>
-			<div><?php echo sprintf( __( 'We are unable to login to vTiger with the provided API key. Please make sure you have entered a valid API key in the %sSettings Page%s', 'gravityformsvtiger' ),
+			<div><?php echo sprintf( __( 'We are unable to login to CRM with the provided API key. Please make sure you have entered a valid API key in the %sSettings Page%s', 'gravityformscrm' ),
 					'<a href="' . $this->get_plugin_settings_url() . '">', '</a>' ); ?>
 			</div>
 			<?php
@@ -119,24 +124,24 @@ class GFvTiger extends GFFeedAddOn {
 	public function feed_settings_fields() {
 		return array(
 			array(
-				'title'       => __( 'vTiger Feed', 'gravityformsvtiger' ),
+				'title'       => __( 'CRM Feed', 'gravityformscrm' ),
 				'description' => '',
 				'fields'      => array(
 					array(
 						'name'     => 'feedName',
-						'label'    => __( 'Name', 'gravityformsvtiger' ),
+						'label'    => __( 'Name', 'gravityformscrm' ),
 						'type'     => 'text',
 						'required' => true,
 						'class'    => 'medium',
-						'tooltip'  => '<h6>' . __( 'Name', 'gravityformsvtiger' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'gravityformsvtiger' ),
+						'tooltip'  => '<h6>' . __( 'Name', 'gravityformscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'gravityformscrm' ),
 					),
 					array(
 						'name'       => 'listFields',
-						'label'      => __( 'Map Fields', 'gravityformsvtiger' ),
+						'label'      => __( 'Map Fields', 'gravityformscrm' ),
 						'type'       => 'field_map',
 						'dependency' => 'contactList',
 						'field_map'	 => $this->create_list_field_map(),
-						'tooltip'    => '<h6>' . __( 'Map Fields', 'gravityformsvtiger' ) . '</h6>' . __( 'Associate your vTiger custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'gravityformsvtiger' ),
+						'tooltip'    => '<h6>' . __( 'Map Fields', 'gravityformscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'gravityformscrm' ),
 					),
 				)
 			),
@@ -159,20 +164,20 @@ class GFvTiger extends GFFeedAddOn {
 
 		$options          = array(
 			array(
-				'label' => __( 'Resubscribe', 'gravityformsvtiger' ),
+				'label' => __( 'Resubscribe', 'gravityformscrm' ),
 				'name'  => 'resubscribe',
 			),
 		);
 		$field['choices'] = $options;
 		$html             = $this->settings_checkbox( $field, false );
 
-		$tooltip_content = '<h6>' . __( 'Resubscribe', 'gravityformsvtiger' ) . '</h6>' . __( 'When this option is enabled, if the subscriber is in an inactive state or has previously been unsubscribed, they will be re-added to the active list. Therefore, this option should be used with caution and only when appropriate.', 'gravityformsvtiger' );
+		$tooltip_content = '<h6>' . __( 'Resubscribe', 'gravityformscrm' ) . '</h6>' . __( 'When this option is enabled, if the subscriber is in an inactive state or has previously been unsubscribed, they will be re-added to the active list. Therefore, this option should be used with caution and only when appropriate.', 'gravityformscrm' );
 		$tooltip         = gform_tooltip( $tooltip_content, '', true );
 
 		$html = str_replace( '</div>', $tooltip . '</div>', $html );
 
 		$resubscribe_warning_style = $this->get_setting( 'resubscribe' ) ? '' : 'display:none';
-		$html .= '<small><span id="vtiger_resubscribe_warning" style="' . $resubscribe_warning_style . '">' . __( 'This option will re-subscribe users that have been unsubscribed. Use with caution and only when appropriate.', 'gravityformsvtiger' ) . '</span></small>';
+		$html .= '<small><span id="crm_resubscribe_warning" style="' . $resubscribe_warning_style . '">' . __( 'This option will re-subscribe users that have been unsubscribed. Use with caution and only when appropriate.', 'gravityformscrm' ) . '</span></small>';
 
 		if ( $echo ) {
 			echo $html;
@@ -185,17 +190,17 @@ class GFvTiger extends GFFeedAddOn {
 	public function get_custom_fields( ) {
 
 		$custom_fields = array(
-			array( 'label' => __('Email Address', 'gravityformsvtiger' ), 'name' => 'email', 'required' => true ),
-			array( 'label' => __('Full Name', 'gravityformsvtiger' ) , 'name' => 'fullname' ),
-			array( 'label' => __('Phone', 'gravityformsvtiger' ) , 'name' => 'phone' ),
-			array( 'label' => __('Lead Source', 'gravityformsvtiger' ) , 'name' => 'leadsource' ),
-			array( 'label' => __('Birthday', 'gravityformsvtiger' ) , 'name' => 'birthday' ),
-			array( 'label' => __('Address', 'gravityformsvtiger' ) , 'name' => 'mailingstreet' ),
-			array( 'label' => __('City', 'gravityformsvtiger' ) , 'name' => 'mailingcity' ),
-			array( 'label' => __('State', 'gravityformsvtiger' ) , 'name' => 'mailingstate' ),
-			array( 'label' => __('ZIP', 'gravityformsvtiger' ) , 'name' => 'mailingzip' ),
-			array( 'label' => __('Country', 'gravityformsvtiger' ) , 'name' => 'mailingcountry' ),
-			array( 'label' => __('Description', 'gravityformsvtiger' ) , 'name' => 'description' ),
+			array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'email', 'required' => true ),
+			array( 'label' => __('Full Name', 'gravityformscrm' ) , 'name' => 'fullname' ),
+			array( 'label' => __('Phone', 'gravityformscrm' ) , 'name' => 'phone' ),
+			array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'leadsource' ),
+			array( 'label' => __('Birthday', 'gravityformscrm' ) , 'name' => 'birthday' ),
+			array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'mailingstreet' ),
+			array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'mailingcity' ),
+			array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'mailingstate' ),
+			array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'mailingzip' ),
+			array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'mailingcountry' ),
+			array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
 		);
 
 		/*$response = $api->get_custom_fields();
@@ -217,7 +222,7 @@ class GFvTiger extends GFFeedAddOn {
 
 	public function ensure_upgrade(){
 
-		if ( get_option( 'gf_vtiger_upgrade' ) ){
+		if ( get_option( 'gf_crm_upgrade' ) ){
 			return false;
 		}
 
@@ -228,7 +233,7 @@ class GFvTiger extends GFFeedAddOn {
 			$this->upgrade( '2.0' );
 		}
 
-		update_option( 'gf_vtiger_upgrade', 1 );
+		update_option( 'gf_crm_upgrade', 1 );
 	}
 
 	public function process_feed( $feed, $entry, $form ) {
@@ -263,18 +268,18 @@ class GFvTiger extends GFFeedAddOn {
 					$index = (string) $input['id'];
 					$merge_vars[] = array(
 						'Key'   => $var_key,
-						'Value' => apply_filters( 'gform_vtiger_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry )
+						'Value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry )
 					);
 				}
 			} else if ( ! in_array( $var_key, array( 'email', 'fullname' ) ) ) {
 				$merge_vars[] = array(
 					'Key'   => $var_key,
-					'Value' => apply_filters( 'gform_vtiger_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry )
+					'Value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry )
 				);
 			}
 		}
 
-		$override_custom_fields = apply_filters( 'gform_vtiger_override_blank_custom_fields', false, $entry, $form, $feed );
+		$override_custom_fields = apply_filters( 'gform_crm_override_blank_custom_fields', false, $entry, $form, $feed );
 		if ( ! $override_custom_fields ){
 			$merge_vars = $this->remove_blank_custom_fields( $merge_vars );
 		}
@@ -285,7 +290,7 @@ class GFvTiger extends GFFeedAddOn {
 			'CustomFields' => $merge_vars,
 			'Resubscribe'  => $resubscribe,
 		);
-        $subscriber = apply_filters( 'gform_vtiger_override_subscriber', $subscriber, $entry, $form, $feed );
+        $subscriber = apply_filters( 'gform_crm_override_subscriber', $subscriber, $entry, $form, $feed );
 
 		$this->include_api();
 		$api = new CS_REST_Subscribers( $feed['meta']['contactList'], $this->get_api_key() );
@@ -303,7 +308,7 @@ class GFvTiger extends GFFeedAddOn {
 				unset( $merge_vars[$i] );
 			}
 		}
-		//resort the array because items could have been removed, this will give an error from vTiger if the keys are not in numeric sequence
+		//resort the array because items could have been removed, this will give an error from CRM if the keys are not in numeric sequence
 		sort( $merge_vars );
 		return $merge_vars;
 	}
@@ -331,30 +336,30 @@ class GFvTiger extends GFFeedAddOn {
 	}
 */
     private static function is_valid_key(){
-        $result_api = self::login_api_vtiger();;
+        $result_api = self::login_api_crm();;
         return $result_api;
     }
 
     private static function get_crm_url(){
 		$settings = $this->get_plugin_settings();
-		$url  = $settings['gf_vtiger_url'];
+		$url  = $settings['gf_crm_url'];
         return $url;
     }
 
     private static function get_username(){
 		$settings = $this->get_plugin_settings();
-        $username = $settings['gf_vtiger_username'];
+        $username = $settings['gf_crm_username'];
         return $username;
     }
 
     private static function get_password(){
 		$settings = $this->get_plugin_settings();
-        $password = $settings['gf_vtiger_password'];
+        $password = $settings['gf_crm_password'];
         return $password;
     }
 
 
-    private static function login_api_vtiger(){
+    private static function login_api_crm(){
 
 	include_once('includes/WSClient.php');
 
