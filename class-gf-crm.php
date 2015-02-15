@@ -314,7 +314,8 @@ class GFCRM extends GFFeedAddOn {
                 //get session id
                 $session_id = $login_result->id;
 
-                //create account -------------------------------------     $set_entry_parameters = array(
+                //create account -------------------------------------     
+                $set_entry_parameters = array(
                      //session id
                      "session" => $session_id,
 
@@ -332,10 +333,7 @@ class GFCRM extends GFFeedAddOn {
                 echo "<pre>";
                 print_r($set_entry_result);
                 echo "</pre>";
-            // end SugarCRM Method 
-            
-            */
-        }
+        } // end SugarCRM Method 
 
 	}
 
