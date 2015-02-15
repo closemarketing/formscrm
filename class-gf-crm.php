@@ -57,6 +57,16 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'CRM Type', 'gravityformscrm' ),
 						'type'              => 'select',
 						'class'             => 'medium',
+                        'choices'           => array(
+                                                    array(
+                                                        'label' => 'vTiger',
+                                                        'name'  => 'vtiger'
+                                                    ),
+                                                    array(
+                                                        'label' => 'SugarCRM',
+                                                        'name'  => 'sugarcrm'
+                                                    )
+                                                )
 					),
 					array(
 						'name'              => 'gf_crm_url',
@@ -75,7 +85,7 @@ class GFCRM extends GFFeedAddOn {
 						'label' => __( 'API Password for User', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
-						//'feedback_callback' => array( $this, 'is_valid_key' )
+						'feedback_callback' => array( $this, 'is_valid_key' )
 					),
 				)
 			),
@@ -139,7 +149,7 @@ class GFCRM extends GFFeedAddOn {
 						'name'       => 'listFields',
 						'label'      => __( 'Map Fields', 'gravityformscrm' ),
 						'type'       => 'field_map',
-						'dependency' => 'contactList',
+						//'dependency' => 'contactList',
 						'field_map'	 => $this->create_list_field_map(),
 						'tooltip'    => '<h6>' . __( 'Map Fields', 'gravityformscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'gravityformscrm' ),
 					),
@@ -150,76 +160,61 @@ class GFCRM extends GFFeedAddOn {
 
 	public function create_list_field_map() {
 
-		//$list_id = $this->get_setting( 'contactList' );
-
-		$custom_fields = $this->get_custom_fields( );
+		$custom_fields = $this->get_custom_fields_vtiger( );
 
 		return $custom_fields;
 
 	}
 
-	public function settings_option_resubscribe( $field, $echo = true ) {
+	public function get_custom_fields_vtiger( ) {
+            
+        $settings = $this->get_plugin_settings();
+        $crm_type  = $settings['gf_crm_type'];
+        
+        
+        if($crm_type == 'vTiger') { //vtiger Method
+            $custom_fields = array( //Custom Fields for vTiger
+                array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'email', 'required' => true ),
+                array( 'label' => __('Full Name', 'gravityformscrm' ) , 'name' => 'fullname' ),
+                array( 'label' => __('Phone', 'gravityformscrm' ) , 'name' => 'phone' ),
+                array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'leadsource' ),
+                array( 'label' => __('Birthday', 'gravityformscrm' ) , 'name' => 'birthday' ),
+                array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'mailingstreet' ),
+                array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'mailingcity' ),
+                array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'mailingstate' ),
+                array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'mailingzip' ),
+                array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'mailingcountry' ),
+                array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
+            );
+        } elseif($crm_type == 'SugarCRM') {
+            $custom_fields = array( //Custom Fields for SugarCRM
+                array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'webtolead_email1', 'required' => true ),
+                array( 'label' => __('First Name', 'gravityformscrm' ) , 'name' => 'first_name' ),
+                array( 'label' => __('Last Name', 'gravityformscrm' ) , 'name' => 'last_name' ),
+                array( 'label' => __('Phone Work', 'gravityformscrm' ) , 'name' => 'phone_work' ),
+                array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'lead_source' ),
+                array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'primary_address_street' ),
+                array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'primary_address_city' ),
+                array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'primary_address_state' ),
+                array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'primary_address_postalcode' ),
+                array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'primary_address_country' ),
+                array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
+            );
+        }
 
-		$field['type'] = 'checkbox';
 
-		$options          = array(
-			array(
-				'label' => __( 'Resubscribe', 'gravityformscrm' ),
-				'name'  => 'resubscribe',
-			),
-		);
-		$field['choices'] = $options;
-		$html             = $this->settings_checkbox( $field, false );
-
-		$tooltip_content = '<h6>' . __( 'Resubscribe', 'gravityformscrm' ) . '</h6>' . __( 'When this option is enabled, if the subscriber is in an inactive state or has previously been unsubscribed, they will be re-added to the active list. Therefore, this option should be used with caution and only when appropriate.', 'gravityformscrm' );
-		$tooltip         = gform_tooltip( $tooltip_content, '', true );
-
-		$html = str_replace( '</div>', $tooltip . '</div>', $html );
-
-		$resubscribe_warning_style = $this->get_setting( 'resubscribe' ) ? '' : 'display:none';
-		$html .= '<small><span id="crm_resubscribe_warning" style="' . $resubscribe_warning_style . '">' . __( 'This option will re-subscribe users that have been unsubscribed. Use with caution and only when appropriate.', 'gravityformscrm' ) . '</span></small>';
-
-		if ( $echo ) {
-			echo $html;
-		}
-
-		return $html;
-
-	}
-
-	public function get_custom_fields( ) {
-
-		$custom_fields = array(
-			array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'email', 'required' => true ),
-			array( 'label' => __('Full Name', 'gravityformscrm' ) , 'name' => 'fullname' ),
-			array( 'label' => __('Phone', 'gravityformscrm' ) , 'name' => 'phone' ),
-			array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'leadsource' ),
-			array( 'label' => __('Birthday', 'gravityformscrm' ) , 'name' => 'birthday' ),
-			array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'mailingstreet' ),
-			array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'mailingcity' ),
-			array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'mailingstate' ),
-			array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'mailingzip' ),
-			array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'mailingcountry' ),
-			array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
-		);
-
-		/*$response = $api->get_custom_fields();
-		if ( ! $response->was_successful() ) {
-			return $custom_fields;
-		}
-
-		$custom_field_objects = $response->response;
-
-		foreach ( $custom_field_objects as $custom_field ) {
-			$name            = str_replace( '[', '', $custom_field->Key );
-			$name            = str_replace( ']', '', $name );
-			$custom_fields[] = array( 'label' => $custom_field->FieldName, 'name' => $name );
-		}*/
-
+        
 		return $custom_fields;
 
 	}
 
+
+	public function feed_list_columns() {
+		return array(
+			'feedName'		=> __( 'Name', 'gravityformscampaignmonitor' )
+		);
+	}
+    
 	public function ensure_upgrade(){
 
 		if ( get_option( 'gf_crm_upgrade' ) ){
@@ -248,11 +243,10 @@ class GFCRM extends GFFeedAddOn {
 
 	public function export_feed( $entry, $form, $feed ) {
 
-		$resubscribe = $feed['meta']['resubscribe'] ? true : false;
 		$email       = $entry[ $feed['meta']['listFields_email'] ];
 		$name        = '';
 		if ( ! empty( $feed['meta']['listFields_fullname'] ) ) {
-			//$name = $this->get_name( $entry, $feed['meta']['listFields_fullname'] );
+			$name = $this->get_name( $entry, $feed['meta']['listFields_fullname'] );
 		}
 
 		$merge_vars = array();
@@ -284,19 +278,47 @@ class GFCRM extends GFFeedAddOn {
 			$merge_vars = $this->remove_blank_custom_fields( $merge_vars );
 		}
 
-		$subscriber = array(
-			'EmailAddress' => $email,
-			'Name'         => $name,
-			'CustomFields' => $merge_vars,
-			'Resubscribe'  => $resubscribe,
-		);
-        $subscriber = apply_filters( 'gform_crm_override_subscriber', $subscriber, $entry, $form, $feed );
+        
+            
+        $settings = $this->get_plugin_settings();
+        $crm_type  = $settings['gf_crm_type'];
+        
+        
+        if($crm_type == 'vTiger') { //vtiger Method
+            /*/vTiger Method
+            $lead = array(
+                'EmailAddress' => $email,
+                'lastname'     => $name,
+                'CustomFields' => $merge_vars
+            );
+            //$this->include_api();
 
-		$this->include_api();
-		$api = new CS_REST_Subscribers( $feed['meta']['contactList'], $this->get_api_key() );
-		$this->log_debug( 'Adding subscriber.' );
-		$api->add( $subscriber );
-		$this->log_debug( 'Subscriber added.' );
+            $record = $client_crm->doCreate('Leads', $lead￼);
+    ￼
+            if( $record ) {
+                $recordid = $client_crm->getRecordId($record['id']); 
+                $this->log_debug( __('Added Lead ID', 'gravityformscrm' ).' '.$recordid );
+            }
+            // end vtiger Method    */
+        
+        } elseif($crm_type == 'SugarCRM') {
+            /*/SugarCRM Method
+            $lead = array(
+                'EmailAddress' => $email,
+                'lastname'     => $name,
+                'CustomFields' => $merge_vars
+            );
+            //$this->include_api();
+
+            $record = $client_crm->doCreate('Leads', $lead￼);
+    ￼
+            if( $record ) {
+                $recordid = $client_crm->getRecordId($record['id']); 
+                $this->log_debug( __('Added Lead ID', 'gravityformscrm' ).' '.$recordid );
+            }
+            // end SugarCRM Method
+        }
+
 	}
 
 	private static function remove_blank_custom_fields( $merge_vars ){
@@ -312,7 +334,7 @@ class GFCRM extends GFFeedAddOn {
 		sort( $merge_vars );
 		return $merge_vars;
 	}
-/*
+
 	private function get_name( $entry, $field_id ) {
 
 		//If field is simple (one input), simply return full content
@@ -334,43 +356,81 @@ class GFCRM extends GFFeedAddOn {
 
 		return $name;
 	}
-*/
-    private static function is_valid_key(){
-        $result_api = self::login_api_crm();;
+
+    private function is_valid_key(){
+        $result_api = $this->login_api_crm();;
         return $result_api;
     }
+    
+    private function login_api_crm(){
+    
+    $settings = $this->get_plugin_settings();
+    $crm_type  = $settings['gf_crm_type'];
+    $url  = $settings['gf_crm_url'];
+    $username = $settings['gf_crm_username'];
+    $password = $settings['gf_crm_password'];
+        
+    if($crm_type == 'vTiger') { //vtiger Method
+        include_once('includes/WSClient.php');
 
-    private static function get_crm_url(){
-		$settings = $this->get_plugin_settings();
-		$url  = $settings['gf_crm_url'];
-        return $url;
+        $client_crm = new Vtiger_WSClient( $url );
+
+        $login = $client_crm->doLogin($username , $password );
+
+        if(!$login) {  $login_result = false; } else { $login_result = $login; }
+    } elseif($crm_type == 'SugarCRM') {
+        $url = $url.'/service/v4_1/rest.php';
+
+        //login ------------------------------     
+        $login_parameters = array(
+             "user_auth" => array(
+                  "user_name" => $username,
+                  "password" => md5($password),
+                  "version" => "1"
+             ),
+             "application_name" => "RestTest",
+             "name_value_list" => array(),
+        );
+
+        $login_result = $this->call_sugarcrm("login", $login_parameters, $url);
     }
-
-    private static function get_username(){
-		$settings = $this->get_plugin_settings();
-        $username = $settings['gf_crm_username'];
-        return $username;
-    }
-
-    private static function get_password(){
-		$settings = $this->get_plugin_settings();
-        $password = $settings['gf_crm_password'];
-        return $password;
-    }
-
-
-    private static function login_api_crm(){
-
-	include_once('includes/WSClient.php');
-
-	$client = new Vtiger_WSClient( self::get_crm_url() );
-
-	$login = $client->doLogin(self::get_username(), self::get_password() );
-
-	if(!$login) {  $login_result = false; } else { $login_result = $login; }
+        
 
     return $login_result;
     }
     
+    //function to make cURL request
+    private function call_sugarcrm($method, $parameters, $url)
+    {
+        ob_start();
+        $curl_request = curl_init();
+
+        curl_setopt($curl_request, CURLOPT_URL, $url);
+        curl_setopt($curl_request, CURLOPT_POST, 1);
+        curl_setopt($curl_request, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+        curl_setopt($curl_request, CURLOPT_HEADER, 1);
+        curl_setopt($curl_request, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($curl_request, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl_request, CURLOPT_FOLLOWLOCATION, 0);
+
+        $jsonEncodedData = json_encode($parameters);
+
+        $post = array(
+             "method" => $method,
+             "input_type" => "JSON",
+             "response_type" => "JSON",
+             "rest_data" => $jsonEncodedData
+        );
+
+        curl_setopt($curl_request, CURLOPT_POSTFIELDS, $post);
+        $result = curl_exec($curl_request);
+        curl_close($curl_request);
+
+        $result = explode("\r\n\r\n", $result, 2);
+        $response = json_decode($result[1]);
+        ob_end_flush();
+
+        return $response;
+    }
     
 }
