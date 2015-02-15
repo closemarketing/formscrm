@@ -178,13 +178,13 @@ class GFCRM extends GFFeedAddOn {
                 array( 'label' => __('Full Name', 'gravityformscrm' ) , 'name' => 'fullname' ),
                 array( 'label' => __('Phone', 'gravityformscrm' ) , 'name' => 'phone' ),
                 array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'leadsource' ),
+                array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
                 array( 'label' => __('Birthday', 'gravityformscrm' ) , 'name' => 'birthday' ),
                 array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'mailingstreet' ),
                 array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'mailingcity' ),
                 array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'mailingstate' ),
                 array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'mailingzip' ),
                 array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'mailingcountry' ),
-                array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
             );
         } elseif($crm_type == 'SugarCRM') {
             $custom_fields = array( //Custom Fields for SugarCRM
@@ -192,13 +192,13 @@ class GFCRM extends GFFeedAddOn {
                 array( 'label' => __('First Name', 'gravityformscrm' ) , 'name' => 'first_name' ),
                 array( 'label' => __('Last Name', 'gravityformscrm' ) , 'name' => 'last_name' ),
                 array( 'label' => __('Phone Work', 'gravityformscrm' ) , 'name' => 'phone_work' ),
+                array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
                 array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'lead_source' ),
                 array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'primary_address_street' ),
                 array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'primary_address_city' ),
                 array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'primary_address_state' ),
                 array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'primary_address_postalcode' ),
                 array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'primary_address_country' ),
-                array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
             );
         }
 
