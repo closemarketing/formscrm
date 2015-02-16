@@ -256,19 +256,19 @@ class GFCRM extends GFFeedAddOn {
 			if ( GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
 				$ary          = explode( '|', $entry[ $field_id ] );
 				$product_name = count( $ary ) > 0 ? $ary[0] : '';
-				$merge_vars[] = array( 'Key' => $var_key, 'Value' => $product_name );
+				$merge_vars[] = array( 'name' => $var_key, 'value' => $product_name );
 			} else if ( RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
 				foreach ( $field['inputs'] as $input ) {
 					$index = (string) $input['id'];
 					$merge_vars[] = array(
-						'Key'   => $var_key,
-						'Value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry )
+						'name'   => $var_key,
+						'value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry )
 					);
 				}
 			} else if ( ! in_array( $var_key, array( 'email', 'fullname' ) ) ) {
 				$merge_vars[] = array(
-					'Key'   => $var_key,
-					'Value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry )
+					'name'   => $var_key,
+					'value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry )
 				);
 			}
 		}
@@ -302,37 +302,34 @@ class GFCRM extends GFFeedAddOn {
             // end vtiger Method    */
         
         } elseif($crm_type == 'SugarCRM') {
-            /*/SugarCRM Method
-              $login_result = call("login", $login_parameters, $url);
+            $login_result = $this->login_api_crm();
+            /*
+            echo "<pre>";
+            print_r($login_result);
+            echo "</pre>";
+            */
 
-                /*
-                echo "<pre>";
-                print_r($login_result);
-                echo "</pre>";
-                */
+            //get session id
+            $session_id = $login_result->id;
+            print_r($merge_vars);
+            
+            //create account -------------------------------------     
+            $set_entry_parameters = array(
+                 //session id
+                 "session" => $session_id,
+                 //The name of the module from which to retrieve records.
+                 "module_name" => "Leads",
+                 //Record attributes
+                 "name_value_list" => array(
+                      array("name" => "first_name", "value" => "Test Account"),
+                 ),
+            );
 
-                //get session id
-                $session_id = $login_result->id;
+            //$set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $url);
 
-                //create account -------------------------------------     
-                $set_entry_parameters = array(
-                     //session id
-                     "session" => $session_id,
-
-                     //The name of the module from which to retrieve records.
-                     "module_name" => "Leads",
-
-                     //Record attributes
-                     "name_value_list" => array(
-                          array("name" => "name", "value" => "Test Account"),
-                     ),
-                );
-
-                $set_entry_result = call_crm("set_entry", $set_entry_parameters, $url);
-
-                echo "<pre>";
-                print_r($set_entry_result);
-                echo "</pre>";
+            echo "<pre>";
+            //print_r($set_entry_result);
+            echo "</pre>";
         } // end SugarCRM Method 
 
 	}
