@@ -325,10 +325,10 @@ class GFCRM extends GFFeedAddOn {
                  ),
             );
 
-            //$set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $url);
+            $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $url);
 
             echo "<pre>";
-            //print_r($set_entry_result);
+            print_r($set_entry_result);
             echo "</pre>";
         } // end SugarCRM Method 
 
