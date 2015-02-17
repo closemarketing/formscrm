@@ -194,12 +194,15 @@ class GFCRM extends GFFeedAddOn {
                 array( 'label' => __('Last Name', 'gravityformscrm' ) , 'name' => 'last_name' ),
                 array( 'label' => __('Phone Work', 'gravityformscrm' ) , 'name' => 'phone_work' ),
                 array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
-                array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'lead_source' ),
                 array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'primary_address_street' ),
                 array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'primary_address_city' ),
                 array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'primary_address_state' ),
                 array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'primary_address_postalcode' ),
                 array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'primary_address_country' ),
+                array( 'label' => __('Assigned User ID', 'gravityformscrm' ) , 'name' => 'assigned_user_id' ),
+                array( 'label' => __('Created by ID', 'gravityformscrm' ) , 'name' => 'created_by' ),
+                array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'lead_source' ),
+                array( 'label' => __('Campaign ID', 'gravityformscrm' ) , 'name' => 'campaign_id' ),
             );
             
         /*/get session id
@@ -299,6 +302,7 @@ class GFCRM extends GFFeedAddOn {
             
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
+        $url  = $settings['gf_crm_url'];
         
         $login_result = $this->login_api_crm();
         
@@ -309,7 +313,7 @@ class GFCRM extends GFFeedAddOn {
                 'EmailAddress' => $email,
                 'lastname'     => $name
             );
-            $lead_array = array_merge($leadvar, $mergevars);
+            $lead_array = array_merge($leadvar, $merge_vars);
             
             $webservice = $url . '/webservice.php';
             
@@ -328,33 +332,18 @@ class GFCRM extends GFFeedAddOn {
             // end vtiger Method   
         
         } elseif($crm_type == 'SugarCRM') {
-            /*
-            echo "<pre>";
-            print_r($login_result);
-            echo "</pre>";
-            */
-
-            //get session id
+            // SugarCRM Method
+            $webservice = $url.'/service/v4_1/rest.php';
             $session_id = $login_result->id;
-            print_r($merge_vars);
             
-            //create account -------------------------------------     
             $set_entry_parameters = array(
-                 //session id
                  "session" => $session_id,
-                 //The name of the module from which to retrieve records.
                  "module_name" => "Leads",
-                 //Record attributes
                  "name_value_list" => $merge_vars
             );
             
-            print_r($set_entry_parameters);
+            $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $webservice);
 
-            $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $url);
-
-            echo "<pre>";
-            print_r($set_entry_result);
-            echo "</pre>";
         } // end SugarCRM Method 
 
 	}
