@@ -170,6 +170,7 @@ class GFCRM extends GFFeedAddOn {
             
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
+        $url  = $settings['gf_crm_url'];
         
         
         if($crm_type == 'vTiger') { //vtiger Method
@@ -200,9 +201,25 @@ class GFCRM extends GFFeedAddOn {
                 array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'primary_address_postalcode' ),
                 array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'primary_address_country' ),
             );
+            
+        /*/get session id
+        $login_result = $this->login_api_crm();
+        $session_id = $login_result->id;
+        $url = $url.'/service/v4_1/rest.php';
+
+        //retrieve fields --------------------------------     
+            $get_module_fields_parameters = array(
+             'session' => $session_id,
+             'module_name' => 'Leads',
+             'fields' => array( 'id', 'name' ),
+            );
+
+        $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
+
+        echo "<pre>";
+        print_r($get_module_fields_result);
+        echo "</pre>";*/
         }
-
-
         
 		return $custom_fields;
 
@@ -283,26 +300,34 @@ class GFCRM extends GFFeedAddOn {
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         
+        $login_result = $this->login_api_crm();
+        
         
         if($crm_type == 'vTiger') { //vtiger Method
-            /*/vTiger Method
-            $lead = array(
+            //vTiger Method
+            $leadvar = array(
                 'EmailAddress' => $email,
-                'lastname'     => $name,
-                'CustomFields' => $merge_vars
+                'lastname'     => $name
             );
-            //$this->include_api();
+            $lead_array = array_merge($leadvar, $mergevars);
+            
+            $webservice = $url . '/webservice.php';
+            
+            $params = array(
+                'operation'     => 'create',
+                'sessionName'   => $login_result,
+                'element'       => $lead_array,
+                'elementType'   => 'Leads'
+                );
+  
+            $result = $this->call_vtiger_post($webservice, $params);
+            $json = json_decode($result, true);
 
-            $record = $client_crm->doCreate('Leads', $lead￼);
-    ￼
-            if( $record ) {
-                $recordid = $client_crm->getRecordId($record['id']); 
-                $this->log_debug( __('Added Lead ID', 'gravityformscrm' ).' '.$recordid );
-            }
-            // end vtiger Method    */
+            var_dump($json);
+
+            // end vtiger Method   
         
         } elseif($crm_type == 'SugarCRM') {
-            $login_result = $this->login_api_crm();
             /*
             echo "<pre>";
             print_r($login_result);
@@ -320,10 +345,10 @@ class GFCRM extends GFFeedAddOn {
                  //The name of the module from which to retrieve records.
                  "module_name" => "Leads",
                  //Record attributes
-                 "name_value_list" => array(
-                      array("name" => "first_name", "value" => "Test Account"),
-                 ),
+                 "name_value_list" => $merge_vars
             );
+            
+            print_r($set_entry_parameters);
 
             $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $url);
 
@@ -339,7 +364,7 @@ class GFCRM extends GFFeedAddOn {
 		$count = count( $merge_vars );
 
 		for ( $i = 0; $i < $count; $i++ ){
-			if( rgblank( $merge_vars[$i]['Value'] ) ){
+			if( rgblank( $merge_vars[$i]['value'] ) ){
 				unset( $merge_vars[$i] );
 			}
 		}
@@ -371,7 +396,7 @@ class GFCRM extends GFFeedAddOn {
 	}
 
     private function is_valid_key(){
-        $result_api = $this->login_api_crm();;
+        $result_api = $this->login_api_crm();
         return $result_api;
     }
     
@@ -384,14 +409,31 @@ class GFCRM extends GFFeedAddOn {
     $password = $settings['gf_crm_password'];
         
     if($crm_type == 'vTiger') { //vtiger Method
-        include_once('includes/WSClient.php');
+        $webservice = $url . '/webservice.php';
+        $operation = '?operation=getchallenge&username='.$username;
+        $result = $this->call_vtiger_get($webservice.$operation);
+        $json = json_decode($result, true);
+        $challengeToken = $json['result']['token'];
 
-        $client_crm = new Vtiger_WSClient( $url );
+        // Get MD5 checksum of the concatenation of challenge token and user own Access Key
+        $accessKey = md5($challengeToken.$password);
 
-        $login = $client_crm->doLogin($username , $password );
+        // Define login operation parameters
+        $operation2 = array(
+            "operation" => "login",
+            "username" => $username,
+            "accessKey" => $accessKey
+            );
 
-        if(!$login) {  $login_result = false; } else { $login_result = $login; }
-    } elseif($crm_type == 'SugarCRM') {
+        // Execute and get result on server response for login operation    
+        $result = $this->call_vtiger_post($webservice, $operation2);
+        // Decode JSON response
+        $json = json_decode($result, true);
+        
+        //var_dump($json);
+        $login_result = $json['result']['sessionName'];
+        
+    } elseif($crm_type == 'SugarCRM') { //sugarcrm method
         $url = $url.'/service/v4_1/rest.php';
 
         //login ------------------------------     
@@ -444,6 +486,37 @@ class GFCRM extends GFFeedAddOn {
         ob_end_flush();
 
         return $response;
+    }
+    // cURL GET function for vTiger
+    private function call_vtiger_get($url) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_URL,$url);
+        $data=curl_exec($ch);
+        curl_close($ch);
+        return $data;
+    }
+
+    // cURL POST function for vTiger
+    private function call_vtiger_post($url,$params) {
+       $postData = '';
+       //create name value pairs seperated by &
+       foreach($params as $k => $v) 
+       { 
+          $postData .= $k . '='.$v.'&'; 
+       }
+       rtrim($postData, '&');
+
+       $ch = curl_init();  
+       curl_setopt($ch,CURLOPT_URL,$url);
+       curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+       curl_setopt($ch,CURLOPT_HEADER, false); 
+       curl_setopt($ch, CURLOPT_POST, count($postData));
+       curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);    
+       $output=curl_exec($ch);
+       curl_close($ch);
+       return $output;
     }
     
 }
