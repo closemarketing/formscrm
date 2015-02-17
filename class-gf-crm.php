@@ -177,6 +177,7 @@ class GFCRM extends GFFeedAddOn {
             $custom_fields = array( //Custom Fields for vTiger
                 array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'email', 'required' => true ),
                 array( 'label' => __('Full Name', 'gravityformscrm' ) , 'name' => 'fullname' ),
+                array( 'label' => __('Last Name', 'gravityformscrm' ) , 'name' => 'lastname' ),
                 array( 'label' => __('Phone', 'gravityformscrm' ) , 'name' => 'phone' ),
                 array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'leadsource' ),
                 array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
@@ -304,26 +305,31 @@ class GFCRM extends GFFeedAddOn {
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         
+            echo '<pre>';
+        print_r($merge_vars);
+            echo '</pre>';
+        
         $login_result = $this->login_api_crm();
         
         
         if($crm_type == 'vTiger') { //vtiger Method
-            //vTiger Method
-            $leadvar = array(
-                'EmailAddress' => $email,
-                'lastname'     => $name
-            );
-            $lead_array = array_merge($leadvar, $merge_vars);
-            
+            //vTiger Method            
             $webservice = $url . '/webservice.php';
             
+            $merge_vars = $this->convert_custom_fields( $merge_vars );
+
+            $objectJson = json_encode($merge_vars);
             $params = array(
                 'operation'     => 'create',
                 'sessionName'   => $login_result,
-                'element'       => $lead_array,
+                'element'       => $objectJson,
                 'elementType'   => 'Leads'
                 );
-  
+            
+            echo '<pre>';
+            print_r($params);
+            echo '</pre>';
+
             $result = $this->call_vtiger_post($webservice, $params);
             $json = json_decode($result, true);
 
@@ -347,6 +353,18 @@ class GFCRM extends GFFeedAddOn {
         } // end SugarCRM Method 
 
 	}
+    
+    /* Converts Array to vtiger webservice specification */
+    private static function convert_custom_fields( $merge_vars ){
+        $i=0;
+		$count = count( $merge_vars );
+
+		for ( $i = 0; $i < $count; $i++ ){
+            $name=$merge_vars[$i]['name'];
+            $vtiger_array[$i][$name] = $merge_vars[$i]['value'];
+        }
+        return $vtiger_array;
+    }
 
 	private static function remove_blank_custom_fields( $merge_vars ){
 		$i=0;
