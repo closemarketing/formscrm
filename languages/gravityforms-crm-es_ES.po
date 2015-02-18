@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Gravity Forms VTiger CRM Add-On\n"
-"POT-Creation-Date: 2015-02-15 18:51+0100\n"
-"PO-Revision-Date: 2015-02-15 18:52+0100\n"
+"POT-Creation-Date: 2015-02-18 19:29+0100\n"
+"PO-Revision-Date: 2015-02-18 19:30+0100\n"
 "Last-Translator: David <david@closemarketing.es>\n"
 "Language-Team: David <david@closemarketing.es>\n"
 "Language: es_ES\n"
@@ -33,122 +33,155 @@ msgstr ""
 msgid "CRM Type"
 msgstr ""
 
-#: class-gf-crm.php:63
-#, fuzzy
+#: class-gf-crm.php:73
 msgid "CRM URL"
-msgstr "Enlace (URL)"
+msgstr "CRM URL"
 
-#: class-gf-crm.php:69
+#: class-gf-crm.php:79
 msgid "Username"
 msgstr "Nombre de usuario"
 
-#: class-gf-crm.php:75
+#: class-gf-crm.php:85
 msgid "API Password for User"
 msgstr ""
 
-#: class-gf-crm.php:95
+#: class-gf-crm.php:105
 msgid ""
 "You can find your unique API key by clicking on the 'Account Settings' link "
 "at the top of your CRM screen."
 msgstr ""
 
-#: class-gf-crm.php:111
+#: class-gf-crm.php:121
 #, php-format
 msgid ""
 "We are unable to login to CRM with the provided API key. Please make sure "
 "you have entered a valid API key in the %sSettings Page%s"
 msgstr ""
 
-#: class-gf-crm.php:127
+#: class-gf-crm.php:137
 msgid "CRM Feed"
 msgstr ""
 
-#: class-gf-crm.php:132 class-gf-crm.php:136
+#: class-gf-crm.php:142 class-gf-crm.php:146 class-gf-crm.php:239
 msgid "Name"
 msgstr "Nombre"
 
-#: class-gf-crm.php:136
+#: class-gf-crm.php:146
 #, fuzzy
 msgid "Enter a feed name to uniquely identify this setup."
 msgstr ""
 "Introduce el nombre del conector único para identificar esta configuración."
 
-#: class-gf-crm.php:140 class-gf-crm.php:144
+#: class-gf-crm.php:150 class-gf-crm.php:154
 msgid "Map Fields"
 msgstr "Mapa de Campos"
 
-#: class-gf-crm.php:144
+#: class-gf-crm.php:154
 msgid ""
 "Associate your CRM custom fields to the appropriate Gravity Form fields by "
 "selecting the appropriate form field from the list."
 msgstr ""
 
-#: class-gf-crm.php:167 class-gf-crm.php:174
-#, fuzzy
-msgid "Resubscribe"
-msgstr "Resuscribir"
-
-#: class-gf-crm.php:174
-#, fuzzy
-msgid ""
-"When this option is enabled, if the subscriber is in an inactive state or "
-"has previously been unsubscribed, they will be re-added to the active list. "
-"Therefore, this option should be used with caution and only when appropriate."
-msgstr ""
-"Cuando se activa esta opción, si el abonado se encuentra en un estado "
-"inactivo o ha sido previamente dado de baja, que se volverán a añadirse a la "
-"lista activa. Por lo tanto, esta opción debe utilizarse con precaución y "
-"sólo cuando sea necesario."
-
-#: class-gf-crm.php:180
-msgid ""
-"This option will re-subscribe users that have been unsubscribed. Use with "
-"caution and only when appropriate."
-msgstr ""
-
-#: class-gf-crm.php:193
+#: class-gf-crm.php:178 class-gf-crm.php:193
 msgid "Email Address"
 msgstr "Dirección de correo"
 
-#: class-gf-crm.php:194
+#: class-gf-crm.php:179
 msgid "Full Name"
 msgstr "Nombre completo"
 
-#: class-gf-crm.php:195
+#: class-gf-crm.php:180 class-gf-crm.php:195
+msgid "Last Name"
+msgstr "Apellidos"
+
+#: class-gf-crm.php:181
 msgid "Phone"
 msgstr "Teléfono"
 
-#: class-gf-crm.php:196
+#: class-gf-crm.php:182 class-gf-crm.php:208
 msgid "Lead Source"
 msgstr ""
 
-#: class-gf-crm.php:197
+#: class-gf-crm.php:183 class-gf-crm.php:198
+msgid "Description"
+msgstr "Descripción"
+
+#: class-gf-crm.php:184
 msgid "Birthday"
 msgstr ""
 
-#: class-gf-crm.php:198
+#: class-gf-crm.php:185 class-gf-crm.php:200
 msgid "Address"
 msgstr "Dirección"
 
-#: class-gf-crm.php:199
+#: class-gf-crm.php:186 class-gf-crm.php:201
 msgid "City"
 msgstr "Ciudad"
 
-#: class-gf-crm.php:200
+#: class-gf-crm.php:187 class-gf-crm.php:202
 msgid "State"
 msgstr "Provincia"
 
-#: class-gf-crm.php:201
+#: class-gf-crm.php:188 class-gf-crm.php:203
 msgid "ZIP"
 msgstr "Código Postal"
 
-#: class-gf-crm.php:202
+#: class-gf-crm.php:189 class-gf-crm.php:204
 msgid "Country"
 msgstr "País"
 
-#: class-gf-crm.php:203
-msgid "Description"
-msgstr "Descripción"
+#: class-gf-crm.php:194
+msgid "First Name"
+msgstr "Nombre"
+
+#: class-gf-crm.php:196
+msgid "Phone Work"
+msgstr "Teléfono Trabajo"
+
+#: class-gf-crm.php:197
+msgid "Phone Mobile"
+msgstr ""
+
+#: class-gf-crm.php:199
+msgid "Status Description"
+msgstr "Descripción Estado"
+
+#: class-gf-crm.php:205
+msgid "Website"
+msgstr "Sitio Web"
+
+#: class-gf-crm.php:206
+#, fuzzy
+msgid "Assigned User ID"
+msgstr "ID de usuario PayTrace"
+
+#: class-gf-crm.php:207
+msgid "Created by ID"
+msgstr ""
+
+#: class-gf-crm.php:209
+msgid "Campaign ID"
+msgstr ""
+
+#: class-gf-crm.php:210
+msgid "Status"
+msgstr "Estado"
+
+#, fuzzy
+#~ msgid "Resubscribe"
+#~ msgstr "Resuscribir"
+
+#, fuzzy
+#~ msgid ""
+#~ "When this option is enabled, if the subscriber is in an inactive state or "
+#~ "has previously been unsubscribed, they will be re-added to the active "
+#~ "list. Therefore, this option should be used with caution and only when "
+#~ "appropriate."
+#~ msgstr ""
+#~ "Cuando se activa esta opción, si el abonado se encuentra en un estado "
+#~ "inactivo o ha sido previamente dado de baja, que se volverán a añadirse a "
+#~ "la lista activa. Por lo tanto, esta opción debe utilizarse con precaución "
+#~ "y sólo cuando sea necesario."
 
 #~ msgid "Client"
 #~ msgstr "Cliente"

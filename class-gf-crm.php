@@ -35,6 +35,8 @@ class GFCRM extends GFFeedAddOn {
 	public function init() {
 
 		parent::init();
+        //loading translations
+            load_plugin_textdomain('gravityforms-crm', FALSE, '/gravityforms-crm/languages' );
 
 	}
 
@@ -172,11 +174,10 @@ class GFCRM extends GFFeedAddOn {
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         
-        
         if($crm_type == 'vTiger') { //vtiger Method
             $custom_fields = array( //Custom Fields for vTiger
                 array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'email', 'required' => true ),
-                array( 'label' => __('Full Name', 'gravityformscrm' ) , 'name' => 'fullname' ),
+                array( 'label' => __('First Name', 'gravityformscrm' ) , 'name' => 'firstname' ),
                 array( 'label' => __('Last Name', 'gravityformscrm' ) , 'name' => 'lastname' ),
                 array( 'label' => __('Phone', 'gravityformscrm' ) , 'name' => 'phone' ),
                 array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'leadsource' ),
@@ -270,12 +271,13 @@ class GFCRM extends GFFeedAddOn {
 
 		$email       = $entry[ $feed['meta']['listFields_email'] ];
 		$name        = '';
-		if ( ! empty( $feed['meta']['listFields_fullname'] ) ) {
-			$name = $this->get_name( $entry, $feed['meta']['listFields_fullname'] );
+		if ( ! empty( $feed['meta']['listFields_first_name'] ) ) {
+			$name = $this->get_name( $entry, $feed['meta']['listFields_first_name'] );
 		}
 
 		$merge_vars = array();
 		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
+        
 		foreach ( $field_maps as $var_key => $field_id ) {
 			$field = RGFormsModel::get_field( $form, $field_id );
 			if ( GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
@@ -290,7 +292,7 @@ class GFCRM extends GFFeedAddOn {
 						'value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry )
 					);
 				}
-			} else if ( ! in_array( $var_key, array( 'email', 'fullname' ) ) ) {
+			} else  {
 				$merge_vars[] = array(
 					'name'   => $var_key,
 					'value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry )
@@ -309,10 +311,6 @@ class GFCRM extends GFFeedAddOn {
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         
-            echo '<pre>';
-        print_r($merge_vars);
-            echo '</pre>';
-        
         $login_result = $this->login_api_crm();
         
         
@@ -330,7 +328,7 @@ class GFCRM extends GFFeedAddOn {
                 'elementType'   => 'Leads'
                 );
             
-            echo '<pre>';
+            echo '<pre> Despues';
             print_r($params);
             echo '</pre>';
 
@@ -375,7 +373,9 @@ class GFCRM extends GFFeedAddOn {
 		$count = count( $merge_vars );
 
 		for ( $i = 0; $i < $count; $i++ ){
-			if( rgblank( $merge_vars[$i]['value'] ) ){
+            if( rgblank( $merge_vars[$i]['value'] ) && $merge_vars[$i]['name']=="lastname" ){
+                $merge_vars[$i]['value']="#";
+            } elseif( rgblank( $merge_vars[$i]['value'] ) ){
 				unset( $merge_vars[$i] );
 			}
 		}
