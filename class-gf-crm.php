@@ -175,20 +175,37 @@ class GFCRM extends GFFeedAddOn {
         $url  = $settings['gf_crm_url'];
         
         if($crm_type == 'vTiger') { //vtiger Method
-            $custom_fields = array( //Custom Fields for vTiger
-                array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'email', 'required' => true ),
-                array( 'label' => __('First Name', 'gravityformscrm' ) , 'name' => 'firstname' ),
-                array( 'label' => __('Last Name', 'gravityformscrm' ) , 'name' => 'lastname' ),
-                array( 'label' => __('Phone', 'gravityformscrm' ) , 'name' => 'phone' ),
-                array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'leadsource' ),
-                array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
-                array( 'label' => __('Birthday', 'gravityformscrm' ) , 'name' => 'birthday' ),
-                array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'mailingstreet' ),
-                array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'mailingcity' ),
-                array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'mailingstate' ),
-                array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'mailingzip' ),
-                array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'mailingcountry' ),
-            );
+            //Get fields from module
+            $login_result = $this->login_api_crm();   
+    
+            $webservice = $url . '/webservice.php';
+            $operation = '?operation=describe&sessionName='.$login_result.'&elementType=Leads';
+
+            $result = $this->call_vtiger_get($webservice.$operation);
+            $result = json_decode($result);
+            $result = get_object_vars($result);
+            $result = get_object_vars($result['result']);
+            $i=0;
+            $custom_fields = array();
+            foreach ($result['fields'] as $arrayob) {
+                $field = get_object_vars($arrayob);
+
+                
+                if($field['mandatory']==1) { 
+                    $custom_fields[$i] = array(
+                        'label' => $field['label'],
+                        'name' => $field['name'],
+                        'required' => true,
+                        );
+                } else {
+                    $custom_fields[$i] = array(
+                        'label' => $field['label'],
+                        'name' => $field['name']
+                        );
+                }
+                $i++;
+            }
+            
         } elseif($crm_type == 'SugarCRM') {
             $custom_fields = array( //Custom Fields for SugarCRM
                 array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'webtolead_email1', 'required' => true ),
@@ -210,7 +227,7 @@ class GFCRM extends GFFeedAddOn {
                 array( 'label' => __('Campaign ID', 'gravityformscrm' ) , 'name' => 'campaign_id' ),
                 array( 'label' => __('Status', 'gravityformscrm' ) , 'name' => 'status' ),
             );
-            
+        
         /*/get session id
         $login_result = $this->login_api_crm();
         $session_id = $login_result->id;
@@ -269,8 +286,8 @@ class GFCRM extends GFFeedAddOn {
 
 	public function export_feed( $entry, $form, $feed ) {
 
-		$email       = $entry[ $feed['meta']['listFields_email'] ];
-		$name        = '';
+		//$email       = $entry[ $feed['meta']['listFields_email'] ];
+		//$name        = '';
 		if ( ! empty( $feed['meta']['listFields_first_name'] ) ) {
 			$name = $this->get_name( $entry, $feed['meta']['listFields_first_name'] );
 		}
@@ -318,19 +335,14 @@ class GFCRM extends GFFeedAddOn {
             //vTiger Method            
             $webservice = $url . '/webservice.php';
             
-            $merge_vars = $this->convert_custom_fields( $merge_vars );
+            $jsondata = $this->convert_custom_fields( $merge_vars );
 
-            $objectJson = json_encode($merge_vars);
             $params = array(
                 'operation'     => 'create',
                 'sessionName'   => $login_result,
-                'element'       => $objectJson,
+                'element'       => $jsondata,
                 'elementType'   => 'Leads'
                 );
-            
-            echo '<pre> Despues';
-            print_r($params);
-            echo '</pre>';
 
             $result = $this->call_vtiger_post($webservice, $params);
             $json = json_decode($result, true);
@@ -360,22 +372,25 @@ class GFCRM extends GFFeedAddOn {
     private static function convert_custom_fields( $merge_vars ){
         $i=0;
 		$count = count( $merge_vars );
+        $jsontext = '{';
 
 		for ( $i = 0; $i < $count; $i++ ){
-            $name=$merge_vars[$i]['name'];
-            $vtiger_array[$i][$name] = $merge_vars[$i]['value'];
+            $jsontext .= '"'.$merge_vars[$i]['name'].'":"'.$merge_vars[$i]['value'].'"';
+            if($i<$count-1) {$jsontext .=', '; } 
+            //'{"lastname":"#", "email":"david@closemarketing.es","industry":"bla"}'
         }
-        return $vtiger_array;
+        $jsontext .= '}';
+        
+        return $jsontext;
     }
 
 	private static function remove_blank_custom_fields( $merge_vars ){
 		$i=0;
+
 		$count = count( $merge_vars );
 
 		for ( $i = 0; $i < $count; $i++ ){
-            if( rgblank( $merge_vars[$i]['value'] ) && $merge_vars[$i]['name']=="lastname" ){
-                $merge_vars[$i]['value']="#";
-            } elseif( rgblank( $merge_vars[$i]['value'] ) ){
+            if( rgblank( $merge_vars[$i]['value'] ) ){
 				unset( $merge_vars[$i] );
 			}
 		}
@@ -518,9 +533,6 @@ class GFCRM extends GFFeedAddOn {
           $postData .= $k . '='.$v.'&'; 
        }
        rtrim($postData, '&');
-        echo '<pre> Postdata ';
-        print_r($postData);
-        echo '</pre>';
 
        $ch = curl_init();  
        curl_setopt($ch,CURLOPT_URL,$url);
