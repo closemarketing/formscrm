@@ -518,6 +518,9 @@ class GFCRM extends GFFeedAddOn {
           $postData .= $k . '='.$v.'&'; 
        }
        rtrim($postData, '&');
+        echo '<pre> Postdata ';
+        print_r($postData);
+        echo '</pre>';
 
        $ch = curl_init();  
        curl_setopt($ch,CURLOPT_URL,$url);
