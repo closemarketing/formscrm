@@ -207,28 +207,8 @@ class GFCRM extends GFFeedAddOn {
             }
             
         } elseif($crm_type == 'SugarCRM') {
-            $custom_fields = array( //Custom Fields for SugarCRM
-                array( 'label' => __('Email Address', 'gravityformscrm' ), 'name' => 'webtolead_email1', 'required' => true ),
-                array( 'label' => __('First Name', 'gravityformscrm' ) , 'name' => 'first_name' ),
-                array( 'label' => __('Last Name', 'gravityformscrm' ) , 'name' => 'last_name' ),
-                array( 'label' => __('Phone Work', 'gravityformscrm' ) , 'name' => 'phone_work' ),
-                array( 'label' => __('Phone Mobile', 'gravityformscrm' ) , 'name' => 'phone_mobile' ),
-                array( 'label' => __('Description', 'gravityformscrm' ) , 'name' => 'description' ),
-                array( 'label' => __('Status Description', 'gravityformscrm' ) , 'name' => 'status_description' ),
-                array( 'label' => __('Address', 'gravityformscrm' ) , 'name' => 'primary_address_street' ),
-                array( 'label' => __('City', 'gravityformscrm' ) , 'name' => 'primary_address_city' ),
-                array( 'label' => __('State', 'gravityformscrm' ) , 'name' => 'primary_address_state' ),
-                array( 'label' => __('ZIP', 'gravityformscrm' ) , 'name' => 'primary_address_postalcode' ),
-                array( 'label' => __('Country', 'gravityformscrm' ) , 'name' => 'primary_address_country' ),
-                array( 'label' => __('Website', 'gravityformscrm' ) , 'name' => 'website' ),
-                array( 'label' => __('Assigned User ID', 'gravityformscrm' ) , 'name' => 'assigned_user_id' ),
-                array( 'label' => __('Created by ID', 'gravityformscrm' ) , 'name' => 'created_by' ),
-                array( 'label' => __('Lead Source', 'gravityformscrm' ) , 'name' => 'lead_source' ),
-                array( 'label' => __('Campaign ID', 'gravityformscrm' ) , 'name' => 'campaign_id' ),
-                array( 'label' => __('Status', 'gravityformscrm' ) , 'name' => 'status' ),
-            );
         
-        /*/get session id
+        //get session id
         $login_result = $this->login_api_crm();
         $session_id = $login_result->id;
         $url = $url.'/service/v4_1/rest.php';
@@ -237,14 +217,36 @@ class GFCRM extends GFFeedAddOn {
             $get_module_fields_parameters = array(
              'session' => $session_id,
              'module_name' => 'Leads',
-             'fields' => array( 'id', 'name' ),
             );
 
         $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
+        $get_module_fields_result = $get_module_fields_result->module_fields;
+        $get_module_fields_result = get_object_vars($get_module_fields_result);
 
-        echo "<pre>";
-        print_r($get_module_fields_result);
-        echo "</pre>";*/
+                    echo "<pre>";
+        //print_r($get_module_fields_result);
+        echo "</pre>";
+        $i=0;
+        $custom_fields = array();
+        foreach ($get_module_fields_result as $arrayob) {
+            $field = get_object_vars($arrayob);
+
+            if($field['name']=='id') {
+            } elseif($field['required']==1) { 
+                $custom_fields[$i] = array(
+                    'label' => $field['label'],
+                    'name' => $field['name'],
+                    'required' => true,
+                    );
+            } else {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'],
+                    'name' => $field['name']
+                    );
+            }
+            $i++;
+        }
+
         }
         
 		return $custom_fields;
