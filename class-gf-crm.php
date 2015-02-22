@@ -87,7 +87,7 @@ class GFCRM extends GFFeedAddOn {
 						'label' => __( 'API Password for User', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
-						'feedback_callback' => array( $this, 'is_valid_key' )
+						'feedback_callback' => $this->is_valid_key()
 					),
 				)
 			),
@@ -118,7 +118,7 @@ class GFCRM extends GFFeedAddOn {
 	public function feed_edit_page( $form, $feed_id ) {
 
 		// ensures valid credentials were entered in the settings page
-		if ( $this->is_valid_key() === false ) {
+		if ( $this->is_valid_key() == false ) {
 			?>
 			<div><?php echo sprintf( __( 'We are unable to login to CRM with the provided API key. Please make sure you have entered a valid API key in the %sSettings Page%s', 'gravityformscrm' ),
 					'<a href="' . $this->get_plugin_settings_url() . '">', '</a>' ); ?>
@@ -210,6 +210,8 @@ class GFCRM extends GFFeedAddOn {
         
         //get session id
         $login_result = $this->login_api_crm();
+            
+
         $session_id = $login_result->id;
         $url = $url.'/service/v4_1/rest.php';
 
@@ -425,6 +427,7 @@ class GFCRM extends GFFeedAddOn {
 
     private function is_valid_key(){
         $result_api = $this->login_api_crm();
+   
         return $result_api;
     }
     
@@ -456,10 +459,14 @@ class GFCRM extends GFFeedAddOn {
         // Execute and get result on server response for login operation    
         $result = $this->call_vtiger_post($webservice, $operation2);
         // Decode JSON response
-        $json = json_decode($result, true);
         
-        //var_dump($json);
-        $login_result = $json['result']['sessionName'];
+        $json = json_decode($result, true);
+       
+        if( $result == false ){
+            $login_result = false;
+        } else {
+            $login_result = $json['result']['sessionName'];
+        }
         
     } elseif($crm_type == 'SugarCRM') { //sugarcrm method
         $url = $url.'/service/v4_1/rest.php';
@@ -476,9 +483,9 @@ class GFCRM extends GFFeedAddOn {
         );
 
         $login_result = $this->call_sugarcrm("login", $login_parameters, $url);
+        if( $login_result == 1 )
+            $login_result = false;
     }
-        
-
     return $login_result;
     }
     
@@ -510,7 +517,12 @@ class GFCRM extends GFFeedAddOn {
         curl_close($curl_request);
 
         $result = explode("\r\n\r\n", $result, 2);
-        $response = json_decode($result[1]);
+        
+        if($result[0]=="") 
+            $response = false;
+        else      
+            $response = json_decode($result[1]);
+
         ob_end_flush();
 
         return $response;
@@ -544,6 +556,7 @@ class GFCRM extends GFFeedAddOn {
        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);    
        $output=curl_exec($ch);
        curl_close($ch);
+        
        return $output;
     }
     
