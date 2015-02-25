@@ -47,3 +47,6 @@ class GF_CRM_Bootstrap {
 function gf_crm(){
 	return GFCRM::get_instance();
 }
+//Updates Plugin
+require_once('wp-updates-plugin.php');
+new WPUpdatesPluginUpdater_905( 'http://wp-updates.com/api/2/plugin', plugin_basename(__FILE__));
