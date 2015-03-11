@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms CRM Add-On
 Plugin URI: http://www.gravityforms.com
 Description: Integrates Gravity Forms with CRM allowing form submissions to be automatically sent to your CRM.
-Version: 0.2
+Version: 1.0.1
 Author: closemarketing
 Author URI: http://www.closemarketing.es
 
@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
 
-define( 'GF_CRM_VERSION', '0.2' );
+define( 'GF_CRM_VERSION', '1.0.1' );
 
 add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 
@@ -47,3 +47,6 @@ class GF_CRM_Bootstrap {
 function gf_crm(){
 	return GFCRM::get_instance();
 }
+//Updates Plugin
+require_once('wp-updates-plugin.php');
+new WPUpdatesPluginUpdater_905( 'http://wp-updates.com/api/2/plugin', plugin_basename(__FILE__));
