@@ -225,9 +225,6 @@ class GFCRM extends GFFeedAddOn {
         $get_module_fields_result = $get_module_fields_result->module_fields;
         $get_module_fields_result = get_object_vars($get_module_fields_result);
 
-                    echo "<pre>";
-        //print_r($get_module_fields_result);
-        echo "</pre>";
         $i=0;
         $custom_fields = array();
         foreach ($get_module_fields_result as $arrayob) {
@@ -350,8 +347,6 @@ class GFCRM extends GFFeedAddOn {
 
             $result = $this->call_vtiger_post($webservice, $params);
             $json = json_decode($result, true);
-
-            var_dump($json);
 
             // end vtiger Method   
         
