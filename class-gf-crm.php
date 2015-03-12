@@ -67,6 +67,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'SugarCRM',
                                                         'name'  => 'sugarcrm'
+                                                    ),
+                                                    array(
+                                                        'label' => 'Odoo',
+                                                        'name'  => 'odoo'
                                                     )
                                                 )
 					),
