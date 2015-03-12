@@ -212,48 +212,51 @@ class GFCRM extends GFFeedAddOn {
             
         } elseif($crm_type == 'SugarCRM') {
         
-        //get session id
-        $login_result = $this->login_api_crm();
-            
+            //get session id
+            $login_result = $this->login_api_crm();
 
-        $session_id = $login_result->id;
-        $url = $url.'/service/v4_1/rest.php';
 
-        //retrieve fields --------------------------------     
-            $get_module_fields_parameters = array(
-             'session' => $session_id,
-             'module_name' => 'Leads',
-            );
+            $session_id = $login_result->id;
+            $url = $url.'/service/v4_1/rest.php';
 
-        $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
-        $get_module_fields_result = $get_module_fields_result->module_fields;
-        $get_module_fields_result = get_object_vars($get_module_fields_result);
+            //retrieve fields --------------------------------     
+                $get_module_fields_parameters = array(
+                 'session' => $session_id,
+                 'module_name' => 'Leads',
+                );
 
-                    echo "<pre>";
-        //print_r($get_module_fields_result);
-        echo "</pre>";
-        $i=0;
-        $custom_fields = array();
-        foreach ($get_module_fields_result as $arrayob) {
-            $field = get_object_vars($arrayob);
+            $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
+            $get_module_fields_result = $get_module_fields_result->module_fields;
+            $get_module_fields_result = get_object_vars($get_module_fields_result);
 
-            if($field['name']=='id') {
-            } elseif($field['required']==1) { 
-                $custom_fields[$i] = array(
-                    'label' => $field['label'],
-                    'name' => $field['name'],
-                    'required' => true,
-                    );
-            } else {
-                $custom_fields[$i] = array(
-                    'label' => $field['label'],
-                    'name' => $field['name']
-                    );
-            }
-            $i++;
-        }
+                        echo "<pre>";
+            //print_r($get_module_fields_result);
+            echo "</pre>";
+            $i=0;
+            $custom_fields = array();
+            foreach ($get_module_fields_result as $arrayob) {
+                $field = get_object_vars($arrayob);
 
-        }
+                if($field['name']=='id') {
+                } elseif($field['required']==1) { 
+                    $custom_fields[$i] = array(
+                        'label' => $field['label'],
+                        'name' => $field['name'],
+                        'required' => true,
+                        );
+                } else {
+                    $custom_fields[$i] = array(
+                        'label' => $field['label'],
+                        'name' => $field['name']
+                        );
+                }
+                $i++;
+            } //from SugarCRM
+
+        } elseif($crm_type == 'Odoo') {
+        
+
+        } //Odoo method
         
 		return $custom_fields;
 
@@ -489,7 +492,37 @@ class GFCRM extends GFFeedAddOn {
         $login_result = $this->call_sugarcrm("login", $login_parameters, $url);
         if( $login_result == 1 )
             $login_result = false;
-    }
+        
+    } elseif($crm_type == 'Odoo') { //Odoo Method
+
+           var $user = 'admin';
+           var $password = 'admin';
+           var $dbname = 'db_name';
+           $server_url = $url .'/xmlrpc/';
+
+
+           if(isset($_COOKIE["user_id"]) == true)  {
+               if($_COOKIE["user_id"]>0) {
+               return $_COOKIE["user_id"];
+               }
+           }
+
+           $sock = new xmlrpc_client($server_url.'common');
+           $msg = new xmlrpcmsg('login');
+           $msg->addParam(new xmlrpcval($dbname, "string"));
+           $msg->addParam(new xmlrpcval($user, "string"));
+           $msg->addParam(new xmlrpcval($password, "string"));
+           $resp =  $sock->send($msg);
+           $val = $resp->value();
+           $id = $val->scalarval();
+           setcookie("user_id",$id,time()+3600);
+           if($id > 0) {
+                $login_result = $id;
+           }else{
+               $login_result = false;
+           }
+
+    } //Odoo Method
     return $login_result;
     }
     
