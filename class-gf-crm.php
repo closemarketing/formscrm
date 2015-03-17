@@ -495,9 +495,6 @@ class GFCRM extends GFFeedAddOn {
         
     } elseif($crm_type == 'Odoo') { //Odoo Method
 
-           var $user = 'admin';
-           var $password = 'admin';
-           var $dbname = 'db_name';
            $server_url = $url .'/xmlrpc/';
 
 
@@ -510,7 +507,7 @@ class GFCRM extends GFFeedAddOn {
            $sock = new xmlrpc_client($server_url.'common');
            $msg = new xmlrpcmsg('login');
            $msg->addParam(new xmlrpcval($dbname, "string"));
-           $msg->addParam(new xmlrpcval($user, "string"));
+           $msg->addParam(new xmlrpcval($username, "string"));
            $msg->addParam(new xmlrpcval($password, "string"));
            $resp =  $sock->send($msg);
            $val = $resp->value();
