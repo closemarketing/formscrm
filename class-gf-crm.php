@@ -93,6 +93,12 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
 						'feedback_callback' => $this->is_valid_key()
 					),
+					array(
+						'name'              => 'gf_crm_odoo_db',
+						'label'             => __( 'Odoo DB Name', 'gravityformscrm' ),
+						'type'              => 'text',
+						'class'             => 'medium',
+					)
 				)
 			),
 		);
@@ -445,6 +451,7 @@ class GFCRM extends GFFeedAddOn {
     $url  = $settings['gf_crm_url'];
     $username = $settings['gf_crm_username'];
     $password = $settings['gf_crm_password'];
+    $dbname = $settings['gf_crm_odoo_db'];
         
     if($crm_type == 'vTiger') { //vtiger Method
         $webservice = $url . '/webservice.php';
@@ -495,29 +502,28 @@ class GFCRM extends GFFeedAddOn {
         
     } elseif($crm_type == 'Odoo') { //Odoo Method
 
-           $server_url = $url .'/xmlrpc/';
-
-
-           if(isset($_COOKIE["user_id"]) == true)  {
-               if($_COOKIE["user_id"]>0) {
-               return $_COOKIE["user_id"];
-               }
+        $server_url = $url .'/xmlrpc/';
+        
+        if(isset($_COOKIE["user_id"]) == true)  {
+           if($_COOKIE["user_id"]>0) {
+           return $_COOKIE["user_id"];
            }
+        }
 
-           $sock = new xmlrpc_client($server_url.'common');
-           $msg = new xmlrpcmsg('login');
-           $msg->addParam(new xmlrpcval($dbname, "string"));
-           $msg->addParam(new xmlrpcval($username, "string"));
-           $msg->addParam(new xmlrpcval($password, "string"));
-           $resp =  $sock->send($msg);
-           $val = $resp->value();
-           $id = $val->scalarval();
-           setcookie("user_id",$id,time()+3600);
-           if($id > 0) {
-                $login_result = $id;
-           }else{
-               $login_result = false;
-           }
+        $sock = new xmlrpc_client($server_url.'common');
+        $msg = new xmlrpcmsg('login');
+        $msg->addParam(new xmlrpcval($dbname, "string"));
+        $msg->addParam(new xmlrpcval($username, "string"));
+        $msg->addParam(new xmlrpcval($password, "string"));
+        $resp =  $sock->send($msg);
+        $val = $resp->value();
+        $id = $val->scalarval();
+        setcookie("user_id",$id,time()+3600);
+        if($id > 0) {
+            $login_result = $id;
+        }else{
+           $login_result = false;
+        }
 
     } //Odoo Method
     return $login_result;
