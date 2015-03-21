@@ -87,7 +87,7 @@ class GFCRM extends GFFeedAddOn {
 						'label' => __( 'API Password for User', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
-						'feedback_callback' => $this->is_valid_key()
+						'feedback_callback' => $this->login_api_crm()
 					),
 				)
 			),
@@ -118,9 +118,9 @@ class GFCRM extends GFFeedAddOn {
 	public function feed_edit_page( $form, $feed_id ) {
 
 		// ensures valid credentials were entered in the settings page
-		if ( $this->is_valid_key() == false ) {
+		if ( $this->login_api_crm() == false ) {
 			?>
-			<div><?php echo sprintf( __( 'We are unable to login to CRM with the provided API key. Please make sure you have entered a valid API key in the %sSettings Page%s', 'gravityformscrm' ),
+			<div><?php echo sprintf( __( 'We are unable to login to CRM with the provided API key or URL is incorrect (it must finish with slash / ). Please make sure you have entered a valid API key in the %sSettings Page%s', 'gravityformscrm' ),
 					'<a href="' . $this->get_plugin_settings_url() . '">', '</a>' ); ?>
 			</div>
 			<?php
@@ -184,7 +184,15 @@ class GFCRM extends GFFeedAddOn {
             $result = $this->call_vtiger_get($webservice.$operation);
             $result = json_decode($result);
             $result = get_object_vars($result);
+            
+            if( isset($result['error']) ) { //Handle vTiger error
+                echo '<div class="error">';
+                echo '<p><strong>vTiger ERROR '.$result['error']->code.': </strong> '.$result['error']->message.'</p>';
+                echo '</div>';
+                return;
+            }
             $result = get_object_vars($result['result']);
+
             $i=0;
             $custom_fields = array();
             foreach ($result['fields'] as $arrayob) {
@@ -422,6 +430,8 @@ class GFCRM extends GFFeedAddOn {
 
     private function is_valid_key(){
         $result_api = $this->login_api_crm();
+        
+        echo $result_api;
    
         return $result_api;
     }
@@ -433,6 +443,11 @@ class GFCRM extends GFFeedAddOn {
     $url  = $settings['gf_crm_url'];
     $username = $settings['gf_crm_username'];
     $password = $settings['gf_crm_password'];
+        
+    if(substr($url, -1) !='/') { //error if url is without slash
+        $login_result = false;
+        return $login_result;
+    }
         
     if($crm_type == 'vTiger') { //vtiger Method
         $webservice = $url . '/webservice.php';
@@ -457,7 +472,7 @@ class GFCRM extends GFFeedAddOn {
         
         $json = json_decode($result, true);
        
-        if( $result == false ){
+        if( $json['success'] == false ){
             $login_result = false;
         } else {
             $login_result = $json['result']['sessionName'];
