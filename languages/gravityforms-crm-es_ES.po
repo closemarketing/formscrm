@@ -2,14 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gravity Forms VTiger CRM Add-On\n"
 "POT-Creation-Date: 2015-02-18 19:29+0100\n"
-"PO-Revision-Date: 2015-02-18 19:30+0100\n"
+"PO-Revision-Date: 2015-03-22 17:18+0100\n"
 "Last-Translator: David <david@closemarketing.es>\n"
 "Language-Team: David <david@closemarketing.es>\n"
 "Language: es_ES\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.7.4\n"
+"X-Generator: Poedit 1.7.5\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
@@ -28,10 +28,12 @@ msgid ""
 "CRM is a CRM software. Use Gravity Forms to collect customer information and "
 "automatically add them to your crm Leads."
 msgstr ""
+"CRM es un software de CRM. Utiliza Gravity Forms para recoger información de "
+"los clientes y añadirlos automáticamente al CRM."
 
 #: class-gf-crm.php:57
 msgid "CRM Type"
-msgstr ""
+msgstr "Tipo CRM"
 
 #: class-gf-crm.php:73
 msgid "CRM URL"
@@ -43,13 +45,15 @@ msgstr "Nombre de usuario"
 
 #: class-gf-crm.php:85
 msgid "API Password for User"
-msgstr ""
+msgstr "Contraseña API para Usuario"
 
 #: class-gf-crm.php:105
 msgid ""
 "You can find your unique API key by clicking on the 'Account Settings' link "
 "at the top of your CRM screen."
 msgstr ""
+"Puedes encontrar la llave API haciendo clic en Configuración Cuenta en la "
+"parte superior de la pantalla CRM."
 
 #: class-gf-crm.php:121
 #, php-format
@@ -57,17 +61,19 @@ msgid ""
 "We are unable to login to CRM with the provided API key. Please make sure "
 "you have entered a valid API key in the %sSettings Page%s"
 msgstr ""
+"No hemos podido iniciar la sesión en el CRM con la llave API ofrecida. Por "
+"favor, revisa de que se haya puesto la contraseña API en %sPágina "
+"Configuración%s"
 
 #: class-gf-crm.php:137
 msgid "CRM Feed"
-msgstr ""
+msgstr "Conector CRM"
 
 #: class-gf-crm.php:142 class-gf-crm.php:146 class-gf-crm.php:239
 msgid "Name"
 msgstr "Nombre"
 
 #: class-gf-crm.php:146
-#, fuzzy
 msgid "Enter a feed name to uniquely identify this setup."
 msgstr ""
 "Introduce el nombre del conector único para identificar esta configuración."
@@ -81,6 +87,8 @@ msgid ""
 "Associate your CRM custom fields to the appropriate Gravity Form fields by "
 "selecting the appropriate form field from the list."
 msgstr ""
+"Asocia los campos CRM con los campos de Gravity Forms seleccionando de la "
+"primera y la última."
 
 #: class-gf-crm.php:178 class-gf-crm.php:193
 msgid "Email Address"
@@ -100,7 +108,7 @@ msgstr "Teléfono"
 
 #: class-gf-crm.php:182 class-gf-crm.php:208
 msgid "Lead Source"
-msgstr ""
+msgstr "Origen Potencial"
 
 #: class-gf-crm.php:183 class-gf-crm.php:198
 msgid "Description"
@@ -108,7 +116,7 @@ msgstr "Descripción"
 
 #: class-gf-crm.php:184
 msgid "Birthday"
-msgstr ""
+msgstr "Cumpleaños"
 
 #: class-gf-crm.php:185 class-gf-crm.php:200
 msgid "Address"
@@ -140,7 +148,7 @@ msgstr "Teléfono Trabajo"
 
 #: class-gf-crm.php:197
 msgid "Phone Mobile"
-msgstr ""
+msgstr "Móvil"
 
 #: class-gf-crm.php:199
 msgid "Status Description"
@@ -151,17 +159,16 @@ msgid "Website"
 msgstr "Sitio Web"
 
 #: class-gf-crm.php:206
-#, fuzzy
 msgid "Assigned User ID"
-msgstr "ID de usuario PayTrace"
+msgstr "ID al Usuario Asignado"
 
 #: class-gf-crm.php:207
 msgid "Created by ID"
-msgstr ""
+msgstr "Creado por ID"
 
 #: class-gf-crm.php:209
 msgid "Campaign ID"
-msgstr ""
+msgstr "ID Campaña"
 
 #: class-gf-crm.php:210
 msgid "Status"
