@@ -4,7 +4,7 @@ Tags: gravityforms, gravity, form, forms, gravity forms, translation, spanish, e
 Requires at least: 3.0
 Tested up to: 4.0
 Stable tag: 1.6
-Version: 1.6
+Version: 1.0.2
 
 Gravity Forms CRM Addon allows you to connect different CRM and create new Leads as the forms are filled automatically.
 
@@ -32,8 +32,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 
 == Changelog ==
+= 1.0.2 =
+* Handle vTiger errors
 
-= 1.1.0 =
+= 1.0.1 =
 * Some fixes after submit form
 * WP Updates automatically
 
@@ -43,7 +45,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Links ==
 
-*	[Closemarketing](http://www.closemarketing.es/)
+*	[Closemarketing](https://www.closemarketing.es/)
 
 
 == Closemarketing plugins ==
