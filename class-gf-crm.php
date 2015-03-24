@@ -501,14 +501,13 @@ class GFCRM extends GFFeedAddOn {
             $login_result = false;
         
     } elseif($crm_type == 'Odoo') { //Odoo Method
+    
+        //Load Library XMLRPC
+        require_once( 'lib/xmlrpc.inc' );
+        require_once( 'lib/xmlrpcs.inc' );
+        require_once( 'lib/xmlrpc_wrappers.inc' );
 
         $server_url = $url .'/xmlrpc/';
-        
-        if(isset($_COOKIE["user_id"]) == true)  {
-           if($_COOKIE["user_id"]>0) {
-           return $_COOKIE["user_id"];
-           }
-        }
 
         $sock = new xmlrpc_client($server_url.'common');
         $msg = new xmlrpcmsg('login');
@@ -518,7 +517,7 @@ class GFCRM extends GFFeedAddOn {
         $resp =  $sock->send($msg);
         $val = $resp->value();
         $id = $val->scalarval();
-        setcookie("user_id",$id,time()+3600);
+
         if($id > 0) {
             $login_result = $id;
         }else{
