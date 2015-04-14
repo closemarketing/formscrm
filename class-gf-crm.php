@@ -51,8 +51,7 @@ class GFCRM extends GFFeedAddOn {
 		return array(
 			array(
 				'title'       => __( 'CRM Account Information', 'gravityformscrm' ),
-				'description' => sprintf( __( 'CRM is a CRM software. Use Gravity Forms to collect customer information and automatically add them to your crm Leads.', 'gravityformscrm' ),
-					'<a href="http://www.crm.com" target="_blank">', '</a>.' ),
+				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'gravityformscrm' ),
 				'fields'      => array(
 					array(
 						'name'              => 'gf_crm_type',
@@ -293,6 +292,7 @@ class GFCRM extends GFFeedAddOn {
                 $i++;
             } //from foreach
 
+            }
         } elseif($crm_type == 'Odoo 8') {
             $uid = $this->login_api_crm(); 
  

@@ -2,9 +2,9 @@
 Contributors: closemarketing
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Requires at least: 3.0
-Tested up to: 4.0
-Stable tag: 1.0
-Version: 1.1.1
+Tested up to: 4.1
+Stable tag: 1.1
+Version: 1.1
 =======
 
 Gravity Forms CRM Addon allows you to connect different CRM and create new Leads as the forms are filled automatically.
@@ -32,11 +32,15 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
+= 1.1 =
+*	Support to Odoo 8.
+*	Updated translation in Spanish.
+*	Change Settings input depending of CRM.
 
-= 1.1.1 =
+= 1.0.2 =
 *	Manage vTiger API errors in Feed Settings page.
 
-= 1.1.0 =
+= 1.0.1 =
 * Some fixes after submit form
 * WP Updates automatically
 
@@ -46,7 +50,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Links ==
 
-*	[Closemarketing](http://www.closemarketing.es/)
+*	[Closemarketing](https://www.closemarketing.es/)
 
 
 == Closemarketing plugins ==
