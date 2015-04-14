@@ -104,6 +104,17 @@ class GFCRM extends GFFeedAddOn {
 		);
 
 	}
+    
+        
+    /*echo '<script type="text/javascript">
+            jQuery("#gf_crm_type").change(function(e){
+            
+                alert("Value change to " + jQuery(this).attr("value"));
+                jQuery("#YourElementID").css({ display: "block" });
+               
+            });
+        </script>';*/
+
 
 	public function settings_api_key( $field, $echo = true ) {
 
