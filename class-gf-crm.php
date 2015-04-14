@@ -138,7 +138,7 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		echo '<script type="text/javascript">var form = ' . GFCommon::json_encode( $form ) . ';</script>';
-
+    
 		parent::feed_edit_page( $form, $feed_id );
 	}
 
@@ -278,7 +278,7 @@ class GFCRM extends GFFeedAddOn {
 
 	public function feed_list_columns() {
 		return array(
-			'feedName'		=> __( 'Name', 'gravityformscampaignmonitor' )
+			'feedName'		=> __( 'Name', 'gravityformscrm' )
 		);
 	}
     
@@ -634,8 +634,22 @@ class GFCRM extends GFFeedAddOn {
         //Load Library XMLRPC
         require_once('lib/ripcord.php');
         
+        //Manage Errors from Library
+		try {
         $common = ripcord::client($url.'/xmlrpc/2/common');
+        } catch (Exception $e) {
+            echo '<div id="message" class="error below-h2">
+            <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
+            return false;
+        }    
+
+        try {
         $uid = $common->authenticate($dbname, $username, $password, array());
+        } catch (Exception $e) {
+            echo '<div id="message" class="error below-h2">
+            <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
+            return false;
+        }
        
         if (isset($uid) )
             return $uid;
