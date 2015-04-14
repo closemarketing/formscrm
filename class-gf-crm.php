@@ -59,6 +59,7 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'CRM Type', 'gravityformscrm' ),
 						'type'              => 'select',
 						'class'             => 'medium',
+                        'onchange'          => 'SelectChanged()',
                         'choices'           => array(
                                                     array(
                                                         'label' => 'vTiger',
@@ -67,6 +68,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'SugarCRM',
                                                         'name'  => 'sugarcrm'
+                                                    ),
+                                                    array(
+                                                        'label' => 'Odoo 8',
+                                                        'name'  => 'odoo8'
                                                     )
                                                 )
 					),
@@ -75,6 +80,8 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'CRM URL', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
+                        'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
+                        'tooltip_class'     => 'tooltipclass',
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -84,16 +91,38 @@ class GFCRM extends GFFeedAddOn {
 					),
 					array(
 						'name'  => 'gf_crm_password',
+						'label' => __( 'Password', 'gravityformscrm' ),
+						'type'  => 'api_key',
+						'class' => 'medium',
+                        'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
+                        'tooltip_class'     => 'tooltipclass',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM', 'Odoo 8' ) ),
+						'feedback_callback' => $this->is_valid_key()
+					),
+					array(
+						'name'  => 'gf_crm_apipassword',
 						'label' => __( 'API Password for User', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
-						'feedback_callback' => $this->login_api_crm()
+						'feedback_callback' => $this->login_api_crm(),
+                        'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
+                        'tooltip_class'     => 'tooltipclass',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger' ) ),
+						'feedback_callback' => $this->is_valid_key()
 					),
+					array(
+						'name'              => 'gf_crm_odoodb',
+						'label'             => __( 'Odoo DB Name', 'gravityformscrm' ),
+						'type'              => 'text',
+						'class'             => 'medium',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Odoo 8' ) ),
+					)
 				)
 			),
 		);
-
 	}
+
+
 
 	public function settings_api_key( $field, $echo = true ) {
 
@@ -104,7 +133,7 @@ class GFCRM extends GFFeedAddOn {
 		//switch type="text" to type="password" so the key is not visible
 		$api_key_field = str_replace( 'type="text"','type="password"', $api_key_field );
 
-		$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen.", 'gravityformscrm' ) ) . '</small>';
+		//$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen.", 'gravityformscrm' ) ) . '</small>';
 
 		if ( $echo ) {
 			echo $api_key_field . '</br>' . $caption;
@@ -128,7 +157,7 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		echo '<script type="text/javascript">var form = ' . GFCommon::json_encode( $form ) . ';</script>';
-
+    
 		parent::feed_edit_page( $form, $feed_id );
 	}
 
@@ -173,6 +202,9 @@ class GFCRM extends GFFeedAddOn {
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
+        $username = $settings['gf_crm_username'];
+        $apipassword = $settings['gf_crm_apipassword'];
+        $dbname = $settings['gf_crm_odoodb'];
         
         if($crm_type == 'vTiger') { //vtiger Method
             //Get fields from module
@@ -216,45 +248,59 @@ class GFCRM extends GFFeedAddOn {
             
         } elseif($crm_type == 'SugarCRM') {
         
-        //get session id
-        $login_result = $this->login_api_crm();
-            
+            //get session id
+            $login_result = $this->login_api_crm();
 
-        $session_id = $login_result->id;
-        $url = $url.'/service/v4_1/rest.php';
 
-        //retrieve fields --------------------------------     
-            $get_module_fields_parameters = array(
-             'session' => $session_id,
-             'module_name' => 'Leads',
-            );
+            $session_id = $login_result->id;
+            $url = $url.'/service/v4_1/rest.php';
 
-        $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
-        $get_module_fields_result = $get_module_fields_result->module_fields;
-        $get_module_fields_result = get_object_vars($get_module_fields_result);
+            //retrieve fields --------------------------------     
+                $get_module_fields_parameters = array(
+                 'session' => $session_id,
+                 'module_name' => 'Leads',
+                );
 
         $i=0;
         $custom_fields = array();
         foreach ($get_module_fields_result as $arrayob) {
             $field = get_object_vars($arrayob);
+            $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
+            $get_module_fields_result = $get_module_fields_result->module_fields;
+            $get_module_fields_result = get_object_vars($get_module_fields_result);
 
-            if($field['name']=='id') {
-            } elseif($field['required']==1) { 
-                $custom_fields[$i] = array(
-                    'label' => $field['label'],
-                    'name' => $field['name'],
-                    'required' => true,
-                    );
-            } else {
-                $custom_fields[$i] = array(
-                    'label' => $field['label'],
-                    'name' => $field['name']
-                    );
-            }
-            $i++;
-        }
+            //echo "<pre>";
+            //print_r($get_module_fields_result);
+            //echo "</pre>";
+            $i=0;
+            $custom_fields = array();
+            foreach ($get_module_fields_result as $arrayob) {
+                $field = get_object_vars($arrayob);
 
-        }
+                if($field['name']=='id') {
+                } elseif($field['required']==1) { 
+                    $custom_fields[$i] = array(
+                        'label' => $field['label'],
+                        'name' => $field['name'],
+                        'required' => true,
+                        );
+                } else {
+                    $custom_fields[$i] = array(
+                        'label' => $field['label'],
+                        'name' => $field['name']
+                        );
+                }
+                $i++;
+            } //from foreach
+
+        } elseif($crm_type == 'Odoo 8') {
+            $uid = $this->login_api_crm(); 
+ 
+            $models = ripcord::client($url.'/xmlrpc/2/object');
+            $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
+            
+            $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
+        } //Odoo method
         
 		return $custom_fields;
 
@@ -263,7 +309,7 @@ class GFCRM extends GFFeedAddOn {
 
 	public function feed_list_columns() {
 		return array(
-			'feedName'		=> __( 'Name', 'gravityformscampaignmonitor' )
+			'feedName'		=> __( 'Name', 'gravityformscrm' )
 		);
 	}
     
@@ -336,6 +382,9 @@ class GFCRM extends GFFeedAddOn {
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
+        $password = $settings['gf_crm_password'];
+        $apipassword = $settings['gf_crm_apipassword'];
+        $dbname = $settings['gf_crm_odoodb'];
         
         $login_result = $this->login_api_crm();
         
@@ -370,9 +419,15 @@ class GFCRM extends GFFeedAddOn {
             );
             
             $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $webservice);
-
-        } // end SugarCRM Method 
-
+        // end SugarCRM Method 
+        } elseif($crm_type == 'Odoo 8') {
+            $merge_vars = $this->convert_odoo8_merge($merge_vars);
+            
+            $models = ripcord::client($url.'/xmlrpc/2/object');
+            $id = $models->execute_kw($dbname, $login_result, $password, 'crm.lead', 'create',
+            array($merge_vars));
+            
+        } // from Odoo
 	}
     
     /* Converts Array to vtiger webservice specification */
@@ -443,6 +498,8 @@ class GFCRM extends GFFeedAddOn {
     $url  = $settings['gf_crm_url'];
     $username = $settings['gf_crm_username'];
     $password = $settings['gf_crm_password'];
+    $apipassword = $settings['gf_crm_apipassword'];
+    $dbname = $settings['gf_crm_odoodb'];
         
     if(substr($url, -1) !='/') { //error if url is without slash
         $login_result = false;
@@ -457,7 +514,7 @@ class GFCRM extends GFFeedAddOn {
         $challengeToken = $json['result']['token'];
 
         // Get MD5 checksum of the concatenation of challenge token and user own Access Key
-        $accessKey = md5($challengeToken.$password);
+        $accessKey = md5($challengeToken.$apipassword);
 
         // Define login operation parameters
         $operation2 = array(
@@ -495,9 +552,22 @@ class GFCRM extends GFFeedAddOn {
         $login_result = $this->call_sugarcrm("login", $login_parameters, $url);
         if( $login_result == 1 )
             $login_result = false;
-    }
+        
+    } elseif($crm_type == 'Odoo 8') { //Odoo Method
+    
+        $login_result = $this->call_odoo8_login($username, $password, $dbname, $url);
+
+    } //Odoo Method
+        
+    if (!isset($login_result) ) 
+        $login_result="";
     return $login_result;
     }
+    
+//////////// Helpers Functions for CRMs ////////////
+    
+    
+    ////////// SUGARCRM CRM //////////
     
     //function to make cURL request
     private function call_sugarcrm($method, $parameters, $url)
@@ -537,6 +607,10 @@ class GFCRM extends GFFeedAddOn {
 
         return $response;
     }
+    
+    
+    ////////// VTIGER CRM //////////
+    
     // cURL GET function for vTiger
     private function call_vtiger_get($url) {
         $ch = curl_init();
@@ -569,5 +643,96 @@ class GFCRM extends GFFeedAddOn {
         
        return $output;
     }
+    
+    ////////// ODOO CRM //////////
+    
+    // Function to Login in Odoo
+    private function call_odoo7_login($username, $password, $dbname, $url) {
+        //Load Library XMLRPC
+        require_once( 'lib/xmlrpc.inc' );
+        require_once( 'lib/xmlrpcs.inc' );
+        require_once( 'lib/xmlrpc_wrappers.inc' );
+
+        $server_url = $url .'/xmlrpc/';
+
+        $sock = new xmlrpc_client($server_url.'common');
+        $msg = new xmlrpcmsg('login');
+        $msg->addParam(new xmlrpcval($dbname, "string"));
+        $msg->addParam(new xmlrpcval($username, "string"));
+        $msg->addParam(new xmlrpcval($password, "string"));
+        $resp =  $sock->send($msg);
+        $val = $resp->value();
+        if($val) {
+            return true;
+        }else{
+           return false;
+        }
+    }
+    private function call_odoo8_login($username, $password, $dbname, $url) {
+        //Load Library XMLRPC
+        require_once('lib/ripcord.php');
+        
+        //Manage Errors from Library
+		try {
+        $common = ripcord::client($url.'/xmlrpc/2/common');
+        } catch (Exception $e) {
+            echo '<div id="message" class="error below-h2">
+            <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
+            return false;
+        }    
+
+        try {
+        $uid = $common->authenticate($dbname, $username, $password, array());
+        } catch (Exception $e) {
+            echo '<div id="message" class="error below-h2">
+            <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
+            return false;
+        }
+       
+        if (isset($uid) )
+            return $uid;
+        else
+            return false;
+    }
+    // from login Odoo
+    //Converts XML Odoo in array for Gravity Forms Custom Fields
+    private function convert_XML_odoo8_customfields($xml_odoo){
+        $p = xml_parser_create();
+        xml_parse_into_struct($p, $xml_odoo, $vals, $index);
+        xml_parser_free($p);
+        
+        $custom_fields = array();
+        $i =0;
+        
+        //echo '<pre>';
+        //print_r($vals);
+        //echo '</pre>';
+            
+        foreach($vals as $field) 
+        {       
+            if( $field["tag"] == 'NAME' ) {
+                if ( $field["value"] != 'type' && $field["value"] != 'string' && $field["value"] != 'help') 
+                $custom_fields[$i] = array(
+                        'label' => $field['value'],
+                        'name' => $field['value']
+                        );
+                
+            }
+            $i++;
+        } //del foreach
+        return $custom_fields;
+    } //function
+    
+    //Converts Gravity Forms Array to Odoo 8 Array to create field
+    private function convert_odoo8_merge($merge_vars){
+        $i =0;
+        $arraymerge = array();
+        foreach($merge_vars as $mergefield) {
+            $arraymerge = array_merge($arraymerge,array( $mergefield['name'] => $mergefield['value'] ) );
+            $i++;
+        }
+        
+        return $arraymerge;
+    } //function
     
 }
