@@ -59,6 +59,7 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'CRM Type', 'gravityformscrm' ),
 						'type'              => 'select',
 						'class'             => 'medium',
+                        'onchange'          => 'SelectChanged()',
                         'choices'           => array(
                                                     array(
                                                         'label' => 'vTiger',
@@ -79,6 +80,8 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'CRM URL', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
+                        'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
+                        'tooltip_class'     => 'tooltipclass',
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -88,9 +91,22 @@ class GFCRM extends GFFeedAddOn {
 					),
 					array(
 						'name'  => 'gf_crm_password',
+						'label' => __( 'Password', 'gravityformscrm' ),
+						'type'  => 'api_key',
+						'class' => 'medium',
+                        'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
+                        'tooltip_class'     => 'tooltipclass',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM', 'Odoo 8' ) ),
+						'feedback_callback' => $this->is_valid_key()
+					),
+					array(
+						'name'  => 'gf_crm_apipassword',
 						'label' => __( 'API Password for User', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
+                        'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
+                        'tooltip_class'     => 'tooltipclass',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger' ) ),
 						'feedback_callback' => $this->is_valid_key()
 					),
 					array(
@@ -98,22 +114,13 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'Odoo DB Name', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Odoo 8' ) ),
 					)
 				)
 			),
 		);
-
 	}
-    
-        
-    /*echo '<script type="text/javascript">
-            jQuery("#gf_crm_type").change(function(e){
-            
-                alert("Value change to " + jQuery(this).attr("value"));
-                jQuery("#YourElementID").css({ display: "block" });
-               
-            });
-        </script>';*/
+
 
 
 	public function settings_api_key( $field, $echo = true ) {
@@ -125,7 +132,7 @@ class GFCRM extends GFFeedAddOn {
 		//switch type="text" to type="password" so the key is not visible
 		$api_key_field = str_replace( 'type="text"','type="password"', $api_key_field );
 
-		$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen.", 'gravityformscrm' ) ) . '</small>';
+		//$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen.", 'gravityformscrm' ) ) . '</small>';
 
 		if ( $echo ) {
 			echo $api_key_field . '</br>' . $caption;
@@ -195,7 +202,7 @@ class GFCRM extends GFFeedAddOn {
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         $username = $settings['gf_crm_username'];
-        $password = $settings['gf_crm_password'];
+        $apipassword = $settings['gf_crm_apipassword'];
         $dbname = $settings['gf_crm_odoodb'];
         
         if($crm_type == 'vTiger') { //vtiger Method
@@ -363,6 +370,7 @@ class GFCRM extends GFFeedAddOn {
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         $password = $settings['gf_crm_password'];
+        $apipassword = $settings['gf_crm_apipassword'];
         $dbname = $settings['gf_crm_odoodb'];
         
         $login_result = $this->login_api_crm();
@@ -477,6 +485,7 @@ class GFCRM extends GFFeedAddOn {
     $url  = $settings['gf_crm_url'];
     $username = $settings['gf_crm_username'];
     $password = $settings['gf_crm_password'];
+    $apipassword = $settings['gf_crm_apipassword'];
     $dbname = $settings['gf_crm_odoodb'];
         
     if($crm_type == 'vTiger') { //vtiger Method
@@ -487,7 +496,7 @@ class GFCRM extends GFFeedAddOn {
         $challengeToken = $json['result']['token'];
 
         // Get MD5 checksum of the concatenation of challenge token and user own Access Key
-        $accessKey = md5($challengeToken.$password);
+        $accessKey = md5($challengeToken.$apipassword);
 
         // Define login operation parameters
         $operation2 = array(
