@@ -132,7 +132,7 @@ class GFCRM extends GFFeedAddOn {
 		//switch type="text" to type="password" so the key is not visible
 		$api_key_field = str_replace( 'type="text"','type="password"', $api_key_field );
 
-		//$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen.", 'gravityformscrm' ) ) . '</small>';
+		$caption = '<small>' . sprintf( __( "Follow the CRM Instructions for API Connector.", 'gravityformscrm' ) ) . '</small>';
 
 		if ( $echo ) {
 			echo $api_key_field . '</br>' . $caption;
@@ -190,20 +190,21 @@ class GFCRM extends GFFeedAddOn {
 
 	public function create_list_field_map() {
 
-		$custom_fields = $this->get_custom_fields_vtiger( );
+		$custom_fields = $this->get_custom_fields( );
 
 		return $custom_fields;
 
 	}
 
-	public function get_custom_fields_vtiger( ) {
+	public function get_custom_fields( ) {
             
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
+        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
+        if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
+        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
         $username = $settings['gf_crm_username'];
-        $apipassword = $settings['gf_crm_apipassword'];
-        $dbname = $settings['gf_crm_odoodb'];
         
         if($crm_type == 'vTiger') { //vtiger Method
             //Get fields from module
@@ -295,8 +296,7 @@ class GFCRM extends GFFeedAddOn {
             }
         } elseif($crm_type == 'Odoo 8') {
             $uid = $this->login_api_crm(); 
- 
-            $models = ripcord::client($url.'/xmlrpc/2/object');
+            $models = ripcord::client($url.'xmlrpc/2/object');
             $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
             
             $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
@@ -423,7 +423,7 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Odoo 8') {
             $merge_vars = $this->convert_odoo8_merge($merge_vars);
             
-            $models = ripcord::client($url.'/xmlrpc/2/object');
+            $models = ripcord::client($url.'xmlrpc/2/object');
             $id = $models->execute_kw($dbname, $login_result, $password, 'crm.lead', 'create',
             array($merge_vars));
             
@@ -552,7 +552,6 @@ class GFCRM extends GFFeedAddOn {
             $login_result = false;
         
     } elseif($crm_type == 'Odoo 8') { //Odoo Method
-    
         $login_result = $this->call_odoo8_login($username, $password, $dbname, $url);
 
     } //Odoo Method
@@ -651,7 +650,7 @@ class GFCRM extends GFFeedAddOn {
         require_once( 'lib/xmlrpcs.inc' );
         require_once( 'lib/xmlrpc_wrappers.inc' );
 
-        $server_url = $url .'/xmlrpc/';
+        $server_url = $url .'xmlrpc/';
 
         $sock = new xmlrpc_client($server_url.'common');
         $msg = new xmlrpcmsg('login');
@@ -672,7 +671,7 @@ class GFCRM extends GFFeedAddOn {
         
         //Manage Errors from Library
 		try {
-        $common = ripcord::client($url.'/xmlrpc/2/common');
+        $common = ripcord::client($url.'xmlrpc/2/common');
         } catch (Exception $e) {
             echo '<div id="message" class="error below-h2">
             <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
