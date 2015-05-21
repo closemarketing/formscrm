@@ -298,7 +298,6 @@ class GFCRM extends GFFeedAddOn {
             $uid = $this->login_api_crm(); 
             $models = ripcord::client($url.'xmlrpc/2/object');
             $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
-            
             $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
         } //Odoo method
         
