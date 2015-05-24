@@ -501,9 +501,9 @@ class GFCRM extends GFFeedAddOn {
     $crm_type  = $settings['gf_crm_type'];
     $url  = $settings['gf_crm_url'];
     $username = $settings['gf_crm_username'];
-    $password = $settings['gf_crm_password'];
-    $apipassword = $settings['gf_crm_apipassword'];
-    $dbname = $settings['gf_crm_odoodb'];
+    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
+    if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
+    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
         
     if(substr($url, -1) !='/') { //error if url is without slash
         $login_result = false;
@@ -562,20 +562,7 @@ class GFCRM extends GFFeedAddOn {
         $login_result = $this->call_odoo8_login($username, $password, $dbname, $url);
 
     } elseif($crm_type == 'EspoCRM') {
-        $url = $url.'api/v1';
-
-        //login ------------------------------     
-        $login_parameters = array(
-             "user_auth" => array(
-                  "user_name" => $username,
-                  "password" => md5($password),
-                  "version" => "1"
-             ),
-             "application_name" => "RestTest",
-             "name_value_list" => array(),
-        );
-
-        $login_result = $this->call_espocrm("login", $login_parameters, $url);
+        $login_result = $this->call_login_espocrm($username, $password, $url);
         
         print_r($login_result);
         
@@ -763,6 +750,23 @@ class GFCRM extends GFFeedAddOn {
     
     
     ////////// ESPOCRM //////////
+    private function call_login_espocrm($login, $password, $url) {
+        $password= md5($password);
+
+        $url = 'http://'.$login.':'.$password.'@demo.espocrm.de/basic/api/v1/';
+        
+        echo $url;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_URL,$url);
+        $data=curl_exec($ch);
+        curl_close($ch);
+        
+        print_r($data);
+        return $data;
+    }
     
     private function call_espocrm($method, $parameters, $url)
     {
@@ -778,6 +782,8 @@ class GFCRM extends GFFeedAddOn {
         curl_setopt($curl_request, CURLOPT_FOLLOWLOCATION, 0);
 
         $jsonEncodedData = json_encode($parameters);
+        
+        print_r($jsonEncodedData);
 
         $post = array(
              "method" => $method,
@@ -789,6 +795,8 @@ class GFCRM extends GFFeedAddOn {
         curl_setopt($curl_request, CURLOPT_POSTFIELDS, $post);
         $result = curl_exec($curl_request);
         curl_close($curl_request);
+        
+        print_r($result);
 
         $result = explode("\r\n\r\n", $result, 2);
         
@@ -801,4 +809,5 @@ class GFCRM extends GFFeedAddOn {
 
         return $response;
     }
-}
+    
+} // whole Class
