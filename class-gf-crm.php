@@ -71,6 +71,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'Odoo 8',
                                                         'name'  => 'odoo8'
+                                                    ),
+                                                    array(
+                                                        'label' => 'EspoCRM',
+                                                        'name'  => 'espocrm'
                                                     )
                                                 )
 					),
@@ -95,7 +99,7 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM', 'Odoo 8' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM', 'Odoo 8','EspoCRM' ) ),
 						'feedback_callback' => $this->is_valid_key()
 					),
 					array(
@@ -132,7 +136,7 @@ class GFCRM extends GFFeedAddOn {
 		//switch type="text" to type="password" so the key is not visible
 		$api_key_field = str_replace( 'type="text"','type="password"', $api_key_field );
 
-		//$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen.", 'gravityformscrm' ) ) . '</small>';
+		$caption = '<small>' . sprintf( __( "The password to access to CRM.", 'gravityformscrm' ) ) . '</small>';
 
 		if ( $echo ) {
 			echo $api_key_field . '</br>' . $caption;
