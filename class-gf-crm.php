@@ -561,7 +561,28 @@ class GFCRM extends GFFeedAddOn {
     
         $login_result = $this->call_odoo8_login($username, $password, $dbname, $url);
 
-    } //Odoo Method
+    } elseif($crm_type == 'EspoCRM') {
+        $url = $url.'api/v1';
+
+        //login ------------------------------     
+        $login_parameters = array(
+             "user_auth" => array(
+                  "user_name" => $username,
+                  "password" => md5($password),
+                  "version" => "1"
+             ),
+             "application_name" => "RestTest",
+             "name_value_list" => array(),
+        );
+
+        $login_result = $this->call_espocrm("login", $login_parameters, $url);
+        
+        print_r($login_result);
+        
+        if( $login_result == 1 )
+            $login_result = false;
+    
+    } //endif CRM Types
         
     if (!isset($login_result) ) 
         $login_result="";
@@ -739,4 +760,45 @@ class GFCRM extends GFFeedAddOn {
         return $arraymerge;
     } //function
     
+    
+    
+    ////////// ESPOCRM //////////
+    
+    private function call_espocrm($method, $parameters, $url)
+    {
+        ob_start();
+        $curl_request = curl_init();
+
+        curl_setopt($curl_request, CURLOPT_URL, $url);
+        curl_setopt($curl_request, CURLOPT_POST, 1);
+        curl_setopt($curl_request, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+        curl_setopt($curl_request, CURLOPT_HEADER, 1);
+        curl_setopt($curl_request, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($curl_request, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl_request, CURLOPT_FOLLOWLOCATION, 0);
+
+        $jsonEncodedData = json_encode($parameters);
+
+        $post = array(
+             "method" => $method,
+             "input_type" => "JSON",
+             "response_type" => "JSON",
+             "rest_data" => $jsonEncodedData
+        );
+
+        curl_setopt($curl_request, CURLOPT_POSTFIELDS, $post);
+        $result = curl_exec($curl_request);
+        curl_close($curl_request);
+
+        $result = explode("\r\n\r\n", $result, 2);
+        
+        if($result[0]=="") 
+            $response = false;
+        else      
+            $response = json_decode($result[1]);
+
+        ob_end_flush();
+
+        return $response;
+    }
 }
