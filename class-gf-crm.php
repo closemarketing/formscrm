@@ -5,7 +5,7 @@ GFForms::include_feed_addon_framework();
 class GFCRM extends GFFeedAddOn {
 
 	protected $_version = GF_CRM_VERSION;
-	protected $_min_gravityforms_version = '1.8.17';
+	protected $_min_gravityforms_version = '1.9.0';
 	protected $_slug = 'gravityformscrm';
 	protected $_path = 'gravityformscrm/crm.php';
 	protected $_full_path = __FILE__;
@@ -132,7 +132,7 @@ class GFCRM extends GFFeedAddOn {
 		//switch type="text" to type="password" so the key is not visible
 		$api_key_field = str_replace( 'type="text"','type="password"', $api_key_field );
 
-		//$caption = '<small>' . sprintf( __( "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen.", 'gravityformscrm' ) ) . '</small>';
+		$caption = '<small>' . sprintf( __( "Find a Password or API key depending of CRM.", 'gravityformscrm' ) ) . '</small>';
 
 		if ( $echo ) {
 			echo $api_key_field . '</br>' . $caption;
@@ -202,8 +202,10 @@ class GFCRM extends GFFeedAddOn {
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         $username = $settings['gf_crm_username'];
-        $apipassword = $settings['gf_crm_apipassword'];
-        $dbname = $settings['gf_crm_odoodb'];
+
+        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
+        if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
+        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
         
         if($crm_type == 'vTiger') { //vtiger Method
             //Get fields from module
@@ -250,9 +252,8 @@ class GFCRM extends GFFeedAddOn {
             //get session id
             $login_result = $this->login_api_crm();
 
-
             $session_id = $login_result->id;
-            $url = $url.'/service/v4_1/rest.php';
+            $url = $url.'service/v4_1/rest.php';
 
             //retrieve fields --------------------------------     
                 $get_module_fields_parameters = array(
@@ -260,13 +261,8 @@ class GFCRM extends GFFeedAddOn {
                  'module_name' => 'Leads',
                 );
 
-        $i=0;
-        $custom_fields = array();
-        foreach ($get_module_fields_result as $arrayob) {
-            $field = get_object_vars($arrayob);
             $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
-            $get_module_fields_result = $get_module_fields_result->module_fields;
-            $get_module_fields_result = get_object_vars($get_module_fields_result);
+            $get_module_fields_result = get_object_vars($get_module_fields_result->module_fields);
 
             //echo "<pre>";
             //print_r($get_module_fields_result);
@@ -292,7 +288,7 @@ class GFCRM extends GFFeedAddOn {
                 $i++;
             } //from foreach
 
-            }
+            
         } elseif($crm_type == 'Odoo 8') {
             $uid = $this->login_api_crm(); 
  
@@ -409,7 +405,7 @@ class GFCRM extends GFFeedAddOn {
         
         } elseif($crm_type == 'SugarCRM') {
             // SugarCRM Method
-            $webservice = $url.'/service/v4_1/rest.php';
+            $webservice = $url.'service/v4_1/rest.php';
             $session_id = $login_result->id;
             
             $set_entry_parameters = array(
@@ -505,7 +501,7 @@ class GFCRM extends GFFeedAddOn {
     }
         
     if($crm_type == 'vTiger') { //vtiger Method
-        $webservice = $url . '/webservice.php';
+        $webservice = $url . 'webservice.php';
         $operation = '?operation=getchallenge&username='.$username;
         $result = $this->call_vtiger_get($webservice.$operation);
         $json = json_decode($result, true);
@@ -534,7 +530,7 @@ class GFCRM extends GFFeedAddOn {
         }
         
     } elseif($crm_type == 'SugarCRM') { //sugarcrm method
-        $url = $url.'/service/v4_1/rest.php';
+        $url = $url.'service/v4_1/rest.php';
 
         //login ------------------------------     
         $login_parameters = array(
@@ -548,7 +544,10 @@ class GFCRM extends GFFeedAddOn {
         );
 
         $login_result = $this->call_sugarcrm("login", $login_parameters, $url);
-        if( $login_result == 1 )
+        
+        $login_token = $login_result->id;
+            
+        if( $login_token == 1 )
             $login_result = false;
         
     } elseif($crm_type == 'Odoo 8') { //Odoo Method
