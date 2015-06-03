@@ -190,17 +190,18 @@ class GFCRM extends GFFeedAddOn {
 
 	public function create_list_field_map() {
 
-		$custom_fields = $this->get_custom_fields_vtiger( );
+		$custom_fields = $this->get_custom_fields_crm( );
 
 		return $custom_fields;
 
 	}
 
-	public function get_custom_fields_vtiger( ) {
+	public function get_custom_fields_crm( ) {
             
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
+        if(substr($url, -1) !='/') $url.='/'; //adds slash to url
         $username = $settings['gf_crm_username'];
 
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
@@ -211,7 +212,7 @@ class GFCRM extends GFFeedAddOn {
             //Get fields from module
             $login_result = $this->login_api_crm();   
     
-            $webservice = $url . '/webservice.php';
+            $webservice = $url . 'webservice.php';
             $operation = '?operation=describe&sessionName='.$login_result.'&elementType=Leads';
 
             $result = $this->call_vtiger_get($webservice.$operation);
@@ -290,9 +291,10 @@ class GFCRM extends GFFeedAddOn {
 
             
         } elseif($crm_type == 'Odoo 8') {
+
             $uid = $this->login_api_crm(); 
  
-            $models = ripcord::client($url.'/xmlrpc/2/object');
+            $models = ripcord::client($url.'xmlrpc/2/object');
             $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
             
             $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
@@ -378,6 +380,8 @@ class GFCRM extends GFFeedAddOn {
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
+        if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+        
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
         if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
         if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
@@ -387,7 +391,7 @@ class GFCRM extends GFFeedAddOn {
         
         if($crm_type == 'vTiger') { //vtiger Method
             //vTiger Method            
-            $webservice = $url . '/webservice.php';
+            $webservice = $url . 'webservice.php';
             
             $jsondata = $this->convert_custom_fields( $merge_vars );
 
@@ -419,7 +423,7 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Odoo 8') {
             $merge_vars = $this->convert_odoo8_merge($merge_vars);
             
-            $models = ripcord::client($url.'/xmlrpc/2/object');
+            $models = ripcord::client($url.'xmlrpc/2/object');
             $id = $models->execute_kw($dbname, $login_result, $password, 'crm.lead', 'create',
             array($merge_vars));
             
@@ -490,15 +494,15 @@ class GFCRM extends GFFeedAddOn {
     $settings = $this->get_plugin_settings();
     $crm_type  = $settings['gf_crm_type'];
     $url  = $settings['gf_crm_url'];
-    $username = $settings['gf_crm_username'];
+    if(substr($url, -1) !='/') $url.='/'; //adds slash to url           
+    
+        $username = $settings['gf_crm_username'];
     if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
     if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
     if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
         
-    if(substr($url, -1) !='/') { //error if url is without slash
-        $login_result = false;
-        return $login_result;
-    }
+    
+
         
     if($crm_type == 'vTiger') { //vtiger Method
         $webservice = $url . 'webservice.php';
@@ -650,7 +654,7 @@ class GFCRM extends GFFeedAddOn {
         require_once( 'lib/xmlrpcs.inc' );
         require_once( 'lib/xmlrpc_wrappers.inc' );
 
-        $server_url = $url .'/xmlrpc/';
+        $server_url = $url .'xmlrpc/';
 
         $sock = new xmlrpc_client($server_url.'common');
         $msg = new xmlrpcmsg('login');
@@ -658,6 +662,7 @@ class GFCRM extends GFFeedAddOn {
         $msg->addParam(new xmlrpcval($username, "string"));
         $msg->addParam(new xmlrpcval($password, "string"));
         $resp =  $sock->send($msg);
+        
         $val = $resp->value();
         if($val) {
             return true;
@@ -671,7 +676,7 @@ class GFCRM extends GFFeedAddOn {
         
         //Manage Errors from Library
 		try {
-        $common = ripcord::client($url.'/xmlrpc/2/common');
+        $common = ripcord::client($url.'xmlrpc/2/common');
         } catch (Exception $e) {
             echo '<div id="message" class="error below-h2">
             <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';

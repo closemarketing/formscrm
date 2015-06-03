@@ -32,6 +32,9 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
+= 1.1.3 =
+*	Solving conflicts with trailing slash.
+
 = 1.1.2 =
 *	Solving problems with SugarCRM.
 
