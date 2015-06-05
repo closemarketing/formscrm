@@ -500,10 +500,11 @@ class GFCRM extends GFFeedAddOn {
     $settings = $this->get_plugin_settings();
     $crm_type  = $settings['gf_crm_type'];
     $url  = $settings['gf_crm_url'];
+        
     $username = $settings['gf_crm_username'];
-    $password = $settings['gf_crm_password'];
-    $apipassword = $settings['gf_crm_apipassword'];
-    $dbname = $settings['gf_crm_odoodb'];
+    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
+    if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
+    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
         
     if(substr($url, -1) !='/') { //error if url is without slash
         $login_result = false;
