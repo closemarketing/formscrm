@@ -71,6 +71,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'Odoo 8',
                                                         'name'  => 'odoo8'
+                                                    ),
+                                                    array(
+                                                        'label' => 'Microsoft Dynamics CRM',
+                                                        'name'  => 'msdynamics'
                                                     )
                                                 )
 					),
@@ -95,7 +99,7 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM', 'Odoo 8' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM', 'Odoo 8','Microsoft Dynamics CRM' ) ),
 						'feedback_callback' => $this->is_valid_key()
 					),
 					array(
@@ -557,7 +561,15 @@ class GFCRM extends GFFeedAddOn {
     
         $login_result = $this->call_odoo8_login($username, $password, $dbname, $url);
 
-    } //Odoo Method
+    //Odoo Method
+    } elseif($crm_type == 'Microsoft Dynamics CRM') {
+    //MS Dynamics Method
+         $login_result = $this->call_msdyn_login($username, $password, $url);
+        
+        print_r($login_result);
+        
+    //end MS Dynamics Method
+    }
         
     if (!isset($login_result) ) 
         $login_result="";
@@ -735,4 +747,13 @@ class GFCRM extends GFFeedAddOn {
         return $arraymerge;
     } //function
     
+    ////////// MICROSOFT DYNAMICS CRM //////////
+    
+    // Function to Login in MS Dynamics
+    private function call_msdyn_login($username, $password, $url) {
+        require_once('lib/msdyn_class.php');
+        $dynamicsClient = new dynamicsClient($username,$password,$url,1);
+        
+        print_r($dynamicsClient);
+    }
 }
