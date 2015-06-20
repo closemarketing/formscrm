@@ -122,18 +122,18 @@ class LiveIDManager {
         $URNAddress = "urn:crm:dynamics.com";
 
         if (strpos($CRMUrl,"crm4.dynamics.com")) {
-            $URNAddress = "urn:crm4:dynamics.com";
+            $URNAddress = "urn:crmemea:dynamics.com";
         }
 
         if (strpos($CRMUrl,"crm5.dynamics.com")) {
-            $URNAddress = "urn:crm5:dynamics.com";
+            $URNAddress = "urn:crmapac:dynamics.com";
         }
 
         $securityTemplate = sprintf(
                         $securityTokenSoapTemplate, LiveIDManager::gen_uuid(), LiveIDManager::getCurrentTime(), LiveIDManager::getNextDayTime(), $liveIDUsername, $liveIDPassword, $cipherValue, $URNAddress);
 
 
-        $securityTokenXML = LiveIDManager::GetSOAPResponse("/liveidSTS.srf" , "login.live.com" , "https://login.live.com/liveidSTS.srf", $securityTemplate);
+        $securityTokenXML = LiveIDManager::GetSOAPResponse("/RST2.srf" , "login.microsoftonline.com" , "https://login.microsoftonline.com/RST2.srf", $securityTemplate);
 
         
         $responsedom = new DomDocument();
@@ -190,7 +190,7 @@ class LiveIDManager {
             "Content-type: application/soap+xml; charset=UTF-8",
             "Content-length: " . strlen($content),
         );
-
+        //echo "soapurl:". $soapUrl."end<br>";
         $cURLHandle = curl_init();
         curl_setopt($cURLHandle, CURLOPT_URL, $soapUrl);
         curl_setopt($cURLHandle, CURLOPT_RETURNTRANSFER, 1);
@@ -200,7 +200,13 @@ class LiveIDManager {
         curl_setopt($cURLHandle, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($cURLHandle, CURLOPT_POST, 1);
         curl_setopt($cURLHandle, CURLOPT_POSTFIELDS, $content);
-        $response = curl_exec($cURLHandle);
+        //curl_setopt($cURLHandle, CURLOPT_SSLVERSION, 4);
+        //$response = curl_exec($cURLHandle);
+        if( ! $response = curl_exec($cURLHandle)) 
+        { 
+           trigger_error(curl_error($cURLHandle)); 
+        }
+
         curl_close($cURLHandle);
 
         return $response;
