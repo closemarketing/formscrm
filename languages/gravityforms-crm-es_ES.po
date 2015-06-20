@@ -4,12 +4,16 @@ msgstr ""
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
 "Last-Translator: David <david@closemarketing.es>\n"
-"Language-Team: \n"
+"Language-Team: David <david@closemarketing.es>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: es_ES\n"
-"X-Generator: Poedit 1.7.6\n"
+"X-Generator: Poedit 1.8.1\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: ../\n"
+"X-Poedit-SearchPath-0: class-gf-crm.php\n"
+"X-Poedit-SearchPath-1: crm.php\n"
 
 #: class-gf-crm.php:53
 msgid "CRM Account Information"
@@ -17,7 +21,7 @@ msgstr "Información de la cuenta CRM"
 
 #: class-gf-crm.php:54
 msgid "Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads."
-msgstr "Utiliza este conector con un Software CRM. Utiliza Gravity Forms para recoger informaci�n de clientes y a�adirlos autom�ticamente a tus Potenciales en CRM."
+msgstr "Utiliza este conector con un Software CRM. Utiliza Gravity Forms para recoger información de clientes y añadirlos automáticamente a tus Potenciales en CRM."
 
 #: class-gf-crm.php:58
 msgid "CRM Type"
@@ -37,23 +41,23 @@ msgstr "Nombre de usuario"
 
 #: class-gf-crm.php:93
 msgid "Password"
-msgstr "Contraseña"
+msgstr "ContraseÃ±a"
 
 #: class-gf-crm.php:96
 msgid "Use the password of the actual user."
-msgstr "Utiliza la contraseña del usuario actual."
+msgstr "Utiliza la contraseÃ±a del usuario actual."
 
 #: class-gf-crm.php:103
 msgid "API Password for User"
-msgstr "Contraseña API para Usuario"
+msgstr "ContraseÃ±a API para Usuario"
 
 #: class-gf-crm.php:105
 msgid "You can find your unique API key by clicking on the 'Account Settings' link at the top of your CRM screen."
-msgstr "Puedes encontrar la llave API haciendo clic en Configuración Cuenta en la parte superior de la pantalla CRM."
+msgstr "Puedes encontrar la llave API haciendo clic en ConfiguraciÃ³n Cuenta en la parte superior de la pantalla CRM."
 
 #: class-gf-crm.php:107
 msgid "Find the API Password in the profile of the user in CRM."
-msgstr "Encuentra la contraseña API en el perfil de usuario en el CRM."
+msgstr "Encuentra la contraseÃ±a API en el perfil de usuario en el CRM."
 
 #: class-gf-crm.php:114
 msgid "Odoo DB Name"
@@ -62,7 +66,7 @@ msgstr "Nombre DB Odoo"
 #: class-gf-crm.php:151
 #, php-format
 msgid "We are unable to login to CRM with the provided API key or URL is incorrect (it must finish with slash / ). Please make sure you have entered a valid API key in the %sSettings Page%s"
-msgstr "No he podido iniciar sesi�n CRM con la contrase�a API o la URL es incorrecta (debe terminar con la barra / ). Por favor, asegurarte que has introducido una contrase�a / o llave API en la %sConfiguraci�n%s"
+msgstr "No he podido iniciar sesión CRM con la contraseña API o la URL es incorrecta (debe terminar con la barra / ). Por favor, asegurarte que has introducido una contraseña / o llave API en la %sConfiguración%s"
 
 #: class-gf-crm.php:167
 msgid "CRM Feed"
@@ -75,7 +79,7 @@ msgstr "Nombre"
 #: class-gf-crm.php:146
 #: class-gf-crm.php:176
 msgid "Enter a feed name to uniquely identify this setup."
-msgstr "Introduce el nombre del conector único para identificar esta configuración."
+msgstr "Introduce el nombre del conector Ãºnico para identificar esta configuraciÃ³n."
 
 #: class-gf-crm.php:180 class-gf-crm.php:184
 msgid "Map Fields"
@@ -83,7 +87,7 @@ msgstr "Mapa de Campos"
 
 #: class-gf-crm.php:184
 msgid "Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list."
-msgstr "Asocia los campos CRM con los campos de Gravity Forms seleccionando de la primera y la última."
+msgstr "Asocia los campos CRM con los campos de Gravity Forms seleccionando de la primera y la Ãºltima."
 
 #: class-gf-crm.php:680 class-gf-crm.php:688
 msgid "Error"
@@ -91,7 +95,7 @@ msgstr "Error"
 
 #: wp-updates-plugin.php:87
 msgid "An Unexpected HTTP Error occurred during the API request.</p> <p><a href=\"?\" onclick=\"document.location.reload(); return false;\">Try again</a>"
-msgstr "Un HTTP Error inesperado ocurrió durante la petición de la API. </p><p><a href=\"?\" onclick=\"document.location.reload(); return false;\">Inténtalo de nuevo</a>"
+msgstr "Un HTTP Error inesperado ocurriÃ³ durante la peticiÃ³n de la API. </p><p><a href=\"?\" onclick=\"document.location.reload(); return false;\">IntÃ©ntalo de nuevo</a>"
 
 #: wp-updates-plugin.php:91
 msgid "An unknown error occurred"
@@ -103,11 +107,11 @@ msgstr "Origen Potencial"
 
 #: class-gf-crm.php:184
 msgid "Birthday"
-msgstr "Cumpleaños"
+msgstr "CumpleaÃ±os"
 
 #: class-gf-crm.php:197
 msgid "Phone Mobile"
-msgstr "Móvil"
+msgstr "MÃ³vil"
 
 #: class-gf-crm.php:206
 msgid "Assigned User ID"
@@ -119,10 +123,10 @@ msgstr "Creado por ID"
 
 #: class-gf-crm.php:209
 msgid "Campaign ID"
-msgstr "ID Campa�a"
+msgstr "ID Campaña"
 
 #~ msgid "Email Address"
-#~ msgstr "Dirección de correo"
+#~ msgstr "DirecciÃ³n de correo"
 
 #~ msgid "Full Name"
 #~ msgstr "Nombre completo"
@@ -131,13 +135,13 @@ msgstr "ID Campa�a"
 #~ msgstr "Apellidos"
 
 #~ msgid "Phone"
-#~ msgstr "Teléfono"
+#~ msgstr "TelÃ©fono"
 
 #~ msgid "Description"
-#~ msgstr "Descripción"
+#~ msgstr "DescripciÃ³n"
 
 #~ msgid "Address"
-#~ msgstr "Dirección"
+#~ msgstr "DirecciÃ³n"
 
 #~ msgid "City"
 #~ msgstr "Ciudad"
@@ -146,19 +150,19 @@ msgstr "ID Campa�a"
 #~ msgstr "Provincia"
 
 #~ msgid "ZIP"
-#~ msgstr "Código Postal"
+#~ msgstr "CÃ³digo Postal"
 
 #~ msgid "Country"
-#~ msgstr "País"
+#~ msgstr "PaÃ­s"
 
 #~ msgid "First Name"
 #~ msgstr "Nombre"
 
 #~ msgid "Phone Work"
-#~ msgstr "Teléfono Trabajo"
+#~ msgstr "TelÃ©fono Trabajo"
 
 #~ msgid "Status Description"
-#~ msgstr "Descripción Estado"
+#~ msgstr "DescripciÃ³n Estado"
 
 #~ msgid "Website"
 #~ msgstr "Sitio Web"
@@ -181,10 +185,10 @@ msgstr "ID Campa�a"
 #~ "list. Therefore, this option should be used with caution and only when "
 #~ "appropriate."
 #~ msgstr ""
-#~ "Cuando se activa esta opción, si el abonado se encuentra en un estado "
-#~ "inactivo o ha sido previamente dado de baja, que se volverán a añadirse a "
-#~ "la lista activa. Por lo tanto, esta opción debe utilizarse con precaución "
-#~ "y sólo cuando sea necesario."
+#~ "Cuando se activa esta opciÃ³n, si el abonado se encuentra en un estado "
+#~ "inactivo o ha sido previamente dado de baja, que se volverÃ¡n a aÃ±adirse a "
+#~ "la lista activa. Por lo tanto, esta opciÃ³n debe utilizarse con precauciÃ³n "
+#~ "y sÃ³lo cuando sea necesario."
 
 #~ msgid "Client"
 #~ msgstr "Cliente"
@@ -199,7 +203,7 @@ msgstr "ID Campa�a"
 
 #, fuzzy
 #~ msgid "Opt-In Condition"
-#~ msgstr "Condición de Entrada"
+#~ msgstr "CondiciÃ³n de Entrada"
 
 #, fuzzy
 #~ msgid "Save Settings"
@@ -215,11 +219,11 @@ msgstr "ID Campa�a"
 
 #, fuzzy
 #~ msgid "Add New"
-#~ msgstr "Añadir Nuevo"
+#~ msgstr "AÃ±adir Nuevo"
 
 #, fuzzy
 #~ msgid "Bulk action"
-#~ msgstr "Acción masiva"
+#~ msgstr "AcciÃ³n masiva"
 
 #, fuzzy
 #~ msgid "Delete"
@@ -231,7 +235,7 @@ msgstr "ID Campa�a"
 
 #, fuzzy
 #~ msgid "Delete selected feeds? "
-#~ msgstr "¿Borrar estos conectores?"
+#~ msgstr "Â¿Borrar estos conectores?"
 
 #, fuzzy
 #~ msgid "\\'Cancel\\' to stop, \\'OK\\' to delete."
@@ -254,7 +258,7 @@ msgstr "ID Campa�a"
 #~ msgstr "Editar"
 
 #~ msgid "Delete this feed? "
-#~ msgstr "¿Borrar este conector?"
+#~ msgstr "Â¿Borrar este conector?"
 
 #~ msgid "Ajax error while updating feed"
 #~ msgstr "Error Ajax cuando se actualizaba el conector"
