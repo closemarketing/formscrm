@@ -212,44 +212,8 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
 
         if($crm_type == 'vTiger') { //vtiger Method
-            //Get fields from module
-            $login_result = $this->login_api_crm();
 
-            $webservice = $url . '/webservice.php';
-            $operation = '?operation=describe&sessionName='.$login_result.'&elementType=Leads';
-
-            $result = $this->call_vtiger_get($webservice.$operation);
-            $result = json_decode($result);
-            $result = get_object_vars($result);
-
-            if( isset($result['error']) ) { //Handle vTiger error
-                echo '<div class="error">';
-                echo '<p><strong>vTiger ERROR '.$result['error']->code.': </strong> '.$result['error']->message.'</p>';
-                echo '</div>';
-                return;
-            }
-            $result = get_object_vars($result['result']);
-
-            $i=0;
-            $custom_fields = array();
-            foreach ($result['fields'] as $arrayob) {
-                $field = get_object_vars($arrayob);
-
-
-                if($field['mandatory']==1) {
-                    $custom_fields[$i] = array(
-                        'label' => $field['label'],
-                        'name' => $field['name'],
-                        'required' => true,
-                        );
-                } else {
-                    $custom_fields[$i] = array(
-                        'label' => $field['label'],
-                        'name' => $field['name']
-                        );
-                }
-                $i++;
-            }
+            $custom_fields = $this->vtiger_listfields($username, $password, $url, 'Leads');
 
         } elseif($crm_type == 'SugarCRM') {
 
@@ -398,22 +362,7 @@ class GFCRM extends GFFeedAddOn {
 
 
         if($crm_type == 'vTiger') { //vtiger Method
-            //vTiger Method
-            $webservice = $url . '/webservice.php';
-
-            $jsondata = $this->convert_custom_fields( $merge_vars );
-
-            $params = array(
-                'operation'     => 'create',
-                'sessionName'   => $login_result,
-                'element'       => $jsondata,
-                'elementType'   => 'Leads'
-                );
-
-            $result = $this->call_vtiger_post($webservice, $params);
-            $json = json_decode($result, true);
-
-            // end vtiger Method
+            $id = $this->vtiger_create_lead($username, $password, $url, 'Leads', $merge_vars);
 
         } elseif($crm_type == 'SugarCRM') {
             // SugarCRM Method
@@ -427,7 +376,7 @@ class GFCRM extends GFFeedAddOn {
             );
 
             $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $webservice);
-        // end SugarCRM Method
+
         } elseif($crm_type == 'Odoo 8') {
             $merge_vars = $this->convert_odoo8_merge($merge_vars);
 
@@ -442,21 +391,6 @@ class GFCRM extends GFFeedAddOn {
         } // From CRM IF
 }
 
-    /* Converts Array to vtiger webservice specification */
-    private static function convert_custom_fields( $merge_vars ){
-        $i=0;
-		$count = count( $merge_vars );
-        $jsontext = '{';
-
-		for ( $i = 0; $i < $count; $i++ ){
-            $jsontext .= '"'.$merge_vars[$i]['name'].'":"'.$merge_vars[$i]['value'].'"';
-            if($i<$count-1) {$jsontext .=', '; }
-            //'{"lastname":"#", "email":"david@closemarketing.es","industry":"bla"}'
-        }
-        $jsontext .= '}';
-
-        return $jsontext;
-    }
 
 	private static function remove_blank_custom_fields( $merge_vars ){
 		$i=0;
@@ -514,33 +448,7 @@ class GFCRM extends GFFeedAddOn {
     if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
 
     if($crm_type == 'vTiger') { //vtiger Method
-        $webservice = $url . '/webservice.php';
-        $operation = '?operation=getchallenge&username='.$username;
-        $result = $this->call_vtiger_get($webservice.$operation);
-        $json = json_decode($result, true);
-        $challengeToken = $json['result']['token'];
-
-        // Get MD5 checksum of the concatenation of challenge token and user own Access Key
-        $accessKey = md5($challengeToken.$apipassword);
-
-        // Define login operation parameters
-        $operation2 = array(
-            "operation" => "login",
-            "username" => $username,
-            "accessKey" => $accessKey
-            );
-
-        // Execute and get result on server response for login operation
-        $result = $this->call_vtiger_post($webservice, $operation2);
-        // Decode JSON response
-
-        $json = json_decode($result, true);
-
-        if( $json['success'] == false ){
-            $login_result = false;
-        } else {
-            $login_result = $json['result']['sessionName'];
-        }
+        $login_result = $this->vtiger_login($username, $password, $url);
 
     } elseif($crm_type == 'SugarCRM') { //sugarcrm method
         $url = $url.'/service/v4_1/rest.php';
@@ -620,6 +528,22 @@ class GFCRM extends GFFeedAddOn {
 
     ////////// VTIGER CRM //////////
 
+    /* Converts Array to vtiger webservice specification */
+    private static function convert_custom_fields( $merge_vars ){
+        $i=0;
+		$count = count( $merge_vars );
+        $jsontext = '{';
+
+		for ( $i = 0; $i < $count; $i++ ){
+            $jsontext .= '"'.$merge_vars[$i]['name'].'":"'.$merge_vars[$i]['value'].'"';
+            if($i<$count-1) {$jsontext .=', '; }
+            //'{"lastname":"#", "email":"david@closemarketing.es","industry":"bla"}'
+        }
+        $jsontext .= '}';
+
+        return $jsontext;
+    }
+
     // cURL GET function for vTiger
     private function call_vtiger_get($url) {
         $ch = curl_init();
@@ -651,6 +575,101 @@ class GFCRM extends GFFeedAddOn {
        curl_close($ch);
 
        return $output;
+    }
+
+    private function vtiger_login($username, $password, $url) {
+        $webservice = $url . '/webservice.php';
+        $operation = '?operation=getchallenge&username='.$username;
+        $result = $this->call_vtiger_get($webservice.$operation);
+        $json = json_decode($result, true);
+        $challengeToken = $json['result']['token'];
+
+        // Get MD5 checksum of the concatenation of challenge token and user own Access Key
+        $accessKey = md5($challengeToken.$apipassword);
+
+        // Define login operation parameters
+        $operation2 = array(
+            "operation" => "login",
+            "username" => $username,
+            "accessKey" => $accessKey
+            );
+
+        // Execute and get result on server response for login operation
+        $result = $this->call_vtiger_post($webservice, $operation2);
+        // Decode JSON response
+
+        $json = json_decode($result, true);
+
+        if( $json['success'] == false ){
+            return false;
+        } else {
+            return = $json['result']['sessionName'];
+        }
+
+    }
+
+    function vtiger_listfields($username, $password, $url, $module){
+
+        //Get fields from module
+        $login_result = $this->vtiger_login($username, $password, $url);
+
+        $webservice = $url . '/webservice.php';
+        $operation = '?operation=describe&sessionName='.$login_result.'&elementType='.$module;
+
+        $result = $this->call_vtiger_get($webservice.$operation);
+        $result = json_decode($result);
+        $result = get_object_vars($result);
+
+        if( isset($result['error']) ) { //Handle vTiger error
+            echo '<div class="error">';
+            echo '<p><strong>vTiger ERROR '.$result['error']->code.': </strong> '.$result['error']->message.'</p>';
+            echo '</div>';
+            return;
+        }
+        $result = get_object_vars($result['result']);
+
+        $i=0;
+        $custom_fields = array();
+        foreach ($result['fields'] as $arrayob) {
+            $field = get_object_vars($arrayob);
+
+
+            if($field['mandatory']==1) {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'],
+                    'name' => $field['name'],
+                    'required' => true,
+                    );
+            } else {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'],
+                    'name' => $field['name']
+                    );
+            }
+            $i++;
+        }
+        return $custom_fields;
+
+    }
+
+    private function vtiger_create_lead($username, $password, $url, $module, $mergevars) {
+        $login_result = $this->vtiger_login($username, $password, $url);
+
+        //vTiger Method
+        $webservice = $url . '/webservice.php';
+
+        $jsondata = $this->convert_custom_fields( $merge_vars );
+
+        $params = array(
+            'operation'     => 'create',
+            'sessionName'   => $login_result,
+            'element'       => $jsondata,
+            'elementType'   => $module
+            );
+
+        $result = $this->call_vtiger_post($webservice, $params);
+        $json = json_decode($result, true);
+
     }
 
     ////////// ODOO CRM //////////
@@ -924,6 +943,7 @@ class GFCRM extends GFFeedAddOn {
 
         return $entityArray;
         }
+
     function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
