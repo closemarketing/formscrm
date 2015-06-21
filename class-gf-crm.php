@@ -389,9 +389,20 @@ class GFCRM extends GFFeedAddOn {
             $id = $this->msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
 
         } // From CRM IF
+
+        //Sends email if it does not create a lead
+        if ($id == false)
+            $this->send_emailerrorlead($crm_type);
 }
 
+    private function send_emailerrorlead($crm_type) {
+        // Sends email if it does not create a lead
 
+        $subject = __('We could not create the lead in ','gravityformscrm').$crm_type;
+        $message = __('<p>There was a problem creating the lead in the CRM.</p><p>Try to find where it was the problem in the Wordpress Settings.</p><br/><p><strong>Gravity Forms CRM</strong>','gravityformscrm');
+
+        wp_mail( get_bloginfo('admin_email'), $subject, $message);
+    }
 	private static function remove_blank_custom_fields( $merge_vars ){
 		$i=0;
 
