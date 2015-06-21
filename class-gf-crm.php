@@ -205,6 +205,7 @@ class GFCRM extends GFFeedAddOn {
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
+        if(substr($url, -1) !='/') $url.='/'; //adds slash to url
         $username = $settings['gf_crm_username'];
         $apipassword = $settings['gf_crm_apipassword'];
         $dbname = $settings['gf_crm_odoodb'];
@@ -390,6 +391,8 @@ class GFCRM extends GFFeedAddOn {
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
+        if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+        $username = $settings['gf_crm_username'];
         $password = $settings['gf_crm_password'];
         $apipassword = $settings['gf_crm_apipassword'];
         $dbname = $settings['gf_crm_odoodb'];
@@ -432,19 +435,15 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Odoo 8') {
             $merge_vars = $this->convert_odoo8_merge($merge_vars);
 
-            $models = ripcord::client($url.'/xmlrpc/2/object');
+            $models = ripcord::client($url.'xmlrpc/2/object');
             $id = $models->execute_kw($dbname, $login_result, $password, 'crm.lead', 'create',
             array($merge_vars));
 
         // from Odoo
-        } elseif($crm_type == 'Microsoft Dynamics CRM') {
-        //MS Dynamics Method
-             $login_result = $this->call_msdyn_login($username, $password, $url);
+        } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
+            $id = $this->msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
 
-            print_r($login_result);
-
-        //end MS Dynamics Method
-        }
+        } // From CRM IF
 }
 
     /* Converts Array to vtiger webservice specification */
@@ -749,6 +748,7 @@ class GFCRM extends GFFeedAddOn {
         return $arraymerge;
     } //function
 
+
     /////// MS DYNAMICS CRM ///////
 
     public function msdyn_login($username, $password, $url) {
@@ -756,6 +756,7 @@ class GFCRM extends GFFeedAddOn {
         include_once "lib/dynamics/EntityUtils.php";
 
         $url = $url.'XRMServices/2011/Organization.svc';
+
         //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
@@ -775,7 +776,7 @@ class GFCRM extends GFFeedAddOn {
     return false;
     }
 
-    public function msdyn_listfields($username, $password, $url, $module){
+    function msdyn_listfields($username, $password, $url, $module){
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
 
@@ -791,6 +792,87 @@ class GFCRM extends GFFeedAddOn {
         echo '<div id="message" class="error below-h2">
                 <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
         return;
+    }
+
+            $domainname = substr($url,8,-1);
+
+            $pos = strpos($domainname, "/");
+
+            $domainname = substr($domainname,0,$pos);
+
+            $retriveRequest = EntityUtils::getCRMSoapHeader($url, $securityData) .
+            '
+                  <s:Body>
+                        <Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+                                <request i:type="b:RetrieveEntityRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+                                        <b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>EntityFilters</c:key>
+                                                        <c:value i:type="b:EntityFilters" xmlns:b="http://schemas.microsoft.com/xrm/2011/Metadata">Attributes</c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>MetadataId</c:key>
+                                                        <c:value i:type="d:guid" xmlns:d="http://schemas.microsoft.com/2003/10/Serialization/">00000000-0000-0000-0000-000000000000</c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>RetrieveAsIfPublished</c:key>
+                                                        <c:value i:type="d:boolean" xmlns:d="http://www.w3.org/2001/XMLSchema">true</c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>LogicalName</c:key>
+                                                        <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$module.'</c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                        </b:Parameters>
+                                        <b:RequestId i:nil="true"/><b:RequestName>RetrieveEntity</b:RequestName>
+                                </request>
+                        </Execute>
+                        </s:Body>
+                </s:Envelope>
+                ';
+        $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
+
+      $entityArray = array();
+            if($response!=null && $response!=""){
+
+                $responsedom = new DomDocument();
+                $responsedom->loadXML($response);
+                $entities = $responsedom->getElementsbyTagName("AttributeMetadata");
+
+                $record = array();
+                //$kvptypes = $entities[0]->getElementsbyTagName("KeyValuePairOfstringanyType");
+
+                foreach($entities as $kvp){
+                       if($kvp->getElementsbyTagName("DisplayName")->item(0)!=null&& $kvp->getElementsbyTagName("DisplayName")->item(0)->getElementsbyTagName("Label")->item(0)!=null)
+                         $record['label']=$kvp->getElementsbyTagName("DisplayName")->item(0)->getElementsbyTagName("Label")->item(0)->textContent;
+                         else
+                            continue;
+                          //$record['label']="";
+                        $record['name']=$kvp->getElementsbyTagName("LogicalName")->item(0)->textContent;
+
+                        $required =$kvp->getElementsbyTagName("RequiredLevel")->item(0)->getElementsbyTagName("Value")->item(0)->textContent;
+                        if($required == 'Recommended' || $required == 'ApplicationRequired')
+                            $record['required']= true;
+                        else
+                            $record['required']= false;
+
+                        $entityArray[] = $record;
+                }
+            }
+
+        return $entityArray;
+        }
+    function msdyn_listfields_back($username, $password, $url, $module){
+
+       //Return true or false for logged in
+        $liveIDManager = new LiveIDManager();
+
+    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+
+    if($securityData!=null && isset($securityData)){
+    }else{
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return false;
     }
 
             $domainname = substr($url,8,-1);
@@ -846,8 +928,7 @@ class GFCRM extends GFFeedAddOn {
 
         return $entityArray;
         }
-
-    public function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
+    function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
 
@@ -861,7 +942,7 @@ class GFCRM extends GFFeedAddOn {
     }else{
         echo '<div id="message" class="error below-h2">
                 <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-        return;
+        return false;
     }
 
     $attributedata='';
@@ -908,4 +989,5 @@ class GFCRM extends GFFeedAddOn {
     }
 
     ////////////////////////////////
+
 }
