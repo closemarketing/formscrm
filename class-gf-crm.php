@@ -75,6 +75,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'Odoo 8',
                                                         'name'  => 'odoo8'
+                                                    ),
+                                                    array(
+                                                        'label' => 'Microsoft Dynamics CRM',
+                                                        'name'  => 'msdynamics'
                                                     )
                                                 )
 					),
@@ -99,7 +103,7 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SuiteCRM', 'Odoo 8' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM', 'Odoo 8','Microsoft Dynamics CRM' ) ),
 						'feedback_callback' => $this->is_valid_key()
 					),
 					array(
@@ -200,57 +204,20 @@ class GFCRM extends GFFeedAddOn {
 
 	}
 
-	public function get_custom_fields_crm( ) {
+	public function get_custom_fields_vtiger( ) {
 
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-        $username = $settings['gf_crm_username'];
-
-        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
-        if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
-        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
+        if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
+        if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
+        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
+        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
 
         if($crm_type == 'vTiger') { //vtiger Method
-            //Get fields from module
-            $login_result = $this->login_api_crm();
 
-            $webservice = $url . 'webservice.php';
-            $operation = '?operation=describe&sessionName='.$login_result.'&elementType=Leads';
-
-            $result = $this->call_vtiger_get($webservice.$operation);
-            $result = json_decode($result);
-            $result = get_object_vars($result);
-
-            if( isset($result['error']) ) { //Handle vTiger error
-                echo '<div class="error">';
-                echo '<p><strong>vTiger ERROR '.$result['error']->code.': </strong> '.$result['error']->message.'</p>';
-                echo '</div>';
-                return;
-            }
-            $result = get_object_vars($result['result']);
-
-            $i=0;
-            $custom_fields = array();
-            foreach ($result['fields'] as $arrayob) {
-                $field = get_object_vars($arrayob);
-
-
-                if($field['mandatory']==1) {
-                    $custom_fields[$i] = array(
-                        'label' => $field['label'],
-                        'name' => $field['name'],
-                        'required' => true,
-                        );
-                } else {
-                    $custom_fields[$i] = array(
-                        'label' => $field['label'],
-                        'name' => $field['name']
-                        );
-                }
-                $i++;
-            }
+            $custom_fields = $this->vtiger_listfields($username, $apipassword, $url, 'Leads');+
 
         } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
 
@@ -269,9 +236,6 @@ class GFCRM extends GFFeedAddOn {
             $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
             $get_module_fields_result = get_object_vars($get_module_fields_result->module_fields);
 
-            //echo "<pre>";
-            //print_r($get_module_fields_result);
-            //echo "</pre>";
             $i=0;
             $custom_fields = array();
             foreach ($get_module_fields_result as $arrayob) {
@@ -293,8 +257,7 @@ class GFCRM extends GFFeedAddOn {
                 $i++;
             } //from foreach
 
-
-        } elseif($crm_type == 'Odoo 8') {
+        } elseif($crm_type == 'Odoo 8') { //Odoo method
 
             $uid = $this->login_api_crm();
 
@@ -302,10 +265,12 @@ class GFCRM extends GFFeedAddOn {
             $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
 
             $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
-        } //Odoo method
+
+        } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
+            $custom_fields = $this->msdyn_listfields($username, $password, $url,"lead");
+        } // From if CRM
 
 		return $custom_fields;
-
 	}
 
 
@@ -382,36 +347,22 @@ class GFCRM extends GFFeedAddOn {
 
 
         $settings = $this->get_plugin_settings();
+
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-
-        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
-        if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
-        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
+        if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
+        if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
+        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
+        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
 
         $login_result = $this->login_api_crm();
 
-
         if($crm_type == 'vTiger') { //vtiger Method
-            //vTiger Method
-            $webservice = $url . 'webservice.php';
-
-            $jsondata = $this->convert_custom_fields( $merge_vars );
-
-            $params = array(
-                'operation'     => 'create',
-                'sessionName'   => $login_result,
-                'element'       => $jsondata,
-                'elementType'   => 'Leads'
-                );
-
-            $result = $this->call_vtiger_post($webservice, $params);
-            $json = json_decode($result, true);
-
-            // end vtiger Method
+            $id = $this->vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
 
         } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
+
             // SugarCRM Method
             $webservice = $url.'service/v4_1/rest.php';
             $session_id = $login_result->id;
@@ -423,7 +374,7 @@ class GFCRM extends GFFeedAddOn {
             );
 
             $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $webservice);
-        // end SugarCRM Method
+
         } elseif($crm_type == 'Odoo 8') {
             $merge_vars = $this->convert_odoo8_merge($merge_vars);
 
@@ -431,25 +382,24 @@ class GFCRM extends GFFeedAddOn {
             $id = $models->execute_kw($dbname, $login_result, $password, 'crm.lead', 'create',
             array($merge_vars));
 
-        } // from Odoo
-	}
+        } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
+            $id = $this->msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
 
-    /* Converts Array to vtiger webservice specification */
-    private static function convert_custom_fields( $merge_vars ){
-        $i=0;
-		$count = count( $merge_vars );
-        $jsontext = '{';
+        } // From CRM IF
 
-		for ( $i = 0; $i < $count; $i++ ){
-            $jsontext .= '"'.$merge_vars[$i]['name'].'":"'.$merge_vars[$i]['value'].'"';
-            if($i<$count-1) {$jsontext .=', '; }
-            //'{"lastname":"#", "email":"david@closemarketing.es","industry":"bla"}'
-        }
-        $jsontext .= '}';
+        //Sends email if it does not create a lead
+        if ($id == false)
+            $this->send_emailerrorlead($crm_type);
+}
 
-        return $jsontext;
+    private function send_emailerrorlead($crm_type) {
+        // Sends email if it does not create a lead
+
+        $subject = __('We could not create the lead in ','gravityformscrm').$crm_type;
+        $message = __('<p>There was a problem creating the lead in the CRM.</p><p>Try to find where it was the problem in the Wordpress Settings.</p><br/><p><strong>Gravity Forms CRM</strong>','gravityformscrm');
+
+        wp_mail( get_bloginfo('admin_email'), $subject, $message);
     }
-
 	private static function remove_blank_custom_fields( $merge_vars ){
 		$i=0;
 
@@ -496,49 +446,21 @@ class GFCRM extends GFFeedAddOn {
     private function login_api_crm(){
 
     $settings = $this->get_plugin_settings();
+
     $crm_type  = $settings['gf_crm_type'];
     $url  = $settings['gf_crm_url'];
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
 
-        $username = $settings['gf_crm_username'];
-    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
-    if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
-    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
-
-
-
+    if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
+    if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
+    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
+    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
 
     if($crm_type == 'vTiger') { //vtiger Method
-        $webservice = $url . 'webservice.php';
-        $operation = '?operation=getchallenge&username='.$username;
-        $result = $this->call_vtiger_get($webservice.$operation);
-        $json = json_decode($result, true);
-        $challengeToken = $json['result']['token'];
+        $login_result = $this->vtiger_login($username, $apipassword, $url);
 
-        // Get MD5 checksum of the concatenation of challenge token and user own Access Key
-        $accessKey = md5($challengeToken.$apipassword);
-
-        // Define login operation parameters
-        $operation2 = array(
-            "operation" => "login",
-            "username" => $username,
-            "accessKey" => $accessKey
-            );
-
-        // Execute and get result on server response for login operation
-        $result = $this->call_vtiger_post($webservice, $operation2);
-        // Decode JSON response
-
-        $json = json_decode($result, true);
-
-        if( $json['success'] == false ){
-            $login_result = false;
-        } else {
-            $login_result = $json['result']['sessionName'];
-        }
-
-    } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') { //sugarcrm method
-        $url = $url.'service/v4_1/rest.php';
+    } elseif($crm_type == 'SugarCRM') { //sugarcrm method
+        $url = $url.'/service/v4_1/rest.php';
 
         //login ------------------------------
         $login_parameters = array(
@@ -562,7 +484,9 @@ class GFCRM extends GFFeedAddOn {
 
         $login_result = $this->call_odoo8_login($username, $password, $dbname, $url);
 
-    } //Odoo Method
+    } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
+        $login_result = $this-> msdyn_listfields($username, $password, $url,"lead");
+    }
 
     if (!isset($login_result) )
         $login_result="";
@@ -616,6 +540,22 @@ class GFCRM extends GFFeedAddOn {
 
     ////////// VTIGER CRM //////////
 
+    /* Converts Array to vtiger webservice specification */
+    private static function convert_custom_fields( $merge_vars ){
+        $i=0;
+		$count = count( $merge_vars );
+        $jsontext = '{';
+
+		for ( $i = 0; $i < $count; $i++ ){
+            $jsontext .= '"'.$merge_vars[$i]['name'].'":"'.$merge_vars[$i]['value'].'"';
+            if($i<$count-1) {$jsontext .=', '; }
+            //'{"lastname":"#", "email":"david@closemarketing.es","industry":"bla"}'
+        }
+        $jsontext .= '}';
+
+        return $jsontext;
+    }
+
     // cURL GET function for vTiger
     private function call_vtiger_get($url) {
         $ch = curl_init();
@@ -647,6 +587,101 @@ class GFCRM extends GFFeedAddOn {
        curl_close($ch);
 
        return $output;
+    }
+
+    private function vtiger_login($username, $apipassword, $url) {
+        $webservice = $url . '/webservice.php';
+        $operation = '?operation=getchallenge&username='.$username;
+        $result = $this->call_vtiger_get($webservice.$operation);
+        $json = json_decode($result, true);
+        $challengeToken = $json['result']['token'];
+
+        // Get MD5 checksum of the concatenation of challenge token and user own Access Key
+        $accessKey = md5($challengeToken.$apipassword);
+
+        // Define login operation parameters
+        $operation2 = array(
+            "operation" => "login",
+            "username" => $username,
+            "accessKey" => $accessKey
+            );
+
+        // Execute and get result on server response for login operation
+        $result = $this->call_vtiger_post($webservice, $operation2);
+        // Decode JSON response
+
+        $json = json_decode($result, true);
+
+        if( $json['success'] == false ){
+            return false;
+        } else {
+            return $json['result']['sessionName'];
+        }
+
+    }
+
+    function vtiger_listfields($username, $password, $url, $module){
+
+        //Get fields from module
+        $login_result = $this->vtiger_login($username, $password, $url);
+
+        $webservice = $url . '/webservice.php';
+        $operation = '?operation=describe&sessionName='.$login_result.'&elementType='.$module;
+
+        $result = $this->call_vtiger_get($webservice.$operation);
+        $result = json_decode($result);
+        $result = get_object_vars($result);
+
+        if( isset($result['error']) ) { //Handle vTiger error
+            echo '<div class="error">';
+            echo '<p><strong>vTiger ERROR '.$result['error']->code.': </strong> '.$result['error']->message.'</p>';
+            echo '</div>';
+            return;
+        }
+        $result = get_object_vars($result['result']);
+
+        $i=0;
+        $custom_fields = array();
+        foreach ($result['fields'] as $arrayob) {
+            $field = get_object_vars($arrayob);
+
+
+            if($field['mandatory']==1) {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'],
+                    'name' => $field['name'],
+                    'required' => true,
+                    );
+            } else {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'],
+                    'name' => $field['name']
+                    );
+            }
+            $i++;
+        }
+        return $custom_fields;
+
+    }
+
+    private function vtiger_create_lead($username, $password, $url, $module, $mergevars) {
+        $login_result = $this->vtiger_login($username, $password, $url);
+
+        //vTiger Method
+        $webservice = $url . '/webservice.php';
+
+        $jsondata = $this->convert_custom_fields( $merge_vars );
+
+        $params = array(
+            'operation'     => 'create',
+            'sessionName'   => $login_result,
+            'element'       => $jsondata,
+            'elementType'   => $module
+            );
+
+        $result = $this->call_vtiger_post($webservice, $params);
+        $json = json_decode($result, true);
+
     }
 
     ////////// ODOO CRM //////////
@@ -740,5 +775,247 @@ class GFCRM extends GFFeedAddOn {
 
         return $arraymerge;
     } //function
+
+    /////// MS DYNAMICS CRM ///////
+
+    public function msdyn_login($username, $password, $url) {
+        include_once "lib/dynamics/LiveIDManager.php";
+        include_once "lib/dynamics/EntityUtils.php";
+
+        $url = $url.'XRMServices/2011/Organization.svc';
+
+        //Return true or false for logged in
+        $liveIDManager = new LiveIDManager();
+
+    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+
+    if($securityData!=null && isset($securityData)){
+        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
+        //echo ("\nSecurity Token 1:" . $securityData->getSecurityToken0());
+        //echo ("\nSecurity Token 2:" . $securityData->getSecurityToken1());
+        //echo "User Authentication : Succcess.<br>";
+        return true;
+    }else{
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return false;
+    }
+    return false;
+    }
+
+    function msdyn_listfields($username, $password, $url, $module){
+        include_once "lib/dynamics/LiveIDManager.php";
+        include_once "lib/dynamics/EntityUtils.php";
+
+        $url = $url.'XRMServices/2011/Organization.svc';
+
+       //Return true or false for logged in
+        $liveIDManager = new LiveIDManager();
+
+    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+
+    if($securityData!=null && isset($securityData)){
+    }else{
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return;
+    }
+
+            $domainname = substr($url,8,-1);
+
+            $pos = strpos($domainname, "/");
+
+            $domainname = substr($domainname,0,$pos);
+
+            $retriveRequest = EntityUtils::getCRMSoapHeader($url, $securityData) .
+            '
+                  <s:Body>
+                        <Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+                                <request i:type="b:RetrieveEntityRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+                                        <b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>EntityFilters</c:key>
+                                                        <c:value i:type="b:EntityFilters" xmlns:b="http://schemas.microsoft.com/xrm/2011/Metadata">Attributes</c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>MetadataId</c:key>
+                                                        <c:value i:type="d:guid" xmlns:d="http://schemas.microsoft.com/2003/10/Serialization/">00000000-0000-0000-0000-000000000000</c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>RetrieveAsIfPublished</c:key>
+                                                        <c:value i:type="d:boolean" xmlns:d="http://www.w3.org/2001/XMLSchema">true</c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>LogicalName</c:key>
+                                                        <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$module.'</c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                        </b:Parameters>
+                                        <b:RequestId i:nil="true"/><b:RequestName>RetrieveEntity</b:RequestName>
+                                </request>
+                        </Execute>
+                        </s:Body>
+                </s:Envelope>
+                ';
+        $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
+
+      $entityArray = array();
+            if($response!=null && $response!=""){
+
+                $responsedom = new DomDocument();
+                $responsedom->loadXML($response);
+                $entities = $responsedom->getElementsbyTagName("AttributeMetadata");
+
+                $record = array();
+                //$kvptypes = $entities[0]->getElementsbyTagName("KeyValuePairOfstringanyType");
+
+                foreach($entities as $kvp){
+                       if($kvp->getElementsbyTagName("DisplayName")->item(0)!=null&& $kvp->getElementsbyTagName("DisplayName")->item(0)->getElementsbyTagName("Label")->item(0)!=null)
+                         $record['label']=$kvp->getElementsbyTagName("DisplayName")->item(0)->getElementsbyTagName("Label")->item(0)->textContent;
+                         else
+                            continue;
+                          //$record['label']="";
+                        $record['name']=$kvp->getElementsbyTagName("LogicalName")->item(0)->textContent;
+
+                        $required =$kvp->getElementsbyTagName("RequiredLevel")->item(0)->getElementsbyTagName("Value")->item(0)->textContent;
+                        if($required == 'Recommended' || $required == 'ApplicationRequired')
+                            $record['required']= true;
+                        else
+                            $record['required']= false;
+
+                        $entityArray[] = $record;
+                }
+            }
+
+        return $entityArray;
+        }
+    function msdyn_listfields_back($username, $password, $url, $module){
+
+       //Return true or false for logged in
+        $liveIDManager = new LiveIDManager();
+
+    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+
+    if($securityData!=null && isset($securityData)){
+    }else{
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return false;
+    }
+
+            $domainname = substr($url,8,-1);
+
+            $pos = strpos($domainname, "/");
+
+            $domainname = substr($domainname,0,$pos);
+
+            $retriveRequest = EntityUtils::getCRMSoapHeader($url, $securityData) .
+            '
+                  <s:Body>
+                        <Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+                                <request i:type="b:RetrieveMultipleRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+                                        <b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
+                                                <b:KeyValuePairOfstringanyType>
+                                                        <c:key>Query</c:key>
+                                                        <c:value i:type="b:FetchExpression">
+                                                                  <b:Query>&lt;fetch mapping="logical" count="2" version="1.0"&gt;&#xD;
+                                                                        &lt;entity name="'.$module.'"&gt;&#xD;
+                                                                        &lt;all-attributes/&gt;&#xD;
+                                                                        &lt;/entity&gt;&#xD;
+                                                                        &lt;/fetch&gt;
+                                                                </b:Query>
+                                                        </c:value>
+                                                </b:KeyValuePairOfstringanyType>
+                                        </b:Parameters>
+                                        <b:RequestId i:nil="true"/><b:RequestName>RetrieveMultiple</b:RequestName>
+                                </request>
+                        </Execute>
+                        </s:Body>
+                </s:Envelope>
+                ';
+        $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
+
+      $entityArray = array();
+            if($response!=null && $response!=""){
+
+                $responsedom = new DomDocument();
+                $responsedom->loadXML($response);
+                $entities = $responsedom->getElementsbyTagName("Entity");
+
+                $record = array();
+                $kvptypes = $entities[0]->getElementsbyTagName("KeyValuePairOfstringanyType");
+
+                foreach($kvptypes as $kvp){
+                        $key =  $kvp->getElementsbyTagName("key")->item(0)->textContent;
+                        $value =  $kvp->getElementsbyTagName("value")->item(0)->textContent;
+                        $record['label']=$key;
+                        $record['name']=$key;
+                        $entityArray[] = $record;
+                }
+            }
+
+        return $entityArray;
+        }
+
+    function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
+        include_once "lib/dynamics/LiveIDManager.php";
+        include_once "lib/dynamics/EntityUtils.php";
+
+        $url = $url.'XRMServices/2011/Organization.svc';
+     //Return true or false for logged in
+        $liveIDManager = new LiveIDManager();
+
+    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+
+    if($securityData!=null && isset($securityData)){
+    }else{
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return false;
+    }
+
+    $attributedata='';
+    foreach($mergevars as $attribute){
+        $attributedata=$attributedata.
+        '<b:KeyValuePairOfstringanyType>
+            <c:key>'.$attribute['name'].'</c:key>
+            <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$attribute['value'].'</c:value>
+        </b:KeyValuePairOfstringanyType>';
+    }
+
+
+      $domainname = substr($url,8,-1);
+            $pos = strpos($domainname, "/");
+            $domainname = substr($domainname,0,$pos);
+            $entityCreateRequest = EntityUtils::getCreateCRMSoapHeader($url, $securityData).
+            '
+                  <s:Body>
+                        <Create xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+                        <entity xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+                            <b:Attributes xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
+                                '.$attributedata.'
+                            </b:Attributes>
+                            <b:EntityState i:nil="true"/>
+                            <b:FormattedValues xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+                            <b:Id>00000000-0000-0000-0000-000000000000</b:Id>
+                            <b:LogicalName>'.$module.'</b:LogicalName>
+                            <b:RelatedEntities xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+                        </entity>
+                        </Create>
+                    </s:Body>
+                </s:Envelope>
+                ';
+
+        $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $entityCreateRequest);
+
+            $createResult ="";
+            if($response!=null && $response!=""){
+                preg_match('/<CreateResult>(.*)<\/CreateResult>/', $response, $matches);
+                $createResult =  $matches[1];
+            }
+
+            return $createResult;
+    }
+
+    ////////////////////////////////
 
 }
