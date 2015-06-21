@@ -203,17 +203,17 @@ class GFCRM extends GFFeedAddOn {
 	public function get_custom_fields_vtiger( ) {
 
         $settings = $this->get_plugin_settings();
-        $crm_type  = $settings['gf_crm_type'];
-        $url  = $settings['gf_crm_url'];
-        if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-        if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username'];
-        if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword'];
-        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
-        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
+    $crm_type  = $settings['gf_crm_type'];
+    $url  = $settings['gf_crm_url'];
+    if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+    if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
+    if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
+    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
+    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
 
         if($crm_type == 'vTiger') { //vtiger Method
 
-            $custom_fields = $this->vtiger_listfields($username, $password, $url, 'Leads');
+            $custom_fields = $this->vtiger_listfields($username, $apipassword, $url, 'Leads');
 
         } elseif($crm_type == 'SugarCRM') {
 
@@ -263,7 +263,7 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Odoo 8') { //Odoo method
             $uid = $this->login_api_crm();
 
-            $models = ripcord::client($url.'/xmlrpc/2/object');
+            $models = ripcord::client($url.'xmlrpc/2/object');
             $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
 
             $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
@@ -350,19 +350,19 @@ class GFCRM extends GFFeedAddOn {
 
 
         $settings = $this->get_plugin_settings();
-        $crm_type  = $settings['gf_crm_type'];
-        $url  = $settings['gf_crm_url'];
-        if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-        if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username'];
-        if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword'];
-        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
-        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
+    $crm_type  = $settings['gf_crm_type'];
+    $url  = $settings['gf_crm_url'];
+    if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+    if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
+    if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
+    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
+    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
 
         $login_result = $this->login_api_crm();
 
 
         if($crm_type == 'vTiger') { //vtiger Method
-            $id = $this->vtiger_create_lead($username, $password, $url, 'Leads', $merge_vars);
+            $id = $this->vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
 
         } elseif($crm_type == 'SugarCRM') {
             // SugarCRM Method
@@ -442,13 +442,13 @@ class GFCRM extends GFFeedAddOn {
     $crm_type  = $settings['gf_crm_type'];
     $url  = $settings['gf_crm_url'];
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-    if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username'];
-    if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword'];
-    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
-    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
+    if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
+    if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
+    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
+    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
 
     if($crm_type == 'vTiger') { //vtiger Method
-        $login_result = $this->vtiger_login($username, $password, $url);
+        $login_result = $this->vtiger_login($username, $apipassword, $url);
 
     } elseif($crm_type == 'SugarCRM') { //sugarcrm method
         $url = $url.'/service/v4_1/rest.php';
@@ -577,7 +577,7 @@ class GFCRM extends GFFeedAddOn {
        return $output;
     }
 
-    private function vtiger_login($username, $password, $url) {
+    private function vtiger_login($username, $apipassword, $url) {
         $webservice = $url . '/webservice.php';
         $operation = '?operation=getchallenge&username='.$username;
         $result = $this->call_vtiger_get($webservice.$operation);
@@ -603,7 +603,7 @@ class GFCRM extends GFFeedAddOn {
         if( $json['success'] == false ){
             return false;
         } else {
-            return = $json['result']['sessionName'];
+            return $json['result']['sessionName'];
         }
 
     }
