@@ -206,9 +206,9 @@ class GFCRM extends GFFeedAddOn {
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-        $username = $settings['gf_crm_username'];
-        $apipassword = $settings['gf_crm_apipassword'];
-        $dbname = $settings['gf_crm_odoodb'];
+        if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username'];
+        if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword'];
+        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
 
         if($crm_type == 'vTiger') { //vtiger Method
@@ -274,9 +274,6 @@ class GFCRM extends GFFeedAddOn {
             $get_module_fields_result = $get_module_fields_result->module_fields;
             $get_module_fields_result = get_object_vars($get_module_fields_result);
 
-            //echo "<pre>";
-            //print_r($get_module_fields_result);
-            //echo "</pre>";
             $i=0;
             $custom_fields = array();
             foreach ($get_module_fields_result as $arrayob) {
@@ -392,10 +389,10 @@ class GFCRM extends GFFeedAddOn {
         $crm_type  = $settings['gf_crm_type'];
         $url  = $settings['gf_crm_url'];
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-        $username = $settings['gf_crm_username'];
-        $password = $settings['gf_crm_password'];
-        $apipassword = $settings['gf_crm_apipassword'];
-        $dbname = $settings['gf_crm_odoodb'];
+        if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username'];
+        if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword'];
+        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
+        if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
 
         $login_result = $this->login_api_crm();
 
@@ -404,7 +401,6 @@ class GFCRM extends GFFeedAddOn {
             //vTiger Method
             $webservice = $url . '/webservice.php';
 
-            print_r($merge_vars);
             $jsondata = $this->convert_custom_fields( $merge_vars );
 
             $params = array(
@@ -508,14 +504,14 @@ class GFCRM extends GFFeedAddOn {
     private function login_api_crm(){
 
     $settings = $this->get_plugin_settings();
+
     $crm_type  = $settings['gf_crm_type'];
     $url  = $settings['gf_crm_url'];
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-
-    $username = $settings['gf_crm_username'];
-    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
-    if (isset($settings['gf_crm_apipassword']) )$apipassword = $settings['gf_crm_apipassword'];
+    if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username'];
+    if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword'];
     if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb'];
+    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password'];
 
     if($crm_type == 'vTiger') { //vtiger Method
         $webservice = $url . '/webservice.php';
