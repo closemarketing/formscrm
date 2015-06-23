@@ -459,7 +459,7 @@ class GFCRM extends GFFeedAddOn {
     if($crm_type == 'vTiger') { //vtiger Method
         $login_result = $this->vtiger_login($username, $apipassword, $url);
 
-    } elseif($crm_type == 'SugarCRM') { //sugarcrm method
+    } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') { //sugarcrm method
         $url = $url.'/service/v4_1/rest.php';
 
         //login ------------------------------
