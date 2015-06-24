@@ -73,6 +73,10 @@ class GFCRM extends GFFeedAddOn {
                                                         'name'  => 'suitecrm'
                                                     ),
                                                     array(
+                                                        'label' => 'VTE CRM',
+                                                        'name'  => 'vtecrm'
+                                                    ),
+                                                    array(
                                                         'label' => 'Odoo 8',
                                                         'name'  => 'odoo8'
                                                     ),
@@ -114,7 +118,7 @@ class GFCRM extends GFFeedAddOn {
 						'feedback_callback' => $this->login_api_crm(),
                         'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM' ) ),
 						'feedback_callback' => $this->is_valid_key()
 					),
 					array(
@@ -268,6 +272,10 @@ class GFCRM extends GFFeedAddOn {
 
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
             $custom_fields = $this->msdyn_listfields($username, $password, $url,"lead");
+
+        } elseif($crm_type == 'VTE CRM') {
+             $custom_fields = $this->vte_listfields($username, $apipassword, $url,'Leads');
+
         } // From if CRM
 
 		return $custom_fields;
@@ -385,6 +393,9 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
             $id = $this->msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
 
+        } elseif($crm_type == 'VTE CRM') {
+            $id = $this->vte_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
+
         } // From CRM IF
 
         //Sends email if it does not create a lead
@@ -485,8 +496,12 @@ class GFCRM extends GFFeedAddOn {
         $login_result = $this->call_odoo8_login($username, $password, $dbname, $url);
 
     } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
-        $login_result = $this-> msdyn_listfields($username, $password, $url,"lead");
-    }
+        $login_result = $this-> msdyn_login($username, $password, $url,"lead");
+
+    } elseif($crm_type == 'VTE CRM') {
+        $login_result = $this-> vtiger_login($username, $apipassword, $url, 'Leads');
+
+    } //OF CRM
 
     if (!isset($login_result) )
         $login_result="";
@@ -1018,4 +1033,77 @@ class GFCRM extends GFFeedAddOn {
 
     ////////////////////////////////
 
+
+    /////// VTE CRM ///////
+
+    private function vte_login($username, $password, $url) {
+
+        require_once('vtwsclib/VTEWSClient.php');
+        $client = new VTE_WSClient($url);
+
+        $login = $client->doLogin($username,$password);
+
+        return $login;
+    }
+
+
+    private function vte_listfields($username, $apipassword, $url, $module){
+        require_once('vtwsclib/VTEWSClient.php');
+
+        $client = new VTE_WSClient($url);
+        $login = $client->doLogin($username, $apipassword);
+
+        $describe = $client->doDescribe($module);
+
+        $cancreate = $describe['createable'];
+        $canupdate = $describe['updateable'];
+        $candelete = $describe['deleteable'];
+        $canread   = $describe['retrieveable'];
+        $fields    = $describe['fields'];
+
+        $i=0;
+        $custom_fields = array();
+        foreach ($fields as $field) {
+
+            if($field['mandatory']==1) {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'].' ('.$field['name'].')',
+                    'name' => $field['name'],
+                    'required' => true,
+                    );
+            } else {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'].' ('.$field['name'].')',
+                    'name' => $field['name']
+                    );
+            }
+            $i++;
+        } //foreach
+
+        return $custom_fields;
+    }
+
+    private function vte_create_lead($username, $apipassword, $url, $module, $merge_vars) {
+        require_once('vtwsclib/VTEWSClient.php');
+
+        $client = new VTE_WSClient($url);
+        $login = $client->doLogin($username, $apipassword);
+
+        $array_lead = array();
+
+        //Convert for VTE way
+        $i=0;
+        foreach($merge_vars as $arraymerge){
+            $array_lead[$arraymerge['name']] = $arraymerge['value'];
+        }
+
+        $record = $client->doCreate($module, $array_lead);
+        if($record) {
+            $recordid = $client->getRecordId($record['id']);
+        }
+
+        return $record;
+    }
+
+    ////////////////////////////////
 }
