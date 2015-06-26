@@ -220,55 +220,13 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
 
         if($crm_type == 'vTiger') { //vtiger Method
-
             $custom_fields = $this->vtiger_listfields($username, $apipassword, $url, 'Leads');
 
         } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
-
-            //get session id
-            $login_result = $this->login_api_crm();
-
-            $session_id = $login_result->id;
-            $url = $url.'service/v4_1/rest.php';
-
-            //retrieve fields --------------------------------
-                $get_module_fields_parameters = array(
-                 'session' => $session_id,
-                 'module_name' => 'Leads',
-                );
-
-            $get_module_fields_result = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
-            $get_module_fields_result = get_object_vars($get_module_fields_result->module_fields);
-
-            $i=0;
-            $custom_fields = array();
-            foreach ($get_module_fields_result as $arrayob) {
-                $field = get_object_vars($arrayob);
-
-                if($field['name']=='id') {
-                } elseif($field['required']==1) {
-                    $custom_fields[$i] = array(
-                        'label' => $field['label'],
-                        'name' => $field['name'],
-                        'required' => true,
-                        );
-                } else {
-                    $custom_fields[$i] = array(
-                        'label' => $field['label'],
-                        'name' => $field['name']
-                        );
-                }
-                $i++;
-            } //from foreach
+            $custom_fields = $this->sugarcrm_listfields($username, $password, $url,'Leads');
 
         } elseif($crm_type == 'Odoo 8') { //Odoo method
-
-            $uid = $this->login_api_crm();
-
-            $models = ripcord::client($url.'xmlrpc/2/object');
-            $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
-
-            $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
+            $custom_fields = $this->odoo_listfields($username, $password, $dbname, $url,"lead");
 
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
             $custom_fields = $this->msdyn_listfields($username, $password, $url,"lead");
@@ -364,31 +322,14 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
 
-        $login_result = $this->login_api_crm();
-
         if($crm_type == 'vTiger') { //vtiger Method
             $id = $this->vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
 
         } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
-
-            // SugarCRM Method
-            $webservice = $url.'service/v4_1/rest.php';
-            $session_id = $login_result->id;
-
-            $set_entry_parameters = array(
-                 "session" => $session_id,
-                 "module_name" => "Leads",
-                 "name_value_list" => $merge_vars
-            );
-
-            $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $webservice);
+            $id = $this->sugarcrm_create_lead($username, $password, $url, 'Leads', $merge_vars);
 
         } elseif($crm_type == 'Odoo 8') {
-            $merge_vars = $this->convert_odoo8_merge($merge_vars);
-
-            $models = ripcord::client($url.'xmlrpc/2/object');
-            $id = $models->execute_kw($dbname, $login_result, $password, 'crm.lead', 'create',
-            array($merge_vars));
+            $id = $this->odoo8_create_lead($username, $password, $dbname, $url, 'lead', $merge_vars);
 
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
             $id = $this->msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
@@ -399,8 +340,8 @@ class GFCRM extends GFFeedAddOn {
         } // From CRM IF
 
         //Sends email if it does not create a lead
-        if ($id == false)
-            $this->send_emailerrorlead($crm_type);
+        //if ($id == false)
+        //    $this->send_emailerrorlead($crm_type);
 }
 
     private function send_emailerrorlead($crm_type) {
@@ -471,29 +412,10 @@ class GFCRM extends GFFeedAddOn {
         $login_result = $this->vtiger_login($username, $apipassword, $url);
 
     } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') { //sugarcrm method
-        $url = $url.'/service/v4_1/rest.php';
-
-        //login ------------------------------
-        $login_parameters = array(
-             "user_auth" => array(
-                  "user_name" => $username,
-                  "password" => md5($password),
-                  "version" => "1"
-             ),
-             "application_name" => "RestTest",
-             "name_value_list" => array(),
-        );
-
-        $login_result = $this->call_sugarcrm("login", $login_parameters, $url);
-
-        $login_token = $login_result->id;
-
-        if( $login_token == 1 )
-            $login_result = false;
+        $login_result = $this->sugarcrm_login($username, $password, $url, 'Leads');
 
     } elseif($crm_type == 'Odoo 8') { //Odoo Method
-
-        $login_result = $this->call_odoo8_login($username, $password, $dbname, $url);
+        $login_result = $this->odoo8_login($username, $password, $dbname, $url);
 
     } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
         $login_result = $this-> msdyn_login($username, $password, $url,"lead");
@@ -511,7 +433,7 @@ class GFCRM extends GFFeedAddOn {
 //////////// Helpers Functions for CRMs ////////////
 
 
-    ////////// SUGARCRM CRM //////////
+    /////// SUGAR CRM ///////
 
     //function to make cURL request
     private function call_sugarcrm($method, $parameters, $url)
@@ -551,6 +473,94 @@ class GFCRM extends GFFeedAddOn {
 
         return $response;
     }
+
+    private function sugarcrm_login($username, $password, $url) {
+
+        $url = $url.'service/v4_1/rest.php';
+
+        //login ------------------------------
+        $login_parameters = array(
+             "user_auth" => array(
+                  "user_name" => $username,
+                  "password" => md5($password),
+                  "version" => "1"
+             ),
+             "application_name" => "RestTest",
+             "name_value_list" => array(),
+        );
+
+        $login_result = $this->call_sugarcrm("login", $login_parameters, $url);
+
+        $login_token = $login_result->id;
+
+        if( $login_token == 1 )
+            $login_token = false;
+
+        return $login_token;
+    }
+
+    private function sugarcrm_listfields($username, $password, $url, $module) {
+
+        //get session id
+        $login_result = $this->sugarcrm_login($username, $password, $url);
+
+        $url = $url.'service/v4_1/rest.php';
+
+        //retrieve fields --------------------------------
+            $get_module_fields_parameters = array(
+             'session' => $login_result,
+             'module_name' => $module,
+            );
+
+        $get_fields = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
+
+        $get_fields = $get_fields->module_fields;
+
+        $i=0;
+        $custom_fields = array();
+        foreach ($get_fields as $arrayob) {
+            $field = get_object_vars($arrayob);
+
+            if($field['name']=='id') {
+            } elseif($field['required']==1) {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'],
+                    'name' => $field['name'],
+                    'required' => true,
+                    );
+            } else {
+                $custom_fields[$i] = array(
+                    'label' => $field['label'],
+                    'name' => $field['name']
+                    );
+            }
+            $i++;
+        } //from foreach
+
+
+        return $custom_fields;
+    }
+
+    private function sugarcrm_create_lead($username, $password, $url, $module, $merge_vars) {
+
+        // SugarCRM Method
+        $login_result = $this->sugarcrm_login($username, $password, $url);
+
+        $webservice = $url.'service/v4_1/rest.php';
+
+        $set_entry_parameters = array(
+             "session" => $login_result,
+             "module_name" => $module,
+             "name_value_list" => $merge_vars
+        );
+
+        $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $webservice);
+
+        return $set_entry_result->id;
+
+    }
+
+    ////////////////////////////////
 
 
     ////////// VTIGER CRM //////////
@@ -699,97 +709,95 @@ class GFCRM extends GFFeedAddOn {
 
     }
 
-    ////////// ODOO CRM //////////
+    /////// ODOO CRM ///////
+    //Helpers functions
+        private function odoo8_login($username, $password, $dbname, $url) {
+            //Load Library XMLRPC
+            require_once('lib/ripcord.php');
 
-    // Function to Login in Odoo
-    private function call_odoo7_login($username, $password, $dbname, $url) {
-        //Load Library XMLRPC
-        require_once( 'lib/xmlrpc.inc' );
-        require_once( 'lib/xmlrpcs.inc' );
-        require_once( 'lib/xmlrpc_wrappers.inc' );
-
-        $server_url = $url .'xmlrpc/';
-
-        $sock = new xmlrpc_client($server_url.'common');
-        $msg = new xmlrpcmsg('login');
-        $msg->addParam(new xmlrpcval($dbname, "string"));
-        $msg->addParam(new xmlrpcval($username, "string"));
-        $msg->addParam(new xmlrpcval($password, "string"));
-        $resp =  $sock->send($msg);
-
-        $val = $resp->value();
-        if($val) {
-            return true;
-        }else{
-           return false;
-        }
-    }
-    private function call_odoo8_login($username, $password, $dbname, $url) {
-        //Load Library XMLRPC
-        require_once('lib/ripcord.php');
-
-        //Manage Errors from Library
-		try {
-        $common = ripcord::client($url.'xmlrpc/2/common');
-        } catch (Exception $e) {
-            echo '<div id="message" class="error below-h2">
-            <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
-            return false;
-        }
-
-        try {
-        $uid = $common->authenticate($dbname, $username, $password, array());
-        } catch (Exception $e) {
-            echo '<div id="message" class="error below-h2">
-            <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
-            return false;
-        }
-
-        if (isset($uid) )
-            return $uid;
-        else
-            return false;
-    }
-    // from login Odoo
-    //Converts XML Odoo in array for Gravity Forms Custom Fields
-    private function convert_XML_odoo8_customfields($xml_odoo){
-        $p = xml_parser_create();
-        xml_parse_into_struct($p, $xml_odoo, $vals, $index);
-        xml_parser_free($p);
-
-        $custom_fields = array();
-        $i =0;
-
-        //echo '<pre>';
-        //print_r($vals);
-        //echo '</pre>';
-
-        foreach($vals as $field)
-        {
-            if( $field["tag"] == 'NAME' ) {
-                if ( $field["value"] != 'type' && $field["value"] != 'string' && $field["value"] != 'help')
-                $custom_fields[$i] = array(
-                        'label' => $field['value'],
-                        'name' => $field['value']
-                        );
-
+            //Manage Errors from Library
+            try {
+            $common = ripcord::client($url.'xmlrpc/2/common');
+                        print_r($common);
+            } catch (Exception $e) {
+                echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
+                return false;
             }
-            $i++;
-        } //del foreach
-        return $custom_fields;
-    } //function
 
-    //Converts Gravity Forms Array to Odoo 8 Array to create field
-    private function convert_odoo8_merge($merge_vars){
-        $i =0;
-        $arraymerge = array();
-        foreach($merge_vars as $mergefield) {
-            $arraymerge = array_merge($arraymerge,array( $mergefield['name'] => $mergefield['value'] ) );
-            $i++;
+            try {
+            $uid = $common->authenticate($dbname, $username, $password, array());
+            } catch (Exception $e) {
+                echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
+                return false;
+            }
+
+            if (isset($uid) )
+                return $uid;
+            else
+                return false;
+        }
+        // from login Odoo
+        //Converts XML Odoo in array for Gravity Forms Custom Fields
+        function convert_XML_odoo8_customfields($xml_odoo){
+            $p = xml_parser_create();
+            xml_parse_into_struct($p, $xml_odoo, $vals, $index);
+            xml_parser_free($p);
+
+            $custom_fields = array();
+            $i =0;
+
+            foreach($vals as $field)
+            {
+                if( $field["tag"] == 'NAME' ) {
+                    if ( $field["value"] != 'type' && $field["value"] != 'string' && $field["value"] != 'help')
+                    $custom_fields[$i] = array(
+                            'label' => $field['value'],
+                            'name' => $field['value']
+                            );
+
+                }
+                $i++;
+            } //del foreach
+            return $custom_fields;
+        } //function
+
+        //// Main Functions
+        private function odoo8_listfields($username, $password, $dbname, $url, $module) {
+            if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+            $uid = $this->odoo8_login($username, $password, $dbname, $url);
+
+            $models = ripcord::client($url.'xmlrpc/2/object');
+            $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
+
+            $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
+
+            // Return an array of fields
+            return $custom_fields;
         }
 
-        return $arraymerge;
-    } //function
+        private function odoo8_create_lead($username, $password, $dbname, $url, $module, $merge_vars) {
+
+            //Converts to Array
+            $i =0;
+            $arraymerge = array();
+            foreach($merge_vars as $mergefield) {
+                $arraymerge = array_merge($arraymerge,array( $mergefield['name'] => $mergefield['value'] ) );
+                $i++;
+            }
+
+            if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+            $uid = $this->odoo8_login($username, $password, $dbname, $url);
+
+            $models = ripcord::client($url.'xmlrpc/2/object');
+            $id = $models->execute_kw($dbname, $uid, $password, 'crm.lead', 'create',
+            array($arraymerge));
+
+            return $id;
+        }
+
+    ////////////////////////////////
 
     /////// MS DYNAMICS CRM ///////
 
