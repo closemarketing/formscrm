@@ -83,6 +83,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'Microsoft Dynamics CRM',
                                                         'name'  => 'msdynamics'
+                                                    ),
+                                                    array(
+                                                        'label' => 'Salesforce',
+                                                        'name'  => 'salesforce'
                                                     )
                                                 )
 					),
@@ -93,6 +97,8 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
+                        'dependency' => array( 'field' => 'gf_crm_type',
+                            'values' => array( 'SugarCRM', 'Odoo 8','Microsoft Dynamics CRM','SuiteCRM','vTiger','VTE CRM' ) ),
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -127,6 +133,13 @@ class GFCRM extends GFFeedAddOn {
 						'type'              => 'text',
 						'class'             => 'medium',
                         'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Odoo 8' ) ),
+					),
+					array(
+						'name'              => 'gf_crm_seckey',
+						'label'             => __( 'Security Key', 'gravityformscrm' ),
+						'type'              => 'api_key',
+						'class'             => 'medium',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Salesforce' ) ),
 					)
 				)
 			),
@@ -156,11 +169,10 @@ class GFCRM extends GFFeedAddOn {
 
 	//-------- Form Settings ---------
 	public function feed_edit_page( $form, $feed_id ) {
-
 		// ensures valid credentials were entered in the settings page
 		if ( $this->login_api_crm() == false ) {
 			?>
-			<div><?php echo sprintf( __( 'We are unable to login to CRM with the provided API key or URL is incorrect (it must finish with slash / ). Please make sure you have entered a valid API key in the %sSettings Page%s', 'gravityformscrm' ),
+			<div><?php echo sprintf( __( 'We are unable to login to CRM with the provided API key or URL is incorrect. Please make sure you have entered a valid API key in the %sSettings Page%s', 'gravityformscrm' ),
 					'<a href="' . $this->get_plugin_settings_url() . '">', '</a>' ); ?>
 			</div>
 			<?php
@@ -212,12 +224,14 @@ class GFCRM extends GFFeedAddOn {
 
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
-        $url  = $settings['gf_crm_url'];
+
+        if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
         if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
         if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
         if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
+        if (isset($settings['gf_crm_seckey']) ) $seckey = $settings['gf_crm_seckey']; else $seckey ="";
 
         if($crm_type == 'vTiger') { //vtiger Method
             $custom_fields = $this->vtiger_listfields($username, $apipassword, $url, 'Leads');
@@ -234,6 +248,8 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'VTE CRM') {
              $custom_fields = $this->vte_listfields($username, $apipassword, $url,'Leads');
 
+        } elseif($crm_type == 'Salesforce') {
+             $custom_fields = $this->salesforce_listfields($username, $seckey, 'Lead');
         } // From if CRM
 
 		return $custom_fields;
@@ -315,12 +331,13 @@ class GFCRM extends GFFeedAddOn {
         $settings = $this->get_plugin_settings();
 
         $crm_type  = $settings['gf_crm_type'];
-        $url  = $settings['gf_crm_url'];
+        if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
         if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
         if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
         if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
+        if (isset($settings['gf_crm_seckey']) ) $seckey = $settings['gf_crm_seckey']; else $seckey ="";
 
         if($crm_type == 'vTiger') { //vtiger Method
             $id = $this->vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
@@ -337,7 +354,12 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'VTE CRM') {
             $id = $this->vte_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
 
+        } elseif($crm_type == 'Salesforce') {
+            $id = $this->salesforce_create_lead($username, $seckey, 'Lead', $merge_vars);
+
         } // From CRM IF
+
+        print_r($id);
 
         //Sends email if it does not create a lead
         //if ($id == false)
@@ -400,13 +422,14 @@ class GFCRM extends GFFeedAddOn {
     $settings = $this->get_plugin_settings();
 
     $crm_type  = $settings['gf_crm_type'];
-    $url  = $settings['gf_crm_url'];
+    if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
 
     if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
     if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
     if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
     if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
+    if (isset($settings['gf_crm_seckey']) ) $seckey = $settings['gf_crm_seckey']; else $seckey ="";
 
     if($crm_type == 'vTiger') { //vtiger Method
         $login_result = $this->vtiger_login($username, $apipassword, $url);
@@ -423,6 +446,8 @@ class GFCRM extends GFFeedAddOn {
     } elseif($crm_type == 'VTE CRM') {
         $login_result = $this-> vtiger_login($username, $apipassword, $url, 'Leads');
 
+    } elseif($crm_type == 'Salesforce') {
+        $login_result = $this-> salesforce_login($username, $seckey);
     } //OF CRM
 
     if (!isset($login_result) )
@@ -1111,6 +1136,100 @@ class GFCRM extends GFFeedAddOn {
         }
 
         return $record;
+    }
+
+    ////////////////////////////////
+
+    /////// SALESFORCE CRM ///////
+
+    public function salesforce_login($username, $security_key) {
+        require_once ('lib/salesforce/SforcePartnerClient.php');
+        require_once ('lib/salesforce/SforceHeaderOptions.php');
+
+        //Return true or false for logged in
+		try {
+				$mySforceConnection = new SforcePartnerClient();
+                $partnerurl = plugins_url( 'gravityforms-crm/lib/salesforce/partner.wsdl.xml', dirname(__FILE__) );
+				$mySoapClient = $mySforceConnection->createConnection($partnerurl);
+				$mylogin = $mySforceConnection->login($username, $security_key);
+				//echo '<pre>';
+				//print_r($mylogin->userInfo);
+				//echo '</pre>';
+				return true;
+			}
+			catch (Exception $e)
+			{
+                echo '<div id="message" class="error below-h2">
+                <p><strong>'.$e.': </strong></p></div>';
+				//print_r($e);
+			}
+
+			return false;
+    }
+
+    public function salesforce_listfields($username, $security_key, $module) {
+        require_once ('lib/salesforce/SforcePartnerClient.php');
+        require_once ('lib/salesforce/SforceHeaderOptions.php');
+
+		try {
+				$mySforceConnection = new SforcePartnerClient();
+                $partnerurl = plugins_url( 'gravityforms-crm/lib/salesforce/partner.wsdl.xml', dirname(__FILE__) );
+				$mySoapClient = $mySforceConnection->createConnection($partnerurl);
+				$mylogin = $mySforceConnection->login($username, $security_key);
+				$myobj= $mySforceConnection->describeSObject($module);
+
+				$entityArray = array();
+				foreach($myobj->fields as $field){
+                    if($field->defaultedOnCreate!=1)
+					$entityArray[]=array('label'=> $field->label, 'name' => $field->name, 'required' => !($field->nillable==1));
+                    else
+					$entityArray[]=array('label'=> $field->label, 'name' => $field->name);
+				}
+
+				return $entityArray;
+
+			}
+		catch (Exception $e)
+        {
+            echo '<div id="message" class="error below-h2">
+            <p><strong>'.$e.': </strong></p></div>';
+            //print_r($e);
+		}
+    }
+    private function salesforce_create_lead($username, $security_key, $module, $mergevars) {
+        require_once ('lib/salesforce/SforcePartnerClient.php');
+        require_once ('lib/salesforce/SforceHeaderOptions.php');
+		try {
+				$mySforceConnection = new SforcePartnerClient();
+                $partnerurl = plugins_url( 'gravityforms-crm/lib/salesforce/partner.wsdl.xml', dirname(__FILE__) );
+				$mySoapClient = $mySforceConnection->createConnection($partnerurl);
+				$mylogin = $mySforceConnection->login($username, $security_key);
+
+				$fieldsArray = array();
+				foreach($mergevars as $attribute){
+				$fieldsArray[$attribute['name']]=$attribute['value'];
+				}
+
+				$sObject = new SObject();
+				$sObject->fields = $fieldsArray;
+				$sObject->type = $module;
+				$createResponse = $mySforceConnection->create(array($sObject));
+
+				//print_r($createResponse);
+				return $createResponse[0];
+				/*
+				$ids = array();
+				foreach ($createResponse as $createResult) {
+					print_r($createResult);
+					array_push($ids, $createResult->id);
+				}
+				*/
+
+			}
+			catch (Exception $e) {
+				echo $mySforceConnection->getLastRequest();
+				echo $e->faultstring;
+			}
     }
 
     ////////////////////////////////
