@@ -1210,10 +1210,14 @@ class GFCRM extends GFFeedAddOn {
              'module_name' => $module,
             );
 
-        $get_fields = $this->call_sugarcrm7("get_module_fields", $get_module_fields_parameters, $url);
+    $get_fields = $this->call_sugarcrm7("get_module_fields", $get_module_fields_parameters, $url);
 		$custom_fields = array();
+
 		foreach($get_fields->module_fields as $field){
-		$custom_fields[]=array('label'=> $field->label, 'name' => $field->name, 'required' => ($field->required));
+			if($field->label== 'ID')
+				$custom_fields[]=array('label'=> $field->label, 'name' => $field->name);
+			else
+				$custom_fields[]=array('label'=> $field->label, 'name' => $field->name, 'required' => ($field->required));
 		}
     return $custom_fields;
     }
@@ -1221,7 +1225,7 @@ class GFCRM extends GFFeedAddOn {
     private function sugarcrm_create_lead7($username, $password, $url, $module, $merge_vars) {
 
         // SugarCRM Method
-        $login_result = sugarcrm_login7($username, $password, $url);
+        $login_result = $this->sugarcrm_login7($username, $password, $url);
 
         $webservice = $url.'service/v4_1/rest.php';
 
@@ -1231,7 +1235,7 @@ class GFCRM extends GFFeedAddOn {
              "name_value_list" => $merge_vars
         );
 
-        $set_entry_result = call_sugarcrm7("set_entry", $set_entry_parameters, $webservice);
+        $set_entry_result = $this->call_sugarcrm7("set_entry", $set_entry_parameters, $webservice);
 
         return $set_entry_result->id;
 
