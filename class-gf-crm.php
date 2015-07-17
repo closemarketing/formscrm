@@ -357,7 +357,7 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'ESPO CRM') {
             $id = $this->espo_createlead($username, $password, $url, 'Lead', $merge_vars);
         } // From CRM IF
-				
+
         //Sends email if it does not create a lead
         //if ($id == false)
         //    $this->send_emailerrorlead($crm_type);
@@ -487,8 +487,6 @@ class GFCRM extends GFFeedAddOn {
         $result = curl_exec($curl_request);
         curl_close($curl_request);
         $result = explode("\r\n\r\n", $result, 2);
-
-				print_r($result);
 
         if($result[0]=="")
             $response = false;
@@ -744,7 +742,6 @@ class GFCRM extends GFFeedAddOn {
             //Manage Errors from Library
             try {
             $common = ripcord::client($url.'xmlrpc/2/common');
-                        print_r($common);
             } catch (Exception $e) {
                 echo '<div id="message" class="error below-h2">
                 <p><strong>'.__('Error','gravityformscrm').': '.$e->getMessage().'</strong></p></div>';
