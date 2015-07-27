@@ -826,11 +826,22 @@ class GFCRM extends GFFeedAddOn {
 
     /////// MS DYNAMICS CRM ///////
 
+    private function msdyn_apiurl($url) {
+				$pos = strpos($url, 'api');
+				if ($pos == false) {
+					$pos = strpos($url, '.');
+					$url = substr_replace($url, '.api', $pos, 0);
+				}
+        $url = $url.'XRMServices/2011/Organization.svc';
+
+				return $url;
+    }
+
     public function msdyn_login($username, $password, $url) {
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
 
-        $url = $url.'XRMServices/2011/Organization.svc';
+        $url = $this->msdyn_apiurl($url);
 
         //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
@@ -855,12 +866,16 @@ class GFCRM extends GFFeedAddOn {
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
 
-        $url = $url.'XRMServices/2011/Organization.svc';
+        $url = $this->msdyn_apiurl($url);
+
+				print_r($url);
 
        //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
     $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+
+		print_r($securityData);
 
     if($securityData!=null && isset($securityData)){
     }else{
@@ -1008,7 +1023,7 @@ class GFCRM extends GFFeedAddOn {
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
 
-        $url = $url.'XRMServices/2011/Organization.svc';
+        $url = $this->msdyn_apiurl($url);
      //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
