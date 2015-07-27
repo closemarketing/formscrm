@@ -821,54 +821,66 @@ class GFCRM extends GFFeedAddOn {
         }
 
     ////////////////////////////////
+		/////// MS DYNAMICS CRM ///////
 
-    /////// MS DYNAMICS CRM ///////
+    private function msdyn_apiurl($url) {
+				$pos = strpos($url, 'api');
+				if ($pos == false) {
+					$pos = strpos($url, '.');
+					$url = substr_replace($url, '.api', $pos, 0);
+				}
+        $url = $url.'XRMServices/2011/Organization.svc';
+
+				return $url;
+    }
 
     public function msdyn_login($username, $password, $url) {
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
 
-        $url = $url.'XRMServices/2011/Organization.svc';
+        $url = $this->msdyn_apiurl($url);
 
         //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
-		    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-		    if($securityData!=null && isset($securityData)){
-		        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
-		        //echo ("\nSecurity Token 1:" . $securityData->getSecurityToken0());
-		        //echo ("\nSecurity Token 2:" . $securityData->getSecurityToken1());
-		        //echo "User Authentication : Succcess.<br>";
-		        return true;
-		    }else{
-		        echo '<div id="message" class="error below-h2">
-		                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-		        return false;
-		    }
-		    return false;
+    if($securityData!=null && isset($securityData)){
+        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
+        //echo ("\nSecurity Token 1:" . $securityData->getSecurityToken0());
+        //echo ("\nSecurity Token 2:" . $securityData->getSecurityToken1());
+        //echo "User Authentication : Succcess.<br>";
+        return true;
+    }else{
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return false;
+    }
+    return false;
     }
 
     function msdyn_listfields($username, $password, $url, $module){
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
 
-        $url = $url.'XRMServices/2011/Organization.svc';
+        $url = $this->msdyn_apiurl($url);
 
        //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
-		    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-		    if($securityData!=null && isset($securityData)){
-		    }else{
-		        echo '<div id="message" class="error below-h2">
-		                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-		        return;
-		    }
+    if($securityData!=null && isset($securityData)){
+    }else{
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return;
+    }
 
             $domainname = substr($url,8,-1);
+
             $pos = strpos($domainname, "/");
+
             $domainname = substr($domainname,0,$pos);
 
             $retriveRequest = EntityUtils::getCRMSoapHeader($url, $securityData) .
@@ -900,9 +912,7 @@ class GFCRM extends GFFeedAddOn {
                         </s:Body>
                 </s:Envelope>
                 ';
-
-      $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
-
+        $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
 
       $entityArray = array();
             if($response!=null && $response!=""){
@@ -934,79 +944,12 @@ class GFCRM extends GFFeedAddOn {
 
         return $entityArray;
         }
-    function msdyn_listfields_back($username, $password, $url, $module){
-
-       //Return true or false for logged in
-        $liveIDManager = new LiveIDManager();
-
-    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
-
-    if($securityData!=null && isset($securityData)){
-    }else{
-        echo '<div id="message" class="error below-h2">
-                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-        return false;
-    }
-
-            $domainname = substr($url,8,-1);
-
-            $pos = strpos($domainname, "/");
-
-            $domainname = substr($domainname,0,$pos);
-
-            $retriveRequest = EntityUtils::getCRMSoapHeader($url, $securityData) .
-            '
-                  <s:Body>
-                        <Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
-                                <request i:type="b:RetrieveMultipleRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-                                        <b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
-                                                <b:KeyValuePairOfstringanyType>
-                                                        <c:key>Query</c:key>
-                                                        <c:value i:type="b:FetchExpression">
-                                                                  <b:Query>&lt;fetch mapping="logical" count="2" version="1.0"&gt;&#xD;
-                                                                        &lt;entity name="'.$module.'"&gt;&#xD;
-                                                                        &lt;all-attributes/&gt;&#xD;
-                                                                        &lt;/entity&gt;&#xD;
-                                                                        &lt;/fetch&gt;
-                                                                </b:Query>
-                                                        </c:value>
-                                                </b:KeyValuePairOfstringanyType>
-                                        </b:Parameters>
-                                        <b:RequestId i:nil="true"/><b:RequestName>RetrieveMultiple</b:RequestName>
-                                </request>
-                        </Execute>
-                        </s:Body>
-                </s:Envelope>
-                ';
-        $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
-
-      $entityArray = array();
-            if($response!=null && $response!=""){
-
-                $responsedom = new DomDocument();
-                $responsedom->loadXML($response);
-                $entities = $responsedom->getElementsbyTagName("Entity");
-
-                $record = array();
-                $kvptypes = $entities[0]->getElementsbyTagName("KeyValuePairOfstringanyType");
-
-                foreach($kvptypes as $kvp){
-                        $key =  $kvp->getElementsbyTagName("key")->item(0)->textContent;
-                        $value =  $kvp->getElementsbyTagName("value")->item(0)->textContent;
-                        $record['label']=$key;
-                        $record['name']=$key;
-                        $entityArray[] = $record;
-                }
-            }
-
-        return $entityArray;
-        }
 
     function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
         include_once "lib/dynamics/LiveIDManager.php";
         include_once "lib/dynamics/EntityUtils.php";
 
-        $url = $url.'XRMServices/2011/Organization.svc';
+        $url = $this->msdyn_apiurl($url);
      //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
