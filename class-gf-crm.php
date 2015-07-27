@@ -833,20 +833,20 @@ class GFCRM extends GFFeedAddOn {
         //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
-    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+		    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-    if($securityData!=null && isset($securityData)){
-        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
-        //echo ("\nSecurity Token 1:" . $securityData->getSecurityToken0());
-        //echo ("\nSecurity Token 2:" . $securityData->getSecurityToken1());
-        //echo "User Authentication : Succcess.<br>";
-        return true;
-    }else{
-        echo '<div id="message" class="error below-h2">
-                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-        return false;
-    }
-    return false;
+		    if($securityData!=null && isset($securityData)){
+		        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
+		        //echo ("\nSecurity Token 1:" . $securityData->getSecurityToken0());
+		        //echo ("\nSecurity Token 2:" . $securityData->getSecurityToken1());
+		        //echo "User Authentication : Succcess.<br>";
+		        return true;
+		    }else{
+		        echo '<div id="message" class="error below-h2">
+		                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+		        return false;
+		    }
+		    return false;
     }
 
     function msdyn_listfields($username, $password, $url, $module){
@@ -858,19 +858,17 @@ class GFCRM extends GFFeedAddOn {
        //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
-    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+		    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-    if($securityData!=null && isset($securityData)){
-    }else{
-        echo '<div id="message" class="error below-h2">
-                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-        return;
-    }
+		    if($securityData!=null && isset($securityData)){
+		    }else{
+		        echo '<div id="message" class="error below-h2">
+		                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+		        return;
+		    }
 
             $domainname = substr($url,8,-1);
-
             $pos = strpos($domainname, "/");
-
             $domainname = substr($domainname,0,$pos);
 
             $retriveRequest = EntityUtils::getCRMSoapHeader($url, $securityData) .
@@ -902,7 +900,9 @@ class GFCRM extends GFFeedAddOn {
                         </s:Body>
                 </s:Envelope>
                 ';
-        $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
+
+      $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
+
 
       $entityArray = array();
             if($response!=null && $response!=""){
