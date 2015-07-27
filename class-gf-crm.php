@@ -868,14 +868,10 @@ class GFCRM extends GFFeedAddOn {
 
         $url = $this->msdyn_apiurl($url);
 
-				print_r($url);
-
        //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
     $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
-
-		print_r($securityData);
 
     if($securityData!=null && isset($securityData)){
     }else{
@@ -945,73 +941,6 @@ class GFCRM extends GFFeedAddOn {
                         else
                             $record['required']= false;
 
-                        $entityArray[] = $record;
-                }
-            }
-
-        return $entityArray;
-        }
-    function msdyn_listfields_back($username, $password, $url, $module){
-
-       //Return true or false for logged in
-        $liveIDManager = new LiveIDManager();
-
-    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
-
-    if($securityData!=null && isset($securityData)){
-    }else{
-        echo '<div id="message" class="error below-h2">
-                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-        return false;
-    }
-
-            $domainname = substr($url,8,-1);
-
-            $pos = strpos($domainname, "/");
-
-            $domainname = substr($domainname,0,$pos);
-
-            $retriveRequest = EntityUtils::getCRMSoapHeader($url, $securityData) .
-            '
-                  <s:Body>
-                        <Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
-                                <request i:type="b:RetrieveMultipleRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-                                        <b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
-                                                <b:KeyValuePairOfstringanyType>
-                                                        <c:key>Query</c:key>
-                                                        <c:value i:type="b:FetchExpression">
-                                                                  <b:Query>&lt;fetch mapping="logical" count="2" version="1.0"&gt;&#xD;
-                                                                        &lt;entity name="'.$module.'"&gt;&#xD;
-                                                                        &lt;all-attributes/&gt;&#xD;
-                                                                        &lt;/entity&gt;&#xD;
-                                                                        &lt;/fetch&gt;
-                                                                </b:Query>
-                                                        </c:value>
-                                                </b:KeyValuePairOfstringanyType>
-                                        </b:Parameters>
-                                        <b:RequestId i:nil="true"/><b:RequestName>RetrieveMultiple</b:RequestName>
-                                </request>
-                        </Execute>
-                        </s:Body>
-                </s:Envelope>
-                ';
-        $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $retriveRequest);
-
-      $entityArray = array();
-            if($response!=null && $response!=""){
-
-                $responsedom = new DomDocument();
-                $responsedom->loadXML($response);
-                $entities = $responsedom->getElementsbyTagName("Entity");
-
-                $record = array();
-                $kvptypes = $entities[0]->getElementsbyTagName("KeyValuePairOfstringanyType");
-
-                foreach($kvptypes as $kvp){
-                        $key =  $kvp->getElementsbyTagName("key")->item(0)->textContent;
-                        $value =  $kvp->getElementsbyTagName("value")->item(0)->textContent;
-                        $record['label']=$key;
-                        $record['name']=$key;
                         $entityArray[] = $record;
                 }
             }
