@@ -91,6 +91,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'ESPO CRM',
                                                         'name'  => 'espocrm'
+                                                    ),
+                                                    array(
+                                                        'label' => 'Zoho CRM',
+                                                        'name'  => 'zohocrm'
                                                     )
                                                 )
 					),
@@ -101,6 +105,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','ESPO CRM','SuiteCRM','vTiger','VTE CRM') )
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -126,7 +131,7 @@ class GFCRM extends GFFeedAddOn {
 						'feedback_callback' => $this->login_api_crm(),
                         'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Zoho CRM' ) ),
 						'feedback_callback' => $this->is_valid_key()
 					),
 					array(
@@ -220,7 +225,7 @@ class GFCRM extends GFFeedAddOn {
 
         $settings = $this->get_plugin_settings();
         $crm_type  = $settings['gf_crm_type'];
-        $url  = $settings['gf_crm_url'];
+        if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
         if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
         if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
@@ -248,7 +253,12 @@ class GFCRM extends GFFeedAddOn {
          } elseif($crm_type == 'ESPO CRM') {
              $custom_fields = $this->espo_listfields($username, $password, $url,'Lead');
 
+         } elseif($crm_type == 'Zoho CRM') {
+             $custom_fields = $this->zoho_listfields($username, $apipassword, 'Leads');
+
         } // From if CRM
+
+        $this->debugcrm($custom_fields);
 
 		return $custom_fields;
 	}
@@ -329,7 +339,7 @@ class GFCRM extends GFFeedAddOn {
         $settings = $this->get_plugin_settings();
 
         $crm_type  = $settings['gf_crm_type'];
-        $url  = $settings['gf_crm_url'];
+        if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
         if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
         if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
@@ -356,11 +366,15 @@ class GFCRM extends GFFeedAddOn {
 
         } elseif($crm_type == 'ESPO CRM') {
             $id = $this->espo_createlead($username, $password, $url, 'Lead', $merge_vars);
+
+        } elseif($crm_type == 'Zoho CRM') {
+            $id = $this->zoho_createlead($username, $apipassword, 'Leads', $merge_vars);
         } // From CRM IF
 
         //Sends email if it does not create a lead
         //if ($id == false)
         //    $this->send_emailerrorlead($crm_type);
+        $this->debugcrm($id);
 }
 
     private function send_emailerrorlead($crm_type) {
@@ -419,7 +433,7 @@ class GFCRM extends GFFeedAddOn {
     $settings = $this->get_plugin_settings();
 
     $crm_type  = $settings['gf_crm_type'];
-    $url  = $settings['gf_crm_url'];
+		if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
 
     if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
@@ -448,7 +462,12 @@ class GFCRM extends GFFeedAddOn {
     } elseif($crm_type == 'ESPO CRM') {
         $login_result = $this-> espo_login($username, $password, $url);
 
+    } elseif($crm_type == 'Zoho CRM') {
+        $login_result = $this-> zoho_login($username, $apipassword, 'Leads');
+
     } //OF CRM
+
+    $this->debugcrm($login_result);
 
     if (!isset($login_result) )
         $login_result="";
@@ -517,11 +536,7 @@ class GFCRM extends GFFeedAddOn {
 
         $login_token = $login_result->id;
 
-        /*if( $login_token == 1 )
-            $login_token = false;
-
-        return $login_token;
-  */  }
+  }
 
     private function sugarcrm_listfields($username, $password, $url, $module) {
 
@@ -821,7 +836,7 @@ class GFCRM extends GFFeedAddOn {
         }
 
     ////////////////////////////////
-		/////// MS DYNAMICS CRM ///////
+    /////// MS DYNAMICS CRM ///////
 
     private function msdyn_apiurl($url) {
 				$pos = strpos($url, 'api');
@@ -839,6 +854,8 @@ class GFCRM extends GFFeedAddOn {
         include_once "lib/dynamics/EntityUtils.php";
 
         $url = $this->msdyn_apiurl($url);
+
+        $this->debugcrm($url);
 
         //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
@@ -1297,6 +1314,114 @@ class GFCRM extends GFFeedAddOn {
 		    return 'lead alredy exists with same data';
 		}
     ///////////////////////
+
+		/////// ZOHO CRM ///////
+    //cURL Function for Zoho CRM
+
+	private function call_zoho_crm($token, $module, $method) {
+		$request_url = 'https://crm.zoho.com/crm/private/json/'.$module.'/'.$method;
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+		$request_parameters = array('authtoken' => $token,'scope' => 'crmapi');
+		$request_url .= '?' . http_build_query($request_parameters);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+		curl_setopt($ch, CURLOPT_URL, $request_url);
+		curl_setopt($ch, CURLOPT_HEADER, TRUE);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		$response = curl_exec($ch);
+		$response_info = curl_getinfo($ch);
+		curl_close($ch);
+		$response_body = substr($response, $response_info['header_size']);
+		return $response_body;
+    }
+
+    private function zoho_login($username, $password) {
+			$authkey = file_get_contents('https://accounts.zoho.com/apiauthtoken/nb/create?SCOPE=ZohoCRM/crmapi&EMAIL_ID='.$username.'&PASSWORD='.$password);
+			$authkey = substr($authkey, strpos($authkey, 'AUTHTOKEN=')+10, 32);
+      return true;
+    }
+
+    private function zoho_listfields($username, $password, $module) {
+          $result = $this->call_zoho_crm($password, $module, 'getFields');
+          $result = json_decode($result);
+
+			if(isset($result->error)) {
+	        echo '<div id="message" class="error below-h2">
+	                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+	        return false;
+				}
+		  $sections =$result->$module->section;
+		  foreach($sections as $section){
+			$section_fields = $section->FL;
+			//print_r($section_fields);
+			foreach($section_fields as $section_field){
+				if(isset($section_field->dv)){
+					 $var_name = str_replace(' ', '_', $section_field->label);
+						if($section_field->req=='true')
+							$convert_fields[] = array('label' => $section_field->dv, 'name' => $var_name, 'required' => $section_field->req);
+						else
+							$convert_fields[] = array('label' => $section_field->dv, 'name' => $var_name);
+
+					} //if isset
+
+				}
+			} //foreach
+		  return $convert_fields;
+    }
+
+    private function zoho_createlead($username, $password, $module, $merge_vars) {
+      $xmldata = '<'.$module.'><row no="1">';
+			print_r($merge_vars);
+      $i=0;
+      $count = count( $merge_vars );
+      for ( $i = 0; $i < $count; $i++ ){
+				 			$var_name = str_replace('_', ' ', $merge_vars[$i]['name']);
+              $xmldata .= '<FL val="'.$var_name.'">';
+              $xmldata .= $merge_vars[$i]['value'].'</FL>';
+          }
+        $xmldata .= '</row></'.$module.'>';
+				echo '<pre>';
+				print_r($xmldata);
+				echo '</pre>';
+        $url = 'https://crm.zoho.com/crm/private/xml/'.$module.'/insertRecords';
+		$token =$password;
+        $param= 'authtoken='.$token.'&scope=crmapi&xmlData='.$xmldata;
+        //print_r('"'.$url.'?'.$param.'"');
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_VERBOSE, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $query = array('newFormat'=>1,'authtoken'=>$token,'scope'=>'crmapi','xmlData'=>$xmldata);
+
+        $query = http_build_query($query);
+        //echo '<br/><code>';
+        //print_r($url.'?'.$query);
+        //echo '</code>';
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $query);
+        $result = curl_exec($ch);
+
+        return $result;
+    }
+    ///////////////////////
+
+
+    private function debugcrm($message) {
+            if (WP_DEBUG==true) {
+            //Debug Mode
+            echo '  <table class="widefat">
+                    <thead>
+                    <tr class="form-invalid">
+                        <th class="row-title">Debug Mode</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                    <td><pre>';
+            print_r($message);
+            echo '</pre></td></tr></table>';
+        }
+    }
 
 
 } //from main class
