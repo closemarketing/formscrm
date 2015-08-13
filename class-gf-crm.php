@@ -91,11 +91,11 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'ESPO CRM',
                                                         'name'  => 'espocrm'
-                                                    ),
+                                                    ),/*
                                                     array(
                                                         'label' => 'Zoho CRM',
                                                         'name'  => 'zohocrm'
-                                                    )
+                                                    )*/
                                                 )
 					),
 					array(
@@ -120,19 +120,18 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','ESPO CRM','SuiteCRM' ) ),
-						'feedback_callback' => $this->is_valid_key()
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','ESPO CRM','SuiteCRM','Zoho CRM' ) ),
+												'feedback_callback' => $this->login_api_crm()
 					),
 					array(
 						'name'  => 'gf_crm_apipassword',
 						'label' => __( 'API Password for User', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
-						'feedback_callback' => $this->login_api_crm(),
+						//'feedback_callback' => $this->login_api_crm(),
                         'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Zoho CRM' ) ),
-						'feedback_callback' => $this->is_valid_key()
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM' ) ),
 					),
 					array(
 						'name'              => 'gf_crm_odoodb',
@@ -254,7 +253,7 @@ class GFCRM extends GFFeedAddOn {
              $custom_fields = $this->espo_listfields($username, $password, $url,'Lead');
 
          } elseif($crm_type == 'Zoho CRM') {
-             $custom_fields = $this->zoho_listfields($username, $apipassword, 'Leads');
+             $custom_fields = $this->zoho_listfields($username, $password, 'Leads');
 
         } // From if CRM
 
@@ -368,7 +367,7 @@ class GFCRM extends GFFeedAddOn {
             $id = $this->espo_createlead($username, $password, $url, 'Lead', $merge_vars);
 
         } elseif($crm_type == 'Zoho CRM') {
-            $id = $this->zoho_createlead($username, $apipassword, 'Leads', $merge_vars);
+            $id = $this->zoho_createlead($username, $password, 'Leads', $merge_vars);
         } // From CRM IF
 
         //Sends email if it does not create a lead
@@ -463,7 +462,7 @@ class GFCRM extends GFFeedAddOn {
         $login_result = $this-> espo_login($username, $password, $url);
 
     } elseif($crm_type == 'Zoho CRM') {
-        $login_result = $this-> zoho_login($username, $apipassword, 'Leads');
+        $login_result = $this-> zoho_login($username, $password, 'Leads');
 
     } //OF CRM
 
@@ -836,7 +835,8 @@ class GFCRM extends GFFeedAddOn {
         }
 
     ////////////////////////////////
-    /////// MS DYNAMICS CRM ///////
+    //////// MS DYNAMICS CRM ///////
+	  ////////////////////////////////
 
     private function msdyn_apiurl($url) {
 				$pos = strpos($url, 'api');
@@ -860,20 +860,22 @@ class GFCRM extends GFFeedAddOn {
         //Return true or false for logged in
         $liveIDManager = new LiveIDManager();
 
-    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+		    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-    if($securityData!=null && isset($securityData)){
-        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
-        //echo ("\nSecurity Token 1:" . $securityData->getSecurityToken0());
-        //echo ("\nSecurity Token 2:" . $securityData->getSecurityToken1());
-        //echo "User Authentication : Succcess.<br>";
-        return true;
-    }else{
-        echo '<div id="message" class="error below-h2">
-                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-        return false;
-    }
-    return false;
+				$this->debugcrm($securityData);
+
+		    if($securityData!=null && isset($securityData)){
+		        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
+		        //echo ("\nSecurity Token 1:" . $securityData->getSecurityToken0());
+		        //echo ("\nSecurity Token 2:" . $securityData->getSecurityToken1());
+		        //echo "User Authentication : Succcess.<br>";
+		        return true;
+		    }else{
+		        echo '<div id="message" class="error below-h2">
+		                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').' </strong></p></div>';
+		        return false;
+		    }
+		    return false;
     }
 
     function msdyn_listfields($username, $password, $url, $module){
@@ -1313,9 +1315,12 @@ class GFCRM extends GFFeedAddOn {
 		  else
 		    return 'lead alredy exists with same data';
 		}
-    ///////////////////////
 
-		/////// ZOHO CRM ///////
+    ////////////////////////
+    /////// ZOHO CRM ///////
+    ////////////////////////
+
+
     //cURL Function for Zoho CRM
 
 	private function call_zoho_crm($token, $module, $method) {
@@ -1338,16 +1343,16 @@ class GFCRM extends GFFeedAddOn {
     private function zoho_login($username, $password) {
 			$authkey = file_get_contents('https://accounts.zoho.com/apiauthtoken/nb/create?SCOPE=ZohoCRM/crmapi&EMAIL_ID='.$username.'&PASSWORD='.$password);
 			$authkey = substr($authkey, strpos($authkey, 'AUTHTOKEN=')+10, 32);
-      return true;
+      return $authkey;
     }
 
     private function zoho_listfields($username, $password, $module) {
           $result = $this->call_zoho_crm($password, $module, 'getFields');
           $result = json_decode($result);
 
-			if(isset($result->error)) {
+			if(isset($result->response->error)) {
 	        echo '<div id="message" class="error below-h2">
-	                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+	                <p><strong>Zoho CRM: Code '.$result->response->error->code.' - '.$result->response->error->message.' </strong></p></div>';
 	        return false;
 				}
 		  $sections =$result->$module->section;
@@ -1412,7 +1417,7 @@ class GFCRM extends GFFeedAddOn {
             echo '  <table class="widefat">
                     <thead>
                     <tr class="form-invalid">
-                        <th class="row-title">Debug Mode</th>
+                        <th class="row-title">'.__('Message Debug Mode','gravityformscrm').'</th>
                     </tr>
                     </thead>
                     <tbody>
