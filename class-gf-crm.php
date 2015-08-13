@@ -91,11 +91,11 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'ESPO CRM',
                                                         'name'  => 'espocrm'
-                                                    ),/*
+                                                    ),
                                                     array(
                                                         'label' => 'Zoho CRM',
                                                         'name'  => 'zohocrm'
-                                                    )*/
+                                                    )
                                                 )
 					),
 					array(
@@ -253,7 +253,7 @@ class GFCRM extends GFFeedAddOn {
              $custom_fields = $this->espo_listfields($username, $password, $url,'Lead');
 
          } elseif($crm_type == 'Zoho CRM') {
-             $custom_fields = $this->zoho_listfields($username, $password, 'Leads');
+             $custom_fields = $this->zoho_listfields($username, $apipassword, 'Leads');
 
         } // From if CRM
 
@@ -367,7 +367,7 @@ class GFCRM extends GFFeedAddOn {
             $id = $this->espo_createlead($username, $password, $url, 'Lead', $merge_vars);
 
         } elseif($crm_type == 'Zoho CRM') {
-            $id = $this->zoho_createlead($username, $password, 'Leads', $merge_vars);
+            $id = $this->zoho_createlead($username,  $apipassword, 'Leads', $merge_vars);
         } // From CRM IF
 
         //Sends email if it does not create a lead
@@ -850,8 +850,8 @@ class GFCRM extends GFFeedAddOn {
     }
 
     public function msdyn_login($username, $password, $url) {
-        include_once "lib/dynamics/LiveIDManager.php";
-        include_once "lib/dynamics/EntityUtils.php";
+        require_once "lib/dynamics/LiveIDManager.php";
+        require_once "lib/dynamics/EntityUtils.php";
 
         $url = $this->msdyn_apiurl($url);
 
@@ -862,7 +862,7 @@ class GFCRM extends GFFeedAddOn {
 
 		    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-				$this->debugcrm($securityData);
+				$this->debugcrm($liveIDManager);
 
 		    if($securityData!=null && isset($securityData)){
 		        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
@@ -1341,14 +1341,33 @@ class GFCRM extends GFFeedAddOn {
     }
 
     private function zoho_login($username, $password) {
-			$authkey = file_get_contents('https://accounts.zoho.com/apiauthtoken/nb/create?SCOPE=ZohoCRM/crmapi&EMAIL_ID='.$username.'&PASSWORD='.$password);
-			$authkey = substr($authkey, strpos($authkey, 'AUTHTOKEN=')+10, 32);
+			$settings = $this->get_plugin_settings();
+
+			$this->debugcrm($settings);
+
+			if (isset($settings['gf_crm_apipassword']) ) {
+				$authkey = $settings['gf_crm_apipassword'];
+			} else {
+				$authkey = file_get_contents('https://accounts.zoho.com/apiauthtoken/nb/create?SCOPE=ZohoCRM/crmapi&EMAIL_ID='.$username.'&PASSWORD='.$password);
+				$authkey_exist = strpos($authkey, 'AUTHTOKEN=');
+
+				if( $authkey_exist=== false ) {
+					$cause = substr($authkey, strpos($authkey, 'CAUSE=')+6, strpos($authkey, 'RESULT=')-strpos($authkey, 'CAUSE=')-7);
+					echo '<div id="message" class="error below-h2">
+					<p><strong>'.__('Zoho Error','gravityformscrm').': '.$cause.'</strong></p></div>';
+					$authkey = false;
+				} else {
+				$authkey = substr($authkey, strpos($authkey, 'AUTHTOKEN=')+10, 32);
+				$settings['gf_crm_apipassword'] = $authkey;
+				$this->update_plugin_settings($settings);
+				}
+			}
       return $authkey;
     }
 
     private function zoho_listfields($username, $password, $module) {
-          $result = $this->call_zoho_crm($password, $module, 'getFields');
-          $result = json_decode($result);
+      $result = $this->call_zoho_crm($password, $module, 'getFields');
+      $result = json_decode($result);
 
 			if(isset($result->response->error)) {
 	        echo '<div id="message" class="error below-h2">
@@ -1358,7 +1377,7 @@ class GFCRM extends GFFeedAddOn {
 		  $sections =$result->$module->section;
 		  foreach($sections as $section){
 			$section_fields = $section->FL;
-			//print_r($section_fields);
+			
 			foreach($section_fields as $section_field){
 				if(isset($section_field->dv)){
 					 $var_name = str_replace(' ', '_', $section_field->label);
@@ -1376,7 +1395,6 @@ class GFCRM extends GFFeedAddOn {
 
     private function zoho_createlead($username, $password, $module, $merge_vars) {
       $xmldata = '<'.$module.'><row no="1">';
-			print_r($merge_vars);
       $i=0;
       $count = count( $merge_vars );
       for ( $i = 0; $i < $count; $i++ ){
@@ -1385,13 +1403,11 @@ class GFCRM extends GFFeedAddOn {
               $xmldata .= $merge_vars[$i]['value'].'</FL>';
           }
         $xmldata .= '</row></'.$module.'>';
-				echo '<pre>';
-				print_r($xmldata);
-				echo '</pre>';
+
         $url = 'https://crm.zoho.com/crm/private/xml/'.$module.'/insertRecords';
-		$token =$password;
+				$token =$password;
         $param= 'authtoken='.$token.'&scope=crmapi&xmlData='.$xmldata;
-        //print_r('"'.$url.'?'.$param.'"');
+
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_VERBOSE, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -1400,9 +1416,7 @@ class GFCRM extends GFFeedAddOn {
         $query = array('newFormat'=>1,'authtoken'=>$token,'scope'=>'crmapi','xmlData'=>$xmldata);
 
         $query = http_build_query($query);
-        //echo '<br/><code>';
-        //print_r($url.'?'.$query);
-        //echo '</code>';
+
         curl_setopt($ch, CURLOPT_POSTFIELDS, $query);
         $result = curl_exec($ch);
 
