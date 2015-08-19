@@ -142,7 +142,7 @@ class GFCRM extends GFFeedAddOn {
 						'label' => __( 'Password and Security Key', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
-                        'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
+                        'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
                         'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Salesforce' ) ),
 					),
@@ -1490,7 +1490,7 @@ class GFCRM extends GFFeedAddOn {
                 $this->debugcrm($myobj->fields);
 				$entityArray = array();
 				foreach($myobj->fields as $field){
-					$entityArray[]=array('label'=> $field->label, 'name' => $field->name, 'required' => !($field->nillable==1)&&($field->defaultedOnCreate!=1) );
+					$entityArray[]=array('label'=> $field->label, 'name' => $field->name, 'required' => !($field->nillable==1)&&($field->defaultedOnCreate!=1)&&($field->name!='Name') );
 				}
 
 				return $entityArray;
@@ -1514,16 +1514,18 @@ class GFCRM extends GFFeedAddOn {
 
 				$fieldsArray = array();
 				foreach($mergevars as $attribute){
-				$fieldsArray[$attribute['name']]=$attribute['value'];
+				    $fieldsArray[$attribute['name']]=$attribute['value'];
 				}
 
 				$sObject = new SObject();
 				$sObject->fields = $fieldsArray;
 				$sObject->type = $module;
+
 				$createResponse = $mySforceConnection->create(array($sObject));
 
-				return $createResponse[0]->id;
+                $this->debugcrm($createResponse);
 
+				return $createResponse[0]->id;
 			}
 			catch (Exception $e) {
                 echo '<div id="message" class="error below-h2">
