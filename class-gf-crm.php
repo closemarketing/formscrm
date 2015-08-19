@@ -95,6 +95,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'Zoho CRM',
                                                         'name'  => 'zohocrm'
+                                                    ),
+                                                    array(
+                                                        'label' => 'Salesforce',
+                                                        'name'  => 'salesforce'
                                                     )
                                                 )
 					),
@@ -132,6 +136,15 @@ class GFCRM extends GFFeedAddOn {
                         'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
                         'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM' ) ),
+					),
+					array(
+						'name'  => 'gf_crm_apisales',
+						'label' => __( 'Password and Security Key', 'gravityformscrm' ),
+						'type'  => 'api_key',
+						'class' => 'medium',
+                        'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
+                        'tooltip_class'     => 'tooltipclass',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Salesforce' ) ),
 					),
 					array(
 						'name'              => 'gf_crm_odoodb',
@@ -230,6 +243,7 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
         if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
+        if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 
         if($crm_type == 'vTiger') { //vtiger Method
             $custom_fields = $this->vtiger_listfields($username, $apipassword, $url, 'Leads');
@@ -254,6 +268,9 @@ class GFCRM extends GFFeedAddOn {
 
          } elseif($crm_type == 'Zoho CRM') {
              $custom_fields = $this->zoho_listfields($username, $apipassword, 'Leads');
+
+         } elseif($crm_type == 'Salesforce') {
+             $custom_fields = $this->salesforce_listfields($username, $apisales, 'Lead');
 
         } // From if CRM
 
@@ -344,6 +361,7 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
         if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
+        if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 
         if($crm_type == 'vTiger') { //vtiger Method
             $id = $this->vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
@@ -368,6 +386,10 @@ class GFCRM extends GFFeedAddOn {
 
         } elseif($crm_type == 'Zoho CRM') {
             $id = $this->zoho_createlead($username,  $apipassword, 'Leads', $merge_vars);
+
+        } elseif($crm_type == 'Salesforce') {
+            $id = $this->salesforce_create_lead($username, $apisales, 'Lead', $merge_vars);
+
         } // From CRM IF
 
         //Sends email if it does not create a lead
@@ -439,6 +461,7 @@ class GFCRM extends GFFeedAddOn {
     if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
     if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
     if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
+    if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 
     if($crm_type == 'vTiger') { //vtiger Method
         $login_result = $this->vtiger_login($username, $apipassword, $url);
@@ -463,6 +486,9 @@ class GFCRM extends GFFeedAddOn {
 
     } elseif($crm_type == 'Zoho CRM') {
         $login_result = $this-> zoho_login($username, $password, 'Leads');
+
+    } elseif($crm_type == 'Salesforce') {
+        $login_result = $this->salesforce_login($username, $apisales);
 
     } //OF CRM
 
@@ -1377,7 +1403,7 @@ class GFCRM extends GFFeedAddOn {
 		  $sections =$result->$module->section;
 		  foreach($sections as $section){
 			$section_fields = $section->FL;
-			
+
 			foreach($section_fields as $section_field){
 				if(isset($section_field->dv)){
 					 $var_name = str_replace(' ', '_', $section_field->label);
@@ -1423,6 +1449,90 @@ class GFCRM extends GFFeedAddOn {
         return $result;
     }
     ///////////////////////
+
+
+    //////////////////////////////
+    /////// SALESFORCE CRM ///////
+    //////////////////////////////
+
+    private function salesforce_login($username, $password) {
+        require_once ('lib/salesforce/SforcePartnerClient.php');
+        require_once ('lib/salesforce/SforceHeaderOptions.php');
+
+        //Return true or false for logged in
+		try {
+				$mySforceConnection = new SforcePartnerClient();
+				$mySoapClient = $mySforceConnection->createConnection(plugin_dir_path( __FILE__ ).'lib/salesforce/partner.wsdl.xml');
+				$mylogin = $mySforceConnection->login($username, $password);
+
+                $this->debugcrm($mylogin->userInfo);
+				return true;
+			}
+			catch (Exception $e)
+			{
+                echo '<div id="message" class="error below-h2">
+	                <p><strong>Salesforce CRM: Code '.$e.' </strong></p></div>';
+			}
+
+			return false;
+    }
+
+    private function salesforce_listfields($username, $password, $module) {
+        require_once ('lib/salesforce/SforcePartnerClient.php');
+        require_once ('lib/salesforce/SforceHeaderOptions.php');
+
+		try {
+				$mySforceConnection = new SforcePartnerClient();
+				$mySoapClient = $mySforceConnection->createConnection(plugin_dir_path( __FILE__ ).'lib/salesforce/partner.wsdl.xml');
+				$mylogin = $mySforceConnection->login($username, $password);
+				$myobj= $mySforceConnection->describeSObject($module);
+				//return $myobj->fields;
+                $this->debugcrm($myobj->fields);
+				$entityArray = array();
+				foreach($myobj->fields as $field){
+					$entityArray[]=array('label'=> $field->label, 'name' => $field->name, 'required' => !($field->nillable==1)&&($field->defaultedOnCreate!=1) );
+				}
+
+				return $entityArray;
+
+			}
+		catch (Exception $e)
+		{
+            echo '<div id="message" class="error below-h2">
+                <p><strong>Salesforce CRM: Code '.$e.' </strong></p></div>';
+		}
+    }
+
+    private function salesforce_create_lead($username, $password, $module, $mergevars) {
+        require_once ('lib/salesforce/SforcePartnerClient.php');
+        require_once ('lib/salesforce/SforceHeaderOptions.php');
+
+		try {
+				$mySforceConnection = new SforcePartnerClient();
+				$mySoapClient = $mySforceConnection->createConnection(plugin_dir_path( __FILE__ ).'lib/salesforce/partner.wsdl.xml');
+				$mylogin = $mySforceConnection->login($username, $password);
+
+				$fieldsArray = array();
+				foreach($mergevars as $attribute){
+				$fieldsArray[$attribute['name']]=$attribute['value'];
+				}
+
+				$sObject = new SObject();
+				$sObject->fields = $fieldsArray;
+				$sObject->type = $module;
+				$createResponse = $mySforceConnection->create(array($sObject));
+
+				return $createResponse[0]->id;
+
+			}
+			catch (Exception $e) {
+                echo '<div id="message" class="error below-h2">
+	                <p><strong>Salesforce CRM: Code  '.$e->faultstring.' </strong></p></div>';
+                return false;
+			}
+    }
+
+    ////////////////////////////////
 
 
     private function debugcrm($message) {
