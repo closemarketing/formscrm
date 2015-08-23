@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms CRM Add-On
 Plugin URI: http://codecanyon.net/item/gravity-forms-crm-addon/10521695
 Description: Integrates Gravity Forms with CRM allowing form submissions to be automatically sent to your CRM.
-Version: 1.8
+Version: 1.8.1
 Author: closemarketing
 Author URI: http://www.closemarketing.es
 
