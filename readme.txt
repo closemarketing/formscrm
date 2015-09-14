@@ -2,9 +2,9 @@
 Contributors: closemarketing
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Requires at least: 3.0
-Tested up to: 4.2
-Stable tag: 1.4.0
-Version: 1.4.0
+Tested up to: 4.3
+Stable tag: 1.8.1
+Version: 1.8.1
 =======
 
 Gravity Forms CRM Addon allows you to connect different CRM and create new Leads as the forms are filled automatically.
@@ -32,6 +32,26 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
+= 1.8.1 =
+*	Finally solved connection with MS Dynamics. Problems from MS Dynamics API library.
+
+= 1.8 =
+*	Added connection with Salesforce.
+
+= 1.7 =
+*	Added connection with Zoho CRM.
+*	New debug mode to show vars and errors when Wordpress Debug mode is activated.
+* Added POT File for translations.
+
+= 1.6.1 =
+*	Fixed connection with MS Dynamics.
+
+= 1.6.0 =
+*	Added connection with ESPO CRM.
+
+= 1.5.0 =
+*	Added connection with SugarCRM 7.
+
 = 1.4.0 =
 *	Added connection with VTE CRM.
 *	Cleaned methods for better support to CRMs.

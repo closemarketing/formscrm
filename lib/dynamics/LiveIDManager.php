@@ -22,7 +22,7 @@ class LiveIDManager {
                         <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>
                     </a:ReplyTo>
                     <a:To s:mustUnderstand="1">
-                    https://login.live.com/liveidSTS.srf</a:To>
+                    https://login.microsoftonline.com/liveidSTS.srf</a:To>
                     <o:Security s:mustUnderstand="1"
                     xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
                         <u:Timestamp u:Id="_0">
@@ -52,11 +52,14 @@ class LiveIDManager {
         $soapTemplate = sprintf(
                 $deviceCredentialsSoapTemplate, LiveIDManager::gen_uuid(), LiveIDManager::getCurrentTime(), LiveIDManager::getNextDayTime(), $deviceCredentials->getDeviceName(), $deviceCredentials->getPassword());
 
-        
-        $binaryDATokenXML = LiveIDManager::GetSOAPResponse("/liveidSTS.srf" , "login.live.com" , "https://login.live.com/liveidSTS.srf", $soapTemplate);
-        
+
+        $binaryDATokenXML = LiveIDManager::GetSOAPResponse("/liveidSTS.srf" , "login.microsoftonline.com" , "https://login.microsoftonline.com/liveidSTS.srf", $soapTemplate);
+
         preg_match('/<CipherValue>(.*)<\/CipherValue>/', $binaryDATokenXML, $matches);
-	$cipherValue =  $matches[1];
+    if (isset($matches[1]) )
+	   $cipherValue =  $matches[1];
+    else
+        $cipherValue ='';
 
 
         // Step 3: Get Security Token by sending WLID username, password and device binaryDAToken
@@ -73,7 +76,7 @@ class LiveIDManager {
                     <VsDebuggerCausalityData xmlns="http://schemas.microsoft.com/vstudio/diagnostics/servicemodelsink">
                     uIDPozBEz+P/wJdOhoN2XNauvYcAAAAAK0Y6fOjvMEqbgs9ivCmFPaZlxcAnCJ1GiX+Rpi09nSYACQAA</VsDebuggerCausalityData>
                     <a:To s:mustUnderstand="1">
-                    https://login.live.com/liveidSTS.srf</a:To>
+                    https://login.microsoftonline.com/liveidSTS.srf</a:To>
                     <o:Security s:mustUnderstand="1"
                     xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
                       <u:Timestamp u:Id="_0">
@@ -119,34 +122,34 @@ class LiveIDManager {
 
         // Create the URN address of the format urn:crm:dynamics.com.
         // Replace crm with crm4 for Europe & crm5 for Asia.
-        $URNAddress = "urn:crm:dynamics.com";
+        $URNAddress = "urn:crmna:dynamics.com";
 
         if (strpos($CRMUrl,"crm4.dynamics.com")) {
-            $URNAddress = "urn:crmemea:dynamics.com";
+            $URNAddress = "urn:crm4:dynamics.com";
         }
 
         if (strpos($CRMUrl,"crm5.dynamics.com")) {
-            $URNAddress = "urn:crmapac:dynamics.com";
+            $URNAddress = "urn:crm5:dynamics.com";
         }
 
         $securityTemplate = sprintf(
                         $securityTokenSoapTemplate, LiveIDManager::gen_uuid(), LiveIDManager::getCurrentTime(), LiveIDManager::getNextDayTime(), $liveIDUsername, $liveIDPassword, $cipherValue, $URNAddress);
 
 
-        $securityTokenXML = LiveIDManager::GetSOAPResponse("/RST2.srf" , "login.microsoftonline.com" , "https://login.microsoftonline.com/RST2.srf", $securityTemplate);
+        $securityTokenXML = LiveIDManager::GetSOAPResponse("/liveidSTS.srf" , "login.microsoftonline.com" , "https://login.microsoftonline.com/liveidSTS.srf", $securityTemplate);
 
-        
+
         $responsedom = new DomDocument();
         $responsedom->loadXML($securityTokenXML);
-		
+
         $cipherValues = $responsedom->getElementsbyTagName("CipherValue");
 
-        
+
         if( isset ($cipherValues) && $cipherValues->length>0
             ){
             $securityToken0 =  $cipherValues->item(0)->textContent;
             $securityToken1 =  $cipherValues->item(1)->textContent;
-            $keyIdentifier = $responsedom->getElementsbyTagName("KeyIdentifier")->item(0)->textContent;	
+            $keyIdentifier = $responsedom->getElementsbyTagName("KeyIdentifier")->item(0)->textContent;
         }else{
             return null;
         }
@@ -190,7 +193,7 @@ class LiveIDManager {
             "Content-type: application/soap+xml; charset=UTF-8",
             "Content-length: " . strlen($content),
         );
-        //echo "soapurl:". $soapUrl."end<br>";
+
         $cURLHandle = curl_init();
         curl_setopt($cURLHandle, CURLOPT_URL, $soapUrl);
         curl_setopt($cURLHandle, CURLOPT_RETURNTRANSFER, 1);
@@ -200,13 +203,7 @@ class LiveIDManager {
         curl_setopt($cURLHandle, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($cURLHandle, CURLOPT_POST, 1);
         curl_setopt($cURLHandle, CURLOPT_POSTFIELDS, $content);
-        //curl_setopt($cURLHandle, CURLOPT_SSLVERSION, 4);
-        //$response = curl_exec($cURLHandle);
-        if( ! $response = curl_exec($cURLHandle)) 
-        { 
-           trigger_error(curl_error($cURLHandle)); 
-        }
-
+        $response = curl_exec($cURLHandle);
         curl_close($cURLHandle);
 
         return $response;
@@ -214,4 +211,3 @@ class LiveIDManager {
 
 }
 
-?>
