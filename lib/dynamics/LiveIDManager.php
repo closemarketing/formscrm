@@ -56,7 +56,10 @@ class LiveIDManager {
         $binaryDATokenXML = LiveIDManager::GetSOAPResponse("/liveidSTS.srf" , "login.microsoftonline.com" , "https://login.microsoftonline.com/liveidSTS.srf", $soapTemplate);
 
         preg_match('/<CipherValue>(.*)<\/CipherValue>/', $binaryDATokenXML, $matches);
-	$cipherValue =  $matches[1];
+    if (isset($matches[1]) )
+	   $cipherValue =  $matches[1];
+    else
+        $cipherValue ='';
 
 
         // Step 3: Get Security Token by sending WLID username, password and device binaryDAToken
