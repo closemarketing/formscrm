@@ -89,6 +89,10 @@ class GFCRM extends GFFeedAddOn {
                                                         'name'  => 'msdynamics'
                                                     ),
                                                     array(
+                                                        'label' => 'Microsoft Dynamics CRM ON Premise',
+                                                        'name'  => 'msdynamicspfe'
+                                                    ),
+                                                    array(
                                                         'label' => 'ESPO CRM',
                                                         'name'  => 'espocrm'
                                                     ),
@@ -109,7 +113,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','ESPO CRM','SuiteCRM','vTiger','VTE CRM') )
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM') )
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -124,7 +128,7 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','ESPO CRM','SuiteCRM','Zoho CRM' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM' ) ),
 												'feedback_callback' => $this->login_api_crm()
 					),
 					array(
@@ -260,6 +264,9 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
             $custom_fields = $this->msdyn_listfields($username, $password, $url,"lead");
 
+        } elseif($crm_type == 'Microsoft Dynamics CRM ON Premise') { //MS Dynamics
+            $custom_fields = $this->msdynpfe_listfields($username, $password, $url,"lead");
+
         } elseif($crm_type == 'VTE CRM') {
              $custom_fields = $this->vte_listfields($username, $apipassword, $url,'Leads');
 
@@ -378,6 +385,9 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
             $id = $this->msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
 
+        } elseif($crm_type == 'Microsoft Dynamics CRM ON Premise') { //MS Dynamics Method
+            $id = $this->msdynpfe_create_lead($username, $password, $url, "lead", $merge_vars);
+
         } elseif($crm_type == 'VTE CRM') {
             $id = $this->vte_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
 
@@ -477,6 +487,9 @@ class GFCRM extends GFFeedAddOn {
 
     } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
         $login_result = $this-> msdyn_login($username, $password, $url,"lead");
+
+    } elseif($crm_type == 'Microsoft Dynamics CRM ON Premise') { //MS Dynamics Method
+        $login_result = $this-> msdynpfe_login($username, $password, $url,"lead");
 
     } elseif($crm_type == 'VTE CRM') {
         $login_result = $this-> vtiger_login($username, $apipassword, $url, 'Leads');
@@ -1536,6 +1549,167 @@ class GFCRM extends GFFeedAddOn {
 
     ////////////////////////////////
 
+    /////// MS DYNAMICS CRM On Premise PFE ///////
+
+    private function msdynpfe_login($username, $password, $url) {
+        include_once 'lib/dynamicspfe/CrmAuth.php';
+        include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
+        include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
+
+        $crmAuth = new CrmAuth ();
+        $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
+
+        if($authHeader == null ){
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return false;
+        }
+
+        $xml = "<s:Body>";
+        $xml .= "<Execute xmlns=\"http://schemas.microsoft.com/xrm/2011/Contracts/Services\">";
+        $xml .= "<request i:type=\"c:WhoAmIRequest\" xmlns:b=\"http://schemas.microsoft.com/xrm/2011/Contracts\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:c=\"http://schemas.microsoft.com/crm/2011/Contracts\">";
+        $xml .= "<b:Parameters xmlns:d=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\"/>";
+        $xml .= "<b:RequestId i:nil=\"true\"/>";
+        $xml .= "<b:RequestName>WhoAmI</b:RequestName>";
+        $xml .= "</request>";
+        $xml .= "</Execute>";
+        $xml .= "</s:Body>";
+
+        $executeSoap = new CrmExecuteSoap ();
+        $response = $executeSoap->ExecuteSOAPRequest ( $authHeader, $xml, $url, "Execute" );
+
+        $responsedom = new DomDocument ();
+        $responsedom->loadXML ( $response );
+
+        $values = $responsedom->getElementsbyTagName ( "KeyValuePairOfstringanyType" );
+
+        foreach ( $values as $value ) {
+            if ($value->firstChild->textContent == "UserId") {
+                return $value->lastChild->textContent;
+            }
+        }
+
+        return false;
+    }
+
+    private function msdynpfe_listfields($username, $password, $url, $module){
+        include_once 'lib/dynamicspfe/CrmAuth.php';
+        include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
+        include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
+        $crmAuth = new CrmAuth ();
+
+        $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
+
+
+        if($authHeader == null ){
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return false;
+        }
+
+        $xml = '<s:Body>
+                    <Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+                            <request i:type="b:RetrieveEntityRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+                                    <b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
+                                            <b:KeyValuePairOfstringanyType>
+                                                    <c:key>EntityFilters</c:key>
+                                                    <c:value i:type="b:EntityFilters" xmlns:b="http://schemas.microsoft.com/xrm/2011/Metadata">Attributes</c:value>
+                                            </b:KeyValuePairOfstringanyType>
+                                            <b:KeyValuePairOfstringanyType>
+                                                    <c:key>MetadataId</c:key>
+                                                    <c:value i:type="d:guid" xmlns:d="http://schemas.microsoft.com/2003/10/Serialization/">00000000-0000-0000-0000-000000000000</c:value>
+                                            </b:KeyValuePairOfstringanyType>
+                                            <b:KeyValuePairOfstringanyType>
+                                                    <c:key>RetrieveAsIfPublished</c:key>
+                                                    <c:value i:type="d:boolean" xmlns:d="http://www.w3.org/2001/XMLSchema">true</c:value>
+                                            </b:KeyValuePairOfstringanyType>
+                                            <b:KeyValuePairOfstringanyType>
+                                                    <c:key>LogicalName</c:key>
+                                                    <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$module.'</c:value>
+                                            </b:KeyValuePairOfstringanyType>
+                                    </b:Parameters>
+                                    <b:RequestId i:nil="true"/><b:RequestName>RetrieveEntity</b:RequestName>
+                            </request>
+                    </Execute>
+                    </s:Body>';
+
+        $executeSoap = new CrmExecuteSoap ();
+        $response = $executeSoap->ExecuteSOAPRequest ( $authHeader, $xml, $url, "Execute" );
+
+        $entityArray = array();
+        if($response!=null && $response!=""){
+        $responsedom = new DomDocument();
+        $responsedom->loadXML($response);
+        $entities = $responsedom->getElementsbyTagName("AttributeMetadata");
+        $record = array();
+        //$kvptypes = $entities[0]->getElementsbyTagName("KeyValuePairOfstringanyType");
+
+        foreach($entities as $kvp){
+            if($kvp->getElementsbyTagName("DisplayName")->item(0)!=null&& $kvp->getElementsbyTagName("DisplayName")->item(0)->getElementsbyTagName("Label")->item(0)!=null)
+                $record['label']=$kvp->getElementsbyTagName("DisplayName")->item(0)->getElementsbyTagName("Label")->item(0)->textContent;
+            else
+                continue;
+            //$record['label']="";
+            $record['name']=$kvp->getElementsbyTagName("LogicalName")->item(0)->textContent;;
+            $record['required']=$kvp->getElementsbyTagName("RequiredLevel")->item(0)->getElementsbyTagName("Value")->item(0)->textContent;
+            $entityArray[] = $record;
+        }
+        }
+
+        return $entityArray;
+    }
+
+    private function msdynpfe_create_lead($username, $password, $url, $module, $mergevars) {
+        include_once 'lib/dynamicspfe/CrmAuth.php';
+        include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
+        include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
+        $crmAuth = new CrmAuth ();
+
+        $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
+
+
+        if($authHeader == null ){
+        echo '<div id="message" class="error below-h2">
+                <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+        return false;
+        }
+
+    $attributedata='';
+    foreach($mergevars as $attribute){
+        $attributedata=$attributedata.
+        '<b:KeyValuePairOfstringanyType>
+            <c:key>'.$attribute['name'].'</c:key>
+            <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$attribute['value'].'</c:value>
+        </b:KeyValuePairOfstringanyType>';
+    }
+        $xml = '<s:Body>
+                    <Create xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+                        <entity xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+                            <b:Attributes xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
+                                '.$attributedata.'
+                            </b:Attributes>
+                            <b:EntityState i:nil="true"/>
+                            <b:FormattedValues xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+                            <b:Id>00000000-0000-0000-0000-000000000000</b:Id>
+                            <b:LogicalName>'.$module.'</b:LogicalName>
+                            <b:RelatedEntities xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+                        </entity>
+                    </Create>
+                </s:Body>';
+        $executeSoap = new CrmExecuteSoap();
+        $response = $executeSoap->ExecuteSOAPRequest( $authHeader, $xml, $url, "Create");
+    //echo $xml;
+        $createResult ="";
+        //echo $response;
+        if($response!=null && $response!=""){
+            preg_match('/<CreateResult>(.*)<\/CreateResult>/', $response, $matches);
+            $createResult =  $matches[1];
+        }
+
+        return $createResult;
+    }
+
+    ////////////////////////////////
 
     private function debugcrm($message) {
             if (WP_DEBUG==true) {
