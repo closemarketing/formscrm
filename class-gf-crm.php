@@ -259,7 +259,7 @@ class GFCRM extends GFFeedAddOn {
             $custom_fields = $this->sugarcrm_listfields7($username, $password, $url,'Leads');
 
         } elseif($crm_type == 'Odoo 8') { //Odoo method
-            $custom_fields = $this->odoo_listfields($username, $password, $dbname, $url,"lead");
+            $custom_fields = $this->odoo8_listfields($username, $password, $dbname, $url,"lead");
 
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
             $custom_fields = $this->msdyn_listfields($username, $password, $url,"lead");
