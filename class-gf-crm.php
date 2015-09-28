@@ -561,6 +561,7 @@ class GFCRM extends GFFeedAddOn {
 
         $login_token = $login_result->id;
 
+        return $login_token;
   }
 
     private function sugarcrm_listfields($username, $password, $url, $module) {
