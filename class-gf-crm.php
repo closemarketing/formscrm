@@ -1650,8 +1650,10 @@ class GFCRM extends GFFeedAddOn {
             else
                 continue;
             //$record['label']="";
-            $record['name']=$kvp->getElementsbyTagName("LogicalName")->item(0)->textContent;;
-            $record['required']=$kvp->getElementsbyTagName("RequiredLevel")->item(0)->getElementsbyTagName("Value")->item(0)->textContent;
+            $record['name']=$kvp->getElementsbyTagName("LogicalName")->item(0)->textContent;
+            $requiredvar = $kvp->getElementsbyTagName("RequiredLevel")->item(0)->getElementsbyTagName("Value")->item(0)->textContent;
+            if($requiredvar=='ApplicationRequired') $record['required']= true; else $record['required']= false;
+            //$record['required']=$kvp->getElementsbyTagName("RequiredLevel")->item(0)->getElementsbyTagName("Value")->item(0)->textContent;
             $entityArray[] = $record;
         }
         }
@@ -1700,10 +1702,10 @@ class GFCRM extends GFFeedAddOn {
         $response = $executeSoap->ExecuteSOAPRequest( $authHeader, $xml, $url, "Create");
     //echo $xml;
         $createResult ="";
-        //echo $response;
+        echo $response;
         if($response!=null && $response!=""){
             preg_match('/<CreateResult>(.*)<\/CreateResult>/', $response, $matches);
-            $createResult =  $matches[1];
+            if(isset($matches[1]) ) $createResult =  $matches[1];
         }
 
         return $createResult;
