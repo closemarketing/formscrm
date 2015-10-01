@@ -32,6 +32,9 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
+= 1.10 =
+*	Added connection with Bitrix24 CRM.
+
 = 1.9 =
 *	Added MS Dynamics on Premise. Use it if MS Dynamics Online does not work for you.
 *	Solved fixes connection to SugarCRM.
