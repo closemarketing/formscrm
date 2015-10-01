@@ -34,6 +34,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 1.9 =
 *	Added MS Dynamics on Premise. Use it if MS Dynamics Online does not work for you.
+*	Solved fixes connection to SugarCRM.
+*	Solved fixes with Odoo map function.
 
 = 1.8.1 =
 *	Finally solved connection with MS Dynamics. Problems from MS Dynamics API library.
