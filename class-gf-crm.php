@@ -1225,10 +1225,10 @@ class GFCRM extends GFFeedAddOn {
 		$custom_fields = array();
 
 		foreach($get_fields->module_fields as $field){
-			if($field->label== 'ID')
-				$custom_fields[]=array('label'=> $field->label, 'name' => $field->name);
+			if($field->label== 'ID'||$field->required==0||$field->name=='team_count'||$field->name=='team_name')
+				$custom_fields[]=array('label'=> $field->label.' ('.$field->name.')', 'name' => $field->name);
 			else
-				$custom_fields[]=array('label'=> $field->label, 'name' => $field->name, 'required' => ($field->required));
+				$custom_fields[]=array('label'=> $field->label.' ('.$field->name.')', 'name' => $field->name, 'required' => ($field->required));
 		}
     return $custom_fields;
     }
