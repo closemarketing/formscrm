@@ -103,6 +103,10 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'Salesforce',
                                                         'name'  => 'salesforce'
+                                                    ),
+                                                    array(
+                                                        'label' => 'Bitrix24',
+                                                        'name'  => 'bitrix24'
                                                     )
                                                 )
 					),
@@ -113,7 +117,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM') )
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24') )
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -128,7 +132,7 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24' ) ),
 												'feedback_callback' => $this->login_api_crm()
 					),
 					array(
@@ -279,6 +283,9 @@ class GFCRM extends GFFeedAddOn {
          } elseif($crm_type == 'Salesforce') {
              $custom_fields = $this->salesforce_listfields($username, $apisales, 'Lead');
 
+         } elseif($crm_type == 'Bitrix24') {
+             $custom_fields = $this->bitrix_listfields($username, $password, $url, 'Leads');
+
         } // From if CRM
 
         $this->debugcrm($custom_fields);
@@ -400,6 +407,10 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Salesforce') {
             $id = $this->salesforce_create_lead($username, $apisales, 'Lead', $merge_vars);
 
+        } elseif($crm_type == 'Bitrix24') {
+			$crmport ="443";
+			$id = $this->bitrix_create_lead($username, $password, $url, $crmport, "Leads", $merge_vars);
+
         } // From CRM IF
 
         //Sends email if it does not create a lead
@@ -502,6 +513,10 @@ class GFCRM extends GFFeedAddOn {
 
     } elseif($crm_type == 'Salesforce') {
         $login_result = $this->salesforce_login($username, $apisales);
+
+    } elseif($crm_type == 'Bitrix24') {
+		$crmport ="443"; //Assumed by default
+        $login_result = $this-> bitrix_login($username, $password, $url, $crmport);
 
     } //OF CRM
 
@@ -1716,6 +1731,8 @@ class GFCRM extends GFFeedAddOn {
 
 private function bitrix_login($username, $password, $url, $crmport) {
 // open socket to CRM
+	$url = parse_url($url);
+	$url = $url['host'];
 	$fp = fsockopen("ssl://".$url, $crmport, $errno, $errstr, 30);
 	if ($fp)
 		return true;
@@ -1724,8 +1741,8 @@ private function bitrix_login($username, $password, $url, $crmport) {
 }
 private function bitrix_listfields($username, $password, $url, $module) {
 	$fields = array(
-	array('name'=>'LOGIN', 'required'=>true, 'label'=>'Login'),
-	array('name'=>'PASSWORD', 'required'=>true,'label'=>'Password'),
+	//array('name'=>'LOGIN', 'required'=>true, 'label'=>'Login'),
+	//array('name'=>'PASSWORD', 'required'=>true,'label'=>'Password'),
 	array('name'=>'TITLE', 'required'=>true, 'label'=>'Title'),
 	array('name'=>'COMPANY_TITLE', 'required'=>false, 'label'=>'Company Name'),
 	array('name'=>'NAME', 'required'=>false, 'label'=>'First Name'),
@@ -1768,25 +1785,18 @@ private function bitrix_listfields($username, $password, $url, $module) {
 }
 private function bitrix_create_lead($username, $password, $url, $crmport, $module, $merge_vars) {
 	// get lead data from the form
-	/*
-	$postData = array(
-		'TITLE' => $leadData['TITLE'],
-		'COMPANY_TITLE' => $leadData['COMPANY_TITLE'],
-		'NAME' => $leadData['NAME'],
-		'LAST_NAME' => $leadData['LAST_NAME'],
-		'COMMENTS' => $leadData['COMMENTS'],
-	);
-	*/
 	$postData = array();
 	foreach($merge_vars as $attribute){
 	$postData[$attribute['name']]=$attribute['value'];
 	}
+	$crm_path = '/crm/configs/import/lead.php';
 
 	$postData['LOGIN'] = $username;
 	$postData['PASSWORD'] = $password;
 
-
 	// open socket to CRM
+	$url = parse_url($url);
+	$url = $url['host'];
 	$fp = fsockopen("ssl://".$url, $crmport, $errno, $errstr, 30);
 	if ($fp)
 	{
@@ -1796,7 +1806,7 @@ private function bitrix_create_lead($username, $password, $url, $crmport, $modul
 			$strPostData .= ($strPostData == '' ? '' : '&').$key.'='.urlencode($value);
 
 		// prepare POST headers
-		$str = "POST ".CRM_PATH." HTTP/1.0\r\n";
+		$str = "POST ".$crm_path." HTTP/1.0\r\n";
 		$str .= "Host: ".$url."\r\n";
 		$str .= "Content-Type: application/x-www-form-urlencoded\r\n";
 		$str .= "Content-Length: ".strlen($strPostData)."\r\n";
