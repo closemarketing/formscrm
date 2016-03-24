@@ -85,6 +85,10 @@ class GFCRM extends GFFeedAddOn {
                                                         'name'  => 'odoo8'
                                                     ),
                                                     array(
+                                                        'label' => 'Odoo 9',
+                                                        'name'  => 'odoo9'
+                                                    ),
+                                                    array(
                                                         'label' => 'Microsoft Dynamics CRM',
                                                         'name'  => 'msdynamics'
                                                     ),
@@ -125,7 +129,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta') )
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta') )
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -140,7 +144,7 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) ),
 						'feedback_callback' => $this->login_api_crm()
 					),
 					array(
@@ -167,7 +171,7 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'Odoo DB Name', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Odoo 8' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Odoo 8', 'Odoo 9' ) ),
 					),
 				)
 			),
@@ -276,6 +280,9 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Odoo 8') { //Odoo method
             $custom_fields = $this->odoo8_listfields($username, $password, $dbname, $url,"lead");
 
+        } elseif($crm_type == 'Odoo 9') { //Odoo method
+            $custom_fields = $this->odoo9_listfields($username, $password, $dbname, $url,"lead");
+
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
             $custom_fields = $this->msdyn_listfields($username, $password, $url,"lead");
 
@@ -381,8 +388,6 @@ class GFCRM extends GFFeedAddOn {
 			$merge_vars = $this->remove_blank_custom_fields( $merge_vars );
 		}
 
-
-
         $settings = $this->get_plugin_settings();
 
         $crm_type  = $settings['gf_crm_type'];
@@ -393,6 +398,8 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
         if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
+
+		$this->debugcrm($settings);
 
         if($crm_type == 'vTiger') { //vtiger Method
             $id = $this->vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
@@ -405,6 +412,9 @@ class GFCRM extends GFFeedAddOn {
 
         } elseif($crm_type == 'Odoo 8') {
             $id = $this->odoo8_create_lead($username, $password, $dbname, $url, 'lead', $merge_vars);
+
+        } elseif($crm_type == 'Odoo 9') {
+            $id = $this->odoo9_create_lead($username, $password, $dbname, $url, 'crm.lead', $merge_vars);
 
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
             $id = $this->msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
@@ -497,7 +507,7 @@ class GFCRM extends GFFeedAddOn {
     $settings = $this->get_plugin_settings();
 
     $crm_type  = $settings['gf_crm_type'];
-		if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
+	if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
 
     if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
@@ -505,6 +515,8 @@ class GFCRM extends GFFeedAddOn {
     if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
     if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
     if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
+	$login_result = false;
+	$this->debugcrm($settings);
 
     if($crm_type == 'vTiger') { //vtiger Method
         $login_result = $this->vtiger_login($username, $apipassword, $url);
@@ -515,8 +527,11 @@ class GFCRM extends GFFeedAddOn {
     } elseif($crm_type == 'SugarCRM7') { //sugarcrm7 method
         $login_result = $this->sugarcrm_login7($username, $password, $url, 'Leads');
 
-    } elseif($crm_type == 'Odoo 8') { //Odoo Method
+    } elseif($crm_type == 'Odoo 8') { //Odoo 8 Method
         $login_result = $this->odoo8_login($username, $password, $dbname, $url);
+
+    } elseif($crm_type == 'Odoo 9') { //Odoo 9 Method
+        $login_result = $this->odoo9_login($username, $password, $dbname, $url);
 
     } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
         $login_result = $this-> msdyn_login($username, $password, $url,"lead");
@@ -912,8 +927,7 @@ class GFCRM extends GFFeedAddOn {
             $uid = $this->odoo8_login($username, $password, $dbname, $url);
 
             $models = ripcord::client($url.'xmlrpc/2/object');
-            $id = $models->execute_kw($dbname, $uid, $password, 'crm.lead', 'create',
-            array($arraymerge));
+            $id = $models->execute_kw($dbname, $uid, $password, 'crm.lead', 'create', array($arraymerge));
 
             return $id;
         }
@@ -2291,6 +2305,109 @@ private function solve360_createcontact($username, $password, $module, $merge_va
 ///////////////// facturadirecta ////////////////////////////////
 
 
+///////////////// odoo9 ////////////////////////////////////////
+private function odoo9_login($username, $password, $dbname, $url) {
+	//Load Library XMLRPC
+	require_once('lib/ripcord.php');
+	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+
+	//Manage Errors from Library
+	try {
+	$common = ripcord::client($url.'xmlrpc/2/common');
+	} catch (Exception $e) {
+		echo '<div id="message" class="error below-h2">
+		<p><strong>Error: '.$e->getMessage().'</strong></p></div>';
+		return false;
+	}
+
+	try {
+	$uid = $common->authenticate($dbname, $username, $password, array());
+	} catch (Exception $e) {
+		echo '<div id="message" class="error below-h2">
+		<p><strong>Error: '.$e->getMessage().'</strong></p></div>';
+		return false;
+	}
+
+	if (isset($uid) )
+		return $uid;
+	else
+		return false;
+}
+// from login Odoo
+//Converts XML Odoo in array for Gravity Forms Custom Fields
+private function convert_XML_odoo9_customfields($xml_odoo){
+	$p = xml_parser_create();
+	xml_parse_into_struct($p, $xml_odoo, $vals, $index);
+	xml_parser_free($p);
+
+	$custom_fields = array();
+	$i =0;
+
+	foreach($vals as $field)
+	{
+		if( $field["tag"] == 'NAME' ) {
+			if ( $field["value"] != 'type' && $field["value"] != 'string' && $field["value"] != 'help' && $field["value"] != 'id')
+			$custom_fields[$i] = array(
+					'label' => $field['value'],
+					'name' => $field['value']
+					);
+
+		}
+		$i++;
+	} //del foreach
+	return $custom_fields;
+} //function
+
+//Converts Gravity Forms Array to Odoo 8 Array to create field
+private function convert_odoo9_merge($merge_vars){
+	$i =0;
+	$arraymerge = array();
+	foreach($merge_vars as $mergefield) {
+		$arraymerge = array_merge($arraymerge,array( $mergefield['name'] => $mergefield['value'] ) );
+		$i++;
+	}
+
+	return $arraymerge;
+} //function
+
+private function odoo9_listfields($username, $password, $dbname, $url, $module) {
+	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+	$uid = $this->odoo9_login($username, $password, $dbname, $url);
+
+	if($uid != false) {
+		$models = ripcord::client($url.'xmlrpc/2/object');
+		$models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
+
+		$custom_fields = $this->convert_XML_odoo9_customfields( $models->_response );
+	}
+	// Return an array of fields
+	return $custom_fields;
+}
+
+private function odoo9_create_lead($username, $password, $dbname, $url, $module, $merge_vars) {
+
+	//Converts to Array
+	$i =0;
+	$arraymerge = array();
+	foreach($merge_vars as $mergefield) {
+		$arraymerge = array_merge($arraymerge,array( $mergefield['name'] => $mergefield['value'] ) );
+		$i++;
+	}
+
+	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+	$uid = $this->odoo9_login($username, $password, $dbname, $url);
+	print_r($arraymerge);
+
+	if($uid != false) {
+		$models = ripcord::client($url.'xmlrpc/2/object');
+		$id = $models->execute_kw($dbname, $uid, $password, $module, 'create', array($arraymerge));
+	} else { return false; }
+
+	return $id;
+}
+
+///////////////// odoo9 ////////////////////////////////////////
+
 
     ////////////////////////////////
 
@@ -2315,7 +2432,7 @@ private function solve360_createcontact($username, $password, $module, $merge_va
             //test curl
 		    if(!function_exists('curl_version'))
 				echo '<div id="message" class="error below-h2">
-						<p><strong>'.__('curl is not Installed in your serverd. It is needed to work with CRM Libraries.' ,'gravityformscrm').'</strong></p></div>';
+						<p><strong>'.__('curl is not Installed in your server. It is needed to work with CRM Libraries.' ,'gravityformscrm').'</strong></p></div>';
     }
 
 
