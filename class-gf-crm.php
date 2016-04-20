@@ -120,10 +120,10 @@ class GFCRM extends GFFeedAddOn {
                                                         'label' => 'FacturaDirecta',
                                                         'name'  => 'facturadirecta'
                                                     ),
-                                                    array(
+/*                                                    array(
                                                         'label' => 'amoCRM',
                                                         'name'  => 'amocrm'
-                                                    )
+                                                    )*/
                                                 )
 					),
 					array(
@@ -315,7 +315,7 @@ class GFCRM extends GFFeedAddOn {
              $custom_fields = $this->facturadirecta_listfields($url, $apipassword);
 
          } elseif($crm_type == 'amoCRM') {
-             $custom_fields = $this->amocrm_listfields($username, $apipassword, $url, "leads");
+             $custom_fields = $this->amocrm_listfields($username, $apipassword, $url, "contacts");
 
         } // From if CRM
 
@@ -452,7 +452,7 @@ class GFCRM extends GFFeedAddOn {
             $id = $this->facturadirecta_createlead($url, $apipassword, $merge_vars);
 
 		} elseif($crm_type == 'amoCRM') {
-            $id = $this->amocrm_createlead($username, $apipassword, $url, "leads", $merge_vars);
+            $id = $this->amocrm_createlead($username, $apipassword, $url, "contacts", $merge_vars);
 
         } // From CRM IF
 
@@ -2426,7 +2426,7 @@ private function odoo9_create_lead($username, $password, $dbname, $url, $module,
 ///////////////// amocrm ////////////////////////////////////////
 
     private function amocrm_login($username, $password, $url){
-        $url = $url.'/private/api/auth.php?type=json';
+        $url = $url.'private/api/auth.php?type=json';
         $user=array('USER_LOGIN'=>$username, 'USER_HASH'=>$password);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -2438,8 +2438,8 @@ private function odoo9_create_lead($username, $password, $dbname, $url, $module,
         $response = curl_exec($ch);
 
         $userinfo = json_decode($response);
-		if(isset($userinforesponse->response))
-        	$userinforesponse= $userinfo->response;
+
+        $userinforesponse= $userinfo->response;
 
         curl_close($ch);
 
@@ -2506,7 +2506,7 @@ private function odoo9_create_lead($username, $password, $dbname, $url, $module,
         return $fields;
     }
     private function amocrm_createlead($username, $password, $url, $module, $merge_vars){
-        $url = $url.'/private/api/v2/json/'.$module.'/set?USER_LOGIN='.$username.'&USER_HASH='.$password;
+        $url = $url.'private/api/v2/json/'.$module.'/set?USER_LOGIN='.$username.'&USER_HASH='.$password;
         $vars = array();
         foreach($merge_vars as $var){
             $vars[$var['name']] =  $var['value'];

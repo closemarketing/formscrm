@@ -36,7 +36,6 @@ WordPress installation and then activate the Plugin from Plugins page.
 *   Server check system.
 *   Support to FacturaDirecta.
 *   Support to Odoo 9.
-*   Support to amoCRM.
 
 = 2.1 =
 *	Added connection with Solve360 CRM.
