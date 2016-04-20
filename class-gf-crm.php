@@ -85,6 +85,10 @@ class GFCRM extends GFFeedAddOn {
                                                         'name'  => 'odoo8'
                                                     ),
                                                     array(
+                                                        'label' => 'Odoo 9',
+                                                        'name'  => 'odoo9'
+                                                    ),
+                                                    array(
                                                         'label' => 'Microsoft Dynamics CRM',
                                                         'name'  => 'msdynamics'
                                                     ),
@@ -111,7 +115,15 @@ class GFCRM extends GFFeedAddOn {
                                                     array(
                                                         'label' => 'Solve360',
                                                         'name'  => 'solve360'
-                                                    )
+                                                    ),
+                                                    array(
+                                                        'label' => 'FacturaDirecta',
+                                                        'name'  => 'facturadirecta'
+                                                    ),
+/*                                                    array(
+                                                        'label' => 'amoCRM',
+                                                        'name'  => 'amocrm'
+                                                    )*/
                                                 )
 					),
 					array(
@@ -121,7 +133,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24') )
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM') )
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -136,8 +148,8 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24' ) ),
-												'feedback_callback' => $this->login_api_crm()
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) ),
+						'feedback_callback' => $this->login_api_crm()
 					),
 					array(
 						'name'  => 'gf_crm_apipassword',
@@ -147,7 +159,7 @@ class GFCRM extends GFFeedAddOn {
 						//'feedback_callback' => $this->login_api_crm(),
                         'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Solve360' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Solve360','amoCRM' ) ),
 					),
 					array(
 						'name'  => 'gf_crm_apisales',
@@ -163,8 +175,8 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'Odoo DB Name', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Odoo 8' ) ),
-					)
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Odoo 8', 'Odoo 9' ) ),
+					),
 				)
 			),
 		);
@@ -201,6 +213,9 @@ class GFCRM extends GFFeedAddOn {
 					'<a href="' . $this->get_plugin_settings_url() . '">', '</a>' ); ?>
 			</div>
 			<?php
+			//Test server settings
+			$this->testserver();
+
 			return;
 		}
 
@@ -269,6 +284,9 @@ class GFCRM extends GFFeedAddOn {
         } elseif($crm_type == 'Odoo 8') { //Odoo method
             $custom_fields = $this->odoo8_listfields($username, $password, $dbname, $url,"lead");
 
+        } elseif($crm_type == 'Odoo 9') { //Odoo method
+            $custom_fields = $this->odoo9_listfields($username, $password, $dbname, $url,"lead");
+
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
             $custom_fields = $this->msdyn_listfields($username, $password, $url,"lead");
 
@@ -292,6 +310,12 @@ class GFCRM extends GFFeedAddOn {
 
          } elseif($crm_type == 'Solve360') {
              $custom_fields = $this->solve360_listfields($username, $apipassword, 'contacts');
+
+         } elseif($crm_type == 'FacturaDirecta') {
+             $custom_fields = $this->facturadirecta_listfields($url, $apipassword);
+
+         } elseif($crm_type == 'amoCRM') {
+             $custom_fields = $this->amocrm_listfields($username, $apipassword, $url, "contacts");
 
         } // From if CRM
 
@@ -371,8 +395,6 @@ class GFCRM extends GFFeedAddOn {
 			$merge_vars = $this->remove_blank_custom_fields( $merge_vars );
 		}
 
-
-
         $settings = $this->get_plugin_settings();
 
         $crm_type  = $settings['gf_crm_type'];
@@ -383,6 +405,8 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
         if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
+
+		$this->debugcrm($settings);
 
         if($crm_type == 'vTiger') { //vtiger Method
             $id = $this->vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
@@ -395,6 +419,9 @@ class GFCRM extends GFFeedAddOn {
 
         } elseif($crm_type == 'Odoo 8') {
             $id = $this->odoo8_create_lead($username, $password, $dbname, $url, 'lead', $merge_vars);
+
+        } elseif($crm_type == 'Odoo 9') {
+            $id = $this->odoo9_create_lead($username, $password, $dbname, $url, 'crm.lead', $merge_vars);
 
         } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
             $id = $this->msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
@@ -420,6 +447,13 @@ class GFCRM extends GFFeedAddOn {
 
         } elseif($crm_type == 'Solve360') {
             $id = $this->solve360_createcontact($username, $apipassword, 'contacts', $merge_vars);
+
+        } elseif($crm_type == 'FacturaDirecta') {
+            $id = $this->facturadirecta_createlead($url, $apipassword, $merge_vars);
+
+		} elseif($crm_type == 'amoCRM') {
+            $id = $this->amocrm_createlead($username, $apipassword, $url, "contacts", $merge_vars);
+
         } // From CRM IF
 
         //Sends email if it does not create a lead
@@ -484,7 +518,7 @@ class GFCRM extends GFFeedAddOn {
     $settings = $this->get_plugin_settings();
 
     $crm_type  = $settings['gf_crm_type'];
-		if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
+	if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
 
     if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
@@ -492,6 +526,8 @@ class GFCRM extends GFFeedAddOn {
     if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
     if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
     if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
+	$login_result = false;
+	$this->debugcrm($settings);
 
     if($crm_type == 'vTiger') { //vtiger Method
         $login_result = $this->vtiger_login($username, $apipassword, $url);
@@ -502,8 +538,11 @@ class GFCRM extends GFFeedAddOn {
     } elseif($crm_type == 'SugarCRM7') { //sugarcrm7 method
         $login_result = $this->sugarcrm_login7($username, $password, $url, 'Leads');
 
-    } elseif($crm_type == 'Odoo 8') { //Odoo Method
+    } elseif($crm_type == 'Odoo 8') { //Odoo 8 Method
         $login_result = $this->odoo8_login($username, $password, $dbname, $url);
+
+    } elseif($crm_type == 'Odoo 9') { //Odoo 9 Method
+        $login_result = $this->odoo9_login($username, $password, $dbname, $url);
 
     } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
         $login_result = $this-> msdyn_login($username, $password, $url,"lead");
@@ -529,9 +568,18 @@ class GFCRM extends GFFeedAddOn {
 
     } elseif($crm_type == 'Solve360') {
         $login_result = $this-> solve360_login($username, $apipassword);
-    } //OF CRM
+
+    } elseif($crm_type == 'FacturaDirecta') {
+        $login_result = $this-> facturadirecta_login($url, $username, $password);
+
+	} elseif($crm_type == 'amoCRM') {
+        $login_result = $this-> amocrm_login($username, $apipassword, $url);
+
+	} //OF CRM
 
     $this->debugcrm($login_result);
+
+	$this->testserver();
 
     if (!isset($login_result) )
         $login_result="";
@@ -894,8 +942,7 @@ class GFCRM extends GFFeedAddOn {
             $uid = $this->odoo8_login($username, $password, $dbname, $url);
 
             $models = ripcord::client($url.'xmlrpc/2/object');
-            $id = $models->execute_kw($dbname, $uid, $password, 'crm.lead', 'create',
-            array($arraymerge));
+            $id = $models->execute_kw($dbname, $uid, $password, 'crm.lead', 'create', array($arraymerge));
 
             return $id;
         }
@@ -1958,6 +2005,543 @@ private function solve360_createcontact($username, $password, $module, $merge_va
 }
 ///////////////// Solve360 CRM ////////////////////////////////
 
+///////////////// facturadirecta ////////////////////////////////
+
+
+    private function facturadirecta_login($url, $username, $password) {
+		$settings = $this->get_plugin_settings();
+
+		$this->debugcrm($settings);
+
+		if (isset($settings['gf_crm_apipassword']) ) {
+			$authkey = $settings['gf_crm_apipassword'];
+		} else {
+			if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+	        $url = $url.'api/login.xml';
+
+	        $param = "u=".$username."&p=".$password;
+	        $ch = curl_init();
+	        curl_setopt($ch, CURLOPT_URL, $url);
+	        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/xml'));
+	        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+	        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+	        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+	        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+	        curl_setopt($ch, CURLOPT_POST, 1);
+	        curl_setopt($ch, CURLOPT_POSTFIELDS, $param);
+	        $result = curl_exec($ch);
+	        $info = curl_getinfo($ch);
+	        $doc = new DomDocument();
+
+			if(isset($result)) {
+				$doc->loadXML($result);
+			} else {
+				echo '<div id="message" class="error below-h2">';
+				echo __('Error. I could not access to Facturadirecta', 'gravityformscrm' );
+				echo '</div>';
+				return false;
+			}
+	        curl_close($ch);
+
+	        $tokenId = $doc->getElementsByTagName("token")->item(0)->nodeValue;
+	        if(!empty($tokenId)){
+	            $authkey = $tokenId;
+	        }
+	        else{
+	            $authkey = "0";
+	        }
+
+			$settings['gf_crm_apipassword'] = $authkey;
+			$this->update_plugin_settings($settings);
+			$this->debugcrm($settings['gf_crm_apipassword']);
+		}
+		return $authkey;
+    }
+    private function facturadirecta_listfields($url, $token) {
+        $agent = 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.0.3705; .NET CLR 1.1.4322)';
+		if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+        $url = $url."api/clients.xml?api_token=".$token;
+
+        $param = $token.":x";
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/xml'));
+        //curl_setopt($ch, CURLOPT_HEADER, TRUE);
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($ch, CURLOPT_USERPWD, $param);
+        curl_setopt($ch, CURLOPT_USERAGENT, $agent);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_PUT, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        $p = xml_parser_create();
+        xml_parser_set_option($p, XML_OPTION_CASE_FOLDING, 0);
+        xml_parse_into_struct($p, $result, $vals, $index);
+        xml_parser_free($p);
+        $level1tag="";
+        $level2tag="";
+        $level3tag="";
+        $duedatecounter=0;
+        foreach ($vals as $key=>$val) {
+            //echo "\n".$val['tag']."\n";
+            if($val['tag']=="client")
+                continue;
+            if($val['level']>=2){
+                //echo $val['level'];
+                if($val['type']=="open" && $val['level']==2){
+                    $level1tag =$val['tag'].".";
+                }
+                else if ($val['type']=="close" && $val['level']==2){
+                    $level1tag ="";
+                }
+                if($val['type']=="open" && $val['level']==3){
+                    $level2tag =$val['tag'].".";
+                }
+                else if ($val['type']=="close" && $val['level']==3){
+                    $level2tag ="";
+                }
+                if($val['type']=="open" && $val['level']==4){
+                    $level3tag =$val['tag'].".";
+                }
+                else if ($val['type']=="close" && $val['level']==4){
+                    $level3tag ="";
+                }
+            }
+            $req=FALSE;
+            if($val['level']=="2" &&$val['tag']=="name"){
+                $req=TRUE;
+            }
+            if($val['type']=="complete"){
+                $taglabel=str_replace(".", " ",$level1tag).str_replace(".", " ",$level2tag).str_replace(".", " ",$level3tag);
+                $tagname=$level1tag.$level2tag.$level3tag;
+                if($tagname == "billing.dueDates.dueDate."){
+                    if($val['tag']=="delayInDays")
+                        $duedatecounter=$duedatecounter+1;
+                    $tagname=$level1tag.$level2tag.str_replace(".", $duedatecounter,$level3tag).".";
+                    $taglabel=$taglabel.$duedatecounter." ";
+                }
+                if($tagname == "customAttributes.customAttribute."){
+                    if($val['tag']=="label")
+                        $fields[]=array(
+                        'label' => $taglabel.$val['value'],
+                        'name' =>  $tagname.$val['value'],
+                        'required' => $req
+                    );
+                }
+                else{
+                    $fields[]=array(
+                        'label' => $taglabel.$val['tag'],
+                        'name' =>  $tagname.$val['tag'],
+                        'required' => $req
+                    );
+                }
+            }
+        }
+        return $fields;
+    }
+    private function facturadirecta_createlead($url, $token, $mergevars){
+        $agent = 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.0.3705; .NET CLR 1.1.4322)';
+		if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+        $url = $url."api/clients.xml?api_token=".$token;
+        $param = $token.":x";
+        $xml = $this->get_cleintxmlforcreate($mergevars);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: text/xml'));
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($ch, CURLOPT_USERPWD, $param);
+        curl_setopt($ch, CURLOPT_USERAGENT, $agent);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+        $response = curl_exec($ch);
+        $doc = new DomDocument();
+        $doc->loadXML($response);
+        //echo "Response:<pre>";
+        //print_r($doc->textContent);
+        //echo "</pre>";
+        curl_close($ch);
+        $itemId = $doc->getElementsByTagName("id")->item(0)->nodeValue;
+        $httpStatus = $doc->getElementsByTagName("httpStatus")->item(0)->nodeValue;
+        if(!empty($httpStatus)){
+            $returnValue = '0';
+        }else{
+            $returnValue = $itemId;
+        }
+        return $returnValue;
+    }
+    private function get_cleintxmlforcreate($mergevars){
+        $xml  = "<?xml version='1.0' encoding='UTF-8'?>";
+        $xml .= "<client>";
+        // Obtain a list of columns
+        foreach ($mergevars as $key => $row) {
+            $akey[$key]  = $row['name'];
+        }
+        // Sort the data with volume descending, edition ascending
+        // Add $data as the last parameter, to sort by the common key
+        array_multisort($akey, SORT_ASC, $mergevars);
+        //echo "<pre>";
+        //print_r($mergevars);
+        //echo "</pre>";
+        $i=0;
+        $count = count( $mergevars);
+        $firstlevel="";
+        $address="";
+        $bank="";
+        $billing="";
+        $billingtax1="";
+        $billingtax2="";
+        $billingtax3="";
+        $billingtax4="";
+        $billingtax5="";
+        $billingtax6="";
+        $dueDate1="";
+        $dueDate2="";
+        $dueDate3="";
+        $dueDate4="";
+        for ( $i = 0; $i < $count; $i++ ){
+            $field=$mergevars[$i]['name'];
+            $fieldvalue=$mergevars[$i]['value'];
+            $fieldvalues = explode(".",$field);
+            $fieldLevel = count($fieldvalues);
+            //if($fieldLevel==1)
+            //    echo "<".$field."><![CDATA[".$fieldvalue."]]><".$field.">";
+            if($fieldLevel>0){
+                //echo "<owner><id><![CDATA[".$fieldvalue."]]><".$field.">";
+                $xmlNode="";
+                for($j = $fieldLevel-1; $j>= 0; $j--){
+                    if($j == $fieldLevel-1){
+                        if($fieldvalues[0]=="address"){
+                            if( $fieldvalues[$j]!="address")
+                                $address .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                        }
+                        if($fieldvalues[0]=="customAttributes"){
+                            if( $fieldvalues[$j]!="customAttributes" && $fieldvalues[$j]!="customAttribute")
+                                $customAttributes .= "<customAttribute><label><![CDATA[".$fieldvalues[$j]."]]></label>";
+                                $customAttributes .= "<value><![CDATA[".$fieldvalue."]]></value></customAttribute>";
+                        }
+                        elseif ($fieldvalues[0]=="billing"){
+                            if( $fieldvalues[$j]!="billing"){
+
+                                if($fieldLevel==2)
+                                    $billing .= "<".$fieldvalues[1]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[1].">";
+                                elseif ($fieldvalues[1]=="bank"){
+                                    if( $fieldvalues[$j]!="bank")
+                                        $bank .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                }
+                                elseif (($field=="billing.tax1.name" && $fieldvalues[$j]="name")||($field=="billing.tax1.rate" && $fieldvalues[$j]="rate"))
+                                    $billingtax1 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                elseif(($field=="billing.tax2.name" && $fieldvalues[$j]="name")||($field=="billing.tax2.rate" && $fieldvalues[$j]="rate"))
+                                    $billingtax2 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                elseif(($field=="billing.tax3.name" && $fieldvalues[$j]="name")||($field=="billing.tax3.rate" && $fieldvalues[$j]="rate"))
+                                    $billingtax3 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                elseif(($field=="billing.tax4.name" && $fieldvalues[$j]="name")||($field=="billing.tax4.rate" && $fieldvalues[$j]="rate"))
+                                    $billingtax4 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                elseif(($field=="billing.tax5.name" && $fieldvalues[$j]="name")||($field=="billing.tax5.rate" && $fieldvalues[$j]="rate"))
+                                    $billingtax5 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                elseif(($field=="billing.tax6.name" && $fieldvalues[$j]="name")||($field=="billing.tax6.rate" && $fieldvalues[$j]="rate"))
+                                    $billingtax6 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                elseif ($fieldvalues[1]=="dueDates"){
+                                    if( $fieldvalues[$j]!="dueDates"){
+                                        if(($field=="billing.dueDates.dueDate1.delayInDays" && $fieldvalues[$j]="delayInDays")||($field=="billing.dueDates.dueDate1.rate" && $fieldvalues[$j]="rate"))
+                                            $dueDate1 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                        if(($field=="billing.dueDates.dueDate2.delayInDays" && $fieldvalues[$j]="delayInDays")||($field=="billing.dueDates.dueDate2.rate" && $fieldvalues[$j]="rate"))
+                                            $dueDate2 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                        if(($field=="billing.dueDates.dueDate3.delayInDays" && $fieldvalues[$j]="delayInDays")||($field=="billing.dueDates.dueDate3.rate" && $fieldvalues[$j]="rate"))
+                                            $dueDate3 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                        if(($field=="billing.dueDates.dueDate4.delayInDays" && $fieldvalues[$j]="delayInDays")||($field=="billing.dueDates.dueDate4.rate" && $fieldvalues[$j]="rate"))
+                                            $dueDate4 .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                                    }
+                                }
+                            }
+                        }
+                        else
+                            $xmlNode .= "<".$fieldvalues[$j]."><![CDATA[".$fieldvalue."]]></".$fieldvalues[$j].">";
+                    }
+                    else {
+                        if( $fieldvalues[$j]=="address" || $fieldvalues[0]=="billing" || $fieldvalues[0]=="customAttributes")
+                            continue;
+                        $xmlNode = "<".$fieldvalues[$j].">".$xmlNode."</".$fieldvalues[$j].">";
+                    }
+                }
+                $xml .= $xmlNode;
+            }
+        }
+        if($address!="")
+            $xml .= "<address>".$address."</address>";
+        if($bank!="")
+            $billing .= "<bank>".$bank."</bank>";
+        if($billingtax1!="")
+            $billingtax1 = "<tax1>".$billingtax1."</tax1>";
+        if($billingtax2!="")
+            $billingtax2 = "<tax2>".$billingtax2."</tax2>";
+        if($billingtax3!="")
+            $billingtax3 = "<tax3>".$billingtax3."</tax3>";
+        if($billingtax4!="")
+            $billingtax4 = "<tax4>".$billingtax4."</tax4>";
+        if($billingtax5!="")
+            $billingtax5 = "<tax5>".$billingtax5."</tax5>";
+        if($billingtax6!="")
+            $billingtax6 = "<tax6>".$billingtax6."</tax6>";
+        $billing.=$billingtax1.$billingtax2.$billingtax3.$billingtax4.$billingtax5.$billingtax6;
+        if($dueDate1!="")
+            $dueDate1 = "<dueDate>".$dueDate1."</dueDate>";
+        if($dueDate2!="")
+            $dueDate2 = "<dueDate>".$dueDate2."</dueDate>";
+        if($dueDate3!="")
+            $dueDate3 = "<dueDate>".$dueDate3."</dueDate>";
+        if($dueDate4!="")
+            $dueDate4 = "<dueDate>".$dueDate4."</dueDate>";
+        $dueDates=$dueDate1.$dueDate2.$dueDate3.$dueDate4;
+        if($dueDates!="")
+            $billing .= "<dueDates>".$dueDates."</dueDates>";
+        if($billing!="")
+            $xml .= "<billing>".$billing."</billing>";
+
+        if(isset($customAttributes)&& ($customAttributes!="") )
+            $xml .= "<customAttributes>".$customAttributes."</customAttributes>";
+
+        $xml .= "</client>";
+        //echo $xml;
+        return $xml;
+    }
+
+///////////////// facturadirecta ////////////////////////////////
+
+
+///////////////// odoo9 ////////////////////////////////////////
+private function odoo9_login($username, $password, $dbname, $url) {
+	//Load Library XMLRPC
+	require_once('lib/ripcord.php');
+	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+
+	//Manage Errors from Library
+	try {
+	$common = ripcord::client($url.'xmlrpc/2/common');
+	} catch (Exception $e) {
+		echo '<div id="message" class="error below-h2">
+		<p><strong>Error: '.$e->getMessage().'</strong></p></div>';
+		return false;
+	}
+
+	try {
+	$uid = $common->authenticate($dbname, $username, $password, array());
+	} catch (Exception $e) {
+		echo '<div id="message" class="error below-h2">
+		<p><strong>Error: '.$e->getMessage().'</strong></p></div>';
+		return false;
+	}
+
+	if (isset($uid) )
+		return $uid;
+	else
+		return false;
+}
+// from login Odoo
+//Converts XML Odoo in array for Gravity Forms Custom Fields
+private function convert_XML_odoo9_customfields($xml_odoo){
+	$p = xml_parser_create();
+	xml_parse_into_struct($p, $xml_odoo, $vals, $index);
+	xml_parser_free($p);
+
+	$custom_fields = array();
+	$i =0;
+
+	foreach($vals as $field)
+	{
+		if( $field["tag"] == 'NAME' ) {
+			if ( $field["value"] != 'type' && $field["value"] != 'string' && $field["value"] != 'help' && $field["value"] != 'id')
+			$custom_fields[$i] = array(
+					'label' => $field['value'],
+					'name' => $field['value']
+					);
+
+		}
+		$i++;
+	} //del foreach
+	return $custom_fields;
+} //function
+
+//Converts Gravity Forms Array to Odoo 8 Array to create field
+private function convert_odoo9_merge($merge_vars){
+	$i =0;
+	$arraymerge = array();
+	foreach($merge_vars as $mergefield) {
+		$arraymerge = array_merge($arraymerge,array( $mergefield['name'] => $mergefield['value'] ) );
+		$i++;
+	}
+
+	return $arraymerge;
+} //function
+
+private function odoo9_listfields($username, $password, $dbname, $url, $module) {
+	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+	$uid = $this->odoo9_login($username, $password, $dbname, $url);
+
+	if($uid != false) {
+		$models = ripcord::client($url.'xmlrpc/2/object');
+		$models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
+
+		$custom_fields = $this->convert_XML_odoo9_customfields( $models->_response );
+	}
+	// Return an array of fields
+	return $custom_fields;
+}
+
+private function odoo9_create_lead($username, $password, $dbname, $url, $module, $merge_vars) {
+
+	//Converts to Array
+	$i =0;
+	$arraymerge = array();
+	foreach($merge_vars as $mergefield) {
+		$arraymerge = array_merge($arraymerge,array( $mergefield['name'] => $mergefield['value'] ) );
+		$i++;
+	}
+
+	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+	$uid = $this->odoo9_login($username, $password, $dbname, $url);
+	print_r($arraymerge);
+
+	if($uid != false) {
+		$models = ripcord::client($url.'xmlrpc/2/object');
+		$id = $models->execute_kw($dbname, $uid, $password, $module, 'create', array($arraymerge));
+	} else { return false; }
+
+	return $id;
+}
+
+///////////////// odoo9 ////////////////////////////////////////
+
+///////////////// amocrm ////////////////////////////////////////
+
+    private function amocrm_login($username, $password, $url){
+        $url = $url.'private/api/auth.php?type=json';
+        $user=array('USER_LOGIN'=>$username, 'USER_HASH'=>$password);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=UTF-8'));
+        curl_setopt($ch,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($ch,CURLOPT_POSTFIELDS,json_encode($user));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
+
+        $userinfo = json_decode($response);
+
+        $userinforesponse= $userinfo->response;
+
+        curl_close($ch);
+
+        if(isset($userinforesponse->error))
+            return $userinforesponse->error;
+
+        if(isset($userinforesponse->auth))
+            return $userinforesponse->auth;
+
+    }
+    private function amocrm_listfields($username, $password, $url, $module) {
+        //$url = $url.'/private/api/v2/json/'.$module.'/list?limit_rows=1&USER_LOGIN='.$username.'&USER_HASH='.$password;
+        //$ch = curl_init($url);
+        //curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        //curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=UTF-8'));
+        //curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        //curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        //$response = curl_exec($ch);
+        //$moduleinfo = json_decode($response);
+        //$moduleinforesponse= $moduleinfo->response;
+        //curl_close($ch);
+        //echo '<pre>';
+        //print_r( $moduleinforesponse);
+        //echo '</pre>';
+
+        if($module=="leads"){
+            $fields=array(
+                array('label' => "Lead name",'name' =>  "name",  'required' => TRUE),
+                array('label' => "Date of creation",'name' =>  "date_create",  'required' => FALSE),
+                array('label' => "Date of the last modification",'name' =>  "last_modified",  'required' => FALSE),
+                array('label' => "Lead status",'name' =>  "status_id",  'required' => FALSE),
+                array('label' => "Lead budget",'name' =>  "price",  'required' => FALSE),
+                array('label' => "Responsible user",'name' =>  "responsible_user_id",  'required' => FALSE),
+                array('label' => "Tag names separated by commas",'name' =>  "tags",  'required' => FALSE),
+                array('label' => "Custom fields",'name' =>  "custom_fields",  'required' => FALSE)
+            );
+        }
+        else if ($module=="contacts"){
+            $fields=array(
+                array('label' => "Contact name",'name' =>  "name",  'required' => TRUE),
+                array('label' => "Date of creation",'name' =>  "date_create",  'required' => FALSE),
+                array('label' => "Date of the last modification",'name' =>  "last_modified",  'required' => FALSE),
+                array('label' => "Lead ID",'name' =>  "linked_leads_id",  'required' => FALSE),
+                array('label' => "Company name",'name' =>  "company_name",  'required' => FALSE),
+                array('label' => "Responsible user",'name' =>  "responsible_user_id",  'required' => FALSE),
+                array('label' => "Tag names separated by commas",'name' =>  "tags",  'required' => FALSE),
+                array('label' => "Unique contact identifier",'name' =>  "id",  'required' => FALSE),
+                array('label' => "Unique lead identifier",'name' =>  "id",  'required' => FALSE),
+            );
+        }
+         else if ($module=="company"){
+            $fields=array(
+                array('label' => "Company name",'name' =>  "name",  'required' => TRUE),
+                array('label' => "Date of creation",'name' =>  "date_create",  'required' => FALSE),
+                array('label' => "Date of the last modification",'name' =>  "last_modified",  'required' => FALSE),
+                array('label' => "Lead ID",'name' =>  "linked_leads_id",  'required' => FALSE),
+                array('label' => "Responsible user",'name' =>  "responsible_user_id",  'required' => FALSE),
+                array('label' => "Tag names separated by commas",'name' =>  "tags",  'required' => FALSE),
+                array('label' => "Unique contact identifier",'name' =>  "id",  'required' => FALSE),
+                array('label' => "Unique lead identifier",'name' =>  "id",  'required' => FALSE),
+            );
+        }
+
+        return $fields;
+    }
+    private function amocrm_createlead($username, $password, $url, $module, $merge_vars){
+        $url = $url.'private/api/v2/json/'.$module.'/set?USER_LOGIN='.$username.'&USER_HASH='.$password;
+        $vars = array();
+        foreach($merge_vars as $var){
+            $vars[$var['name']] =  $var['value'];
+        }
+
+        $leads['request']['leads']['add']=array( $vars);
+        $data_string = json_encode($leads);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' .strlen($data_string)
+            ));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        //execute post
+        $result = curl_exec($ch);
+        //close connection
+        curl_close($ch);
+
+        $recordsinfo = json_decode($result);
+        if(isset($recordsinfo->response)){
+            $recordsinforesponse= $recordsinfo->response;
+            if(isset($recordsinforesponse->$module->add) &&count($recordsinforesponse->$module->add)>0)
+            return  $recordsinforesponse->$module->add[0]->id;
+        }
+
+        return;
+    }
+
+
+///////////////// amocrm ////////////////////////////////////////
+
     ////////////////////////////////
 
     private function debugcrm($message) {
@@ -1975,6 +2559,13 @@ private function solve360_createcontact($username, $password, $module, $merge_va
             print_r($message);
             echo '</pre></td></tr></table>';
         }
+    }
+
+    private function testserver() {
+            //test curl
+		    if(!function_exists('curl_version'))
+				echo '<div id="message" class="error below-h2">
+						<p><strong>'.__('curl is not Installed in your server. It is needed to work with CRM Libraries.' ,'gravityformscrm').'</strong></p></div>';
     }
 
 
