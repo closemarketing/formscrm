@@ -2425,7 +2425,6 @@ private function odoo9_create_lead($username, $password, $dbname, $url, $module,
 
 ///////////////// amocrm ////////////////////////////////////////
 
-
     private function amocrm_login($username, $password, $url){
         $url = $url.'/private/api/auth.php?type=json';
         $user=array('USER_LOGIN'=>$username, 'USER_HASH'=>$password);
@@ -2439,7 +2438,8 @@ private function odoo9_create_lead($username, $password, $dbname, $url, $module,
         $response = curl_exec($ch);
 
         $userinfo = json_decode($response);
-        $userinforesponse= $userinfo->response;
+		if(isset($userinforesponse->response))
+        	$userinforesponse= $userinfo->response;
 
         curl_close($ch);
 
