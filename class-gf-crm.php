@@ -239,6 +239,13 @@ class GFCRM extends GFFeedAddOn {
 						'class'    => 'medium',
 						'tooltip'  => '<h6>' . __( 'Name', 'gravityformscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'gravityformscrm' ),
 					),
+                     array(
+                         'label'   => __( 'CRM Module', 'gravityformscrm' ),
+                         'type'    => 'select',
+                         'name'    => 'crm_module',
+                         'tooltip' => __( 'Choose which module you want to create in the crm.', 'gravityformscrm' ),
+                         'choices' => $this->array_crm_module_options(),
+                     ),
 					array(
 						'name'       => 'listFields',
 						'label'      => __( 'Map Fields', 'gravityformscrm' ),
@@ -250,6 +257,50 @@ class GFCRM extends GFFeedAddOn {
 				)
 			),
 		);
+	}
+	public function array_crm_module_options() {
+	    $settings = $this->get_plugin_settings();
+        $crm_type  = $settings['gf_crm_type'];
+
+		//returns depending module available for CRM
+        if($crm_type == 'vTiger') { //vtiger Method
+            $crm_module_options = array(
+				array( 'label' => __( 'Leads', 'gravityformscrm' ),'value' => 'Leads' ),
+	 			array( 'label' => __( 'Accounts', 'gravityformscrm' ),'value' => 'Accounts' ),
+		 		array( 'label' => __( 'Contacts', 'gravityformscrm' ),'value' => 'Contacts' ),
+			 );
+
+        } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
+
+        } elseif($crm_type == 'SugarCRM7') {
+
+        } elseif($crm_type == 'Odoo 8') { //Odoo method
+
+        } elseif($crm_type == 'Odoo 9') { //Odoo method
+
+        } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
+
+        } elseif($crm_type == 'Microsoft Dynamics CRM ON Premise') { //MS Dynamics
+
+        } elseif($crm_type == 'VTE CRM') {
+
+         } elseif($crm_type == 'ESPO CRM') {
+
+         } elseif($crm_type == 'Zoho CRM') {
+
+         } elseif($crm_type == 'Salesforce') {
+
+         } elseif($crm_type == 'Bitrix24') {
+
+         } elseif($crm_type == 'Solve360') {
+
+         } elseif($crm_type == 'FacturaDirecta') {
+
+         } elseif($crm_type == 'amoCRM') {
+
+        } // From if CRM
+
+		return $crm_module_options;
 	}
 
 	public function create_list_field_map() {
@@ -327,7 +378,8 @@ class GFCRM extends GFFeedAddOn {
 
 	public function feed_list_columns() {
 		return array(
-			'feedName'		=> __( 'Name', 'gravityformscrm' )
+			'feedName'		=> __( 'Name', 'gravityformscrm' ),
+        	'crm_module'   => __( 'CRM Module', 'gravityformscrm' )
 		);
 	}
 
