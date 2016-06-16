@@ -713,8 +713,6 @@ class GFCRM extends GFFeedAddOn {
     }
 
     ////////////////////////////////
-
-
     ////////// VTIGER CRM //////////
 
     /* Converts Array to vtiger webservice specification */
