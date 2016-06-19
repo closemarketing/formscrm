@@ -423,6 +423,8 @@ class GFCRM extends GFFeedAddOn {
 
 		$this->debugcrm($settings);
 
+		$this->debugcrm($merge_vars);
+
         if($crm_type == 'vTiger') { //vtiger Method
 			include_once('lib/crm-vtiger.php');
             $id = vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
