@@ -385,18 +385,32 @@ class GFCRM extends GFFeedAddOn {
 
 		foreach ( $field_maps as $var_key => $field_id ) {
 			$field = RGFormsModel::get_field( $form, $field_id );
+
 			if ( GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
 				$ary          = explode( '|', $entry[ $field_id ] );
 				$product_name = count( $ary ) > 0 ? $ary[0] : '';
 				$merge_vars[] = array( 'name' => $var_key, 'value' => $product_name );
 			} else if ( RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
+				$value = '';
 				foreach ( $field['inputs'] as $input ) {
 					$index = (string) $input['id'];
-					$merge_vars[] = array(
-						'name'   => $var_key,
-						'value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry )
-					);
+					$value_n = apply_filters( 'gform_crm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry );
+					$value .= $value_n;
+					if ($value_n) $value .= '|';
 				}
+				$value = substr($value, 0, -1);
+				$merge_vars[] = array(
+					'name'   => $var_key,
+					'value' => $value
+				);
+			} else if ( RGFormsModel::get_input_type( $field ) == 'multiselect' ) {
+				$value = apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+				$value = str_replace(',', '|', $value);
+
+				$merge_vars[] = array(
+					'name'   => $var_key,
+					'value' => $value
+				);
 			} else  {
 				$merge_vars[] = array(
 					'name'   => $var_key,
