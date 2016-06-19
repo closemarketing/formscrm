@@ -3,7 +3,7 @@
 ////////// VTIGER CRM //////////
 
 /* Converts Array to vtiger webservice specification */
-private static function convert_custom_fields( $merge_vars ){
+function convert_custom_fields( $merge_vars ){
     $i=0;
     $count = count( $merge_vars );
     $jsontext = '{';
@@ -19,7 +19,7 @@ private static function convert_custom_fields( $merge_vars ){
 }
 
 // cURL GET function for vTiger
-private function call_vtiger_get($url) {
+function call_vtiger_get($url) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -30,7 +30,7 @@ private function call_vtiger_get($url) {
 }
 
 // cURL POST function for vTiger
-private function call_vtiger_post($url,$params) {
+function call_vtiger_post($url,$params) {
    $postData = '';
    //create name value pairs seperated by &
    foreach($params as $k => $v)
@@ -51,10 +51,10 @@ private function call_vtiger_post($url,$params) {
    return $output;
 }
 
-private function vtiger_login($username, $apipassword, $url) {
+function vtiger_login($username, $apipassword, $url) {
     $webservice = $url . '/webservice.php';
     $operation = '?operation=getchallenge&username='.$username;
-    $result = $this->call_vtiger_get($webservice.$operation);
+    $result = call_vtiger_get($webservice.$operation);
     $json = json_decode($result, true);
     $challengeToken = $json['result']['token'];
 
@@ -69,7 +69,7 @@ private function vtiger_login($username, $apipassword, $url) {
         );
 
     // Execute and get result on server response for login operation
-    $result = $this->call_vtiger_post($webservice, $operation2);
+    $result = call_vtiger_post($webservice, $operation2);
     // Decode JSON response
 
     $json = json_decode($result, true);
@@ -85,12 +85,12 @@ private function vtiger_login($username, $apipassword, $url) {
 function vtiger_listfields($username, $password, $url, $module){
 
     //Get fields from module
-    $login_result = $this->vtiger_login($username, $password, $url);
+    $login_result = vtiger_login($username, $password, $url);
 
     $webservice = $url . '/webservice.php';
     $operation = '?operation=describe&sessionName='.$login_result.'&elementType='.$module;
 
-    $result = $this->call_vtiger_get($webservice.$operation);
+    $result = call_vtiger_get($webservice.$operation);
     $result = json_decode($result);
     $result = get_object_vars($result);
 
@@ -126,13 +126,13 @@ function vtiger_listfields($username, $password, $url, $module){
 
 }
 
-private function vtiger_create_lead($username, $password, $url, $module, $merge_vars) {
-    $login_result = $this->vtiger_login($username, $password, $url);
+function vtiger_create_lead($username, $password, $url, $module, $merge_vars) {
+    $login_result = vtiger_login($username, $password, $url);
 
     //vTiger Method
     $webservice = $url . '/webservice.php';
 
-    $jsondata = $this->convert_custom_fields( $merge_vars );
+    $jsondata = convert_custom_fields( $merge_vars );
 
     $params = array(
         'operation'     => 'create',
@@ -141,7 +141,7 @@ private function vtiger_create_lead($username, $password, $url, $module, $merge_
         'elementType'   => $module
         );
 
-    $result = $this->call_vtiger_post($webservice, $params);
+    $result = call_vtiger_post($webservice, $params);
     $json = json_decode($result, true);
 
 }

@@ -1,7 +1,7 @@
 <?php
 
 ///////////////// Solve360 CRM ////////////////////////////////
-private function solve360_login($username, $password){
+function solve360_login($username, $password){
 	$url = 'https://secure.solve360.com/contacts?limit=1';
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -15,7 +15,7 @@ private function solve360_login($username, $password){
 	$doc = new DomDocument();
 	$doc->loadXML($data);
 
-	$this->debugcrm($doc);
+	debugcrm($doc);
 	if(isset($doc->getElementsByTagName("errors")->item(0)->nodeValue))
 		$errorDetails = $doc->getElementsByTagName("errors")->item(0)->nodeValue;
 	else
@@ -30,7 +30,7 @@ private function solve360_login($username, $password){
 		return TRUE;
 	}
 }
-private function solve360_listfields($username, $password, $module) {
+function solve360_listfields($username, $password, $module) {
 	$url = 'https://secure.solve360.com/'.$module."/fields";
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -41,7 +41,7 @@ private function solve360_listfields($username, $password, $module) {
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	$data = curl_exec($ch);
 	curl_close($ch);
-	$this->debugcrm($data);
+	debugcrm($data);
 	if ($data) {
 		$xml = simplexml_load_string($data);
 		$json_string = json_encode($xml);
@@ -66,7 +66,7 @@ private function solve360_listfields($username, $password, $module) {
 	}
 	return $fields;
 }
-private function solve360_createcontact($username, $password, $module, $merge_vars){
+function solve360_createcontact($username, $password, $module, $merge_vars){
 	$url = 'https://secure.solve360.com/'.$module;
 	$vars = array();
 	foreach($merge_vars as $var){

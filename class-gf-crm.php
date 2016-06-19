@@ -273,7 +273,8 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 
         if($crm_type == 'vTiger') { //vtiger Method
-            $custom_fields = $this->vtiger_listfields($username, $apipassword, $url, 'Leads');
+			include_once('lib/crm-vtiger.php');
+            $custom_fields = vtiger_listfields($username, $apipassword, $url, 'Leads');
 
         } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
             $custom_fields = $this->sugarcrm_listfields($username, $password, $url,'Leads');
@@ -409,7 +410,8 @@ class GFCRM extends GFFeedAddOn {
 		$this->debugcrm($settings);
 
         if($crm_type == 'vTiger') { //vtiger Method
-            $id = $this->vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
+			include_once('lib/crm-vtiger.php');
+            $id = vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
 
         } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
             $id = $this->sugarcrm_create_lead($username, $password, $url, 'Leads', $merge_vars);
@@ -530,7 +532,8 @@ class GFCRM extends GFFeedAddOn {
 	$this->debugcrm($settings);
 
     if($crm_type == 'vTiger') { //vtiger Method
-        $login_result = $this->vtiger_login($username, $apipassword, $url);
+		include_once('lib/crm-vtiger.php');
+        $login_result = vtiger_login($username, $apipassword, $url);
 
     } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') { //sugarcrm method
         $login_result = $this->sugarcrm_login($username, $password, $url, 'Leads');

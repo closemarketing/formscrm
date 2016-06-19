@@ -6,7 +6,7 @@
 
 //cURL Function for Zoho CRM
 
-private function call_zoho_crm($token, $module, $method) {
+function call_zoho_crm($token, $module, $method) {
     $request_url = 'https://crm.zoho.com/crm/private/json/'.$module.'/'.$method;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -23,7 +23,7 @@ private function call_zoho_crm($token, $module, $method) {
     return $response_body;
 }
 
-private function zoho_login($username, $password) {
+function zoho_login($username, $password) {
         $settings = $this->get_plugin_settings();
 
         $this->debugcrm($settings);
@@ -48,8 +48,8 @@ private function zoho_login($username, $password) {
   return $authkey;
 }
 
-private function zoho_listfields($username, $password, $module) {
-  $result = $this->call_zoho_crm($password, $module, 'getFields');
+function zoho_listfields($username, $password, $module) {
+  $result = call_zoho_crm($password, $module, 'getFields');
   $result = json_decode($result);
 
         if(isset($result->response->error)) {
@@ -76,7 +76,7 @@ private function zoho_listfields($username, $password, $module) {
       return $convert_fields;
 }
 
-private function zoho_createlead($username, $password, $module, $merge_vars) {
+function zoho_createlead($username, $password, $module, $merge_vars) {
   $xmldata = '<'.$module.'><row no="1">';
   $i=0;
   $count = count( $merge_vars );

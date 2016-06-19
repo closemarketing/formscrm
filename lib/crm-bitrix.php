@@ -1,7 +1,7 @@
 <?php
 ///////////////// Bitrix 24 CRM ////////////////////////////////
 
-private function bitrix_login($username, $password, $url, $crmport) {
+function bitrix_login($username, $password, $url, $crmport) {
 // open socket to CRM
 	$url = parse_url($url);
 	$url = $url['host'];
@@ -11,7 +11,7 @@ private function bitrix_login($username, $password, $url, $crmport) {
 
 	return false;
 }
-private function bitrix_listfields($username, $password, $url, $module) {
+function bitrix_listfields($username, $password, $url, $module) {
 	$fields = array(
 	//array('name'=>'LOGIN', 'required'=>true, 'label'=>'Login'),
 	//array('name'=>'PASSWORD', 'required'=>true,'label'=>'Password'),
@@ -55,7 +55,7 @@ private function bitrix_listfields($username, $password, $url, $module) {
 
 	return $fields;
 }
-private function bitrix_create_lead($username, $password, $url, $crmport, $module, $merge_vars) {
+function bitrix_create_lead($username, $password, $url, $crmport, $module, $merge_vars) {
 	// get lead data from the form
 	$postData = array();
 	foreach($merge_vars as $attribute){

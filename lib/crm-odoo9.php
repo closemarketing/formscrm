@@ -1,9 +1,9 @@
 <?php
 
 ///////////////// odoo9 ////////////////////////////////////////
-private function odoo9_login($username, $password, $dbname, $url) {
+function odoo9_login($username, $password, $dbname, $url) {
 	//Load Library XMLRPC
-	require_once('lib/ripcord.php');
+	require_once('ripcord/ripcord.php');
 	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
 
 	//Manage Errors from Library
@@ -30,7 +30,7 @@ private function odoo9_login($username, $password, $dbname, $url) {
 }
 // from login Odoo
 //Converts XML Odoo in array for Gravity Forms Custom Fields
-private function convert_XML_odoo9_customfields($xml_odoo){
+function convert_XML_odoo9_customfields($xml_odoo){
 	$p = xml_parser_create();
 	xml_parse_into_struct($p, $xml_odoo, $vals, $index);
 	xml_parser_free($p);
@@ -54,7 +54,7 @@ private function convert_XML_odoo9_customfields($xml_odoo){
 } //function
 
 //Converts Gravity Forms Array to Odoo 8 Array to create field
-private function convert_odoo9_merge($merge_vars){
+function convert_odoo9_merge($merge_vars){
 	$i =0;
 	$arraymerge = array();
 	foreach($merge_vars as $mergefield) {
@@ -65,21 +65,21 @@ private function convert_odoo9_merge($merge_vars){
 	return $arraymerge;
 } //function
 
-private function odoo9_listfields($username, $password, $dbname, $url, $module) {
+function odoo9_listfields($username, $password, $dbname, $url, $module) {
 	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-	$uid = $this->odoo9_login($username, $password, $dbname, $url);
+	$uid = odoo9_login($username, $password, $dbname, $url);
 
 	if($uid != false) {
 		$models = ripcord::client($url.'xmlrpc/2/object');
 		$models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
 
-		$custom_fields = $this->convert_XML_odoo9_customfields( $models->_response );
+		$custom_fields = convert_XML_odoo9_customfields( $models->_response );
 	}
 	// Return an array of fields
 	return $custom_fields;
 }
 
-private function odoo9_create_lead($username, $password, $dbname, $url, $module, $merge_vars) {
+function odoo9_create_lead($username, $password, $dbname, $url, $module, $merge_vars) {
 
 	//Converts to Array
 	$i =0;
@@ -90,8 +90,7 @@ private function odoo9_create_lead($username, $password, $dbname, $url, $module,
 	}
 
 	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-	$uid = $this->odoo9_login($username, $password, $dbname, $url);
-	print_r($arraymerge);
+	$uid = odoo9_login($username, $password, $dbname, $url);
 
 	if($uid != false) {
 		$models = ripcord::client($url.'xmlrpc/2/object');

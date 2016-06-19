@@ -1,7 +1,7 @@
 <?php
 /////// VTE CRM ///////
 
-private function vte_login($username, $password, $url) {
+function vte_login($username, $password, $url) {
 
     require_once('vtwsclib/VTEWSClient.php');
     $client = new VTE_WSClient($url);
@@ -12,7 +12,7 @@ private function vte_login($username, $password, $url) {
 }
 
 
-private function vte_listfields($username, $apipassword, $url, $module){
+function vte_listfields($username, $apipassword, $url, $module){
     require_once('vtwsclib/VTEWSClient.php');
 
     $client = new VTE_WSClient($url);
@@ -48,7 +48,7 @@ private function vte_listfields($username, $apipassword, $url, $module){
     return $custom_fields;
 }
 
-private function vte_create_lead($username, $apipassword, $url, $module, $merge_vars) {
+function vte_create_lead($username, $apipassword, $url, $module, $merge_vars) {
     require_once('vtwsclib/VTEWSClient.php');
 
     $client = new VTE_WSClient($url);

@@ -1,6 +1,6 @@
 <?php
 /////// ESPO CRM ///////
-private function espo_login($username, $password, $url){
+function espo_login($username, $password, $url){
   $url = $url.'api/v1/App/user';
 
   $ch = curl_init($url);
@@ -20,7 +20,7 @@ private function espo_login($username, $password, $url){
     return false;
 }
 
-private function espo_listfields($username, $password, $url, $module) {
+function espo_listfields($username, $password, $url, $module) {
  // lead fields
  $leadlistfields = array(
     array( 'name' => 'acceptanceStatus', 'label' => 'acceptanceStatus', 'required'=>false),
@@ -65,7 +65,7 @@ private function espo_listfields($username, $password, $url, $module) {
   else return "";
 }
 
-private function espo_createlead($username, $password, $url, $module, $merge_vars){
+function espo_createlead($username, $password, $url, $module, $merge_vars){
   $url = $url.'api/v1/'.$module;
 
   $vars = array();

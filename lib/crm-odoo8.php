@@ -2,9 +2,9 @@
 
 /////// ODOO CRM ///////
 //Helpers functions
-private function odoo8_login($username, $password, $dbname, $url) {
+function odoo8_login($username, $password, $dbname, $url) {
     //Load Library XMLRPC
-    require_once('lib/ripcord.php');
+    require_once('ripcord/ripcord.php');
 
     //Manage Errors from Library
     try {
@@ -54,20 +54,20 @@ function convert_XML_odoo8_customfields($xml_odoo){
 } //function
 
 //// Main Functions
-private function odoo8_listfields($username, $password, $dbname, $url, $module) {
+function odoo8_listfields($username, $password, $dbname, $url, $module) {
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-    $uid = $this->odoo8_login($username, $password, $dbname, $url);
+    $uid = odoo8_login($username, $password, $dbname, $url);
 
     $models = ripcord::client($url.'xmlrpc/2/object');
     $models->execute_kw($dbname, $uid, $password,'crm.lead', 'fields_get', array(), array('attributes' => array('string', 'help', 'type')));
 
-    $custom_fields = $this->convert_XML_odoo8_customfields( $models->_response );
+    $custom_fields = convert_XML_odoo8_customfields( $models->_response );
 
     // Return an array of fields
     return $custom_fields;
 }
 
-private function odoo8_create_lead($username, $password, $dbname, $url, $module, $merge_vars) {
+function odoo8_create_lead($username, $password, $dbname, $url, $module, $merge_vars) {
 
     //Converts to Array
     $i =0;
@@ -78,7 +78,7 @@ private function odoo8_create_lead($username, $password, $dbname, $url, $module,
     }
 
     if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-    $uid = $this->odoo8_login($username, $password, $dbname, $url);
+    $uid = odoo8_login($username, $password, $dbname, $url);
 
     $models = ripcord::client($url.'xmlrpc/2/object');
     $id = $models->execute_kw($dbname, $uid, $password, 'crm.lead', 'create', array($arraymerge));

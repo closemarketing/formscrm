@@ -4,7 +4,7 @@
 //////// MS DYNAMICS CRM ///////
   ////////////////////////////////
 
-private function msdyn_apiurl($url) {
+function msdyn_apiurl($url) {
 			$pos = strpos($url, 'api');
 			if ($pos == false) {
 				$pos = strpos($url, '.');
@@ -15,7 +15,7 @@ private function msdyn_apiurl($url) {
 			return $url;
 }
 
-public function msdyn_login($username, $password, $url) {
+function msdyn_login($username, $password, $url) {
     require_once "lib/dynamics/LiveIDManager.php";
     require_once "lib/dynamics/EntityUtils.php";
 

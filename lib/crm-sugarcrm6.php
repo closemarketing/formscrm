@@ -2,7 +2,7 @@
 /////// SUGAR CRM ///////
 
 //function to make cURL request
-private function call_sugarcrm($method, $parameters, $url)
+function call_sugarcrm($method, $parameters, $url)
 {
     ob_start();
     $curl_request = curl_init();
@@ -39,7 +39,7 @@ private function call_sugarcrm($method, $parameters, $url)
     return $response;
 }
 
-private function sugarcrm_login($username, $password, $url) {
+function sugarcrm_login($username, $password, $url) {
 
     $url = $url.'service/v4_1/rest.php';
 
@@ -54,17 +54,17 @@ private function sugarcrm_login($username, $password, $url) {
          "name_value_list" => array(),
     );
 
-    $login_result = $this->call_sugarcrm("login", $login_parameters, $url);
+    $login_result = call_sugarcrm("login", $login_parameters, $url);
 
     $login_token = $login_result->id;
 
     return $login_token;
 }
 
-private function sugarcrm_listfields($username, $password, $url, $module) {
+function sugarcrm_listfields($username, $password, $url, $module) {
 
     //get session id
-    $login_result = $this->sugarcrm_login($username, $password, $url);
+    $login_result = sugarcrm_login($username, $password, $url);
 
     $url = $url.'service/v4_1/rest.php';
 
@@ -74,7 +74,7 @@ private function sugarcrm_listfields($username, $password, $url, $module) {
          'module_name' => $module,
         );
 
-    $get_fields = $this->call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
+    $get_fields = call_sugarcrm("get_module_fields", $get_module_fields_parameters, $url);
 
     $get_fields = $get_fields->module_fields;
 
@@ -103,10 +103,10 @@ private function sugarcrm_listfields($username, $password, $url, $module) {
     return $custom_fields;
 }
 
-private function sugarcrm_create_lead($username, $password, $url, $module, $merge_vars) {
+function sugarcrm_create_lead($username, $password, $url, $module, $merge_vars) {
 
     // SugarCRM Method
-    $login_result = $this->sugarcrm_login($username, $password, $url);
+    $login_result = sugarcrm_login($username, $password, $url);
 
     $webservice = $url.'service/v4_1/rest.php';
 
@@ -116,7 +116,7 @@ private function sugarcrm_create_lead($username, $password, $url, $module, $merg
          "name_value_list" => $merge_vars
     );
 
-    $set_entry_result = $this->call_sugarcrm("set_entry", $set_entry_parameters, $webservice);
+    $set_entry_result = call_sugarcrm("set_entry", $set_entry_parameters, $webservice);
 
     return $set_entry_result->id;
 

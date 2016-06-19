@@ -1,7 +1,7 @@
 <?php
 /////// MS DYNAMICS CRM On Premise PFE ///////
 
-private function msdynpfe_login($username, $password, $url) {
+function msdynpfe_login($username, $password, $url) {
     include_once 'lib/dynamicspfe/CrmAuth.php';
     include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
     include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
@@ -42,7 +42,7 @@ private function msdynpfe_login($username, $password, $url) {
     return false;
 }
 
-private function msdynpfe_listfields($username, $password, $url, $module){
+function msdynpfe_listfields($username, $password, $url, $module){
     include_once 'lib/dynamicspfe/CrmAuth.php';
     include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
     include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
@@ -111,7 +111,7 @@ private function msdynpfe_listfields($username, $password, $url, $module){
     return $entityArray;
 }
 
-private function msdynpfe_create_lead($username, $password, $url, $module, $mergevars) {
+function msdynpfe_create_lead($username, $password, $url, $module, $mergevars) {
     include_once 'lib/dynamicspfe/CrmAuth.php';
     include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
     include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
