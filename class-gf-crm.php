@@ -140,6 +140,7 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'Username', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
+						'feedback_callback' => $this->login_api_crm()
 					),
 					array(
 						'name'  => 'gf_crm_password',
@@ -148,8 +149,7 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) ),
-						'feedback_callback' => $this->login_api_crm()
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) )
 					),
 					array(
 						'name'  => 'gf_crm_apipassword',
@@ -209,8 +209,10 @@ class GFCRM extends GFFeedAddOn {
 		// ensures valid credentials were entered in the settings page
 		if ( $this->login_api_crm() == false ) {
 			?>
-			<div><?php echo sprintf( __( 'We are unable to login to CRM.', 'gravityformscrm' ),
-					'<a href="' . $this->get_plugin_settings_url() . '">', '</a>' ); ?>
+			<div class="notice notice-error">
+				<?php
+					_e( 'We are unable to login to CRM.', 'gravityformscrm' );
+					echo ' <a href="' . $this->get_plugin_settings_url() . '">'.__('Use Settings Page','gravityformscrm').'</a>' ?>
 			</div>
 			<?php
 			//Test server settings
@@ -407,6 +409,13 @@ class GFCRM extends GFFeedAddOn {
 				$value = apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 				$value = str_replace(',', '|', $value);
 
+				$merge_vars[] = array(
+					'name'   => $var_key,
+					'value' => $value
+				);
+			} else if ( RGFormsModel::get_input_type( $field ) == 'textarea' ) {
+				$value = apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+				$value = str_replace( array("\r", "\n"), ' ', $value);
 				$merge_vars[] = array(
 					'name'   => $var_key,
 					'value' => $value
