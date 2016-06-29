@@ -74,7 +74,8 @@ function vtiger_login($username, $apipassword, $url) {
 
     $json = json_decode($result, true);
 
-    if( $json['success'] == false ){
+    if( $json['success'] == false || $json['success'] == ''){
+        echo '<div class="notice notice-error"><p>'.$json['error']['code'].' '.$json['error']['message'].'</p></div>';
         return false;
     } else {
         return $json['result']['sessionName'];
@@ -143,5 +144,12 @@ function vtiger_create_lead($username, $password, $url, $module, $merge_vars) {
 
     $result = call_vtiger_post($webservice, $params);
     $json = json_decode($result, true);
+
+    if( $json['success'] == false || $json['success'] == ''){
+        echo '<div class="notice notice-error"><p>'.$json['error']['code'].' '.$json['error']['message'].'</p></div>';
+        return false;
+    } else {
+        return $json['result'] ['lead_no'];
+    }
 
 }
