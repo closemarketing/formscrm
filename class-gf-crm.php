@@ -120,6 +120,10 @@ class GFCRM extends GFFeedAddOn {
                                                         'label' => 'FacturaDirecta',
                                                         'name'  => 'facturadirecta'
                                                     ),
+                                                    array(
+                                                        'label' => 'Mautic',
+                                                        'name'  => 'mautic'
+                                                    ),
 /*                                                    array(
                                                         'label' => 'amoCRM',
                                                         'name'  => 'amocrm'
@@ -133,13 +137,14 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM') )
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM','Mautic') )
 					),
 					array(
 						'name'              => 'gf_crm_username',
 						'label'             => __( 'Username', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM','Zoho CRM','Bitrix24', 'FacturaDirecta') )
 					),
 					array(
 						'name'  => 'gf_crm_password',
@@ -176,6 +181,20 @@ class GFCRM extends GFFeedAddOn {
 						'type'              => 'text',
 						'class'             => 'medium',
                         'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Odoo 8', 'Odoo 9' ) ),
+					),
+					array(
+						'name'              => 'gf_crm_consumerkey',
+						'label'             => __( 'Client/Consumer API key', 'gravityformscrm' ),
+						'type'              => 'text',
+						'class'             => 'medium',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Mautic' ) ),
+					),
+					array(
+						'name'              => 'gf_crm_consumerskey',
+						'label'             => __( 'Client/Consumer secret API key', 'gravityformscrm' ),
+						'type'              => 'text',
+						'class'             => 'medium',
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'Mautic' ) ),
 					),
 				)
 			),
@@ -331,6 +350,10 @@ class GFCRM extends GFFeedAddOn {
          } elseif($crm_type == 'amoCRM') {
  			include_once('lib/crm-amocrm.php');
             $custom_fields = amocrm_listfields($username, $apipassword, $url, "contacts");
+
+		} elseif($crm_type == 'Mautic') {
+ 			include_once('lib/crm-mautic.php');
+			$custom_fields = mautic_listfields($apipassword, $url, "leads");
 
         } // From if CRM
 
@@ -500,6 +523,10 @@ class GFCRM extends GFFeedAddOn {
 			include_once('lib/crm-amocrm.php');
             $id = amocrm_createlead($username, $apipassword, $url, "contacts", $merge_vars);
 
+		} elseif($crm_type == 'Mautic') {
+			include_once('lib/crm-mautic.php');
+			$id = mautic_create_lead($apipassword, $url, 'leads', $merge_vars) ;
+
         } // From CRM IF
 
         //Sends email if it does not create a lead
@@ -572,6 +599,9 @@ class GFCRM extends GFFeedAddOn {
     if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
     if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
     if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
+    if (isset($settings['gf_crm_consumerkey']) ) $consumerkey = $settings['gf_crm_consumerkey']; else $consumerkey="";
+    if (isset($settings['gf_crm_consumerskey']) ) $consumerskey = $settings['gf_crm_consumerskey']; else $consumerskey="";
+
 	$login_result = false;
 	$this->debugcrm($settings);
 
@@ -581,60 +611,66 @@ class GFCRM extends GFFeedAddOn {
 
     } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') { //sugarcrm method
 		include_once('lib/crm-sugarcrm6.php');
-        $login_result = $this->sugarcrm_login($username, $password, $url, 'Leads');
+        $login_result = sugarcrm_login($username, $password, $url, 'Leads');
 
     } elseif($crm_type == 'SugarCRM7') { //sugarcrm7 method
 		include_once('lib/crm-sugarcrm7.php');
-        $login_result = $this->sugarcrm_login7($username, $password, $url, 'Leads');
+        $login_result = sugarcrm_login7($username, $password, $url, 'Leads');
 
     } elseif($crm_type == 'Odoo 8') { //Odoo 8 Method
 		include_once('lib/crm-odoo8.php');
-        $login_result = $this->odoo8_login($username, $password, $dbname, $url);
+        $login_result = odoo8_login($username, $password, $dbname, $url);
 
     } elseif($crm_type == 'Odoo 9') { //Odoo 9 Method
 		include_once('lib/crm-odoo9.php');
-        $login_result = $this->odoo9_login($username, $password, $dbname, $url);
+        $login_result = odoo9_login($username, $password, $dbname, $url);
 
     } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
 		include_once('lib/crm-msdyn.php');
-        $login_result = $this-> msdyn_login($username, $password, $url,"lead");
+        $login_result = msdyn_login($username, $password, $url,"lead");
 
     } elseif($crm_type == 'Microsoft Dynamics CRM ON Premise') { //MS Dynamics Method
 		include_once('lib/crm-msdynpfe.php');
-        $login_result = $this-> msdynpfe_login($username, $password, $url,"lead");
+        $login_result = msdynpfe_login($username, $password, $url,"lead");
 
     } elseif($crm_type == 'VTE CRM') {
 		include_once('lib/crm-vte.php');
-        $login_result = $this-> vtiger_login($username, $apipassword, $url, 'Leads');
+        $login_result = vtiger_login($username, $apipassword, $url, 'Leads');
 
     } elseif($crm_type == 'ESPO CRM') {
 		include_once('lib/crm-espo.php');
-        $login_result = $this-> espo_login($username, $password, $url);
+        $login_result = espo_login($username, $password, $url);
 
     } elseif($crm_type == 'Zoho CRM') {
 		include_once('lib/crm-zoho.php');
-        $login_result = $this-> zoho_login($username, $password, 'Leads');
+        $login_result = zoho_login($username, $password, 'Leads');
 
     } elseif($crm_type == 'Salesforce') {
 		include_once('lib/crm-salesforce.php');
-        $login_result = $this->salesforce_login($username, $apisales);
+        $login_result = salesforce_login($username, $apisales);
 
     } elseif($crm_type == 'Bitrix24') {
 		include_once('lib/crm-bitrix.php');
 		$crmport ="443"; //Assumed by default
-        $login_result = $this-> bitrix_login($username, $password, $url, $crmport);
+        $login_result = bitrix_login($username, $password, $url, $crmport);
 
     } elseif($crm_type == 'Solve360') {
 		include_once('lib/crm-solve360.php');
-        $login_result = $this-> solve360_login($username, $apipassword);
+        $login_result = solve360_login($username, $apipassword);
 
     } elseif($crm_type == 'FacturaDirecta') {
 		include_once('lib/crm-facturadirecta.php');
-        $login_result = $this-> facturadirecta_login($url, $username, $password);
+        $login_result = facturadirecta_login($url, $username, $password);
 
 	} elseif($crm_type == 'amoCRM') {
 		include_once('lib/crm-amocrm.php');
-        $login_result = $this-> amocrm_login($username, $apipassword, $url);
+        $login_result = amocrm_login($username, $apipassword, $url);
+
+	} elseif($crm_type == 'Mautic') {
+		include_once('lib/crm-mautic.php');
+        $login_result = mautic_login($consumerkey, $consumerskey, $apipassword, $url);
+        $settings['gf_crm_apipassword'] = $login_result;
+        $this->update_plugin_settings($settings);
 
 	} //OF CRM
 
