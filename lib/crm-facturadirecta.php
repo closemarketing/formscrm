@@ -2,7 +2,6 @@
 
 ///////////////// facturadirecta ////////////////////////////////
 
-
 function facturadirecta_login($url, $username, $password) {
 	$settings = $this->get_plugin_settings();
 
