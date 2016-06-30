@@ -32,6 +32,12 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
+= 2.3 =
+*   Better manage multiselect and checkbox fields.
+*   Internal better management of Libraries.
+*   Fixed bug textarea with line breaks does not send to CRM.
+*   Fixed bug Bitrix URL connection.
+
 = 2.2 =
 *   Server check system.
 *   Support to FacturaDirecta.
