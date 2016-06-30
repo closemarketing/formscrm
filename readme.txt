@@ -1,10 +1,10 @@
 === Gravity Forms CRM Addon ===
 Contributors: closemarketing
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
-Requires at least: 3.9
-Tested up to: 4.5
-Stable tag: 2.2
-Version: 2.2
+Requires at least: 4.0
+Tested up to: 4.5.3
+Stable tag: 2.3
+Version: 2.3
 =======
 
 Gravity Forms CRM Addon allows you to connect different CRM and create new Leads as the forms are filled automatically.

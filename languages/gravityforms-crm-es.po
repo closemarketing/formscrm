@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Gravity Forms CRM Add-On\n"
-"POT-Creation-Date: 2015-08-23 23:23+0200\n"
-"PO-Revision-Date: 2015-08-23 23:23+0200\n"
+"POT-Creation-Date: 2016-07-01 01:40+0200\n"
+"PO-Revision-Date: 2016-07-01 01:41+0200\n"
 "Last-Translator: David <david@closemarketing.es>\n"
 "Language-Team: David <david@closemarketing.es>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.4\n"
+"X-Generator: Poedit 1.8.8\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-WPHeader: crm.php\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -37,81 +37,78 @@ msgstr ""
 msgid "CRM Type"
 msgstr "Tipo CRM"
 
-#: class-gf-crm.php:107
+#: class-gf-crm.php:131
 msgid "CRM URL"
 msgstr "CRM URL"
 
-#: class-gf-crm.php:110
+#: class-gf-crm.php:134
 msgid "Use the URL with http and the ending slash /."
 msgstr "Utiliza la URL con http y terminando con la barra /."
 
-#: class-gf-crm.php:116
+#: class-gf-crm.php:140
 msgid "Username"
 msgstr "Usuario"
 
-#: class-gf-crm.php:122
+#: class-gf-crm.php:147
 msgid "Password"
 msgstr "Contraseña"
 
-#: class-gf-crm.php:125
+#: class-gf-crm.php:150
 msgid "Use the password of the actual user."
 msgstr "Utiliza la contraseña del usuario actual."
 
-#: class-gf-crm.php:132
+#: class-gf-crm.php:156
 msgid "API Password for User"
 msgstr "Contraseña API para Usuario"
 
-#: class-gf-crm.php:136
+#: class-gf-crm.php:160
 msgid "Find the API Password in the profile of the user in CRM."
 msgstr "Encuentra la contraseña API en el perfil de usuario en el CRM."
 
-#: class-gf-crm.php:142
+#: class-gf-crm.php:166
 msgid "Password and Security Key"
 msgstr "Contraseña y clave de seguridad"
 
-#: class-gf-crm.php:145
+#: class-gf-crm.php:169
 msgid "\"Password\"\"SecurityKey\" Go to My Settings / Reset my Security Key."
 msgstr ""
 "“Password”“SecurityKey” vaya a mi configuración / restablecer mi clave de "
 "seguridad."
 
-#: class-gf-crm.php:151
+#: class-gf-crm.php:175
 msgid "Odoo DB Name"
 msgstr "Nombre DB Odoo"
 
-#: class-gf-crm.php:172
+#: class-gf-crm.php:196
 msgid "Find a Password or API key depending of CRM."
 msgstr "Encuentra la contraseña API en el perfil de usuario en el CRM."
 
-#: class-gf-crm.php:188
-#, php-format
-msgid ""
-"We are unable to login to CRM with the provided API key or URL is incorrect "
-"(it must finish with slash / ). Please make sure you have entered a valid "
-"API key in the %sSettings Page%s"
-msgstr ""
-"No he podido iniciar sesión CRM con la contraseña API o la URL es incorrecta "
-"(debe terminar con la barra / ). Por favor, asegurarte que has introducido "
-"una contraseña / o llave API en la %sConfiguración%s"
+#: class-gf-crm.php:214
+msgid "We are unable to login to CRM."
+msgstr "No se ha podido iniciar sesión al CRM."
 
-#: class-gf-crm.php:204
+#: class-gf-crm.php:215
+msgid "Use Settings Page"
+msgstr "Utiliza página configuración"
+
+#: class-gf-crm.php:233
 msgid "CRM Feed"
 msgstr "Conector CRM"
 
-#: class-gf-crm.php:209 class-gf-crm.php:213 class-gf-crm.php:285
+#: class-gf-crm.php:238 class-gf-crm.php:242 class-gf-crm.php:347
 msgid "Name"
 msgstr "Nombre"
 
-#: class-gf-crm.php:213
+#: class-gf-crm.php:242
 msgid "Enter a feed name to uniquely identify this setup."
 msgstr ""
 "Introduce el nombre del conector único para identificar esta configuración."
 
-#: class-gf-crm.php:217 class-gf-crm.php:221
+#: class-gf-crm.php:246 class-gf-crm.php:250
 msgid "Map Fields"
 msgstr "Campos del Mapa"
 
-#: class-gf-crm.php:221
+#: class-gf-crm.php:250
 msgid ""
 "Associate your CRM custom fields to the appropriate Gravity Form fields by "
 "selecting the appropriate form field from the list."
@@ -119,11 +116,11 @@ msgstr ""
 "Asocia los campos CRM con los campos de Gravity Forms seleccionando de la "
 "primera y la última."
 
-#: class-gf-crm.php:404
+#: class-gf-crm.php:523
 msgid "We could not create the lead in "
 msgstr "No podemos crear el contacto en"
 
-#: class-gf-crm.php:405
+#: class-gf-crm.php:524
 msgid ""
 "<p>There was a problem creating the lead in the CRM.</p><p>Try to find where "
 "it was the problem in the Wordpress Settings.</p><br/><p><strong>Gravity "
@@ -133,34 +130,42 @@ msgstr ""
 "donde estaba el problema en la configuración de Wordpress.</"
 "p><br><p><strong>Formas de gravedad CRM</strong>"
 
-#: class-gf-crm.php:787 class-gf-crm.php:795
-msgid "Error"
-msgstr "Error"
-
-#: class-gf-crm.php:901 class-gf-crm.php:921 class-gf-crm.php:1006
-msgid "Unable to authenticate LiveId."
-msgstr "No se puede autenticar LiveId."
-
-#: class-gf-crm.php:1383
-msgid "Zoho Error"
-msgstr "Error de Zoho"
-
-#: class-gf-crm.php:1546
+#: class-gf-crm.php:673
 msgid "Message Debug Mode"
 msgstr "Modo de depuración"
 
-#: wp-updates-plugin.php:87
+#: class-gf-crm.php:688
 msgid ""
-"An Unexpected HTTP Error occurred during the API request.</p> <p><a href=\"?"
-"\" onclick=\"document.location.reload(); return false;\">Try again</a>"
+"curl is not Installed in your server. It is needed to work with CRM "
+"Libraries."
 msgstr ""
-"Ha ocurrido un error HTTP inesperado durante la petición a la API. </p><p><a "
-"href=“?” onclick=“document.location.reload(); return false;”>Inténtalo otra "
-"vez</a>"
+"curl no está instalado en tu servidor. Es necesario para las librerías CRM."
 
-#: wp-updates-plugin.php:91
-msgid "An unknown error occurred"
-msgstr "Se produjo un error desconocido"
+#: lib/crm-espo.php:18 lib/crm-facturadirecta.php:39 lib/crm-salesforce.php:41
+#: lib/crm-solve360.php:29
+msgid "Logged correctly in"
+msgstr "Iniciada sesión correctamente."
+
+#: lib/crm-espo.php:22
+msgid "Cannot Login in"
+msgstr "No puedo acceder a"
+
+#: lib/crm-facturadirecta.php:31
+msgid "Error. I could not access to Facturadirecta"
+msgstr "Error. No pude tener acceso a Facturadirecta"
+
+#: lib/crm-msdyn.php:41 lib/crm-msdyn.php:61 lib/crm-msdyn.php:146
+#: lib/crm-msdynpfe.php:16 lib/crm-msdynpfe.php:59 lib/crm-msdynpfe.php:129
+msgid "Unable to authenticate LiveId."
+msgstr "No se puede autenticar LiveId."
+
+#: lib/crm-odoo8.php:13 lib/crm-odoo8.php:21
+msgid "Error"
+msgstr "Error"
+
+#: lib/crm-zoho.php:37
+msgid "Zoho Error"
+msgstr "Error de Zoho"
 
 #. Plugin Name of the plugin/theme
 msgid "Gravity Forms CRM Add-On"
@@ -185,3 +190,23 @@ msgstr "closemarketing"
 #. Author URI of the plugin/theme
 msgid "http://www.closemarketing.es"
 msgstr "http://www.closemarketing.es/"
+
+#~ msgid ""
+#~ "We are unable to login to CRM with the provided API key or URL is "
+#~ "incorrect (it must finish with slash / ). Please make sure you have "
+#~ "entered a valid API key in the %sSettings Page%s"
+#~ msgstr ""
+#~ "No he podido iniciar sesión CRM con la contraseña API o la URL es "
+#~ "incorrecta (debe terminar con la barra / ). Por favor, asegurarte que has "
+#~ "introducido una contraseña / o llave API en la %sConfiguración%s"
+
+#~ msgid ""
+#~ "An Unexpected HTTP Error occurred during the API request.</p> <p><a href="
+#~ "\"?\" onclick=\"document.location.reload(); return false;\">Try again</a>"
+#~ msgstr ""
+#~ "Ha ocurrido un error HTTP inesperado durante la petición a la API. </"
+#~ "p><p><a href=“?” onclick=“document.location.reload(); return "
+#~ "false;”>Inténtalo otra vez</a>"
+
+#~ msgid "An unknown error occurred"
+#~ msgstr "Se produjo un error desconocido"
