@@ -16,19 +16,19 @@ function msdyn_apiurl($url) {
 }
 
 function msdyn_login($username, $password, $url) {
-    require_once "lib/dynamics/LiveIDManager.php";
-    require_once "lib/dynamics/EntityUtils.php";
+    require_once "dynamics/LiveIDManager.php";
+    require_once "dynamics/EntityUtils.php";
 
     $url = $this->msdyn_apiurl($url);
 
-    $this->debugcrm($url);
+    if (WP_DEBUG==true) { print_r($url); }
 
     //Return true or false for logged in
     $liveIDManager = new LiveIDManager();
 
 	    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-			$this->debugcrm($liveIDManager);
+    	if (WP_DEBUG==true) { print_r($liveIDManager); } //prints debug information
 
 	    if($securityData!=null && isset($securityData)){
 	        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
@@ -45,8 +45,8 @@ function msdyn_login($username, $password, $url) {
 }
 
 function msdyn_listfields($username, $password, $url, $module){
-    include_once "lib/dynamics/LiveIDManager.php";
-    include_once "lib/dynamics/EntityUtils.php";
+    include_once "dynamics/LiveIDManager.php";
+    include_once "dynamics/EntityUtils.php";
 
     $url = $this->msdyn_apiurl($url);
 
@@ -131,8 +131,8 @@ if($securityData!=null && isset($securityData)){
     }
 
 function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
-    include_once "lib/dynamics/LiveIDManager.php";
-    include_once "lib/dynamics/EntityUtils.php";
+    include_once "dynamics/LiveIDManager.php";
+    include_once "dynamics/EntityUtils.php";
 
     $url = $this->msdyn_apiurl($url);
  //Return true or false for logged in

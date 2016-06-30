@@ -622,7 +622,10 @@ class GFCRM extends GFFeedAddOn {
 
     } elseif($crm_type == 'Zoho CRM') {
 		include_once('lib/crm-zoho.php');
-        $login_result = zoho_login($username, $password, 'Leads');
+        $login_result = zoho_login($username, $password, $apipassword);
+		
+		$settings['gf_crm_apipassword'] = $login_result;
+		$this->update_plugin_settings($settings);
 
     } elseif($crm_type == 'Salesforce') {
 		include_once('lib/crm-salesforce.php');

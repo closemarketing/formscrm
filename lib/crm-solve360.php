@@ -15,7 +15,6 @@ function solve360_login($username, $password){
 	$doc = new DomDocument();
 	$doc->loadXML($data);
 
-	debugcrm($doc);
 	if(isset($doc->getElementsByTagName("errors")->item(0)->nodeValue))
 		$errorDetails = $doc->getElementsByTagName("errors")->item(0)->nodeValue;
 	else
@@ -27,6 +26,7 @@ function solve360_login($username, $password){
 		return FALSE;
 	}
 	else{
+		echo '<div id="message" class="updated below-h2"><p><strong>'.__('Logged correctly in', 'gravityformscrm').' Solve360</strong></p></div>';
 		return TRUE;
 	}
 }
@@ -41,7 +41,7 @@ function solve360_listfields($username, $password, $module) {
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	$data = curl_exec($ch);
 	curl_close($ch);
-	debugcrm($data);
+
 	if ($data) {
 		$xml = simplexml_load_string($data);
 		$json_string = json_encode($xml);

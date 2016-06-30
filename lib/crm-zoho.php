@@ -23,13 +23,10 @@ function call_zoho_crm($token, $module, $method) {
     return $response_body;
 }
 
-function zoho_login($username, $password) {
-        $settings = $this->get_plugin_settings();
+function zoho_login($username, $password, $apipassword) {
 
-        $this->debugcrm($settings);
-
-        if (isset($settings['gf_crm_apipassword']) ) {
-            $authkey = $settings['gf_crm_apipassword'];
+        if ($apipassword) {
+            $authkey = $apipassword;
         } else {
             $authkey = file_get_contents('https://accounts.zoho.com/apiauthtoken/nb/create?SCOPE=ZohoCRM/crmapi&EMAIL_ID='.$username.'&PASSWORD='.$password);
             $authkey_exist = strpos($authkey, 'AUTHTOKEN=');
@@ -41,8 +38,6 @@ function zoho_login($username, $password) {
                 $authkey = false;
             } else {
             $authkey = substr($authkey, strpos($authkey, 'AUTHTOKEN=')+10, 32);
-            $settings['gf_crm_apipassword'] = $authkey;
-            $this->update_plugin_settings($settings);
             }
         }
   return $authkey;

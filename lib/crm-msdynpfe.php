@@ -2,12 +2,14 @@
 /////// MS DYNAMICS CRM On Premise PFE ///////
 
 function msdynpfe_login($username, $password, $url) {
-    include_once 'lib/dynamicspfe/CrmAuth.php';
-    include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
-    include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
+    include_once 'dynamicspfe/CrmAuth.php';
+    include_once 'dynamicspfe/CrmExecuteSoap.php';
+    include_once "dynamicspfe/CrmAuthenticationHeader.php";
 
     $crmAuth = new CrmAuth ();
     $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
+
+    if (WP_DEBUG==true) { print_r($authHeader); } //prints debug information
 
     if($authHeader == null ){
     echo '<div id="message" class="error below-h2">
@@ -43,13 +45,14 @@ function msdynpfe_login($username, $password, $url) {
 }
 
 function msdynpfe_listfields($username, $password, $url, $module){
-    include_once 'lib/dynamicspfe/CrmAuth.php';
-    include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
-    include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
+    include_once 'dynamicspfe/CrmAuth.php';
+    include_once 'dynamicspfe/CrmExecuteSoap.php';
+    include_once "dynamicspfe/CrmAuthenticationHeader.php";
     $crmAuth = new CrmAuth ();
 
     $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
 
+    if (WP_DEBUG==true) { print_r($authHeader); } //prints debug information
 
     if($authHeader == null ){
     echo '<div id="message" class="error below-h2">
@@ -112,13 +115,14 @@ function msdynpfe_listfields($username, $password, $url, $module){
 }
 
 function msdynpfe_create_lead($username, $password, $url, $module, $mergevars) {
-    include_once 'lib/dynamicspfe/CrmAuth.php';
-    include_once 'lib/dynamicspfe/CrmExecuteSoap.php';
-    include_once "lib/dynamicspfe/CrmAuthenticationHeader.php";
+    include_once 'dynamicspfe/CrmAuth.php';
+    include_once 'dynamicspfe/CrmExecuteSoap.php';
+    include_once "dynamicspfe/CrmAuthenticationHeader.php";
     $crmAuth = new CrmAuth ();
 
     $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
 
+    if (WP_DEBUG==true) { print_r($authHeader); } //prints debug information
 
     if($authHeader == null ){
     echo '<div id="message" class="error below-h2">

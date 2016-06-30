@@ -1,6 +1,5 @@
 <?php
-
-/////// ODOO CRM ///////
+/////// ODOO CRM 8 ///////
 //Helpers functions
 function odoo8_login($username, $password, $dbname, $url) {
     //Load Library XMLRPC

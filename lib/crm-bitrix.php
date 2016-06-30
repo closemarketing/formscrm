@@ -3,8 +3,13 @@
 
 function bitrix_login($username, $password, $url, $crmport) {
 // open socket to CRM
-	$url = parse_url($url);
-	$url = $url['host'];
+	if(substr($url, 0, 4) == 'http') {
+		//Url normal
+		$url = parse_url($url);
+		$url = $url['host'];
+	}
+	if(substr($url, -1) =='/') $url = substr($url, 0, -1); //removes slash to url
+
 	$fp = fsockopen("ssl://".$url, $crmport, $errno, $errstr, 30);
 	if ($fp)
 		return true;
@@ -67,8 +72,12 @@ function bitrix_create_lead($username, $password, $url, $crmport, $module, $merg
 	$postData['PASSWORD'] = $password;
 
 	// open socket to CRM
-	$url = parse_url($url);
-	$url = $url['host'];
+	if(substr($url, 0, 4) == 'http') {
+		//Url normal
+		$url = parse_url($url);
+		$url = $url['host'];
+	}
+	if(substr($url, -1) =='/') $url = substr($url, 0, -1); //removes slash to url
 	$fp = fsockopen("ssl://".$url, $crmport, $errno, $errstr, 30);
 	if ($fp)
 	{
