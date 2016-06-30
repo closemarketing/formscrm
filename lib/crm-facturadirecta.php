@@ -2,13 +2,9 @@
 
 ///////////////// facturadirecta ////////////////////////////////
 
-function facturadirecta_login($url, $username, $password) {
-	$settings = $this->get_plugin_settings();
-
-	$this->debugcrm($settings);
-
-	if (isset($settings['gf_crm_apipassword']) ) {
-		$authkey = $settings['gf_crm_apipassword'];
+function facturadirecta_login($url, $username, $password, $apipassword) {
+	if ($apipassword) {
+		$authkey = $apipassword;
 	} else {
 		if(substr($url, -1) !='/') $url.='/'; //adds slash to url
         $url = $url.'api/login.xml';
@@ -40,15 +36,12 @@ function facturadirecta_login($url, $username, $password) {
 
         $tokenId = $doc->getElementsByTagName("token")->item(0)->nodeValue;
         if(!empty($tokenId)){
+		    echo '<div id="message" class="updated below-h2"><p><strong>'.__('Logged correctly in', 'gravityformscrm').' Facturadirecta</strong></p></div>';
             $authkey = $tokenId;
         }
         else{
-            $authkey = "0";
+            $authkey = false;
         }
-
-		$settings['gf_crm_apipassword'] = $authkey;
-		$this->update_plugin_settings($settings);
-		$this->debugcrm($settings['gf_crm_apipassword']);
 	}
 	return $authkey;
 }

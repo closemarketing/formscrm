@@ -614,7 +614,7 @@ class GFCRM extends GFFeedAddOn {
 
     } elseif($crm_type == 'VTE CRM') {
 		include_once('lib/crm-vte.php');
-        $login_result = vtiger_login($username, $apipassword, $url, 'Leads');
+        $login_result = vte_login($username, $apipassword, $url);
 
     } elseif($crm_type == 'ESPO CRM') {
 		include_once('lib/crm-espo.php');
@@ -639,7 +639,10 @@ class GFCRM extends GFFeedAddOn {
 
     } elseif($crm_type == 'FacturaDirecta') {
 		include_once('lib/crm-facturadirecta.php');
-        $login_result = facturadirecta_login($url, $username, $password);
+
+		$login_result = facturadirecta_login($url, $username, $password, $apipassword);
+        $settings['gf_crm_apipassword'] = $login_result;
+        $this->update_plugin_settings($settings);
 
 	} elseif($crm_type == 'amoCRM') {
 		include_once('lib/crm-amocrm.php');

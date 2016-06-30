@@ -13,11 +13,16 @@ function espo_login($username, $password, $url){
   $data = curl_exec($ch);
   curl_close($ch);
   $userinfo = json_decode($data);
+
   if(isset($userinfo->user) && isset($userinfo->user->id)){
+    echo '<div id="message" class="updated below-h2"><p><strong>'.__('Logged correctly in', 'gravityformscrm').' ESPO CRM</strong></p></div>';
    return true;
   }
-  else
+  else {
+    echo '<div id="message" class="error below-h2"><p><strong>'.__('Cannot Login in', 'gravityformscrm').' ESPO CRM</strong></p></div>';
+
     return false;
+    }
 }
 
 function espo_listfields($username, $password, $url, $module) {
