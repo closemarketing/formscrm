@@ -137,7 +137,7 @@ function facturadirecta_createlead($url, $token, $mergevars){
 	if(substr($url, -1) !='/') $url.='/'; //adds slash to url
     $url = $url."api/clients.xml?api_token=".$token;
     $param = $token.":x";
-    $xml = $this->get_cleintxmlforcreate($mergevars);
+    $xml = get_cleintxmlforcreate($mergevars);
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
