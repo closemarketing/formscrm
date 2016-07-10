@@ -73,8 +73,12 @@ class GFCRM extends GFFeedAddOn {
                                                         'name'  => 'sugarcrm7'
                                                     ),
                                                     array(
-                                                        'label' => 'SuiteCRM',
-                                                        'name'  => 'suitecrm'
+                                                        'label' => 'SuiteCRM API 3_1',
+                                                        'name'  => 'suitecrm31'
+                                                    ),
+                                                    array(
+                                                        'label' => 'SuiteCRM API 4_1',
+                                                        'name'  => 'suitecrm41'
                                                     ),
                                                     array(
                                                         'label' => 'VTE CRM',
@@ -133,7 +137,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM') )
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM') )
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -149,7 +153,7 @@ class GFCRM extends GFFeedAddOn {
 						'class' => 'medium',
                         'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) )
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) )
 					),
 					array(
 						'name'  => 'gf_crm_apipassword',
@@ -278,9 +282,17 @@ class GFCRM extends GFFeedAddOn {
 			include_once('lib/crm-vtiger.php');
             $custom_fields = vtiger_listfields($username, $apipassword, $url, 'Leads');
 
-        } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
+        } elseif($crm_type == 'SugarCRM') {
 			include_once('lib/crm-sugarcrm6.php');
             $custom_fields = sugarcrm_listfields($username, $password, $url,'Leads');
+
+        } elseif($crm_type == 'SuiteCRM API 3_1') {
+			include_once('lib/crm-suitecrm_3_1.php');
+            $custom_fields = suitecrm_listfields($username, $password, $url,'Leads');
+
+        } elseif($crm_type == 'SuiteCRM API 4_1') {
+			include_once('lib/crm-suitecrm_4_1.php');
+            $custom_fields = suitecrm_listfields($username, $password, $url,'Leads');
 
         } elseif($crm_type == 'SugarCRM7') {
 			include_once('lib/crm-sugarcrm7.php');
@@ -460,6 +472,14 @@ class GFCRM extends GFFeedAddOn {
 			include_once('lib/crm-sugarcrm7.php');
             $id = sugarcrm_create_lead7($username, $password, $url, 'Leads', $merge_vars);
 
+        } elseif($crm_type == 'SuiteCRM API 3_1') {
+			include_once('lib/crm-suitecrm_3_1.php');
+            $id = suitecrm_create_lead($username, $password, $url, 'Leads', $merge_vars);
+
+        } elseif($crm_type == 'SuiteCRM API 4_1') {
+			include_once('lib/crm-suitecrm_4_1.php');
+            $id = suitecrm_create_lead($username, $password, $url, 'Leads', $merge_vars);
+
         } elseif($crm_type == 'Odoo 8') {
 			include_once('lib/crm-odoo8.php');
             $id = odoo8_create_lead($username, $password, $dbname, $url, 'lead', $merge_vars);
@@ -588,13 +608,21 @@ class GFCRM extends GFFeedAddOn {
 		include_once('lib/crm-vtiger.php');
         $login_result = vtiger_login($username, $apipassword, $url);
 
-    } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') { //sugarcrm method
+    } elseif($crm_type == 'SugarCRM') { //sugarcrm method
 		include_once('lib/crm-sugarcrm6.php');
-        $login_result = sugarcrm_login($username, $password, $url, 'Leads');
+        $login_result = sugarcrm_login($username, $password, $url);
 
     } elseif($crm_type == 'SugarCRM7') { //sugarcrm7 method
 		include_once('lib/crm-sugarcrm7.php');
-        $login_result = sugarcrm_login7($username, $password, $url, 'Leads');
+        $login_result = sugarcrm_login7($username, $password, $url);
+
+    } elseif($crm_type == 'SuiteCRM API 3_1') {
+		include_once('lib/crm-suitecrm_3_1.php');
+        $login_result = suitecrm_login($username, $password, $url);
+
+    } elseif($crm_type == 'SuiteCRM API 4_1') {
+		include_once('lib/crm-suitecrm_4_1.php');
+        $login_result = suitecrm_login($username, $password, $url);
 
     } elseif($crm_type == 'Odoo 8') { //Odoo 8 Method
 		include_once('lib/crm-odoo8.php');
