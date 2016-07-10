@@ -1,5 +1,16 @@
 <?php
-/////// SUGAR CRM ///////
+/**
+ * SugarCRM 6 and SuiteCRM connect library
+ *
+ * Has functions to login, list fields and create leadº
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.0.0
+ */
+
+include_once 'debug.php';
 
 //function to make cURL request
 function call_sugarcrm($method, $parameters, $url)
@@ -29,6 +40,8 @@ function call_sugarcrm($method, $parameters, $url)
     curl_close($curl_request);
     $result = explode("\r\n\r\n", $result, 2);
 
+    debug_message($result);
+
     if($result[0]=="")
         $response = false;
     else
@@ -56,7 +69,9 @@ function sugarcrm_login($username, $password, $url) {
 
     $login_result = call_sugarcrm("login", $login_parameters, $url);
 
-    $login_token = $login_result->id;
+    debug_message($login_result);
+
+    if(isset($login_result->id)) $login_token = $login_result->id; else $login_token = false;
 
     return $login_token;
 }
