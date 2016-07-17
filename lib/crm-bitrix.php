@@ -1,5 +1,16 @@
 <?php
-///////////////// Bitrix 24 CRM ////////////////////////////////
+/**
+ * Bitrix connect library
+ *
+ * Has functions to login, list fields and create leadº
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.0.0
+ */
+
+include_once 'debug.php';
 
 function bitrix_login($username, $password, $url, $crmport) {
 // open socket to CRM
@@ -11,9 +22,10 @@ function bitrix_login($username, $password, $url, $crmport) {
 	if(substr($url, -1) =='/') $url = substr($url, 0, -1); //removes slash to url
 
 	$fp = fsockopen("ssl://".$url, $crmport, $errno, $errstr, 30);
-	if ($fp)
+	if ($fp) {
+		echo '<div id="message" class="updated below-h2"><p><strong>'.__('Logged correctly in', 'gravityformscrm').' Bitrix</strong></p></div>';
 		return true;
-
+		}
 	return false;
 }
 function bitrix_listfields($username, $password, $url, $module) {
@@ -111,7 +123,15 @@ function bitrix_create_lead($username, $password, $url, $crmport, $module, $merg
 
 		//$output = '<pre>'.print_r($response[1], 1).'</pre>';
 		$retValue =str_replace("'",'"', $response[1]);
-		return json_decode($retValue)->ID;
+		$retValue = json_decode($retValue);
+
+		debug_message($retValue);
+
+		if ($retValue->error<>201) { // if error
+			echo '<div id="message" class="error below-h2"><p><strong>'.$retValue->error.' '.$retValue->error_message.': </strong></p></div>';
+		}
+
+		return $retValue->ID;
 	}
 	else
 	{
