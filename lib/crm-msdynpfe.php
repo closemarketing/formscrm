@@ -1,5 +1,16 @@
 <?php
-/////// MS DYNAMICS CRM On Premise PFE ///////
+/**
+ * MS DYNAMICS CRM On Premise PFE connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.0.0
+ */
+
+include_once 'debug.php';
 
 function msdynpfe_login($username, $password, $url) {
     include_once 'dynamicspfe/CrmAuth.php';
@@ -9,7 +20,7 @@ function msdynpfe_login($username, $password, $url) {
     $crmAuth = new CrmAuth ();
     $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
 
-    if (WP_DEBUG==true) { print_r($authHeader); } //prints debug information
+    debug_message($authHeader); //prints debug information
 
     if($authHeader == null ){
     echo '<div id="message" class="error below-h2">
@@ -52,7 +63,7 @@ function msdynpfe_listfields($username, $password, $url, $module){
 
     $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
 
-    if (WP_DEBUG==true) { print_r($authHeader); } //prints debug information
+    debug_message($authHeader); //prints debug information
 
     if($authHeader == null ){
     echo '<div id="message" class="error below-h2">
@@ -122,7 +133,7 @@ function msdynpfe_create_lead($username, $password, $url, $module, $mergevars) {
 
     $authHeader = $crmAuth->GetHeaderOnPremise( $username, $password, $url ); //GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online
 
-    if (WP_DEBUG==true) { print_r($authHeader); } //prints debug information
+    debug_message($authHeader); //prints debug information
 
     if($authHeader == null ){
     echo '<div id="message" class="error below-h2">
@@ -154,7 +165,9 @@ foreach($mergevars as $attribute){
             </s:Body>';
     $executeSoap = new CrmExecuteSoap();
     $response = $executeSoap->ExecuteSOAPRequest( $authHeader, $xml, $url, "Create");
-//echo $xml;
+
+    debug_message($xml);
+
     $createResult ="";
     echo $response;
     if($response!=null && $response!=""){
