@@ -1,8 +1,16 @@
 <?php
+/**
+ * MS Dynamics connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.0.0
+ */
 
-////////////////////////////////
-//////// MS DYNAMICS CRM ///////
-  ////////////////////////////////
+include_once 'debug.php';
 
 function msdyn_apiurl($url) {
 			$pos = strpos($url, 'api');
@@ -19,16 +27,16 @@ function msdyn_login($username, $password, $url) {
     require_once "dynamics/LiveIDManager.php";
     require_once "dynamics/EntityUtils.php";
 
-    $url = $this->msdyn_apiurl($url);
+    $url = msdyn_apiurl($url);
 
-    if (WP_DEBUG==true) { print_r($url); }
+    debug_message($url);
 
     //Return true or false for logged in
     $liveIDManager = new LiveIDManager();
 
 	    $securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-    	if (WP_DEBUG==true) { print_r($liveIDManager); } //prints debug information
+    	debug_message($liveIDManager); //prints debug information
 
 	    if($securityData!=null && isset($securityData)){
 	        //echo ("\nKey Identifier:" . $securityData->getKeyIdentifier());
@@ -48,7 +56,7 @@ function msdyn_listfields($username, $password, $url, $module){
     include_once "dynamics/LiveIDManager.php";
     include_once "dynamics/EntityUtils.php";
 
-    $url = $this->msdyn_apiurl($url);
+    $url = msdyn_apiurl($url);
 
    //Return true or false for logged in
     $liveIDManager = new LiveIDManager();
@@ -134,27 +142,27 @@ function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
     include_once "dynamics/LiveIDManager.php";
     include_once "dynamics/EntityUtils.php";
 
-    $url = $this->msdyn_apiurl($url);
+    $url = msdyn_apiurl($url);
  //Return true or false for logged in
     $liveIDManager = new LiveIDManager();
 
-	$securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+$securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-	if($securityData!=null && isset($securityData)){
-	}else{
-	    echo '<div id="message" class="error below-h2">
-	            <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-	    return false;
-	}
+if($securityData!=null && isset($securityData)){
+}else{
+    echo '<div id="message" class="error below-h2">
+            <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+    return false;
+}
 
-	$attributedata='';
-	foreach($mergevars as $attribute){
-	    $attributedata=$attributedata.
-	    '<b:KeyValuePairOfstringanyType>
-	        <c:key>'.$attribute['name'].'</c:key>
-	        <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$attribute['value'].'</c:value>
-	    </b:KeyValuePairOfstringanyType>';
-	}
+$attributedata='';
+foreach($mergevars as $attribute){
+    $attributedata=$attributedata.
+    '<b:KeyValuePairOfstringanyType>
+        <c:key>'.$attribute['name'].'</c:key>
+        <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$attribute['value'].'</c:value>
+    </b:KeyValuePairOfstringanyType>';
+}
 
 
   $domainname = substr($url,8,-1);
@@ -187,9 +195,5 @@ function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
             $createResult =  $matches[1];
         }
 
-	debug_message($response);
-
-    return $createResult;
+        return $createResult;
 }
-
-////////////////////////////////
