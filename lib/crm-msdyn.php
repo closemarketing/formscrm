@@ -138,23 +138,23 @@ function msdyn_create_lead($username, $password, $url, $module, $mergevars) {
  //Return true or false for logged in
     $liveIDManager = new LiveIDManager();
 
-$securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
+	$securityData = $liveIDManager->authenticateWithLiveID($url, $username, $password);
 
-if($securityData!=null && isset($securityData)){
-}else{
-    echo '<div id="message" class="error below-h2">
-            <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
-    return false;
-}
+	if($securityData!=null && isset($securityData)){
+	}else{
+	    echo '<div id="message" class="error below-h2">
+	            <p><strong>'.__('Unable to authenticate LiveId.','gravityformscrm').': </strong></p></div>';
+	    return false;
+	}
 
-$attributedata='';
-foreach($mergevars as $attribute){
-    $attributedata=$attributedata.
-    '<b:KeyValuePairOfstringanyType>
-        <c:key>'.$attribute['name'].'</c:key>
-        <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$attribute['value'].'</c:value>
-    </b:KeyValuePairOfstringanyType>';
-}
+	$attributedata='';
+	foreach($mergevars as $attribute){
+	    $attributedata=$attributedata.
+	    '<b:KeyValuePairOfstringanyType>
+	        <c:key>'.$attribute['name'].'</c:key>
+	        <c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">'.$attribute['value'].'</c:value>
+	    </b:KeyValuePairOfstringanyType>';
+	}
 
 
   $domainname = substr($url,8,-1);
@@ -187,7 +187,9 @@ foreach($mergevars as $attribute){
             $createResult =  $matches[1];
         }
 
-        return $createResult;
+	debug_message($response);
+
+    return $createResult;
 }
 
 ////////////////////////////////
