@@ -26,3 +26,17 @@ function debug_message($message) {
         echo '</pre></td></tr></table>';
     }
 }
+
+//* Sends an email to administrator when it not creates the lead
+function debug_email_lead($crm, $error, $data) {
+    $to = get_option('admin_email');
+    $subject = 'GravityForms CRM - '.__('Error creating the Lead','gravityformscrm');
+    $body = '<p>'.__('There was an error creating the Lead in the CRM','gravityformscrm').' '.$crm.':</p><p><strong>'.$error.'</strong></p><p>'.__('Lead Data','gravityformscrm').':</p>';
+    foreach($data as $dataitem){
+        $body .= '<p><strong>'.$dataitem['name'].': </strong>'.$dataitem['value'].'</p>';
+    }
+    $body .= '</br/><br/>GravityForms CRM';
+    $headers = array('Content-Type: text/html; charset=UTF-8');
+
+    wp_mail( $to, $subject, $body, $headers );
+}
