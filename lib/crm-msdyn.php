@@ -189,11 +189,28 @@ foreach($mergevars as $attribute){
 
     $response =  LiveIDManager::GetSOAPResponse("/Organization.svc", $domainname, $url, $entityCreateRequest);
 
-        $createResult ="";
-        if($response!=null && $response!=""){
-            preg_match('/<CreateResult>(.*)<\/CreateResult>/', $response, $matches);
-            $createResult =  $matches[1];
-        }
+	debug_message($response);
 
-        return $createResult;
+	//see the error
+	$p = xml_parser_create();
+	xml_parse_into_struct($p, $response, $vals, $index);
+	xml_parser_free($p);
+	foreach ($vals as $arrayval) {
+		if($arrayval['tag']=='ERRORCODE') $errormessage .= 'ERROR MS Dynamics Code'.$arrayval['value'];
+		if($arrayval['tag']=='MESSAGE') $errormessage .= ': '.$arrayval['value'].'<br/>';
+	}
+
+	if($errormessage) {
+		echo $errormessage;
+		return false;
+	}
+
+    $createResult ="";
+    if($response!=null && $response!=""){
+        preg_match('/<CreateResult>(.*)<\/CreateResult>/', $response, $matches);
+		print_r($matches);
+        $createResult =  $matches[1];
+    }
+
+    return $createResult;
 }
