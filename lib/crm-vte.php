@@ -1,5 +1,16 @@
 <?php
-/////// VTE CRM ///////
+/**
+ * VTE connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.2.0
+ */
+
+include_once 'debug.php';
 
 function vte_login($username, $password, $url) {
 
@@ -65,6 +76,8 @@ function vte_create_lead($username, $apipassword, $url, $module, $merge_vars) {
     $record = $client->doCreate($module, $array_lead);
     if($record) {
         $recordid = $client->getRecordId($record['id']);
+    } else {
+		debug_email_lead('VTE','Error',$merge_vars);
     }
 
     return $record;

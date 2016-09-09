@@ -136,5 +136,4 @@ function suitecrm_create_lead($username, $password, $url, $module, $merge_vars) 
     $set_entry_result = call_suitecrm("set_entry", $set_entry_parameters, $webservice);
 
     return $set_entry_result->id;
-
 }

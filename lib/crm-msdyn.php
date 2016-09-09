@@ -7,7 +7,7 @@
  * @author   closemarketing
  * @category Functions
  * @package  Gravityforms CRM
- * @version  1.0.0
+ * @version  1.2.0
  */
 
 include_once 'debug.php';
@@ -201,7 +201,7 @@ foreach($mergevars as $attribute){
 	}
 
 	if($errormessage) {
-		echo $errormessage;
+		debug_email_lead('MS Dynamics',$errormessage,$mergevars);
 		return false;
 	}
 

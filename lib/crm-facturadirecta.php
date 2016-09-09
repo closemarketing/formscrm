@@ -1,6 +1,16 @@
 <?php
+/**
+ * Factura Directa connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.0.0
+ */
 
-///////////////// facturadirecta ////////////////////////////////
+include_once 'debug.php';
 
 function facturadirecta_login($url, $username, $password, $apipassword) {
 	if ($apipassword) {
@@ -75,6 +85,15 @@ function facturadirecta_listfields($url, $token) {
     $level2tag="";
     $level3tag="";
     $duedatecounter=0;
+
+	debug_message($vals);
+	if($vals[3]['value']=="FORBIDDEN") {
+		echo '<div id="message" class="error below-h2">';
+		echo __('Error. I could not access to Facturadirecta', 'gravityformscrm' );
+		echo '</div>';
+		return false;
+	}
+
     foreach ($vals as $key=>$val) {
         //echo "\n".$val['tag']."\n";
         if($val['tag']=="client")
@@ -155,17 +174,25 @@ function facturadirecta_createlead($url, $token, $mergevars){
     $response = curl_exec($ch);
     $doc = new DomDocument();
     $doc->loadXML($response);
-    //echo "Response:<pre>";
-    //print_r($doc->textContent);
-    //echo "</pre>";
-    curl_close($ch);
-    $itemId = $doc->getElementsByTagName("id")->item(0)->nodeValue;
+
+	debug_message($doc->textContent);
+
+	curl_close($ch);
+	if(isset($doc->getElementsByTagName("id")->item(0)->nodeValue))
+    	$itemId = $doc->getElementsByTagName("id")->item(0)->nodeValue;
     $httpStatus = $doc->getElementsByTagName("httpStatus")->item(0)->nodeValue;
-    if(!empty($httpStatus)){
-        $returnValue = '0';
-    }else{
-        $returnValue = $itemId;
-    }
+
+	//* error is true
+	if(!isset($itemId) && ($httpStatus == '400') ) {
+		debug_email_lead('FacturaDirecta',$doc->textContent,$mergevars);
+		$returnValue = false;
+	} else {
+	    if(!empty($httpStatus)&& !isset($itemId)){
+	        $returnValue = '0';
+	    }else{
+	        $returnValue = $itemId;
+	    }
+	}
     return $returnValue;
 }
 function get_cleintxmlforcreate($mergevars){
@@ -303,5 +330,3 @@ function get_cleintxmlforcreate($mergevars){
     //echo $xml;
     return $xml;
 }
-
-///////////////// facturadirecta ////////////////////////////////

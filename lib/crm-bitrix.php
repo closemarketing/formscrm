@@ -7,7 +7,7 @@
  * @author   closemarketing
  * @category Functions
  * @package  Gravityforms CRM
- * @version  1.1.0
+ * @version  1.2.0
  */
 
 include_once 'debug.php';
@@ -129,6 +129,7 @@ function bitrix_create_lead($username, $password, $url, $crmport, $module, $merg
 
 		if ($retValue->error<>201) { // if error
 			echo '<div id="message" class="error below-h2"><p><strong>'.$retValue->error.' '.$retValue->error_message.': </strong></p></div>';
+			debug_email_lead('Bitrix',$retValue->error,$merge_vars);
 		}
 
 		return $retValue->ID;

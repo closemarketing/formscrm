@@ -1,7 +1,16 @@
 <?php
-//////////////////////////////
-/////// SALESFORCE CRM ///////
-//////////////////////////////
+/**
+ * Salesforce connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.2.0
+ */
+
+include_once 'debug.php';
 
 function salesforce_login($username, $password) {
     require_once ('salesforce/SforcePartnerClient.php');
@@ -69,15 +78,12 @@ function salesforce_create_lead($username, $password, $module, $mergevars) {
 
 			$createResponse = $mySforceConnection->create(array($sObject));
 
-            if (WP_DEBUG==true) { print_r($createResponse); }
+            debug_message($createResponse);
 
 			return $createResponse[0]->id;
 		}
 		catch (Exception $e) {
-            echo '<div id="message" class="error below-h2">
-                <p><strong>Salesforce CRM: Code  '.$e->faultstring.' </strong></p></div>';
+            debug_email_lead('Salesforce',$e->faultstring,$mergevars);
             return false;
 		}
 }
-
-////////////////////////////////

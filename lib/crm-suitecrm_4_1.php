@@ -40,7 +40,7 @@ function call_suitecrm($method, $parameters, $url)
     curl_close($curl_request);
 
     $result = explode("\r\n\r\n", $result, 2);
-    
+
     debug_message($result);
 
     if($result[0]=="")
@@ -136,5 +136,4 @@ function suitecrm_create_lead($username, $password, $url, $module, $merge_vars) 
     $set_entry_result = call_suitecrm("set_entry", $set_entry_parameters, $webservice);
 
     return $set_entry_result->id;
-
 }

@@ -1,6 +1,16 @@
 <?php
-////////////////////////////////
-////////// VTIGER CRM //////////
+/**
+ * vTiger connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.2.0
+ */
+
+include_once 'debug.php';
 
 /* Converts Array to vtiger webservice specification */
 function convert_custom_fields( $merge_vars ){
@@ -146,7 +156,7 @@ function vtiger_create_lead($username, $password, $url, $module, $merge_vars) {
     $json = json_decode($result, true);
 
     if( $json['success'] == false || $json['success'] == ''){
-        echo '<div class="notice notice-error"><p>'.$json['error']['code'].' '.$json['error']['message'].'</p></div>';
+		debug_email_lead('vTiger',$json['error']['code'].' '.$json['error']['message'],$merge_vars);
         return false;
     } else {
         return $json['result'] ['lead_no'];
