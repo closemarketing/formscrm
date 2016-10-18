@@ -10,6 +10,8 @@
  * @version  1.0.0
  */
 
+include_once 'debug.php';
+
 /* Converts Array to vtiger webservice specification */
 function convert_custom_fields( $merge_vars ){
     $i=0;
