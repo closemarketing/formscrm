@@ -128,7 +128,6 @@ function bitrix_create_lead($username, $password, $url, $crmport, $module, $merg
 		debug_message($retValue);
 
 		if ($retValue->error<>201) { // if error
-			echo '<div id="message" class="error below-h2"><p><strong>'.$retValue->error.' '.$retValue->error_message.': </strong></p></div>';
 			debug_email_lead('Bitrix',$retValue->error,$merge_vars);
 		}
 
