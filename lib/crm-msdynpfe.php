@@ -169,7 +169,7 @@ foreach($mergevars as $attribute){
     debug_message($xml);
 
     $createResult ="";
-    echo $response;
+
     if($response!=null && $response!=""){
         preg_match('/<CreateResult>(.*)<\/CreateResult>/', $response, $matches);
         if(isset($matches[1]) ) $createResult =  $matches[1];

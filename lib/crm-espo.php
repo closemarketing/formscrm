@@ -1,5 +1,17 @@
 <?php
-/////// ESPO CRM ///////
+/**
+ * ESPO connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.2.0
+ */
+
+include_once 'debug.php';
+
 function espo_login($username, $password, $url){
   $url = $url.'api/v1/App/user';
 
@@ -100,8 +112,11 @@ function espo_createlead($username, $password, $url, $module, $merge_vars){
   $result= json_decode($result);
 
   if(isset($result->id)){
-   return $result->id;
+   $return = $result->id;
   }
-  else
-    return 'lead alredy exists with same data';
+  else {
+    debug_email_lead('ESPO',$result,$merge_vars);
+    $return = false;
+  }
+  return $return;
 }

@@ -1,6 +1,17 @@
 <?php
+/**
+ * Solve360 connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.2.0
+ */
 
-///////////////// Solve360 CRM ////////////////////////////////
+include_once 'debug.php';
+
 function solve360_login($username, $password){
 	$url = 'https://secure.solve360.com/contacts?limit=1';
 	$ch = curl_init($url);
@@ -95,14 +106,14 @@ function solve360_createcontact($username, $password, $module, $merge_vars){
 		$json_string = json_encode($xml);
 		$result_array = json_decode($json_string, TRUE);
 		if (isset($result_array['errors'])) {
-			echo 'Error while creating record'.'<br/>Error: '.$result_array['errors'];
+			debug_email_lead('Solve360',$result_array['errors'],$merge_vars);
 		}
 		else{
 			 return $result_array['item']['id'];
 		}
 	} else {
 		// Something went wrong and we haven't got xml in the rsolvense
-		throw new Exception('System error while working with Solve360 service');
+		debug_email_lead('Solve360',__('System error while working with Solve360 service','gravityformscrm'),$merge_vars);
 	}
 	return NULL;
 }

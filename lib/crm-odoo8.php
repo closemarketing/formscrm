@@ -1,5 +1,17 @@
 <?php
-/////// ODOO CRM 8 ///////
+/**
+ * Odoo8 connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.2.0
+ */
+
+include_once 'debug.php';
+
 //Helpers functions
 function odoo8_login($username, $password, $dbname, $url) {
     //Load Library XMLRPC

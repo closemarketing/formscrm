@@ -1,6 +1,17 @@
 <?php
+/**
+ * Odoo9 connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.2.0
+ */
 
-///////////////// odoo9 ////////////////////////////////////////
+include_once 'debug.php';
+
 function odoo9_login($username, $password, $dbname, $url) {
 	//Load Library XMLRPC
 	require_once('ripcord/ripcord.php');
@@ -95,7 +106,10 @@ function odoo9_create_lead($username, $password, $dbname, $url, $module, $merge_
 	if($uid != false) {
 		$models = ripcord::client($url.'xmlrpc/2/object');
 		$id = $models->execute_kw($dbname, $uid, $password, $module, 'create', array($arraymerge));
-	} else { return false; }
+	} else {
+		debug_email_lead('Odoo9','Error',$merge_vars);
+		return false;
+	}
 
 	return $id;
 }

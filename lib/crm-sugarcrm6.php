@@ -7,7 +7,7 @@
  * @author   closemarketing
  * @category Functions
  * @package  Gravityforms CRM
- * @version  1.0.0
+ * @version  1.2.0
  */
 
 include_once 'debug.php';
@@ -136,5 +136,3 @@ function sugarcrm_create_lead($username, $password, $url, $module, $merge_vars) 
     return $set_entry_result->id;
 
 }
-
-////////////////////////////////

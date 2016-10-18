@@ -1,14 +1,24 @@
 <?php
-////////////////////////////////
-////////// VTIGER CRM //////////
+/**
+ * vTiger connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.0.0
+ */
+
+include_once 'debug.php';
 
 /* Converts Array to vtiger webservice specification */
 function convert_custom_fields( $merge_vars ){
     $i=0;
-    $count = count( $merge_vars );
+	$count = count( $merge_vars );
     $jsontext = '{';
 
-    for ( $i = 0; $i < $count; $i++ ){
+	for ( $i = 0; $i < $count; $i++ ){
         $jsontext .= '"'.$merge_vars[$i]['name'].'":"'.$merge_vars[$i]['value'].'"';
         if($i<$count-1) {$jsontext .=', '; }
         //'{"lastname":"#", "email":"david@closemarketing.es","industry":"bla"}'
@@ -71,11 +81,11 @@ function vtiger_login($username, $apipassword, $url) {
     // Execute and get result on server response for login operation
     $result = call_vtiger_post($webservice, $operation2);
     // Decode JSON response
+    debug_message($result);
 
     $json = json_decode($result, true);
 
-    if( $json['success'] == false || $json['success'] == ''){
-        echo '<div class="notice notice-error"><p>'.$json['error']['code'].' '.$json['error']['message'].'</p></div>';
+    if( $json['success'] == false ){
         return false;
     } else {
         return $json['result']['sessionName'];
@@ -144,12 +154,5 @@ function vtiger_create_lead($username, $password, $url, $module, $merge_vars) {
 
     $result = call_vtiger_post($webservice, $params);
     $json = json_decode($result, true);
-
-    if( $json['success'] == false || $json['success'] == ''){
-        echo '<div class="notice notice-error"><p>'.$json['error']['code'].' '.$json['error']['message'].'</p></div>';
-        return false;
-    } else {
-        return $json['result'] ['lead_no'];
-    }
 
 }

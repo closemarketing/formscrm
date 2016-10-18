@@ -107,21 +107,19 @@ return $custom_fields;
 
 function sugarcrm_create_lead7($username, $password, $url, $module, $merge_vars) {
 
-// SugarCRM Method
-$login_result = sugarcrm_login7($username, $password, $url);
+    // SugarCRM Method
+    $login_result = sugarcrm_login7($username, $password, $url);
 
-$webservice = $url.'service/v4_1/rest.php';
+    $webservice = $url.'service/v4_1/rest.php';
 
-$set_entry_parameters = array(
-     "session" => $login_result,
-     "module_name" => $module,
-     "name_value_list" => $merge_vars
-);
+    $set_entry_parameters = array(
+         "session" => $login_result,
+         "module_name" => $module,
+         "name_value_list" => $merge_vars
+    );
 
-$set_entry_result = call_sugarcrm7("set_entry", $set_entry_parameters, $webservice);
+    $set_entry_result = call_sugarcrm7("set_entry", $set_entry_parameters, $webservice);
 
-return $set_entry_result->id;
+    return $set_entry_result->id;
 
 }
-
-////////////////////////////////

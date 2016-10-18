@@ -1,8 +1,16 @@
 <?php
-////////////////////////
-/////// ZOHO CRM ///////
-////////////////////////
+/**
+ * Zoho connect library
+ *
+ * Has functions to login, list fields and create lead
+ *
+ * @author   closemarketing
+ * @category Functions
+ * @package  Gravityforms CRM
+ * @version  1.2.0
+ */
 
+include_once 'debug.php';
 
 //cURL Function for Zoho CRM
 
@@ -100,4 +108,3 @@ function zoho_createlead($username, $password, $module, $merge_vars) {
 
     return $result;
 }
-///////////////////////
