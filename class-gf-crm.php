@@ -124,6 +124,10 @@ class GFCRM extends GFFeedAddOn {
                                                         'label' => 'FacturaDirecta',
                                                         'name'  => 'facturadirecta'
                                                     ),
+                                                    array(
+                                                        'label' => 'HubSpot',
+                                                        'name'  => 'hubspot'
+                                                    ),
 /*                                                    array(
                                                         'label' => 'amoCRM',
                                                         'name'  => 'amocrm'
@@ -144,6 +148,7 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'Username', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
+            'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'VTE CRM', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','Zoho CRM', 'Salesforce','Bitrix24', 'Solve360', 'FacturaDirecta' ) ),
 						'feedback_callback' => $this->login_api_crm()
 					),
 					array(
@@ -151,9 +156,9 @@ class GFCRM extends GFFeedAddOn {
 						'label' => __( 'Password', 'gravityformscrm' ),
 						'type'  => 'api_key',
 						'class' => 'medium',
-                        'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
-                        'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) )
+            'tooltip'       => __( 'Use the password of the actual user.', 'gravityformscrm' ),
+            'tooltip_class'     => 'tooltipclass',
+            'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','Zoho CRM','Bitrix24', 'FacturaDirecta' ) )
 					),
 					array(
 						'name'  => 'gf_crm_apipassword',
@@ -163,7 +168,7 @@ class GFCRM extends GFFeedAddOn {
 						//'feedback_callback' => $this->login_api_crm(),
                         'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Solve360','amoCRM' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Solve360','amoCRM','HubSpot' ) ),
 					),
 					array(
 						'name'  => 'gf_crm_apisales',
@@ -344,7 +349,11 @@ class GFCRM extends GFFeedAddOn {
 
          } elseif($crm_type == 'amoCRM') {
  			include_once('lib/crm-amocrm.php');
-            $custom_fields = amocrm_listfields($username, $apipassword, $url, "contacts");
+        $custom_fields = amocrm_listfields($username, $apipassword, $url, "contacts");
+
+				 } elseif($crm_type == 'HubSpot') {
+						include_once('lib/crm-hubspot.php');
+           	$custom_fields = hubspot_listfields( $apipassword,"contact");
 
         } // From if CRM
 
@@ -525,15 +534,16 @@ class GFCRM extends GFFeedAddOn {
 			include_once('lib/crm-facturadirecta.php');
             $id = facturadirecta_createlead($url, $apipassword, $merge_vars);
 
-		} elseif($crm_type == 'amoCRM') {
+				} elseif($crm_type == 'amoCRM') {
 			include_once('lib/crm-amocrm.php');
             $id = amocrm_createlead($username, $apipassword, $url, "contacts", $merge_vars);
 
+				} elseif($crm_type == 'HubSpot') {
+			include_once('lib/crm-hubspot.php');
+            $id = hubspot_create_lead( $apipassword, "contact", $merge_vars);
+
         } // From CRM IF
 
-        //Sends email if it does not create a lead
-        //if ($id == false)
-        //    $this->send_emailerrorlead($crm_type);
         $this->debugcrm($id);
 }
 
@@ -675,10 +685,13 @@ class GFCRM extends GFFeedAddOn {
         $settings['gf_crm_apipassword'] = $login_result;
         $this->update_plugin_settings($settings);
 
-	} elseif($crm_type == 'amoCRM') {
-		include_once('lib/crm-amocrm.php');
-        $login_result = amocrm_login($username, $apipassword, $url);
+		} elseif($crm_type == 'amoCRM') {
+			include_once('lib/crm-amocrm.php');
+	        $login_result = amocrm_login($username, $apipassword, $url);
 
+		} elseif($crm_type == 'HubSpot') {
+			include_once('lib/crm-hubspot.php');
+	        $login_result = hubspot_login($apipassword);
 	} //OF CRM
 
     $this->debugcrm($login_result);
