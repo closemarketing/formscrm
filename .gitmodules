@@ -1,0 +1,3 @@
+[submodule "lib"]
+	path = lib
+	url = https://davidperezgar@bitbucket.org/davidperezgar/php-crm-api-functions.git
