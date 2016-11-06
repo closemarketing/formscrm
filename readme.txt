@@ -31,6 +31,10 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
+= 2.6.1 =
+*   vTiger now sends error creating lead.
+*   New method to connect for MS Dynamics.
+
 = 2.6 =
 *   Added support to Hubspot.
 
