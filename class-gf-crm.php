@@ -547,14 +547,6 @@ class GFCRM extends GFFeedAddOn {
         $this->debugcrm($id);
 }
 
-    private function send_emailerrorlead($crm_type) {
-        // Sends email if it does not create a lead
-
-        $subject = __('We could not create the lead in ','gravityformscrm').$crm_type;
-        $message = __('<p>There was a problem creating the lead in the CRM.</p><p>Try to find where it was the problem in the Wordpress Settings.</p><br/><p><strong>Gravity Forms CRM</strong>','gravityformscrm');
-
-        wp_mail( get_bloginfo('admin_email'), $subject, $message);
-    }
 	private static function remove_blank_custom_fields( $merge_vars ){
 		$i=0;
 
@@ -703,24 +695,6 @@ class GFCRM extends GFFeedAddOn {
     return $login_result;
     }
 
-//////////// Helpers Functions ////////////
-
-    private function debugcrm($message) {
-            if (WP_DEBUG==true) {
-            //Debug Mode
-            echo '  <table class="widefat">
-                    <thead>
-                    <tr class="form-invalid">
-                        <th class="row-title">'.__('Message Debug Mode','gravityformscrm').'</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                    <td><pre>';
-            print_r($message);
-            echo '</pre></td></tr></table>';
-        }
-    }
 
     private function testserver() {
             //test curl
