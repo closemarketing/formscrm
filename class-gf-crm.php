@@ -24,6 +24,8 @@ class GFCRM extends GFFeedAddOn {
 
 	private static $_instance = null;
 
+    private $crmlib;
+
 	public static function get_instance() {
 		if ( self::$_instance == null ) {
 			self::$_instance = new GFCRM();
@@ -234,7 +236,14 @@ class GFCRM extends GFFeedAddOn {
 
 		parent::feed_edit_page( $form, $feed_id );
 	}
+    private function include_libray($crmtype){
+        $crmname = strtolower($crmtype);
+        $crmname = str_replace(' ', '_', $crmname);
 
+        include_once('lib/crm-'.$crmname.'.php');
+
+        $this->crmlib = new GFCRM_LIB();
+    }
 
 	public function feed_settings_fields() {
 		return array(
@@ -250,6 +259,14 @@ class GFCRM extends GFFeedAddOn {
 						'class'    => 'medium',
 						'tooltip'  => '<h6>' . __( 'Name', 'gravityformscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'gravityformscrm' ),
 					),
+                    array(
+                        'name'              => 'gf_crm_module',
+                        'label'             => __( 'CRM Module', 'gravityformscrm' ),
+                        'type'              => 'select',
+                        'class'             => 'medium',
+                        'onchange'          => 'SelectChanged()',
+                        'choices'           => $modules,
+                    ),
 					array(
 						'name'       => 'listFields',
 						'label'      => __( 'Map Fields', 'gravityformscrm' ),
@@ -283,79 +300,9 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
         if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 
-        if($crm_type == 'vTiger') { //vtiger Method
-			include_once('lib/crm-vtiger.php');
-            $custom_fields = vtiger_listfields($username, $apipassword, $url, 'Leads');
+        $this->include_library($crm_type);
 
-        } elseif($crm_type == 'SugarCRM') {
-			include_once('lib/crm-sugarcrm6.php');
-            $custom_fields = sugarcrm_listfields($username, $password, $url,'Leads');
-
-        } elseif($crm_type == 'SuiteCRM API 3_1') {
-			include_once('lib/crm-suitecrm_3_1.php');
-            $custom_fields = suitecrm_listfields($username, $password, $url,'Leads');
-
-        } elseif($crm_type == 'SuiteCRM API 4_1') {
-			include_once('lib/crm-suitecrm_4_1.php');
-            $custom_fields = suitecrm_listfields($username, $password, $url,'Leads');
-
-        } elseif($crm_type == 'SugarCRM7') {
-			include_once('lib/crm-sugarcrm7.php');
-            $custom_fields = sugarcrm_listfields7($username, $password, $url,'Leads');
-
-        } elseif($crm_type == 'Odoo 8') { //Odoo method
-			include_once('lib/crm-odoo8.php');
-            $custom_fields = odoo8_listfields($username, $password, $dbname, $url,"lead");
-
-        } elseif($crm_type == 'Odoo 9') { //Odoo method
-			include_once('lib/crm-odoo9.php');
-            $custom_fields = odoo9_listfields($username, $password, $dbname, $url,"lead");
-
-        } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics
-			include_once('lib/crm-msdyn.php');
-            $custom_fields = msdyn_listfields($username, $password, $url,"lead");
-
-        } elseif($crm_type == 'Microsoft Dynamics CRM ON Premise') { //MS Dynamics
-			include_once('lib/crm-msdynpfe.php');
-            $custom_fields = msdynpfe_listfields($username, $password, $url,"lead");
-
-        } elseif($crm_type == 'VTE CRM') {
-			include_once('lib/crm-vte.php');
-            $custom_fields = vte_listfields($username, $apipassword, $url,'Leads');
-
-         } elseif($crm_type == 'ESPO CRM') {
- 			include_once('lib/crm-espo.php');
-            $custom_fields = espo_listfields($username, $password, $url,'Lead');
-
-         } elseif($crm_type == 'Zoho CRM') {
- 			include_once('lib/crm-zoho.php');
-            $custom_fields = zoho_listfields($username, $apipassword, 'Leads');
-
-         } elseif($crm_type == 'Salesforce') {
- 			include_once('lib/crm-salesforce.php');
-            $custom_fields = salesforce_listfields($username, $apisales, 'Lead');
-
-         } elseif($crm_type == 'Bitrix24') {
- 			include_once('lib/crm-bitrix.php');
-            $custom_fields = bitrix_listfields($username, $password, $url, 'Leads');
-
-         } elseif($crm_type == 'Solve360') {
- 			include_once('lib/crm-solve360.php');
-            $custom_fields = solve360_listfields($username, $apipassword, 'contacts');
-
-         } elseif($crm_type == 'FacturaDirecta') {
- 			include_once('lib/crm-facturadirecta.php');
-            $custom_fields = facturadirecta_listfields($url, $apipassword);
-
-         } elseif($crm_type == 'amoCRM') {
- 			include_once('lib/crm-amocrm.php');
-        $custom_fields = amocrm_listfields($username, $apipassword, $url, "contacts");
-
-				 } elseif($crm_type == 'HubSpot') {
-						include_once('lib/crm-hubspot.php');
-           	$custom_fields = hubspot_listfields( $apipassword,"contact");
-
-        } // From if CRM
+        $this->crmlib->list_fields($username, $apipassword, $url, '' ,'Leads');
 
         $this->debugcrm($custom_fields);
 
@@ -469,80 +416,7 @@ class GFCRM extends GFFeedAddOn {
 
 		$this->debugcrm($merge_vars);
 
-        if($crm_type == 'vTiger') { //vtiger Method
-			include_once('lib/crm-vtiger.php');
-            $id = vtiger_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
-
-        } elseif($crm_type == 'SugarCRM'||$crm_type == 'SuiteCRM') {
-			include_once('lib/crm-sugarcrm6.php');
-            $id = sugarcrm_create_lead($username, $password, $url, 'Leads', $merge_vars);
-
-        } elseif($crm_type == 'SugarCRM7') {
-			include_once('lib/crm-sugarcrm7.php');
-            $id = sugarcrm_create_lead7($username, $password, $url, 'Leads', $merge_vars);
-
-        } elseif($crm_type == 'SuiteCRM API 3_1') {
-			include_once('lib/crm-suitecrm_3_1.php');
-            $id = suitecrm_create_lead($username, $password, $url, 'Leads', $merge_vars);
-
-        } elseif($crm_type == 'SuiteCRM API 4_1') {
-			include_once('lib/crm-suitecrm_4_1.php');
-            $id = suitecrm_create_lead($username, $password, $url, 'Leads', $merge_vars);
-
-        } elseif($crm_type == 'Odoo 8') {
-			include_once('lib/crm-odoo8.php');
-            $id = odoo8_create_lead($username, $password, $dbname, $url, 'lead', $merge_vars);
-
-        } elseif($crm_type == 'Odoo 9') {
-			include_once('lib/crm-odoo9.php');
-            $id = odoo9_create_lead($username, $password, $dbname, $url, 'crm.lead', $merge_vars);
-
-        } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
-			include_once('lib/crm-msdyn.php');
-            $id = msdyn_create_lead($username, $password, $url, "lead", $merge_vars);
-
-        } elseif($crm_type == 'Microsoft Dynamics CRM ON Premise') { //MS Dynamics Method
-			include_once('lib/crm-msdynpfe.php');
-            $id = msdynpfe_create_lead($username, $password, $url, "lead", $merge_vars);
-
-        } elseif($crm_type == 'VTE CRM') {
-			include_once('lib/crm-vte.php');
-            $id = vte_create_lead($username, $apipassword, $url, 'Leads', $merge_vars);
-
-        } elseif($crm_type == 'ESPO CRM') {
-			include_once('lib/crm-espo.php');
-            $id = espo_createlead($username, $password, $url, 'Lead', $merge_vars);
-
-        } elseif($crm_type == 'Zoho CRM') {
-			include_once('lib/crm-zoho.php');
-            $id = zoho_createlead($username,  $apipassword, 'Leads', $merge_vars);
-
-        } elseif($crm_type == 'Salesforce') {
-			include_once('lib/crm-salesforce.php');
-            $id = salesforce_create_lead($username, $apisales, 'Lead', $merge_vars);
-
-        } elseif($crm_type == 'Bitrix24') {
-			include_once('lib/crm-bitrix.php');
-			$crmport ="443";
-			$id = bitrix_create_lead($username, $password, $url, $crmport, "Leads", $merge_vars);
-
-        } elseif($crm_type == 'Solve360') {
-			include_once('lib/crm-solve360.php');
-            $id = solve360_createcontact($username, $apipassword, 'contacts', $merge_vars);
-
-        } elseif($crm_type == 'FacturaDirecta') {
-			include_once('lib/crm-facturadirecta.php');
-            $id = facturadirecta_createlead($url, $apipassword, $merge_vars);
-
-				} elseif($crm_type == 'amoCRM') {
-			include_once('lib/crm-amocrm.php');
-            $id = amocrm_createlead($username, $apipassword, $url, "contacts", $merge_vars);
-
-				} elseif($crm_type == 'HubSpot') {
-			include_once('lib/crm-hubspot.php');
-            $id = hubspot_create_lead( $apipassword, "contact", $merge_vars);
-
-        } // From CRM IF
+        $this->crmlib->create_lead($username, $apipassword, $url, '' ,'Leads', $merge_vars);
 
         $this->debugcrm($id);
 }
@@ -591,108 +465,37 @@ class GFCRM extends GFFeedAddOn {
     }
 
     private function login_api_crm(){
+        $settings = $this->get_plugin_settings();
 
-    $settings = $this->get_plugin_settings();
+        $crm_type  = $settings['gf_crm_type'];
+    	if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
+        if(substr($url, -1) !='/') $url.='/'; //adds slash to url
 
-    $crm_type  = $settings['gf_crm_type'];
-	if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
-    if(substr($url, -1) !='/') $url.='/'; //adds slash to url
+        if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
+        if (isset($settings['gf_crm_apipassword']) ) 
+            $password = $settings['gf_crm_apipassword'];
+        elseif (isset($settings['gf_crm_password']) ) 
+            $password = $settings['gf_crm_password']; 
+        elseif (isset($settings['gf_crm_apisales']) ) 
+            $password = $settings['gf_crm_apisales'];
+        else
+            $password="";
+        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
+        
+        
+    	$login_result = false;
+    	$this->debugcrm($settings);
 
-    if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
-    if (isset($settings['gf_crm_apipassword']) ) $apipassword = $settings['gf_crm_apipassword']; else $apipassword ="";
-    if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
-    if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
-    if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
-	$login_result = false;
-	$this->debugcrm($settings);
+        //* Logins to CRM
+        $login_result = $this->crmlib->login($username, $password, $url, '' );
 
-    if($crm_type == 'vTiger') { //vtiger Method
-		include_once('lib/crm-vtiger.php');
-        $login_result = vtiger_login($username, $apipassword, $url);
+        $this->debugcrm($login_result);
 
-    } elseif($crm_type == 'SugarCRM') { //sugarcrm method
-		include_once('lib/crm-sugarcrm6.php');
-        $login_result = sugarcrm_login($username, $password, $url);
+    	$this->testserver();
 
-    } elseif($crm_type == 'SugarCRM7') { //sugarcrm7 method
-		include_once('lib/crm-sugarcrm7.php');
-        $login_result = sugarcrm_login7($username, $password, $url);
-
-    } elseif($crm_type == 'SuiteCRM API 3_1') {
-		include_once('lib/crm-suitecrm_3_1.php');
-        $login_result = suitecrm_login($username, $password, $url);
-
-    } elseif($crm_type == 'SuiteCRM API 4_1') {
-		include_once('lib/crm-suitecrm_4_1.php');
-        $login_result = suitecrm_login($username, $password, $url);
-
-    } elseif($crm_type == 'Odoo 8') { //Odoo 8 Method
-		include_once('lib/crm-odoo8.php');
-        $login_result = odoo8_login($username, $password, $dbname, $url);
-
-    } elseif($crm_type == 'Odoo 9') { //Odoo 9 Method
-		include_once('lib/crm-odoo9.php');
-        $login_result = odoo9_login($username, $password, $dbname, $url);
-
-    } elseif($crm_type == 'Microsoft Dynamics CRM') { //MS Dynamics Method
-		include_once('lib/crm-msdyn.php');
-        $login_result = msdyn_login($username, $password, $url,"lead");
-
-    } elseif($crm_type == 'Microsoft Dynamics CRM ON Premise') { //MS Dynamics Method
-		include_once('lib/crm-msdynpfe.php');
-        $login_result = msdynpfe_login($username, $password, $url,"lead");
-
-    } elseif($crm_type == 'VTE CRM') {
-		include_once('lib/crm-vte.php');
-        $login_result = vte_login($username, $apipassword, $url);
-
-    } elseif($crm_type == 'ESPO CRM') {
-		include_once('lib/crm-espo.php');
-        $login_result = espo_login($username, $password, $url);
-
-    } elseif($crm_type == 'Zoho CRM') {
-		include_once('lib/crm-zoho.php');
-        $login_result = zoho_login($username, $password, $apipassword);
-
-		$settings['gf_crm_apipassword'] = $login_result;
-		$this->update_plugin_settings($settings);
-
-    } elseif($crm_type == 'Salesforce') {
-		include_once('lib/crm-salesforce.php');
-        $login_result = salesforce_login($username, $apisales);
-
-    } elseif($crm_type == 'Bitrix24') {
-		include_once('lib/crm-bitrix.php');
-		$crmport ="443"; //Assumed by default
-        $login_result = bitrix_login($username, $password, $url, $crmport);
-
-    } elseif($crm_type == 'Solve360') {
-		include_once('lib/crm-solve360.php');
-        $login_result = solve360_login($username, $apipassword);
-
-    } elseif($crm_type == 'FacturaDirecta') {
-		include_once('lib/crm-facturadirecta.php');
-
-		$login_result = facturadirecta_login($url, $username, $password, $apipassword);
-        $settings['gf_crm_apipassword'] = $login_result;
-        $this->update_plugin_settings($settings);
-
-		} elseif($crm_type == 'amoCRM') {
-			include_once('lib/crm-amocrm.php');
-	        $login_result = amocrm_login($username, $apipassword, $url);
-
-		} elseif($crm_type == 'HubSpot') {
-			include_once('lib/crm-hubspot.php');
-	        $login_result = hubspot_login($apipassword);
-	} //OF CRM
-
-    $this->debugcrm($login_result);
-
-	$this->testserver();
-
-    if (!isset($login_result) )
-        $login_result="";
-    return $login_result;
+        if (!isset($login_result) )
+            $login_result="";
+        return $login_result;
     }
 
 
