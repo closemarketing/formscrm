@@ -29,6 +29,8 @@ define( 'GF_CRM_VERSION', '2.6.1' );
 
 add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 
+include_once 'lib/debug.php';
+
 class GF_CRM_Bootstrap {
 
 	public static function load(){

@@ -130,6 +130,10 @@ class GFCRM extends GFFeedAddOn {
                                                         'label' => 'HubSpot',
                                                         'name'  => 'hubspot'
                                                     ),
+                                                    array(
+                                                        'label' => 'Holded',
+                                                        'name'  => 'holded'
+                                                    ),
 /*                                                    array(
                                                         'label' => 'amoCRM',
                                                         'name'  => 'amocrm'
@@ -170,7 +174,7 @@ class GFCRM extends GFFeedAddOn {
 						//'feedback_callback' => $this->login_api_crm(),
                         'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Solve360','amoCRM','HubSpot' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Solve360','amoCRM','HubSpot','Holded' ) ),
 					),
 					array(
 						'name'  => 'gf_crm_apisales',
@@ -236,16 +240,22 @@ class GFCRM extends GFFeedAddOn {
 
 		parent::feed_edit_page( $form, $feed_id );
 	}
-    private function include_libray($crmtype){
+    private function include_library($crmtype){
         $crmname = strtolower($crmtype);
         $crmname = str_replace(' ', '_', $crmname);
 
         include_once('lib/crm-'.$crmname.'.php');
 
+        debug_message('lib/crm-'.$crmname.'.php');
+
         $this->crmlib = new GFCRM_LIB();
     }
 
 	public function feed_settings_fields() {
+
+        $settings = $this->get_plugin_settings();
+        $this->include_library($settings['gf_crm_type']);
+
 		return array(
 			array(
 				'title'       => __( 'CRM Feed', 'gravityformscrm' ),
@@ -265,14 +275,14 @@ class GFCRM extends GFFeedAddOn {
                         'type'              => 'select',
                         'class'             => 'medium',
                         'onchange'          => 'SelectChanged()',
-                        'choices'           => $modules,
+                        'choices'           => $this->crmlib->list_modules($settings),
                     ),
 					array(
 						'name'       => 'listFields',
 						'label'      => __( 'Map Fields', 'gravityformscrm' ),
 						'type'       => 'field_map',
 						//'dependency' => 'contactList',
-						'field_map'	 => $this->create_list_field_map(),
+						'field_map'	 => $this->crmlib->list_fields($username, $password, $url, '' ,'Leads'),
 						'tooltip'    => '<h6>' . __( 'Map Fields', 'gravityformscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'gravityformscrm' ),
 					),
 				)
@@ -300,11 +310,11 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
         if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 
-        $this->include_library($crm_type);
+        $this->include_library($settings['gf_crm_type']);
 
         $this->crmlib->list_fields($username, $apipassword, $url, '' ,'Leads');
 
-        $this->debugcrm($custom_fields);
+        debug_message($custom_fields);
 
 		return $custom_fields;
 	}
@@ -412,13 +422,13 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
         if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 
-		$this->debugcrm($settings);
+		debug_message($settings);
 
-		$this->debugcrm($merge_vars);
+		debug_message($merge_vars);
 
         $this->crmlib->create_lead($username, $apipassword, $url, '' ,'Leads', $merge_vars);
 
-        $this->debugcrm($id);
+        debug_message($id);
 }
 
 	private static function remove_blank_custom_fields( $merge_vars ){
@@ -484,27 +494,19 @@ class GFCRM extends GFFeedAddOn {
         
         
     	$login_result = false;
-    	$this->debugcrm($settings);
+    	debug_message($settings);
 
         //* Logins to CRM
+        $this->include_library($crm_type);
         $login_result = $this->crmlib->login($username, $password, $url, '' );
 
-        $this->debugcrm($login_result);
+        debug_message($login_result);
 
-    	$this->testserver();
+    	testserver();
 
         if (!isset($login_result) )
             $login_result="";
         return $login_result;
     }
-
-
-    private function testserver() {
-            //test curl
-		    if(!function_exists('curl_version'))
-				echo '<div id="message" class="error below-h2">
-						<p><strong>'.__('curl is not Installed in your server. It is needed to work with CRM Libraries.' ,'gravityformscrm').'</strong></p></div>';
-    }
-
 
 } //from main class
