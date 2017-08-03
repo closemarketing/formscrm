@@ -60,11 +60,11 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'CRM Type', 'gravityformscrm' ),
 						'type'              => 'select',
 						'class'             => 'medium',
-                        'onchange'          => 'SelectChanged()',
+                        'onchange'          => 'jQuery(this).parents("form").submit();',
                         'choices'           => array(
                                                     array(
-                                                        'label' => 'vTiger',
-                                                        'name'  => 'vtiger'
+                                                        'label' => 'vTiger 6',
+                                                        'name'  => 'vtiger_6'
                                                     ),
                                                     array(
                                                         'label' => 'SugarCRM',
@@ -147,14 +147,14 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
                         'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM') )
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger 6','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM') )
 					),
 					array(
 						'name'              => 'gf_crm_username',
 						'label'             => __( 'Username', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
-            'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'VTE CRM', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','Zoho CRM', 'Salesforce','Bitrix24', 'Solve360', 'FacturaDirecta' ) ),
+            'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger 6','SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'VTE CRM', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','Zoho CRM', 'Salesforce','Bitrix24', 'Solve360', 'FacturaDirecta' ) ),
 						'feedback_callback' => $this->login_api_crm()
 					),
 					array(
@@ -174,7 +174,7 @@ class GFCRM extends GFFeedAddOn {
 						//'feedback_callback' => $this->login_api_crm(),
                         'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'gravityformscrm' ),
                         'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger','VTE CRM','Solve360','amoCRM','HubSpot','Holded' ) ),
+                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'vTiger 6','VTE CRM','Solve360','amoCRM','HubSpot','Holded' ) ),
 					),
 					array(
 						'name'  => 'gf_crm_apisales',
@@ -230,8 +230,6 @@ class GFCRM extends GFFeedAddOn {
 					echo ' <a href="' . $this->get_plugin_settings_url() . '">'.__('Use Settings Page','gravityformscrm').'</a>' ?>
 			</div>
 			<?php
-			//Test server settings
-			$this->testserver();
 
 			return;
 		}
@@ -274,15 +272,15 @@ class GFCRM extends GFFeedAddOn {
                         'label'             => __( 'CRM Module', 'gravityformscrm' ),
                         'type'              => 'select',
                         'class'             => 'medium',
-                        'onchange'          => 'SelectChanged()',
+                        'onchange'          => 'jQuery(this).parents("form").submit();',
                         'choices'           => $this->crmlib->list_modules($settings),
                     ),
 					array(
 						'name'       => 'listFields',
 						'label'      => __( 'Map Fields', 'gravityformscrm' ),
 						'type'       => 'field_map',
-						//'dependency' => 'contactList',
-						'field_map'	 => $this->crmlib->list_fields($username, $password, $url, '' ,'Leads'),
+                        'dependency'        => 'gf_crm_module',
+						'field_map'	 => $this->crmlib->list_fields($settings, 'Leads'),
 						'tooltip'    => '<h6>' . __( 'Map Fields', 'gravityformscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'gravityformscrm' ),
 					),
 				)
@@ -475,30 +473,12 @@ class GFCRM extends GFFeedAddOn {
     }
 
     private function login_api_crm(){
-        $settings = $this->get_plugin_settings();
-
-        $crm_type  = $settings['gf_crm_type'];
-    	if (isset($settings['gf_crm_url']) ) $url = $settings['gf_crm_url']; else $url = "";
-        if(substr($url, -1) !='/') $url.='/'; //adds slash to url
-
-        if (isset($settings['gf_crm_username']) ) $username = $settings['gf_crm_username']; else $username = "";
-        if (isset($settings['gf_crm_apipassword']) ) 
-            $password = $settings['gf_crm_apipassword'];
-        elseif (isset($settings['gf_crm_password']) ) 
-            $password = $settings['gf_crm_password']; 
-        elseif (isset($settings['gf_crm_apisales']) ) 
-            $password = $settings['gf_crm_apisales'];
-        else
-            $password="";
-        if (isset($settings['gf_crm_odoodb']) ) $dbname = $settings['gf_crm_odoodb']; else $dbname ="";
-        
         
     	$login_result = false;
-    	debug_message($settings);
 
         //* Logins to CRM
-        $this->include_library($crm_type);
-        $login_result = $this->crmlib->login($username, $password, $url, '' );
+        $this->include_library($this->get_plugin_settings()['gf_crm_type']);
+        $login_result = $this->crmlib->login($settings);
 
         debug_message($login_result);
 
