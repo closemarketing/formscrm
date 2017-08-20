@@ -62,18 +62,9 @@ class GFCRM extends GFFeedAddOn {
 						'class'    => 'medium',
 						'onchange' => 'jQuery(this).parents("form").submit();',
 						'choices'  => array(
-							array(
-								'label' => 'vTiger 6',
-								'name'  => 'vtiger_6',
-							),
-							array(
-								'label' => 'SugarCRM',
-								'name'  => 'sugarcrm',
-							),
-							array(
-								'label' => 'SugarCRM7',
-								'name'  => 'sugarcrm7',
-							),
+							array('label' => 'vTiger 6', 'name' => 'vtiger_6'),
+							array('label' => 'SugarCRM', 'name' => 'sugarcrm'),
+							array('label' => 'SugarCRM7', 'name' => 'sugarcrm7'),
 							array(
 								'label' => 'SuiteCRM API 3_1',
 								'name'  => 'suitecrm31',
@@ -229,6 +220,7 @@ return;
 
 		parent::feed_edit_page($form, $feed_id);
 	}
+
 	private function include_library($crmtype) {
 		$crmname      = strtolower($crmtype);
 		$crmclassname = str_replace(' ', '', $crmname);
@@ -374,7 +366,7 @@ return;
 		debug_message($settings);
 		debug_message($merge_vars);
 
-		$id = $this->crmlib->create_lead($settings, 'Leads', $merge_vars);
+		$id = $this->crmlib->create_entry($settings, $this->get_setting('gf_crm_module'), $merge_vars);
 
 		debug_message($id);
 	}
