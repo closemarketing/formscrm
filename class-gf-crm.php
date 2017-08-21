@@ -289,6 +289,12 @@ return;
 		update_option('gf_crm_upgrade', 1);
 	}
 
+	public function feed_list_columns() {
+		return array(
+			'feedName' => __('Name', 'gravityformscrm'),
+		);
+	}
+
 	public function process_feed($feed, $entry, $form) {
 
 		if (!$this->is_valid_key()) {
