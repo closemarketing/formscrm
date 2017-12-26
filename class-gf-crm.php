@@ -125,6 +125,10 @@ class GFCRM extends GFFeedAddOn {
 								'label' => 'Holded',
 								'name'  => 'holded',
 							),
+                                          array(
+                                                'label' => 'FreshDesk',
+                                                'name'  => 'freshdesk',
+                                          ),
 						),
 					),
 					array(
@@ -134,7 +138,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'         => 'medium',
 						'tooltip'       => __('Use the URL with http and the ending slash /.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'vTiger 6', 'VTE CRM', 'Bitrix24', 'FacturaDirecta', 'amoCRM')),
+						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'vTiger 6', 'VTE CRM', 'Bitrix24', 'FacturaDirecta', 'amoCRM','FreshDesk')),
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -151,7 +155,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'         => 'medium',
 						'tooltip'       => __('Use the password of the actual user.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'Zoho CRM', 'Bitrix24', 'FacturaDirecta')),
+						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'Zoho CRM', 'Bitrix24', 'FacturaDirecta','FreshDesk')),
 					),
 					array(
 						'name'          => 'gf_crm_apipassword',
@@ -161,7 +165,7 @@ class GFCRM extends GFFeedAddOn {
 						//'feedback_callback' => $this->login_api_crm(),
 						'tooltip'       => __('Find the API Password in the profile of the user in CRM.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('vTiger 6', 'VTE CRM', 'Solve360', 'amoCRM', 'HubSpot', 'Holded')),
+						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('vTiger 6', 'VTE CRM', 'Solve360', 'amoCRM', 'HubSpot', 'Holded','FreshDesk')),
 					),
 					array(
 						'name'          => 'gf_crm_apisales',
@@ -306,9 +310,9 @@ return;
 	}
 
 	public function export_feed($entry, $form, $feed) {
+            $settings = $this->get_plugin_settings();
+            $this->include_library($settings['gf_crm_type']);
 
-		//$email       = $entry[ $feed['meta']['listFields_email'] ];
-		//$name        = '';
 		if (!empty($feed['meta']['listFields_first_name'])) {
 			$name = $this->get_name($entry, $feed['meta']['listFields_first_name']);
 		}
@@ -372,7 +376,7 @@ return;
 		debug_message($settings);
 		debug_message($merge_vars);
 
-		$id = $this->crmlib->create_entry($settings, $this->get_setting('gf_crm_module'), $merge_vars);
+		$id = $this->crmlib->create_entry($settings, $merge_vars);
 
 		debug_message($id);
 	}
