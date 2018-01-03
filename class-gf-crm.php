@@ -226,16 +226,18 @@ return;
 	}
 
 	private function include_library($crmtype) {
-		$crmname      = strtolower($crmtype);
-		$crmclassname = str_replace(' ', '', $crmname);
-		$crmclassname = 'CRMLIB_' . strtoupper($crmclassname);
-		$crmname      = str_replace(' ', '_', $crmname);
+		if(isset($crmtype)) {
+			$crmname      = strtolower($crmtype);
+			$crmclassname = str_replace(' ', '', $crmname);
+			$crmclassname = 'CRMLIB_' . strtoupper($crmclassname);
+			$crmname      = str_replace(' ', '_', $crmname);
 
-		include_once 'lib/crm-' . $crmname . '.php';
+			include_once 'lib/crm-' . $crmname . '.php';
 
-		debug_message('lib/crm-' . $crmname . '.php');
+			debug_message('lib/crm-' . $crmname . '.php');
 
-		$this->crmlib = new $crmclassname();
+			$this->crmlib = new $crmclassname();
+		}
 	}
 
 	public function feed_settings_fields() {
@@ -432,7 +434,8 @@ return;
 		$settings = $this->get_plugin_settings();
 		$this->include_library($settings['gf_crm_type']);
 
-		$login_result = $this->crmlib->login($settings);
+		if(isset($this->crmlib))
+			$login_result = $this->crmlib->login($settings);
 
 		debug_message($login_result);
 
