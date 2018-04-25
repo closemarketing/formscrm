@@ -1,4 +1,6 @@
 <?php
+require_once 'lib/debug.php';
+
 
 GFForms::include_feed_addon_framework();
 
@@ -357,7 +359,7 @@ class GFCRM extends GFFeedAddOn {
 
         } // From if CRM
 
-        $this->debugcrm($custom_fields);
+        debug_message($custom_fields);
 
 		return $custom_fields;
 	}
@@ -465,9 +467,9 @@ class GFCRM extends GFFeedAddOn {
         if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
         if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 
-		$this->debugcrm($settings);
+		debug_message($settings);
 
-		$this->debugcrm($merge_vars);
+		debug_message($merge_vars);
 
         if($crm_type == 'vTiger') { //vtiger Method
 			include_once('lib/crm-vtiger.php');
@@ -544,7 +546,7 @@ class GFCRM extends GFFeedAddOn {
 
         } // From CRM IF
 
-        $this->debugcrm($id);
+        debug_message($id);
 }
 
 	private static function remove_blank_custom_fields( $merge_vars ){
@@ -604,7 +606,7 @@ class GFCRM extends GFFeedAddOn {
     if (isset($settings['gf_crm_password']) ) $password = $settings['gf_crm_password']; else $password="";
     if (isset($settings['gf_crm_apisales']) ) $apisales = $settings['gf_crm_apisales']; else $apisales="";
 	$login_result = false;
-	$this->debugcrm($settings);
+	debug_message($settings);
 
     if($crm_type == 'vTiger') { //vtiger Method
 		include_once('lib/crm-vtiger.php');
@@ -686,7 +688,7 @@ class GFCRM extends GFFeedAddOn {
 	        $login_result = hubspot_login($apipassword);
 	} //OF CRM
 
-    $this->debugcrm($login_result);
+    debug_message($login_result);
 
 	$this->testserver();
 
