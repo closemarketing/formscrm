@@ -65,70 +65,23 @@ class GFCRM extends GFFeedAddOn {
 							array('label' => 'vTiger 6', 'name' => 'vtiger_6'),
 							array('label' => 'SugarCRM', 'name' => 'sugarcrm'),
 							array('label' => 'SugarCRM7', 'name' => 'sugarcrm7'),
-							array(
-								'label' => 'SuiteCRM API 3_1',
-								'name'  => 'suitecrm31',
-							),
-							array(
-								'label' => 'SuiteCRM API 4_1',
-								'name'  => 'suitecrm41',
-							),
-							array(
-								'label' => 'VTE CRM',
-								'name'  => 'vtecrm',
-							),
-							array(
-								'label' => 'Odoo 8',
-								'name'  => 'odoo8',
-							),
-							array(
-								'label' => 'Odoo 9',
-								'name'  => 'odoo9',
-							),
-							array(
-								'label' => 'Microsoft Dynamics CRM',
-								'name'  => 'msdynamics',
-							),
-							array(
-								'label' => 'Microsoft Dynamics CRM ON Premise',
-								'name'  => 'msdynamicspfe',
-							),
-							array(
-								'label' => 'ESPO CRM',
-								'name'  => 'espocrm',
-							),
-							array(
-								'label' => 'Zoho CRM',
-								'name'  => 'zohocrm',
-							),
-							array(
-								'label' => 'Salesforce',
-								'name'  => 'salesforce',
-							),
-							array(
-								'label' => 'Bitrix24',
-								'name'  => 'bitrix24',
-							),
-							array(
-								'label' => 'Solve360',
-								'name'  => 'solve360',
-							),
-							array(
-								'label' => 'FacturaDirecta',
-								'name'  => 'facturadirecta',
-							),
-							array(
-								'label' => 'HubSpot',
-								'name'  => 'hubspot',
-							),
-							array(
-								'label' => 'Holded',
-								'name'  => 'holded',
-							),
-                                          array(
-                                                'label' => 'FreshDesk',
-                                                'name'  => 'freshdesk',
-                                          ),
+							array('label' => 'SuiteCRM API 3_1', 'name'  => 'suitecrm31'),
+							array('label' => 'SuiteCRM API 4_1', 'name'  => 'suitecrm41' ),
+							array('label' => 'VTE CRM','name'  => 'vtecrm'),
+							array('label' => 'Odoo 8','name'  => 'odoo8'),
+							array('label' => 'Odoo 9','name'  => 'odoo9'),
+							array('label' => 'Microsoft Dynamics CRM','name'  => 'msdynamics'),
+							array('label' => 'Microsoft Dynamics CRM ON Premise','name'  => 'msdynamicspfe'),
+							array('label' => 'ESPO CRM','name'  => 'espocrm'),
+							array('label' => 'Zoho CRM','name'  => 'zohocrm'),
+							array('label' => 'Salesforce','name'  => 'salesforce'),
+							array('label' => 'Bitrix24','name'  => 'bitrix24'),
+							array('label' => 'Solve360','name'  => 'solve360'),
+							array('label' => 'FacturaDirecta','name'  => 'facturadirecta'),
+							array('label' => 'HubSpot','name'  => 'hubspot'),
+							array('label' => 'Holded','name'  => 'holded'),
+                            array('label' => 'FreshDesk','name'  => 'freshdesk'),
+                            array('label' => '1CRM','name'  => '1CRM'),
 						),
 					),
 					array(
@@ -138,14 +91,14 @@ class GFCRM extends GFFeedAddOn {
 						'class'         => 'medium',
 						'tooltip'       => __('Use the URL with http and the ending slash /.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'vTiger 6', 'VTE CRM', 'Bitrix24', 'FacturaDirecta', 'amoCRM','FreshDesk')),
+						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'vTiger 6', 'VTE CRM', 'Bitrix24', 'FacturaDirecta', 'amoCRM','FreshDesk','1CRM')),
 					),
 					array(
 						'name'              => 'gf_crm_username',
 						'label'             => __('Username', 'gravityformscrm'),
 						'type'              => 'text',
 						'class'             => 'medium',
-						'dependency'        => array('field' => 'gf_crm_type', 'values' => array('vTiger 6', 'SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'VTE CRM', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'Zoho CRM', 'Salesforce', 'Bitrix24', 'Solve360', 'FacturaDirecta')),
+						'dependency'        => array('field' => 'gf_crm_type', 'values' => array('vTiger 6', 'SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'VTE CRM', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'Zoho CRM', 'Salesforce', 'Bitrix24', 'Solve360', 'FacturaDirecta','1CRM')),
 						'feedback_callback' => $this->login_api_crm(),
 					),
 					array(
@@ -155,7 +108,7 @@ class GFCRM extends GFFeedAddOn {
 						'class'         => 'medium',
 						'tooltip'       => __('Use the password of the actual user.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'Zoho CRM', 'Bitrix24', 'FacturaDirecta','FreshDesk')),
+						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'Zoho CRM', 'Bitrix24', 'FacturaDirecta','FreshDesk','1CRM')),
 					),
 					array(
 						'name'          => 'gf_crm_apipassword',
@@ -427,7 +380,6 @@ return;
 	}
 
 	private function login_api_crm() {
-
 		$login_result = false;
 
 		//* Logins to CRM
