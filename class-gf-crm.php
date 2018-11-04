@@ -446,7 +446,7 @@ class GFCRM extends GFFeedAddOn {
 			} else  {
 				$merge_vars[] = array(
 					'name'   => $var_key,
-					'value' => apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry )
+					'value' => str_replace('&', 'and', apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry ) )
 				);
 			}
 		}
