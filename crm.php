@@ -8,7 +8,7 @@ Author: closemarketing
 Author URI: http://www.closemarketing.es
 
 ------------------------------------------------------------------------
-Copyright 2015 closemarketing
+Copyright 2018 closemarketing
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

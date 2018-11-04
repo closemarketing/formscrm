@@ -33,6 +33,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 2.6.2 =
 *   Fix MsDynamics leadid
+*   Automatic updater implemented.
+*   Solved CRM bug with &.
 
 = 2.6.1 =
 *   vTiger now sends error creating lead.
