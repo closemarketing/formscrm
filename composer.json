@@ -1,0 +1,5 @@
+{
+    "require": {
+        "smoolabs/wordpress-plugin-updater": "^4.0"
+    }
+}

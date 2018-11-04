@@ -29,6 +29,17 @@ define( 'GF_CRM_VERSION', '2.6.2' );
 
 add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 
+// Include the Integration (we're using composer)
+require_once 'vendor/autoload.php';
+
+// Set up the Update integration
+$client = \Smoolabs\WPU\V4\WPLSController::initClient('https://wp.closemarketing.es/', array(
+	'name'      => 'Gravity Forms CRM Add-On',
+	'version'   => '2.6.2',
+	'path'      => __FILE__,
+	'slug'      => 'gravityforms-crm'
+));
+
 class GF_CRM_Bootstrap {
 
 	public static function load(){

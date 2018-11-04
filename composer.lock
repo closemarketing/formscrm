@@ -1,0 +1,51 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "85dfe3a089c282ad266b9e7813a14d8b",
+    "packages": [
+        {
+            "name": "smoolabs/wordpress-plugin-updater",
+            "version": "4.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Capevace/wordpress-plugin-updater.git",
+                "reference": "1662faeb50397b8500da817d298a19b698ed9cab"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Capevace/wordpress-plugin-updater/zipball/1662faeb50397b8500da817d298a19b698ed9cab",
+                "reference": "1662faeb50397b8500da817d298a19b698ed9cab",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Smoolabs\\WPU\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lukas Mateffy",
+                    "email": "info@smoolabs.com"
+                }
+            ],
+            "description": "A library for WordPress plugins, to utilize license verification and auto-updating using WordPress License Server.",
+            "time": "2018-09-25T15:15:49+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}
