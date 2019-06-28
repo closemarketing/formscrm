@@ -31,6 +31,10 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
+= 3.0 =
+*   Rewritten libraries for support modules (not all crm)
+*   Added support to OFIWEB, Holded,
+
 = 2.6.2 =
 *   Fix MsDynamics leadid
 *   Automatic updater implemented.

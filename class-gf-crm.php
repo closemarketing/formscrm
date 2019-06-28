@@ -60,90 +60,114 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __( 'CRM Type', 'gravityformscrm' ),
 						'type'              => 'select',
 						'class'             => 'medium',
-                        'onchange'          => 'SelectChanged()',
-                        'choices'           => array(
-                                                    array(
-                                                        'label' => 'vTiger',
-                                                        'name'  => 'vtiger'
-                                                    ),
-                                                    array(
-                                                        'label' => 'SugarCRM',
-                                                        'name'  => 'sugarcrm'
-                                                    ),
-                                                    array(
-                                                        'label' => 'SugarCRM7',
-                                                        'name'  => 'sugarcrm7'
-                                                    ),
-                                                    array(
-                                                        'label' => 'SuiteCRM API 3_1',
-                                                        'name'  => 'suitecrm31'
-                                                    ),
-                                                    array(
-                                                        'label' => 'SuiteCRM API 4_1',
-                                                        'name'  => 'suitecrm41'
-                                                    ),
-                                                    array(
-                                                        'label' => 'VTE CRM',
-                                                        'name'  => 'vtecrm'
-                                                    ),
-                                                    array(
-                                                        'label' => 'Odoo 8',
-                                                        'name'  => 'odoo8'
-                                                    ),
-                                                    array(
-                                                        'label' => 'Odoo 9',
-                                                        'name'  => 'odoo9'
-                                                    ),
-                                                    array(
-                                                        'label' => 'Microsoft Dynamics CRM',
-                                                        'name'  => 'msdynamics'
-                                                    ),
-                                                    array(
-                                                        'label' => 'Microsoft Dynamics CRM ON Premise',
-                                                        'name'  => 'msdynamicspfe'
-                                                    ),
-                                                    array(
-                                                        'label' => 'ESPO CRM',
-                                                        'name'  => 'espocrm'
-                                                    ),
-                                                    array(
-                                                        'label' => 'Zoho CRM',
-                                                        'name'  => 'zohocrm'
-                                                    ),
-                                                    array(
-                                                        'label' => 'Salesforce',
-                                                        'name'  => 'salesforce'
-                                                    ),
-                                                    array(
-                                                        'label' => 'Bitrix24',
-                                                        'name'  => 'bitrix24'
-                                                    ),
-                                                    array(
-                                                        'label' => 'Solve360',
-                                                        'name'  => 'solve360'
-                                                    ),
-                                                    array(
-                                                        'label' => 'FacturaDirecta',
-                                                        'name'  => 'facturadirecta'
-                                                    ),
-                                                    array(
-                                                        'label' => 'HubSpot',
-                                                        'name'  => 'hubspot'
-                                                    ),
-/*                                                    array(
-                                                        'label' => 'amoCRM',
-                                                        'name'  => 'amocrm'
-                                                    )*/
-                                                )
+						'onchange'          => 'SelectChanged()',
+						'choices'           => array(
+							array(
+								'label' => 'vTiger',
+								'name'  => 'vtiger',
+							),
+							array(
+								'label' => 'SugarCRM',
+								'name'  => 'sugarcrm',
+							),
+							array(
+								'label' => 'SugarCRM7',
+								'name'  => 'sugarcrm7',
+							),
+							array(
+								'label' => 'SuiteCRM API 3_1',
+								'name'  => 'suitecrm31',
+							),
+							array(
+								'label' => 'SuiteCRM API 4_1',
+								'name'  => 'suitecrm41',
+							),
+							array(
+								'label' => 'VTE CRM',
+								'name'  => 'vtecrm',
+							),
+							array(
+								'label' => 'Odoo 8',
+								'name'  => 'odoo8',
+							),
+							array(
+								'label' => 'Odoo 9',
+								'name'  => 'odoo9',
+							),
+							array(
+								'label' => 'Microsoft Dynamics CRM',
+								'name'  => 'msdynamics',
+							),
+							array(
+								'label' => 'Microsoft Dynamics CRM ON Premise',
+								'name'  => 'msdynamicspfe',
+							),
+							array(
+								'label' => 'ESPO CRM',
+								'name'  => 'espocrm',
+							),
+							array(
+								'label' => 'Zoho CRM',
+								'name'  => 'zohocrm',
+							),
+							array(
+								'label' => 'Salesforce',
+								'name'  => 'salesforce',
+							),
+							array(
+								'label' => 'Bitrix24',
+								'name'  => 'bitrix24',
+							),
+							array(
+								'label' => 'Solve360',
+								'name'  => 'solve360',
+							),
+							array(
+								'label' => 'FacturaDirecta',
+								'name'  => 'facturadirecta',
+							),
+							array(
+								'label' => 'HubSpot',
+								'name'  => 'hubspot',
+							),
+							array(
+								'label' => 'amoCRM',
+								'name'  => 'amocrm',
+							),
+							array(
+								'label' => 'OFIWEB',
+								'name'  => 'ofiweb',
+							),
+						),
 					),
 					array(
 						'name'              => 'gf_crm_url',
 						'label'             => __( 'CRM URL', 'gravityformscrm' ),
 						'type'              => 'text',
 						'class'             => 'medium',
-                        'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
-                        'tooltip_class'     => 'tooltipclass',
-                        'dependency' => array( 'field' => 'gf_crm_type', 'values' => array( 'SugarCRM','SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9','Microsoft Dynamics CRM','Microsoft Dynamics CRM ON Premise','ESPO CRM','SuiteCRM','vTiger','VTE CRM','Bitrix24', 'FacturaDirecta','amoCRM') )
+						'tooltip'           => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
+						'tooltip_class'     => 'tooltipclass',
+						'dependency'        => array(
+							'field' => 'gf_crm_type',
+							'values' => array(
+								'SugarCRM',
+								'SugarCRM7',
+								'SuiteCRM API 3_1',
+								'SuiteCRM API 4_1',
+								'Odoo 8',
+								'Odoo 9',
+								'Microsoft Dynamics CRM',
+								'Microsoft Dynamics CRM ON Premise',
+								'ESPO CRM',
+								'SuiteCRM',
+								'vTiger',
+								'VTE CRM',
+								'Bitrix24',
+								'FacturaDirecta',
+								'amoCRM',
+								'OFIWEB',
+							),
+						),
 					),
 					array(
 						'name'              => 'gf_crm_username',
