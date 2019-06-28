@@ -1,4 +1,14 @@
 <?php
+/**
+ * Functions for CRM in Gravity Forms
+ *
+ * All helpers functions for Gravity Forms
+ *
+ * @package    WordPress
+ * @author     David Perez <david@closemarketing.net>
+ * @copyright  2019 Closemarketing
+ * @version    1.0
+ */
 
 GFForms::include_feed_addon_framework();
 
@@ -13,10 +23,13 @@ class GFCRM extends GFFeedAddOn {
 	protected $_title                    = 'CRM Add-On';
 	protected $_short_title              = 'CRM';
 
-	// Members plugin integration
-	protected $_capabilities = array('gravityforms_crm', 'gravityforms_crm_uninstall');
+	// Members plugin integration.
+	protected $_capabilities = array(
+		'gravityforms_crm',
+		'gravityforms_crm_uninstall',
+	);
 
-	// Permissions
+	// Permissions.
 	protected $_capabilities_settings_page = 'gravityforms_crm';
 	protected $_capabilities_form_settings = 'gravityforms_crm';
 	protected $_capabilities_uninstall     = 'gravityforms_crm_uninstall';
@@ -33,12 +46,15 @@ class GFCRM extends GFFeedAddOn {
 
 		return self::$_instance;
 	}
-
+	/**
+	 * Init function of library
+	 *
+	 * @return void
+	 */
 	public function init() {
 
 		parent::init();
-		//loading translations
-		load_plugin_textdomain('gravityforms-crm', FALSE, '/gravityforms-crm/languages');
+		load_plugin_textdomain( 'gravityforms-crm', FALSE, '/gravityforms-crm/languages' );
 
 	}
 
@@ -48,22 +64,32 @@ class GFCRM extends GFFeedAddOn {
 		$this->ensure_upgrade();
 	}
 
-	// ------- Plugin settings -------
+	/**
+	 * Plugin settings
+	 *
+	 * @return void
+	 */
 	public function plugin_settings_fields() {
 		return array(
 			array(
-				'title'       => __('CRM Account Information', 'gravityformscrm'),
-				'description' => __('Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'gravityformscrm'),
+				'title'       => __( 'CRM Account Information', 'gravityformscrm' ),
+				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'gravityformscrm' ),
 				'fields'      => array(
 					array(
 						'name'     => 'gf_crm_type',
-						'label'    => __('CRM Type', 'gravityformscrm'),
+						'label'    => __( 'CRM Type', 'gravityformscrm' ),
 						'type'     => 'select',
 						'class'    => 'medium',
 						'onchange' => 'jQuery(this).parents("form").submit();',
 						'choices'  => array(
-							array('label' => 'vTiger 6', 'name' => 'vtiger_6'),
-							array('label' => 'SugarCRM', 'name' => 'sugarcrm'),
+							array(
+								'label' => 'vTiger 6',
+								'name' => 'vtiger_6',
+							),
+							array(
+								'label' => 'SugarCRM',
+								'name' => 'sugarcrm'
+							),
 							array('label' => 'SugarCRM7', 'name' => 'sugarcrm7'),
 							array('label' => 'SuiteCRM API 3_1', 'name'  => 'suitecrm31'),
 							array('label' => 'SuiteCRM API 4_1', 'name'  => 'suitecrm41' ),
@@ -79,19 +105,54 @@ class GFCRM extends GFFeedAddOn {
 							array('label' => 'Solve360','name'  => 'solve360'),
 							array('label' => 'FacturaDirecta','name'  => 'facturadirecta'),
 							array('label' => 'HubSpot','name'  => 'hubspot'),
-							array('label' => 'Holded','name'  => 'holded'),
-                            array('label' => 'FreshDesk','name'  => 'freshdesk'),
-                            array('label' => '1CRM','name'  => '1CRM'),
+							array(
+								'label' => 'Holded',
+								'name'  => 'holded'
+							),
+							array(
+								'label' => 'FreshDesk',
+								'name'  => 'freshdesk',
+							),
+							array(
+								'label' => '1CRM',
+								'name'  => '1CRM',
+							),
+							array(
+								'label' => 'OFIWEB',
+								'name'  => 'ofiweb',
+							),
 						),
 					),
 					array(
 						'name'          => 'gf_crm_url',
-						'label'         => __('CRM URL', 'gravityformscrm'),
+						'label'         => __( 'CRM URL', 'gravityformscrm' ),
 						'type'          => 'text',
 						'class'         => 'medium',
-						'tooltip'       => __('Use the URL with http and the ending slash /.', 'gravityformscrm'),
+						'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'vTiger 6', 'VTE CRM', 'Bitrix24', 'FacturaDirecta', 'amoCRM','FreshDesk','1CRM')),
+						'dependency'    => array(
+							'field'  => 'gf_crm_type',
+							'values' => array(
+								'SugarCRM',
+								'SugarCRM7',
+								'SuiteCRM API 3_1',
+								'SuiteCRM API 4_1',
+								'Odoo 8',
+								'Odoo 9',
+								'Microsoft Dynamics CRM',
+								'Microsoft Dynamics CRM ON Premise',
+								'ESPO CRM',
+								'SuiteCRM',
+								'vTiger 6',
+								'VTE CRM',
+								'Bitrix24',
+								'FacturaDirecta',
+								'amoCRM',
+								'FreshDesk',
+								'1CRM',
+								'OFIWEB',
+							),
+						),
 					),
 					array(
 						'name'              => 'gf_crm_username',
@@ -152,7 +213,7 @@ class GFCRM extends GFFeedAddOn {
 
 		$caption = '<small>' . sprintf(__("Find a Password or API key depending of CRM.", 'gravityformscrm')) . '</small>';
 
-		if ($echo) {
+		if ( $echo ) {
 			echo $api_key_field . '</br>' . $caption;
 		}
 
@@ -170,24 +231,30 @@ class GFCRM extends GFFeedAddOn {
 			echo ' <a href="' . $this->get_plugin_settings_url() . '">' . __('Use Settings Page', 'gravityformscrm') . '</a>'?>
 			</div>
 			<?php
-return;
+			return;
 		}
 
-		echo '<script type="text/javascript">var form = ' . GFCommon::json_encode($form) . ';</script>';
+		echo '<script type="text/javascript">var form = ' . GFCommon::json_encode( $form ) . ';</script>';
 
-		parent::feed_edit_page($form, $feed_id);
+		parent::feed_edit_page( $form, $feed_id );
 	}
 
-	private function include_library($crmtype) {
-		if(isset($crmtype)) {
-			$crmname      = strtolower($crmtype);
-			$crmclassname = str_replace(' ', '', $crmname);
-			$crmclassname = 'CRMLIB_' . strtoupper($crmclassname);
-			$crmname      = str_replace(' ', '_', $crmname);
+	/**
+	 * Include library connector
+	 *
+	 * @param string $crmtype Type of CRM.
+	 * @return void
+	 */
+	private function include_library( $crmtype ) {
+		if ( isset( $crmtype ) ) {
+			$crmname      = strtolower( $crmtype );
+			$crmclassname = str_replace( ' ', '', $crmname );
+			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+			$crmname      = str_replace( ' ', '_', $crmname );
 
-			include_once 'lib/crm-' . $crmname . '.php';
+			include_once 'lib/class-crm-' . $crmname . '.php';
 
-			debug_message('lib/crm-' . $crmname . '.php');
+			debug_message( 'lib/class-crm-' . $crmname . '.php' );
 
 			$this->crmlib = new $crmclassname();
 		}

@@ -39,7 +39,7 @@ class GF_CRM_Bootstrap {
 			return;
 		}
 
-		require_once( 'class-gf-crm.php' );
+		require_once( 'class-gfcrm.php' );
 
 		GFAddOn::register( 'GFCRM' );
 	}
