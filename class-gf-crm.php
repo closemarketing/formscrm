@@ -467,10 +467,12 @@ class GFCRM extends GFFeedAddOn {
 					'name'   => $var_key,
 					'value' => $value
 				);
-			} else  {
+			} else {
+				// Cleans rare strings.
+				$value = preg_replace( '/[^A-Za-z0-9@\. -]/', '', apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry ) );
 				$merge_vars[] = array(
 					'name'   => $var_key,
-					'value' => str_replace('&', 'and', apply_filters( 'gform_crm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry ) )
+					'value'  => $value,
 				);
 			}
 		}
