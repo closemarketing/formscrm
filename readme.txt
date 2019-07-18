@@ -36,7 +36,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *   Added support to OFIWEB, Holded,
 
 = 2.6.3 =
-*   Fix rare chars.
+*   Fix rare chars not submitting to CRM.
 
 = 2.6.2 =
 *   Fix MsDynamics leadid
