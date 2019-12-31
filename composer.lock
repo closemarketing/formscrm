@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "smoolabs/wordpress-plugin-updater",
-            "version": "4.0.3",
+            "version": "4.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Capevace/wordpress-plugin-updater.git",
-                "reference": "1662faeb50397b8500da817d298a19b698ed9cab"
+                "reference": "21b257e8f31fd85db5ce1070f2a84b9ce51f37af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Capevace/wordpress-plugin-updater/zipball/1662faeb50397b8500da817d298a19b698ed9cab",
-                "reference": "1662faeb50397b8500da817d298a19b698ed9cab",
+                "url": "https://api.github.com/repos/Capevace/wordpress-plugin-updater/zipball/21b257e8f31fd85db5ce1070f2a84b9ce51f37af",
+                "reference": "21b257e8f31fd85db5ce1070f2a84b9ce51f37af",
                 "shasum": ""
             },
             "type": "library",
@@ -37,7 +37,7 @@
                 }
             ],
             "description": "A library for WordPress plugins, to utilize license verification and auto-updating using WordPress License Server.",
-            "time": "2018-09-25T15:15:49+00:00"
+            "time": "2018-11-13T07:46:50+00:00"
         }
     ],
     "packages-dev": [],
