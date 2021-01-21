@@ -1,0 +1,6 @@
+{
+    "require": {
+        "syniah/onecrmclient": "^1.2",
+        "zohocrm/php-sdk": "^2.0"
+    }
+}
