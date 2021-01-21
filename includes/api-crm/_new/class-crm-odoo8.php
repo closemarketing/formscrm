@@ -12,7 +12,7 @@
 
 include_once 'debug.php';
 
-class CRMLIB_VTIGER7 {
+class CRMLIB_ODOO8 {
 
         //Helpers functions
         /**
@@ -21,11 +21,22 @@ class CRMLIB_VTIGER7 {
              * @param  array $settings settings from Gravity Forms options
              * @return false or id           returns false if cannot login and string if gets token
              */
-            function login( $settings ) {
-                $url      = check_url_crm( $settings['gf_crm_url'] );
-                $username = $settings['gf_crm_username'];
-                $password = $settings['gf_crm_apipassword'];
-                
+    function login( $settings ) {
+
+      $url = null;
+      if( isset( $settings['gf_crm_url'] ) ) {
+        $url = check_url_crm($settings['gf_crm_url']);
+      }
+      $username = null;
+      if( isset( $settings['gf_crm_username'] ) ) {
+        $username = $settings['gf_crm_username'];
+      }
+      $password = null;
+      if( isset( $settings['gf_crm_apipassword'] ) ) {
+        $password = $settings['gf_crm_apipassword'];
+      }
+      if( $url && $username && $password ) {
+
             //Load Library XMLRPC
             require_once('ripcord/ripcord.php');
 
@@ -50,7 +61,12 @@ class CRMLIB_VTIGER7 {
                 return $uid;
             else
                 return false;
-        }
+
+      } else {
+        return false;
+      }
+
+  }
         // from login Odoo
         //Converts XML Odoo in array for Gravity Forms Custom Fields
         function convert_XML_odoo8_customfields($xml_odoo){
