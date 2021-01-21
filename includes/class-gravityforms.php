@@ -252,9 +252,9 @@ class GFCRM extends GFFeedAddOn {
 			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
 			$crmname      = str_replace( ' ', '_', $crmname );
 
-			include_once 'lib/class-crm-' . $crmname . '.php';
+			include_once 'api-crm/class-crm-' . $crmname . '.php';
 
-			debug_message( 'lib/class-crm-' . $crmname . '.php' );
+			debug_message( 'api-crm/class-crm-' . $crmname . '.php' );
 
 			$this->crmlib = new $crmclassname();
 		}
