@@ -7,7 +7,7 @@ include_once 'debugtest.php';
 
 
 define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
-require( '../../../../../wp-load.php' );
+require( '../../../../../../wp-load.php' );
 
 $settings['gf_crm_type'] = "Holded";
 $settings['gf_crm_apipassword'] = "981141ec19f4e088567b1f91f7d745ca";
