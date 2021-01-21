@@ -40,34 +40,53 @@ class CRMLIB_ZOHO {
 	 * @return false or id           returns false if cannot login and string if gets token
 	**/
 	public function login( $settings ) {
-		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
-		$email    = $settings['gf_crm_email'];
+    
+    $username = null;
+    if( isset( $settings['gf_crm_username'] ) ) {
+      $username = $settings['gf_crm_username'];
+    }
+    $password = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $password = $settings['gf_crm_apipassword'];
+    }
+    $email = null;
+    if( isset( $settings['gf_crm_email'] ) ) {
+      $email = $settings['gf_crm_email'];
+    }
+    
+    if( $email && $username && $password ) {
 
-		$configuration = array(
-			'client_id'        => $settings['gf_crm_clientid'],
-			'client_secret'    => $settings['gf_crm_apipassword'],
-			'redirect_uri'     => $settings['gf_crm_redirecturi'],
-			'currentUserEmail' => $settings['gf_crm_email'],
-		);
-		ZCRMRestClient::initialize( $configuration );
+      $configuration = array(
+        'client_id'        => $settings['gf_crm_clientid'],
+        'client_secret'    => $settings['gf_crm_apipassword'],
+        'redirect_uri'     => $settings['gf_crm_redirecturi'],
+        'currentUserEmail' => $settings['gf_crm_email'],
+      );
+      ZCRMRestClient::initialize( $configuration );
 
-		if ( $password ) {
-			$authkey = $password;
-		} else {
-			$authkey = file_get_contents('https://accounts.zoho.com/apiauthtoken/nb/create?SCOPE=ZohoCRM/crmapi&EMAIL_ID='.$username.'&PASSWORD='.$password);
-			$authkey_exist = strpos($authkey, 'AUTHTOKEN=');
+      if ( $password ) {
+        $authkey = $password;
+      } else {
+        $authkey = file_get_contents('https://accounts.zoho.com/apiauthtoken/nb/create?SCOPE=ZohoCRM/crmapi&EMAIL_ID='.$username.'&PASSWORD='.$password);
+        $authkey_exist = strpos($authkey, 'AUTHTOKEN=');
 
-			if( $authkey_exist=== false ) {
-				$cause = substr( $authkey, strpos($authkey, 'CAUSE=')+6, strpos($authkey, 'RESULT=')-strpos( $authkey, 'CAUSE=') -7 );
-				echo '<div id="message" class="error below-h2">
-				<p><strong>'.__('Zoho Error','gravityformscrm').': '.$cause.'</strong></p></div>';
-				$authkey = false;
-			} else {
-				$authkey = substr( $authkey, strpos( $authkey, 'AUTHTOKEN=')+10, 32);
-			}
-		}
-		return $authkey;
+        if( $authkey_exist=== false ) {
+          $cause = substr( $authkey, strpos($authkey, 'CAUSE=')+6, strpos($authkey, 'RESULT=')-strpos( $authkey, 'CAUSE=') -7 );
+          echo '<div id="message" class="error below-h2">
+          <p><strong>'.__('Zoho Error','gravityformscrm').': '.$cause.'</strong></p></div>';
+          $authkey = false;
+        } else {
+          $authkey = substr( $authkey, strpos( $authkey, 'AUTHTOKEN=')+10, 32);
+        }
+      }
+      return $authkey;
+      
+    } else {
+      return false;
+      
+    }
+      
+      
 	}
 
 	/**

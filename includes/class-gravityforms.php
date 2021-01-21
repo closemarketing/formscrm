@@ -96,8 +96,8 @@ class GFCRM extends GFFeedAddOn {
 							array('label' => 'Solve360','value'  => 'solve360'),
 							array('label' => 'SugarCRM 6', 'value' => 'sugarcrm6'),
 							array('label' => 'SugarCRM 7', 'value' => 'sugarcrm7'),
-							array('label' => 'SuiteCRM 3', 'value'  => 'suitecrm_3_1'),
-							array('label' => 'SuiteCRM 4', 'value'  => 'suitecrm_4_1'),
+							//array('label' => 'SuiteCRM 3', 'value'  => 'suitecrm_3_1'),
+							//array('label' => 'SuiteCRM 4', 'value'  => 'suitecrm_4_1'),
 							array('label' => 'vTiger 6', 'value' => 'vtiger_6'),
 							array('label' => 'Zoho CRM','value'  => 'zoho')
 						),

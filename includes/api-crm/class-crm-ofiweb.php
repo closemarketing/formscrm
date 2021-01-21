@@ -49,9 +49,16 @@ class CRMLIB_OFIWEB {
 	 * @return false or id     returns false if cannot login and string if gets token
 	 */
 	public function login( $settings ) {
-		$url      = $settings['gf_crm_url'];
-
-		return $url;
+    
+    $url = null;
+    if( isset( $settings['gf_crm_url'] ) ) {
+      $url = check_url_crm($settings['gf_crm_url']);
+    }
+    if( $url ) {
+      return $url;
+    } else {
+      return false;
+    }
 	}
 
 	/**

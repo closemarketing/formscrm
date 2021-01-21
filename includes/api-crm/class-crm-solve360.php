@@ -11,7 +11,7 @@
  */
 
 include_once 'debug.php';
-Class CRMLIB_SOLVECRM {
+Class CRMLIB_SOLVE360 {
 			 /**
 			 * Logins to a CRM
 			 *
@@ -19,10 +19,17 @@ Class CRMLIB_SOLVECRM {
 			 * @return false or id           returns false if cannot login and string if gets token
 			 */
 			function login( $settings ) {
-				$url      = check_url_crm( $settings['gf_crm_url'] );
-				$username = $settings['gf_crm_username'];
-				$password = $settings['gf_crm_apipassword'];
-
+        
+        $username = null;
+        if( isset( $settings['gf_crm_username'] ) ) {
+          $username = $settings['gf_crm_username'];
+        }
+        $password = null;
+        if( isset( $settings['gf_crm_apipassword'] ) ) {
+          $password = $settings['gf_crm_apipassword'];
+        }
+    
+    if( $username && $password ) {
 
 			$url = 'https://secure.solve360.com/contacts?limit=1';
 			$ch = curl_init($url);
@@ -45,12 +52,18 @@ Class CRMLIB_SOLVECRM {
 			if(!empty($errorDetails)){
 				echo '<div id="message" class="error below-h2">
 						<p><strong>'.$errorDetails.': </strong></p></div>';
-				return FALSE;
+				return false;
 			}
 			else{
 				echo '<div id="message" class="updated below-h2"><p><strong>'.__('Logged correctly in', 'gravityformscrm').' Solve360</strong></p></div>';
-				return TRUE;
+				return true;
 			}
+      
+    } else {
+      return false;
+    }
+      
+      
 		}
 		 /**
 		 * List modules of a CRM

@@ -19,40 +19,57 @@ class CRMLIB_ODOO9 {
      * @return false or id           returns false if cannot login and string if gets token
      */
     function login($settings) {
-        $url      = check_url_crm($settings['gf_crm_url']);
+
+      $url = null;
+      if( isset( $settings['gf_crm_url'] ) ) {
+        $url = check_url_crm($settings['gf_crm_url']);
+      }
+      $username = null;
+      if( isset( $settings['gf_crm_username'] ) ) {
         $username = $settings['gf_crm_username'];
+      }
+      $password = null;
+      if( isset( $settings['gf_crm_apipassword'] ) ) {
         $password = $settings['gf_crm_apipassword'];
-        $dbname   = $settings['gf_crm_odoodb'];
+      }
+      $dbname = null;
+      if( isset( $settings['gf_crm_odoodb'] ) ) {
+        $dbname = $settings['gf_crm_odoodb'];
+      }
+      if( $url && $username && $password && $dbname ) {
 
-    	//Load Library XMLRPC
-    	require_once 'ripcord/ripcord.php';
-    	if (substr($url, -1) != '/') {
-    		$url .= '/';
-    	}
-    	//adds slash to url
+        //Load Library XMLRPC
+        require_once 'ripcord/ripcord.php';
+        if (substr($url, -1) != '/') {
+          $url .= '/';
+        }
+        //adds slash to url
 
-    	//Manage Errors from Library
-    	try {
-    		$common = ripcord::client($url . 'xmlrpc/2/common');
-    	} catch (Exception $e) {
-    		echo '<div id="message" class="error below-h2">
-    		<p><strong>Error: ' . $e->getMessage() . '</strong></p></div>';
-    		return false;
-    	}
+        //Manage Errors from Library
+        try {
+          $common = ripcord::client($url . 'xmlrpc/2/common');
+        } catch (Exception $e) {
+          echo '<div id="message" class="error below-h2">
+          <p><strong>Error: ' . $e->getMessage() . '</strong></p></div>';
+          return false;
+        }
 
-    	try {
-    		$uid = $common->authenticate($dbname, $username, $password, array());
-    	} catch (Exception $e) {
-    		echo '<div id="message" class="error below-h2">
-    		<p><strong>Error: ' . $e->getMessage() . '</strong></p></div>';
-    		return false;
-    	}
+        try {
+          $uid = $common->authenticate($dbname, $username, $password, array());
+        } catch (Exception $e) {
+          echo '<div id="message" class="error below-h2">
+          <p><strong>Error: ' . $e->getMessage() . '</strong></p></div>';
+          return false;
+        }
 
-    	if (isset($uid)) {
-    		return $uid;
-    	} else {
-    		return false;
-    	}
+        if (isset($uid)) {
+          return $uid;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
     }
     // from login Odoo
     /**

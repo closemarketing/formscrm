@@ -61,10 +61,23 @@ class CRMLIB_SUGARCRM7 {
 	 * @return false or id           returns false if cannot login and string if gets token
 	 */
 	function login( $settings ) {
-		$url      = check_url_crm( $settings['gf_crm_url'] );
-		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
-        $url = $url.'service/v4_1/rest.php';
+    
+    $url = null;
+    if( isset( $settings['gf_crm_url'] ) ) {
+      $url = check_url_crm($settings['gf_crm_url']);
+    }
+    $username = null;
+    if( isset( $settings['gf_crm_username'] ) ) {
+      $username = $settings['gf_crm_username'];
+    }
+    $password = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $password = $settings['gf_crm_apipassword'];
+    }
+    
+    if( $url && $username && $password ) {
+
+      $url = $url.'service/v4_1/rest.php';
 
         //login ------------------------------
         $login_parameters = array(
@@ -82,13 +95,18 @@ class CRMLIB_SUGARCRM7 {
         debug_message($login_result);
 
         if(isset($login_result->name)) {
-            echo '<div id="message" class="error below-h2"><p><strong>'.$login_result->description.': </strong></p></div>';
-            return false;
+          echo '<div id="message" class="error below-h2"><p><strong>'.$login_result->description.': </strong></p></div>';
+          return false;
         } else {
-            $login_token = $login_result->id;
+          $login_token = $login_result->id;
+          return $login_token;
         }
 
-        return $login_token;
+        
+      } else {
+        return false;
+      }
+        
     }
     /**
 	 * List modules of a CRM

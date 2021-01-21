@@ -11,7 +11,7 @@
  */
 
 include_once 'debug.php';
-class CRMLIB_VTIGER7 {
+class CRMLIB_SALESFORCE {
 	/**
 	 * Logins to a CRM
 	 *
@@ -19,28 +19,43 @@ class CRMLIB_VTIGER7 {
 	 * @return false or id           returns false if cannot login and string if gets token
 	 */
 	function login( $settings ) {
-		$url      = check_url_crm( $settings['gf_crm_url'] );
-		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
-		
-		require_once ('salesforce/SforcePartnerClient.php');
-		require_once ('salesforce/SforceHeaderOptions.php');
+    
+    $url = null;
+    if( isset( $settings['gf_crm_url'] ) ) {
+      $url = check_url_crm($settings['gf_crm_url']);
+    }
+    $username = null;
+    if( isset( $settings['gf_crm_username'] ) ) {
+      $username = $settings['gf_crm_username'];
+    }
+    $password = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $password = $settings['gf_crm_apipassword'];
+    }
+    
+    if( $url && $username && $password ) {
+      
+      require_once ('salesforce/SforcePartnerClient.php');
+      require_once ('salesforce/SforceHeaderOptions.php');
 
-		//Return true or false for logged in
-		try {
-				$mySforceConnection = new SforcePartnerClient();
-				$mySoapClient = $mySforceConnection->createConnection(plugin_dir_path( __FILE__ ).'salesforce/partner.wsdl.xml');
-				$mylogin = $mySforceConnection->login($username, $password);
+      //Return true or false for logged in
+      try {
+          $mySforceConnection = new SforcePartnerClient();
+          $mySoapClient = $mySforceConnection->createConnection(plugin_dir_path( __FILE__ ).'salesforce/partner.wsdl.xml');
+          $mylogin = $mySforceConnection->login($username, $password);
 
-				return $mylogin->userInfo->userId;
-			}
-			catch (Exception $e)
-			{
-				echo '<div id="message" class="error below-h2">
-					<p><strong>Salesforce CRM: Code '.$e.' </strong></p></div>';
-			}
+          return $mylogin->userInfo->userId;
+        }
+        catch (Exception $e)
+        {
+          echo '<div id="message" class="error below-h2">
+            <p><strong>Salesforce CRM: Code '.$e.' </strong></p></div>';
+        }
 
-			return false;
+        return false;
+    } else {
+      return false;
+    }
 	}
 
 	/**

@@ -12,7 +12,7 @@
 
 include_once 'debug.php';
 
-class CRMLIB_VTIGER6 {
+class CRMLIB_VTIGER_6 {
 
 	/* Converts Array to vtiger webservice specification */
 	function convert_custom_fields($merge_vars) {
