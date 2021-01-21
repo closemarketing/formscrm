@@ -12,7 +12,7 @@
 
 include_once 'debug.php';
 
-Class CRMLIB_ESPOCRM {
+Class CRMLIB_ESPO_CRM {
 	/* Converts Array to espocrm webservice specification */
 	function convert_custom_fields($merge_vars) {
 		$i        = 0;

@@ -21,9 +21,20 @@ Class CRMLIB_MSDYN {
 	 * @return false or id           returns false if cannot login and string if gets token
 	 */
     function login( $settings ) {
-		$url      = check_url_crm( $settings['gf_crm_url'] );
-		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
+
+      $url = null;
+      if( isset( $settings['gf_crm_url'] ) ) {
+        $url = check_url_crm($settings['gf_crm_url']);
+      }
+      $username = null;
+      if( isset( $settings['gf_crm_username'] ) ) {
+        $username = $settings['gf_crm_username'];
+      }
+      $password = null;
+      if( isset( $settings['gf_crm_apipassword'] ) ) {
+        $password = $settings['gf_crm_apipassword'];
+      }
+      if( $url && $username && $password ) {
 
         include_once 'dynamics/CrmAuth.php';
         include_once 'dynamics/CrmExecuteSoap.php';
@@ -62,8 +73,12 @@ Class CRMLIB_MSDYN {
                 return $value->lastChild->textContent;
             }
         }
-
         return false;
+
+      } else {
+        return false;
+      }
+
     }
     /**
 	 * List modules of a CRM

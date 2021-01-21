@@ -14,7 +14,7 @@ require_once 'debug.php';
 /**
  * Library Connector for MSPFE CRM
  */
-class CRM_MSPFE {
+class CRMLIB_MSPFE {
 	/**
 	 * Logins to a CRM
 	 *
@@ -22,51 +22,66 @@ class CRM_MSPFE {
 	 * @return false or id      returns false if cannot login and string if gets token.
 	 */
 	public function login( $settings ) {
-		$url      = check_url_crm( $settings['gf_crm_url'] );
-		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
 
-		include_once 'dynamics/CrmAuth.php';
-		include_once 'dynamics/CrmExecuteSoap.php';
-		include_once 'dynamics/CrmAuthenticationHeader.php';
+    $url = null;
+    if( isset( $settings['gf_crm_url'] ) ) {
+      $url = check_url_crm($settings['gf_crm_url']);
+    }
+    $username = null;
+    if( isset( $settings['gf_crm_username'] ) ) {
+      $username = $settings['gf_crm_username'];
+    }
+    $password = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $password = $settings['gf_crm_apipassword'];
+    }
+    if( $url && $username && $password ) {
 
-		// GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online.
-		$crm_auth    = new CrmAuth();
-		$auth_header = $crm_auth->GetHeaderOnPremise( $username, $password, $url );
+      include_once 'dynamics/CrmAuth.php';
+      include_once 'dynamics/CrmExecuteSoap.php';
+      include_once 'dynamics/CrmAuthenticationHeader.php';
 
-		debug_message( $auth_header );
+      // GetHeaderOnPremise - for IFD or OnPremise, GetHeaderOnline - Online.
+      $crm_auth    = new CrmAuth();
+      $auth_header = $crm_auth->GetHeaderOnPremise( $username, $password, $url );
 
-		if ( null === $auth_header ) {
-			echo '<div id="message" class="error below-h2">
-                <p><strong>' . __( 'Unable to authenticate LiveId.', 'gravityformscrm' ) . ': </strong></p></div>';
-			return false;
-		}
+      debug_message( $auth_header );
 
-		$xml  = '<s:Body>';
-		$xml .= '<Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">';
-		$xml .= '<request i:type="c:WhoAmIRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://schemas.microsoft.com/crm/2011/Contracts">';
-		$xml .= '<b:Parameters xmlns:d="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>';
-		$xml .= '<b:RequestId i:nil="true"/>';
-		$xml .= '<b:RequestName>WhoAmI</b:RequestName>';
-		$xml .= '</request>';
-		$xml .= '</Execute>';
-		$xml .= '</s:Body>';
+      if ( null === $auth_header ) {
+        echo '<div id="message" class="error below-h2">
+                  <p><strong>' . __( 'Unable to authenticate LiveId.', 'gravityformscrm' ) . ': </strong></p></div>';
+        return false;
+      }
 
-		$execute_soap = new CrmExecuteSoap();
-		$response     = $execute_soap->ExecuteSOAPRequest( $auth_header, $xml, $url, 'Execute' );
+      $xml  = '<s:Body>';
+      $xml .= '<Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">';
+      $xml .= '<request i:type="c:WhoAmIRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://schemas.microsoft.com/crm/2011/Contracts">';
+      $xml .= '<b:Parameters xmlns:d="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>';
+      $xml .= '<b:RequestId i:nil="true"/>';
+      $xml .= '<b:RequestName>WhoAmI</b:RequestName>';
+      $xml .= '</request>';
+      $xml .= '</Execute>';
+      $xml .= '</s:Body>';
 
-		$responsedom = new DomDocument();
-		$responsedom->loadXML( $response );
+      $execute_soap = new CrmExecuteSoap();
+      $response     = $execute_soap->ExecuteSOAPRequest( $auth_header, $xml, $url, 'Execute' );
 
-		$values = $responsedom->getElementsbyTagName( 'KeyValuePairOfstringanyType' );
+      $responsedom = new DomDocument();
+      $responsedom->loadXML( $response );
 
-		foreach ( $values as $value ) {
-			if ( 'UserId' === $value->firstChild->textContent ) {
-				return $value->lastChild->textContent;
-			}
-		}
+      $values = $responsedom->getElementsbyTagName( 'KeyValuePairOfstringanyType' );
 
-		return false;
+      foreach ( $values as $value ) {
+        if ( 'UserId' === $value->firstChild->textContent ) {
+          return $value->lastChild->textContent;
+        }
+      }
+      return false;
+      
+    } else {
+      return false;
+      
+    }
 	}
 	/**
 	 * List modules of a CRM
