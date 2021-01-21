@@ -1,0 +1,6 @@
+[submodule "salesforce/lib/salesforce"]
+	path = salesforce/lib/salesforce
+	url = https://github.com/developerforce/Force.com-Toolkit-for-PHP.git
+[submodule "odoo/lib"]
+	path = odoo/lib
+	url = https://github.com/poef/ripcord.git

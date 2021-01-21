@@ -1,0 +1,21 @@
+{
+    "name": "syniah/onecrmclient",
+    "description": "Client wrapper for the 1CRM REST service",
+    "require": {
+        "php": ">=5.4.0",
+        "ext-curl": "*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marcus Bointon",
+            "email": "marcus@synchromedia.co.uk"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "OneCRM\\": "src/"
+        }
+    }
+}

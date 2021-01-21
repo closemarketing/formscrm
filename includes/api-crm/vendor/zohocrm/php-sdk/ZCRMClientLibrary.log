@@ -1,0 +1,16 @@
+2019-09-18 08:38:41 ERROR: zcrmsdk\crm\exception\ZCRMException Caused by:'current user should either be set in ZCRMRestClient or in configuration  map' in /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/utility/ZCRMConfigUtil.php(93)
+Trace::#0 /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/api/APIRequest.php(71): zcrmsdk\crm\utility\ZCRMConfigUtil::getAccessToken()
+#1 /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/api/APIRequest.php(113): zcrmsdk\crm\api\APIRequest->authenticateRequest()
+#2 /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/api/handler/MetaDataAPIHandler.php(34): zcrmsdk\crm\api\APIRequest->getBulkAPIResponse()
+#3 /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/setup/restclient/ZCRMRestClient.php(49): zcrmsdk\crm\api\handler\MetaDataAPIHandler->getAllModules()
+#4 /Users/davidperezgar/Web/php-crmapi/class-crm-zoho.php(74): zcrmsdk\crm\setup\restclient\ZCRMRestClient->getAllModules()
+#5 /Users/davidperezgar/Web/php-crmapi/_test/zoho.php(24): CRMLIB_ZOHO->list_modules(Array)
+#6 {main}
+2019-09-18 08:39:19 ERROR: zcrmsdk\crm\exception\ZCRMException Caused by:'current user should either be set in ZCRMRestClient or in configuration  map' in /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/utility/ZCRMConfigUtil.php(93)
+Trace::#0 /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/api/APIRequest.php(71): zcrmsdk\crm\utility\ZCRMConfigUtil::getAccessToken()
+#1 /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/api/APIRequest.php(113): zcrmsdk\crm\api\APIRequest->authenticateRequest()
+#2 /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/api/handler/MetaDataAPIHandler.php(34): zcrmsdk\crm\api\APIRequest->getBulkAPIResponse()
+#3 /Users/davidperezgar/Web/php-crmapi/vendor/zohocrm/php-sdk/src/crm/setup/restclient/ZCRMRestClient.php(49): zcrmsdk\crm\api\handler\MetaDataAPIHandler->getAllModules()
+#4 /Users/davidperezgar/Web/php-crmapi/class-crm-zoho.php(76): zcrmsdk\crm\setup\restclient\ZCRMRestClient->getAllModules()
+#5 /Users/davidperezgar/Web/php-crmapi/_test/zoho.php(24): CRMLIB_ZOHO->list_modules(Array)
+#6 {main}
