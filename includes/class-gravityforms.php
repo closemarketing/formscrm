@@ -89,7 +89,7 @@ class GFCRM extends GFFeedAddOn {
 							array('label' => 'HubSpot','value'  => 'hubspot'),
 							array('label' => 'Microsoft Dynamics CRM','value'  => 'msdyn'),
 							array('label' => 'Microsoft Dynamics CRM (on premise)','value'  => 'mspfe'),
-							array('label' => 'Odoo 8','value'  => 'odoo8'),
+							//array('label' => 'Odoo 8','value'  => 'odoo8'),
 							array('label' => 'Odoo 9','value'  => 'odoo9'),
 							array('label' => 'OFIWEB','value'  => 'ofiweb'),
 							array('label' => 'Salesforce','value'  => 'salesforce'),
