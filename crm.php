@@ -29,7 +29,7 @@ define( 'GF_CRM_VERSION', '3.0beta1' );
 
 add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 
-include_once 'lib/debug.php';
+include_once 'includes/debug.php';
 
 class GF_CRM_Bootstrap {
 
@@ -39,7 +39,7 @@ class GF_CRM_Bootstrap {
 			return;
 		}
 
-		require_once( 'class-gfcrm.php' );
+		require_once( 'includes/class-gravityform.php' );
 
 		GFAddOn::register( 'GFCRM' );
 	}
