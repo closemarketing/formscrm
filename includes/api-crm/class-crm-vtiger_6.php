@@ -76,40 +76,55 @@ class CRMLIB_VTIGER6 {
 	 * @return false or id           returns false if cannot login and string if gets token
 	 */
 	function login($settings) {
-		$url      = check_url_crm($settings['gf_crm_url']);
-		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
+    $url = null;
+    if( isset( $settings['gf_crm_url'] ) ) {
+      $url = check_url_crm($settings['gf_crm_url']);
+    }
+    $username = null;
+    if( isset( $settings['gf_crm_username'] ) ) {
+      $username = $settings['gf_crm_username'];
+    }
+    $password = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $password = $settings['gf_crm_apipassword'];
+    }
+    
+    if( $url && $username && $password ) {
+      $webservice     = $url . '/webservice.php';
+      $operation      = '?operation=getchallenge&username=' . $username;
+      $result         = $this->call_vtiger_get($webservice . $operation);
+      $json           = json_decode($result, true);
+      $challengeToken = $json['result']['token'];
 
-		$webservice     = $url . '/webservice.php';
-		$operation      = '?operation=getchallenge&username=' . $username;
-		$result         = $this->call_vtiger_get($webservice . $operation);
-		$json           = json_decode($result, true);
-		$challengeToken = $json['result']['token'];
+      // Get MD5 checksum of the concatenation of challenge token and user own Access Key
+      $accessKey = md5($challengeToken . $password);
 
-		// Get MD5 checksum of the concatenation of challenge token and user own Access Key
-		$accessKey = md5($challengeToken . $password);
+      // Define login operation parameters
+      $operation2 = array(
+        "operation" => "login",
+        "username"  => $username,
+        "accessKey" => $accessKey,
+      );
 
-		// Define login operation parameters
-		$operation2 = array(
-			"operation" => "login",
-			"username"  => $username,
-			"accessKey" => $accessKey,
-		);
+      // Execute and get result on server response for login operation
+      $result = $this->call_vtiger_post($webservice, $operation2);
+      // Decode JSON response
+      debug_message($result);
 
-		// Execute and get result on server response for login operation
-		$result = $this->call_vtiger_post($webservice, $operation2);
-		// Decode JSON response
-		debug_message($result);
+      $json = json_decode($result, true);
 
-		$json = json_decode($result, true);
+    }
 
-		if ($json['success'] == false) {
-			return false;
-		} else {
-			$this->apikey = $json['result']['sessionName'];
-			return $json['result']['sessionName'];
-		}
-
+    if( isset($json) ) {
+      if ($json['success'] == false) {
+        return false;
+      } else {
+        $this->apikey = $json['result']['sessionName'];
+        return $json['result']['sessionName'];
+      }
+    } else {
+      return false;
+    }
 	}
 	/**
 	 * List Modules
