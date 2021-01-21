@@ -85,49 +85,49 @@ Class CRMLIB_ESPOCRM {
 	
 	 
 	function login($settings) {
-		
-		$url            = check_url_crm($settings['gf_crm_url']);
-		$username       = $settings['gf_crm_username'];
-		$password       = $settings['gf_crm_apipassword'];		
-		$webservice     = $url . 'api/v1/App/user';		
-		$operation      = '?operation=getchallenge&username=' . $username;
-		$urltotal       = $webservice . $operation;
-		$result         = $this-> call_espo_crm_get($urltotal);		
-		$json           = json_decode($result, true);		
-		$challengeToken = $json['result']['token'];
-		
-		
+    $url = null;
+    if( isset( $settings['gf_crm_url'] ) ) {
+      $url = check_url_crm($settings['gf_crm_url']);
+    }
+    $username = null;
+    if( isset( $settings['gf_crm_username'] ) ) {
+      $username = $settings['gf_crm_username'];
+    }
+    $password = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $password = $settings['gf_crm_apipassword'];
+    }
+    if( $url && $username && $password ) {
 
-		// Get MD5 checksum of the concatenation of challenge token and user own Access Key
-		$accessKey = md5($challengeToken . $password);
-
-		// Define login operation parameters
-		$operation2 = array(
-			"operation" => "login",
-			"username"  => $username,
-			"accessKey" => $accessKey,
-		);
-
-		// Execute and get result on server response for login operation
-		$result = $this->call_espo_crm_post($webservice, $operation2);
-		
-		// Decode JSON response
-		
-		debug_message($result);
-
-		$json = json_decode($result, true);
-
-		if ($json['success'] == false) {
-			return false;
-		} else {
-			$this->apikey = $json['result']['sessionName'];
-			return $json['result']['sessionName'];
-		}
-
+      $webservice     = $url . 'api/v1/App/user';		
+      $operation      = '?operation=getchallenge&username=' . $username;
+      $urltotal       = $webservice . $operation;
+      $result         = $this-> call_espo_crm_get($urltotal);		
+      $json           = json_decode($result, true);		
+      $challengeToken = $json['result']['token'];
+      // Get MD5 checksum of the concatenation of challenge token and user own Access Key
+      $accessKey = md5($challengeToken . $password);
+      // Define login operation parameters
+      $operation2 = array(
+        "operation" => "login",
+        "username"  => $username,
+        "accessKey" => $accessKey,
+      );
+      // Execute and get result on server response for login operation
+      $result = $this->call_espo_crm_post($webservice, $operation2);
+      // Decode JSON response
+      debug_message($result);
+      $json = json_decode($result, true);
+      if ($json['success'] == false) {
+        return false;
+      } else {
+        $this->apikey = $json['result']['sessionName'];
+        return $json['result']['sessionName'];
+      }
+    } else {
+      return false;
+    }
 	}
-
-
-
 
 	/**
 	 * List Modules
