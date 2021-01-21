@@ -86,8 +86,18 @@ Class CRMLIB_HOLDED {
 	 * @return false or id     returns false if cannot login and string if gets token
 	 */
 	public function login( $settings ) {
-		$this->apikey = $settings['gf_crm_apipassword'];
-		return $this->get( 'contacts' )[0]['id'];
+    
+    $this->apikey = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $this->apikey = $settings['gf_crm_apipassword'];
+    }
+
+    if( $this->apikey ) {
+      return $this->get( 'contacts' )[0]['id'];
+      
+    } else {
+      return false;
+    }
 	}
 
 	/**

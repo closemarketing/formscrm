@@ -24,20 +24,29 @@ class CRMLIB_HUBSPOT {
 	 * @return boolean id returns false if cannot login and string if gets token.
 	 */
 	public function login( $settings ) {
-		$password = $settings['gf_crm_apipassword'];
+    
+    $password = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $password = $settings['gf_crm_apipassword'];
+    }
+    
+    if( $password ) {
+      $endpoint = 'https://api.hubapi.com/contacts/v1/lists/all/contacts/all?hapikey=' . $password . '&count=1';
+      $ch       = curl_init();
+      curl_setopt( $ch, CURLOPT_URL, $endpoint );
+      curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Content-Type: application/json' ) );
+      curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+      curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+      $response    = curl_exec( $ch );
+      $status_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+      $curl_errors = curl_error( $ch );
+      curl_close( $ch );
 
-		$endpoint = 'https://api.hubapi.com/contacts/v1/lists/all/contacts/all?hapikey=' . $password . '&count=1';
-		$ch       = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $endpoint );
-		curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Content-Type: application/json' ) );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-		$response    = curl_exec( $ch );
-		$status_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
-		$curl_errors = curl_error( $ch );
-		curl_close( $ch );
-
-		return $status_code == 200;
+      return $status_code == 200;
+    } else {
+      return false;
+    }
+    
 	}
 	/**
 	 * List Modules
