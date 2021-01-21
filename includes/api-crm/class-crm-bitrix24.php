@@ -11,7 +11,7 @@
  */
 
 include_once 'debug.php';
-Class CRMLIB_BITRIX { 
+Class CRMLIB_BITRIX24 { 
 	/**
 	 * Login
 	 */
@@ -22,22 +22,37 @@ Class CRMLIB_BITRIX {
 	 * @return false or id           returns false if cannot login and string if gets token
 	 */
 	function login( $settings ) {
-		$url      = check_url_crm( $settings['gf_crm_url'] );
-		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
-		if(substr($url, 0, 4) == 'http') {
-			//Url normal
-			$url = parse_url($url);
-			$url = $url['host'];
-		}
-		if(substr($url, -1) =='/') $url = substr($url, 0, -1); //removes slash to url
+    $url = null;
+    if( isset( $settings['gf_crm_url'] ) ) {
+      $url = check_url_crm($settings['gf_crm_url']);
+    }
+    $username = null;
+    if( isset( $settings['gf_crm_username'] ) ) {
+      $username = $settings['gf_crm_username'];
+    }
+    $password = null;
+    if( isset( $settings['gf_crm_apipassword'] ) ) {
+      $password = $settings['gf_crm_apipassword'];
+    }
+    if( $url && $username && $password ) {
 
-		$fp = fsockopen("ssl://".$url, $crmport, $errno, $errstr, 30);
-		if ($fp) {
-			echo '<div id="message" class="updated below-h2"><p><strong>'.__('Logged correctly in', 'gravityformscrm').' Bitrix</strong></p></div>';
-			return true;
-			}
-		return false;
+      if(substr($url, 0, 4) == 'http') {
+        //Url normal
+        $url = parse_url($url);
+        $url = $url['host'];
+      }
+      if(substr($url, -1) =='/') $url = substr($url, 0, -1); //removes slash to url
+
+      $fp = fsockopen("ssl://".$url, $crmport, $errno, $errstr, 30);
+      if ($fp) {
+        echo '<div id="message" class="updated below-h2"><p><strong>'.__('Logged correctly in', 'gravityformscrm').' Bitrix</strong></p></div>';
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
 	}
 
 	/**
