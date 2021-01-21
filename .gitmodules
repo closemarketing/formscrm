@@ -1,3 +1,0 @@
-[submodule "lib"]
-	path = lib
-	url = https://davidperezgar@bitbucket.org/closemarketing/php-crm-api-functions.git
