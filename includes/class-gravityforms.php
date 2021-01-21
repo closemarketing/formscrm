@@ -19,7 +19,7 @@ class GFCRM extends GFFeedAddOn {
 	protected $_slug                     = 'gravityformscrm';
 	protected $_path                     = 'gravityformscrm/crm.php';
 	protected $_full_path                = __FILE__;
-	protected $_url                      = 'http://www.gravityforms.com';
+	protected $_url                      = 'https://www.gravityforms.com';
 	protected $_title                    = 'CRM Add-On';
 	protected $_short_title              = 'CRM';
 
@@ -82,45 +82,27 @@ class GFCRM extends GFFeedAddOn {
 						'class'    => 'medium',
 						'onchange' => 'jQuery(this).parents("form").submit();',
 						'choices'  => array(
-							array(
-								'label' => 'vTiger 6',
-								'name' => 'vtiger_6',
-							),
-							array(
-								'label' => 'SugarCRM',
-								'name' => 'sugarcrm'
-							),
-							array('label' => 'SugarCRM7', 'name' => 'sugarcrm7'),
-							array('label' => 'SuiteCRM API 3_1', 'name'  => 'suitecrm31'),
-							array('label' => 'SuiteCRM API 4_1', 'name'  => 'suitecrm41' ),
-							array('label' => 'VTE CRM','name'  => 'vtecrm'),
+							//array('label' => '1CRM','name'  => '1CRM'),
+							array('label' => 'Bitrix24','name'  => 'bitrix'),
+							array('label' => 'ESPO CRM','name'  => 'espocrm'),
+							array('label' => 'FacturaDirecta','name'  => 'facturadirecta'),
+							array('label' => 'FreshDesk','name'  => 'freshdesk'),
+							array('label' => 'Holded','name'  => 'holded'),
+							array('label' => 'HubSpot','name'  => 'hubspot'),
+							array('label' => 'Microsoft Dynamics CRM','name'  => 'msdynamics'),
+							array('label' => 'Microsoft Dynamics CRM (on premise)','name'  => 'msdynamicspfe'),
 							array('label' => 'Odoo 8','name'  => 'odoo8'),
 							array('label' => 'Odoo 9','name'  => 'odoo9'),
-							array('label' => 'Microsoft Dynamics CRM','name'  => 'msdynamics'),
-							array('label' => 'Microsoft Dynamics CRM ON Premise','name'  => 'msdynamicspfe'),
-							array('label' => 'ESPO CRM','name'  => 'espocrm'),
-							array('label' => 'Zoho CRM','name'  => 'zohocrm'),
+							array('label' => 'OFIWEB','name'  => 'ofiweb'),
 							array('label' => 'Salesforce','name'  => 'salesforce'),
-							array('label' => 'Bitrix24','name'  => 'bitrix24'),
 							array('label' => 'Solve360','name'  => 'solve360'),
-							array('label' => 'FacturaDirecta','name'  => 'facturadirecta'),
-							array('label' => 'HubSpot','name'  => 'hubspot'),
-							array(
-								'label' => 'Holded',
-								'name'  => 'holded'
-							),
-							array(
-								'label' => 'FreshDesk',
-								'name'  => 'freshdesk',
-							),
-							array(
-								'label' => '1CRM',
-								'name'  => '1CRM',
-							),
-							array(
-								'label' => 'OFIWEB',
-								'name'  => 'ofiweb',
-							),
+							array('label' => 'SugarCRM', 'name' => 'sugarcrm'),
+							array('label' => 'SugarCRM 7', 'name' => 'sugarcrm7'),
+							array('label' => 'SuiteCRM 3', 'name'  => 'suitecrm31'),
+							array('label' => 'SuiteCRM 4', 'name'  => 'suitecrm41'),
+							array('label' => 'vTiger 6', 'name' => 'vtiger_6'),
+							array('label' => 'VTE CRM','name'  => 'vtecrm'),
+							array('label' => 'Zoho CRM','name'  => 'zohocrm'),
 						),
 					),
 					array(
@@ -133,24 +115,22 @@ class GFCRM extends GFFeedAddOn {
 						'dependency'    => array(
 							'field'  => 'gf_crm_type',
 							'values' => array(
-								'SugarCRM',
-								'SugarCRM7',
-								'SuiteCRM API 3_1',
-								'SuiteCRM API 4_1',
+								//'1CRM',
+								'Bitrix24',
+								'ESPO CRM',
+								'FacturaDirecta',
+								'FreshDesk',
+								'Microsoft Dynamics CRM',
+								'Microsoft Dynamics CRM (on premise)',
 								'Odoo 8',
 								'Odoo 9',
-								'Microsoft Dynamics CRM',
-								'Microsoft Dynamics CRM ON Premise',
-								'ESPO CRM',
-								'SuiteCRM',
-								'vTiger 6',
-								'VTE CRM',
-								'Bitrix24',
-								'FacturaDirecta',
-								'amoCRM',
-								'FreshDesk',
-								'1CRM',
 								'OFIWEB',
+								'SugarCRM',
+								'SugarCRM 7',
+								'SuiteCRM 3',
+								'SuiteCRM 4',
+								'vTiger 6',
+								'VTE CRM'
 							),
 						),
 					),
@@ -159,7 +139,27 @@ class GFCRM extends GFFeedAddOn {
 						'label'             => __('Username', 'gravityformscrm'),
 						'type'              => 'text',
 						'class'             => 'medium',
-						'dependency'        => array('field' => 'gf_crm_type', 'values' => array('vTiger 6', 'SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'VTE CRM', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'Zoho CRM', 'Salesforce', 'Bitrix24', 'Solve360', 'FacturaDirecta','1CRM')),
+						'dependency'        => array(
+              'field' => 'gf_crm_type',
+              'values' => array(
+                //'1CRM',
+                'Bitrix24',
+                'ESPO CRM',
+                'FacturaDirecta',
+                'Microsoft Dynamics CRM',
+								'Microsoft Dynamics CRM (on premise)',
+                'Odoo 8',
+                'Odoo 9',
+                'Salesforce',
+                'Solve360',
+                'SugarCRM',
+                'SugarCRM 7',
+                'SuiteCRM 3',
+                'SuiteCRM 4',
+                'vTiger 6',
+                'VTE CRM',
+                'Zoho CRM'
+            )),
 						'feedback_callback' => $this->login_api_crm(),
 					),
 					array(
@@ -169,7 +169,24 @@ class GFCRM extends GFFeedAddOn {
 						'class'         => 'medium',
 						'tooltip'       => __('Use the password of the actual user.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('SugarCRM', 'SugarCRM7', 'SuiteCRM API 3_1', 'SuiteCRM API 4_1', 'Odoo 8', 'Odoo 9', 'Microsoft Dynamics CRM', 'Microsoft Dynamics CRM ON Premise', 'ESPO CRM', 'SuiteCRM', 'Zoho CRM', 'Bitrix24', 'FacturaDirecta','FreshDesk','1CRM')),
+						'dependency'    => array(
+              'field' => 'gf_crm_type',
+              'values' => array(
+                //'1CRM',
+                'Bitrix24',
+                'ESPO CRM',
+                'FacturaDirecta',
+                'FreshDesk',
+                'Microsoft Dynamics CRM',
+								'Microsoft Dynamics CRM (on premise)',
+                'Odoo 8',
+                'Odoo 9',
+                'SugarCRM',
+                'SugarCRM 7',
+                'SuiteCRM 3',
+                'SuiteCRM 4',
+                'Zoho CRM'
+            )),
 					),
 					array(
 						'name'          => 'gf_crm_apipassword',
@@ -179,7 +196,17 @@ class GFCRM extends GFFeedAddOn {
 						//'feedback_callback' => $this->login_api_crm(),
 						'tooltip'       => __('Find the API Password in the profile of the user in CRM.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('vTiger 6', 'VTE CRM', 'Solve360', 'amoCRM', 'HubSpot', 'Holded','FreshDesk')),
+						'dependency'    => array(
+              'field' => 'gf_crm_type',
+              'values' => array(
+                'amoCRM',
+                'FreshDesk',
+                'Holded',
+                'HubSpot',
+                'Solve360',
+                'vTiger 6',
+                'VTE CRM'
+            )),
 					),
 					array(
 						'name'          => 'gf_crm_apisales',
@@ -188,14 +215,23 @@ class GFCRM extends GFFeedAddOn {
 						'class'         => 'medium',
 						'tooltip'       => __('"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array('field' => 'gf_crm_type', 'values' => array('Salesforce')),
+						'dependency'    => array(
+              'field' => 'gf_crm_type',
+              'values' => array(
+                'Salesforce'
+            )),
 					),
 					array(
 						'name'       => 'gf_crm_odoodb',
 						'label'      => __('Odoo DB Name', 'gravityformscrm'),
 						'type'       => 'text',
 						'class'      => 'medium',
-						'dependency' => array('field' => 'gf_crm_type', 'values' => array('Odoo 8', 'Odoo 9')),
+						'dependency' => array(
+              'field' => 'gf_crm_type',
+              'values' => array(
+                'Odoo 8',
+                'Odoo 9'
+            )),
 					),
 				),
 			),
