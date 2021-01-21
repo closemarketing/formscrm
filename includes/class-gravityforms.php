@@ -451,7 +451,9 @@ class GFCRM extends GFFeedAddOn {
 
 		//* Logins to CRM
 		$settings = $this->get_plugin_settings();
-		$this->include_library($settings['gf_crm_type']);
+    
+    if(isset($settings['gf_crm_type']))
+      $this->include_library($settings['gf_crm_type']);
 
 		if(isset($this->crmlib))
 			$login_result = $this->crmlib->login($settings);
