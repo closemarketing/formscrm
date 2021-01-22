@@ -120,21 +120,21 @@ class GFCRM extends GFFeedAddOn {
 						'dependency'        => array(
 							'field' => 'gf_crm_type',
 							'values' => array(
-							'bitrix24',
-							'espo_crm',
-							'facturadirecta',
-							'msdyn',
-													'mspfe',
-							'odoo8',
-							'odoo9',
-							'salesforce',
-							'solve360',
-							'sugarcrm6',
-							'sugarcrm7',
-							'suitecrm_3_1',
-							'suitecrm_4_1',
-							'vtiger_6',
-							'zoho'
+								'bitrix24',
+								'espo_crm',
+								'facturadirecta',
+								'msdyn',
+								'mspfe',
+								'odoo8',
+								'odoo9',
+								'salesforce',
+								'solve360',
+								'sugarcrm6',
+								'sugarcrm7',
+								'suitecrm_3_1',
+								'suitecrm_4_1',
+								'vtiger_6',
+								'zoho'
 							)),
 						'feedback_callback' => $this->login_api_crm(),
 					),
@@ -146,21 +146,22 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip'       => __('Use the password of the actual user.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
-              'field' => 'gf_crm_type',
-              'values' => array(
-                'bitrix24',
-                'espo_crm',
-                'facturadirecta',
-                'msdyn',
+							'field' => 'gf_crm_type',
+							'values' => array(
+								'bitrix24',
+								'espo_crm',
+								'facturadirecta',
+								'msdyn',
 								'mspfe',
-                'odoo8',
-                'odoo9',
-                'sugarcrm6',
-                'sugarcrm7',
-                'suitecrm_3_1',
-                'suitecrm_4_1',
-                'zoho'
-            )),
+								'odoo8',
+								'odoo9',
+								'sugarcrm6',
+								'sugarcrm7',
+								'suitecrm_3_1',
+								'suitecrm_4_1',
+								'zoho',
+							)
+						),
 					),
 					array(
 						'name'          => 'gf_crm_apipassword',
@@ -171,13 +172,14 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip'       => __('Find the API Password in the profile of the user in CRM.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
-              'field' => 'gf_crm_type',
-              'values' => array(
-                'holded',
-                'hubspot',
-                'solve360',
-                'vtiger_6'
-            )),
+							'field' => 'gf_crm_type',
+							'values' => array(
+								'holded',
+								'hubspot',
+								'solve360',
+								'vtiger_6',
+							)
+						),
 					),
 					array(
 						'name'          => 'gf_crm_apisales',
@@ -187,10 +189,11 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip'       => __('"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
-              'field' => 'gf_crm_type',
-              'values' => array(
-                'salesforce'
-            )),
+							'field'  => 'gf_crm_type',
+							'values' => array(
+								'salesforce',
+							),
+						),
 					),
 					array(
 						'name'       => 'gf_crm_odoodb',
@@ -198,11 +201,12 @@ class GFCRM extends GFFeedAddOn {
 						'type'       => 'text',
 						'class'      => 'medium',
 						'dependency' => array(
-              'field' => 'gf_crm_type',
-              'values' => array(
-                'odoo8',
-                'odoo9'
-            )),
+							'field'  => 'gf_crm_type',
+							'values' => array(
+								'odoo8',
+								'odoo9',
+							),
+						),
 					),
 				),
 			),
