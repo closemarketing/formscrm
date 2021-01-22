@@ -10,11 +10,253 @@
 
 defined( 'ABSPATH' ) || exit;
 
-function wpcf7_crm_add_crm($args) {
+/**
+ * Library for Contact Forms Settings
+ *
+ * @package    WordPress
+ * @author     David Perez <david@closemarketing.es>
+ * @copyright  2019 Closemarketing
+ * @version    0.1
+ */
+class FMC_Settings {
+	/**
+	 * Settings
+	 *
+	 * @var array
+	 */
+	private $fmc_settings;
+
+	/**
+	 * Label for premium features
+	 *
+	 * @var string
+	 */
+	private $label_premium;
+
+	/**
+	 * Construct of class
+	 */
+	public function __construct() {
+		add_action( 'admin_menu', array( $this, 'add_plugin_page' ) );
+		add_action( 'admin_init', array( $this, 'page_init' ) );
+		add_action( 'admin_head', array( $this, 'custom_css' ) );
+	}
+
+	/**
+	 * Adds plugin page.
+	 *
+	 * @return void
+	 */
+	public function add_plugin_page() {
+
+		add_submenu_page(
+			'wpcf7',
+			__( 'FormsCRM', 'formscrm' ),
+			__( 'FormsCRM', 'formscrm' ),
+			'manage_options',
+			'formscrm_settings',
+			array( $this, 'create_admin_page' ),
+		);
+	}
+
+	/**
+	 * Create admin page.
+	 *
+	 * @return void
+	 */
+	public function create_admin_page() {
+		$this->fmc_settings = get_option( 'formscrm_settings' );
+		?>
+
+		<div class="wrap">
+			<h2><?php esc_html_e( 'Oracle Courses Importing Settings', 'formscrm' ); ?></h2>
+			<p></p>
+			<?php settings_errors(); ?>
+			<form method="post" action="options.php">
+				<?php
+					settings_fields( 'import_formscrm_settings' );
+					do_settings_sections( 'import-formscrm-admin' );
+					submit_button(
+						__( 'Save settings', 'formscrm' ),
+						'primary',
+						'submit_settings'
+					);
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Init for page
+	 *
+	 * @return void
+	 */
+	public function page_init() {
+
+		register_setting(
+			'import_formscrm_settings',
+			'formscrm_settings',
+			array( $this, 'sanitize_fields' )
+		);
+
+		add_settings_section(
+			'import_formscrm_setting_section',
+			__( 'Settings for Importing from Oracle', 'formscrm' ),
+			array( $this, 'import_formscrm_section_info' ),
+			'import-formscrm-admin'
+		);
+
+		add_settings_field(
+			'fmc_username',
+			__( 'Username', 'formscrm' ),
+			array( $this, 'username_callback' ),
+			'import-formscrm-admin',
+			'import_formscrm_setting_section'
+		);
+
+		add_settings_field(
+			'fmc_password',
+			__( 'Password', 'formscrm' ),
+			array( $this, 'password_callback' ),
+			'import-formscrm-admin',
+			'import_formscrm_setting_section'
+		);
+
+		add_settings_field(
+			'fmc_connection',
+			__( 'Connection String', 'formscrm' ),
+			array( $this, 'connection_callback' ),
+			'import-formscrm-admin',
+			'import_formscrm_setting_section'
+		);
+
+		add_settings_field(
+			'fmc_charset',
+			__( 'Charset', 'formscrm' ),
+			array( $this, 'charset_callback' ),
+			'import-formscrm-admin',
+			'import_formscrm_setting_section'
+		);
+	}
+
+	/**
+	 * Sanitize fiels before saves in DB
+	 *
+	 * @param array $input Input fields.
+	 * @return array
+	 */
+	public function sanitize_fields( $input ) {
+		$sanitary_values = array();
+		$fmc_settings    = get_option( 'formscrm_settings' );
+
+		if ( isset( $input[ 'fmc_username' ] ) ) {
+			$sanitary_values[ 'fmc_username' ] = sanitize_text_field( $input[ 'fmc_username'] );
+		}
+
+		if ( isset( $input[ 'fmc_password'] ) ) {
+			$sanitary_values[ 'fmc_password'] = sanitize_text_field( $input[ 'fmc_password'] );
+		}
+
+		if ( isset( $input[ 'fmc_connection'] ) ) {
+			$sanitary_values[ 'fmc_connection'] = $input[ 'fmc_connection'];
+		}
+
+		if ( isset( $input[ 'fmc_charset'] ) ) {
+			$sanitary_values[ 'fmc_charset'] = $input[ 'fmc_charset'];
+		}
+
+		return $sanitary_values;
+	}
+
+	/**
+	 * Info for neo automate section.
+	 *
+	 * @return void
+	 */
+	public function import_formscrm_section_info() {
+		esc_html_e( 'Put the connection API key settings in order to connect and sync courses.', 'formscrm' );
+	}
+
+	public function username_callback() {
+		global $choices_crm;
+		echo '<select name="formscrm_settings[fmc_crm]" id="fmc_crm">';
+		$selected = isset( $this->fmc_settings[ 'fmc_crm'] ) ? '' : 'selected';
+		echo '<option value="" ' . esc_html( $selected ) . '>---</option>';
+		foreach ( $choices_crm as $crm ) {
+			$selected = ( isset( $this->fmc_settings[ 'fmc_crm'] ) && $this->fmc_settings[ 'fmc_crm'] === 'yes' ) ? 'selected' : '';
+			echo '<option value="' . esc_html( $crm['value'] ) . '" ' . esc_html( $selected ) . '>' . $crm['label'] . '</option>';
+		}
+		echo '</select>';
+	}
+
+	public function password_callback() {
+		printf(
+			'<input class="regular-text" type="password" name="' . 'formscrm_settings' . '[' . 'fmc_password]" id="' . 'fmc_password" value="%s">',
+			isset( $this->fmc_settings[ 'fmc_password' ] ) ? esc_attr( $this->fmc_settings[ 'fmc_password' ] ) : ''
+		);
+	}
+
+	public function connection_callback() {
+		printf(
+			'<input class="regular-text" type="text" name="' . 'formscrm_settings' . '[' . 'fmc_connection]" id="' . 'fmc_connection" value="%s">',
+			isset( $this->fmc_settings[ 'fmc_connection'] ) ? esc_attr( $this->fmc_settings[ 'fmc_connection'] ) : ''
+		);
+	}
+
+	public function charset_callback() {
+		printf(
+			'<input class="regular-text" type="text" name="' . 'formscrm_settings' . '[' . 'fmc_charset]" id="' . 'fmc_charset" value="%s">',
+			isset( $this->fmc_settings[ 'fmc_charset'] ) ? esc_attr( $this->fmc_settings[ 'fmc_charset'] ) : ''
+		);
+	}
+
+	/**
+	 * Custom CSS for admin
+	 *
+	 * @return void
+	 */
+	public function custom_css() {
+		// Free Version.
+		echo '
+			<style>
+			.wp-admin .formscrm-plugin span.wcsen-premium{ 
+				color: #b4b9be;
+			}
+			.wp-admin.formscrm-plugin #fmc_catnp,
+			.wp-admin.formscrm-plugin #fmc_crm,
+			.wp-admin.formscrm-plugin #fmc_catsep {
+				width: 70px;
+			}
+			.wp-admin.formscrm-plugin #fmc_username,
+			.wp-admin.formscrm-plugin #fmc_sync_num {
+				width: 50px;
+			}
+			.wp-admin.formscrm-plugin #fmc_charset {
+				width: 150px;
+			}
+			.wp-admin.formscrm-plugin #fmc_password,
+			.wp-admin.formscrm-plugin #fmc_taxinc {
+				width: 270px;
+			}';
+		echo '</style>';
+	}
+
+}
+if ( is_admin() ) {
+	$import_sync = new FMC_Settings();
+}
+
+
+function wpcf7_crm_add_crm( $args ) {
 	global $choices_crm;
 
 	$cf7_crm_defaults = array();
-	$cf7_crm = get_option( 'cf7_crm_'.$args->id(), $cf7_crm_defaults );
+	$cf7_crm          = get_option( 'cf7_crm_' . $args->id(), $cf7_crm_defaults );
+
+	echo '<pre>cf7_crm:';
+	print_r($cf7_crm);
+	echo '</pre>';
 	?>
 	<div class="metabox-holder">
 		<div class="cme-main-fields">
@@ -29,6 +271,7 @@ function wpcf7_crm_add_crm($args) {
 					}
 					?>
 				</select>
+			</p>
 
 			<p>
 				<label for="wpcf7-crm-username"><?php echo esc_html( __( 'Username:', 'wpcf7' ) ); ?></label><br />
@@ -235,37 +478,4 @@ function cf7_crm_tag_replace( $pattern, $subject, $posted_data, $html = false ) 
 		return $matches[0];
 	}
 	return $subject;
-}
-
-
-
-function cme_ext_author_form_class_attr( $class ) {
-
-  $class .= ' cmonitor-ext-' . SPARTAN_CME_VERSION;
-  return $class;
-
-}
-add_filter( 'wpcf7_form_class_attr', 'cme_ext_author_form_class_attr' );
-
-add_filter('wpcf7_form_response_output', 'cme_ext_author_wpcf7', 10);
-
-function cme_ext_author_wpcf7($cme_author) {
-
-	$author_pre = 'Contact form 7 CRM extension by ';
-	$author_name = 'David Perez';
-	$author_url = 'http://renzojohnson.com';
-	$author_title = 'Renzo Johnson - Front end Developer - Full-stack Developer';
-
-	$cme_author .= '<p class="wpcf7-display-none">';
-	$cme_author .= $author_pre;
-	$cme_author .= '<a href="'.$author_url.'" ';
-	$cme_author .= 'title="'.$author_title.'" ';
-	$cme_author .= 'alt="'.$author_title.'" ';
-	$cme_author .= 'target="_blank">';
-	$cme_author .= ''.$author_title.'';
-	$cme_author .= '</a>';
-	$cme_author .= '</p>'. "\n";
-
-  return $cme_author;
-
 }
