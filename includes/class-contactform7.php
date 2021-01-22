@@ -69,7 +69,7 @@ class FMC_Settings {
 		?>
 
 		<div class="wrap">
-			<h2><?php esc_html_e( 'Oracle Courses Importing Settings', 'formscrm' ); ?></h2>
+			<h2><?php esc_html_e( 'FormsCRM Settings', 'formscrm' ); ?></h2>
 			<p></p>
 			<?php settings_errors(); ?>
 			<form method="post" action="options.php">
