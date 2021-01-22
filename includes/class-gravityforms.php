@@ -108,7 +108,7 @@ class GFCRM extends GFFeedAddOn {
 								'sugarcrm7',
 								'suitecrm_3_1',
 								'suitecrm_4_1',
-								'vtiger_6'
+								'vtiger_6',
 							),
 						),
 					),
