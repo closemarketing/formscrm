@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: Gravity Forms CRM Add-On
-Plugin URI: http://codecanyon.net/item/gravity-forms-crm-addon/10521695
+Plugin Name: FormsCRM
+Plugin URI: https://formscrm.com
 Description: Integrates Gravity Forms with CRM allowing form submissions to be automatically sent to your CRM.
 Version: 3.0-beta1
 Author: closemarketing
