@@ -29,22 +29,31 @@ define( 'GF_CRM_VERSION', '3.0beta1' );
 
 add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 
-include_once 'includes/debug.php';
+require_once 'includes/debug.php';
+require_once 'includes/class-array-crm.php';
 
-class GF_CRM_Bootstrap {
+// GravityForms.
+if ( is_plugin_active( 'gravityforms/gravityforms.php' ) ) {
+	class GF_CRM_Bootstrap {
 
-	public static function load(){
-
-		if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
-			return;
+		public static function load(){
+	
+			if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
+				return;
+			}
+	
+			require_once( 'includes/class-gravityforms.php' );
+	
+			GFAddOn::register( 'GFCRM' );
 		}
-
-		require_once( 'includes/class-gravityforms.php' );
-
-		GFAddOn::register( 'GFCRM' );
+	}
+	
+	function gf_crm(){
+		return GFCRM::get_instance();
 	}
 }
 
-function gf_crm(){
-	return GFCRM::get_instance();
+// ContactForms7
+if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
+	require_once 'includes/class-contactform7.php';
 }

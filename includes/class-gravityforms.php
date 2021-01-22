@@ -70,6 +70,9 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function plugin_settings_fields() {
+
+		global $choices_crm;
+
 		return array(
 			array(
 				'title'       => __( 'CRM Account Information', 'gravityformscrm' ),
@@ -81,26 +84,7 @@ class GFCRM extends GFFeedAddOn {
 						'type'     => 'select',
 						'class'    => 'medium',
 						'onchange' => 'jQuery(this).parents("form").submit();',
-						'choices'  => array(
-							//array('label' => 'Bitrix24','value'  => 'bitrix24'),
-							//array('label' => 'ESPO CRM','value'  => 'espo_crm'),
-							//array('label' => 'FacturaDirecta','value'  => 'facturadirecta'),
-							array('label' => 'Holded','value'  => 'holded'),
-							//array('label' => 'HubSpot','value'  => 'hubspot'),
-							//array('label' => 'Microsoft Dynamics CRM','value'  => 'msdyn'),
-							//array('label' => 'Microsoft Dynamics CRM (on premise)','value'  => 'mspfe'),
-							//array('label' => 'Odoo 8','value'  => 'odoo8'),
-							//array('label' => 'Odoo 9','value'  => 'odoo9'),
-							array('label' => 'OFIWEB','value'  => 'ofiweb'),
-							//array('label' => 'Salesforce','value'  => 'salesforce'),
-							//array('label' => 'Solve360','value'  => 'solve360'),
-							//array('label' => 'SugarCRM 6', 'value' => 'sugarcrm6'),
-							//array('label' => 'SugarCRM 7', 'value' => 'sugarcrm7'),
-							//array('label' => 'SuiteCRM 3', 'value'  => 'suitecrm_3_1'),
-							//array('label' => 'SuiteCRM 4', 'value'  => 'suitecrm_4_1'),
-							//array('label' => 'vTiger 6', 'value' => 'vtiger_6'),
-							//array('label' => 'Zoho CRM','value'  => 'zoho')
-						),
+						'choices'  => $choices_crm,
 					),
 					array(
 						'name'          => 'gf_crm_url',
