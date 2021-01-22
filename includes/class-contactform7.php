@@ -262,18 +262,6 @@ function wpcf7_crm_add_crm( $args ) {
 		<div class="cme-main-fields">
 
 			<p>
-				<label for="wpcf7-crm-email"><?php echo esc_html( __( 'CRM Type:', 'wpcf7' ) ); ?></label><br />
-				<select id="wpcf7-type" name="name" value="<?php echo (isset ( $cf7_crm['type'] ) ) ? esc_attr( $cf7_crm['type'] ) : ''; ?>">
-					<option value="">--</option>
-					<?php 
-					foreach ( $choices_crm as $crm ) {
-						echo '<option value="' . $crm['value'] . '">' . $crm['label'] . '</option>';
-					}
-					?>
-				</select>
-			</p>
-
-			<p>
 				<label for="wpcf7-crm-username"><?php echo esc_html( __( 'Username:', 'wpcf7' ) ); ?></label><br />
 				<input type="text" id="wpcf7-crm-username" name="wpcf7-crm[username]" class="wide" size="70" placeholder="[CRM Username]" value="<?php echo (isset ( $cf7_crm['username'] ) ) ? esc_attr( $cf7_crm['username'] ) : ''; ?>" />
 			</p>
@@ -361,7 +349,7 @@ function show_cm_metabox ( $panels ) {
 
 	$new_page = array(
 		'cme-Extension' => array(
-			'title' => __( 'CRM', 'contact-form-7' ),
+			'title'    => __( 'FormsCRM', 'formscrm' ),
 			'callback' => 'wpcf7_crm_add_crm'
 		)
 	);
