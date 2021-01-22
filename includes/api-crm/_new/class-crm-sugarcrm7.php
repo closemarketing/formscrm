@@ -90,18 +90,20 @@ class CRMLIB_SUGARCRM7 {
             "name_value_list" => array(),
         );
 
-        $login_result = call_sugarcrm7("login", $login_parameters, $url);
+        $login_result = $this->call_sugarcrm7("login", $login_parameters, $url);
 
         debug_message($login_result);
 
         if(isset($login_result->name)) {
           echo '<div id="message" class="error below-h2"><p><strong>'.$login_result->description.': </strong></p></div>';
           return false;
-        } else {
+          
+        } elseif(isset($login_result->id)) {
           $login_token = $login_result->id;
           return $login_token;
+        } else {
+          return false;
         }
-
         
       } else {
         return false;
@@ -135,7 +137,7 @@ class CRMLIB_SUGARCRM7 {
 
 
     //get session id
-    $login_result = login($username, $password, $url);
+    $login_result = $this->login($username, $password, $url);
 
     $url = $url.'service/v4_1/rest.php';
 
@@ -145,17 +147,20 @@ class CRMLIB_SUGARCRM7 {
         'module_name' => $module,
         );
 
-    $get_fields = call_sugarcrm7("get_module_fields", $get_module_fields_parameters, $url);
+    $get_fields = $this->call_sugarcrm7("get_module_fields", $get_module_fields_parameters, $url);
     $custom_fields = array();
 
-    foreach($get_fields->module_fields as $field){
-        if($field->label== 'ID'||$field->required==0||$field->name=='team_count'||$field->name=='team_name')
-            $custom_fields[]=array('label'=> $field->label.' ('.$field->name.')', 'name' => $field->name);
-        else
-            $custom_fields[]=array('label'=> $field->label.' ('.$field->name.')', 'name' => $field->name, 'required' => ($field->required));
+    if( is_object( $get_fields ) ) {
+    
+      foreach($get_fields->module_fields as $field){
+          if($field->label== 'ID'||$field->required==0||$field->name=='team_count'||$field->name=='team_name')
+              $custom_fields[]=array('label'=> $field->label.' ('.$field->name.')', 'name' => $field->name);
+          else
+              $custom_fields[]=array('label'=> $field->label.' ('.$field->name.')', 'name' => $field->name, 'required' => ($field->required));
+      }
     }
     return $custom_fields;
-    }
+  }
      	/**
 	 * Create Entry
 	 */
@@ -170,7 +175,7 @@ class CRMLIB_SUGARCRM7 {
 		}
 
         // SugarCRM Method
-        $login_result = login($username, $password, $url);
+        $login_result = $this->login($username, $password, $url);
 
         $webservice = $url.'service/v4_1/rest.php';
 
@@ -180,9 +185,13 @@ class CRMLIB_SUGARCRM7 {
             "name_value_list" => $merge_vars
         );
 
-        $set_entry_result = call_sugarcrm7("set_entry", $set_entry_parameters, $webservice);
+        $set_entry_result = $this->call_sugarcrm7("set_entry", $set_entry_parameters, $webservice);
 
-        return $set_entry_result->id;
+        if( isset( $set_entry_result->id ) ) {
+          return $set_entry_result->id;
+        } else {
+          return false;
+        }
 
     }
 }

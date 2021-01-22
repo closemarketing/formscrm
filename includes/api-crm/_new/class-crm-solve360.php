@@ -100,7 +100,7 @@ Class CRMLIB_SOLVE360 {
 			$data = curl_exec($ch);
 			curl_close($ch);
 
-			if ($data) {
+			if ( strlen( $data ) ) {
 				$xml = simplexml_load_string($data);
 				$json_string = json_encode($xml);
 				$result_array = json_decode($json_string, TRUE);

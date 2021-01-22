@@ -1,4 +1,10 @@
 <?php
+define('WP_DEBUG', true);
+include_once 'debugtest.php';
+
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 /*
 Acceso Zoho.
 https://crm.zoho.com
@@ -16,6 +22,7 @@ $settings['gf_crm_redirecturi'] = 'http://localhost/oauthcallback';
 
 ////////////////////////////////
 include_once '../class-crm-zoho.php';
+
 $crmlib = new CRMLIB_ZOHO();
 
 echo '<h1>Login ZOHO CRM:</h1>';

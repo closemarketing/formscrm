@@ -79,6 +79,7 @@ class CRMLIB_ODOO9 {
         $url      = check_url_crm( $settings['gf_crm_url'] );
 		$username = $settings['gf_crm_username'];
 		$password = $settings['gf_crm_apipassword'];
+        $dbname = $settings['gf_crm_odoodb'];
 
     }
     /**
@@ -103,13 +104,21 @@ class CRMLIB_ODOO9 {
 
     		$custom_fields = $this->convert_XML_odoo9_customfields($models->_response);
     	}
-    	// Return an array of fields
-    	return $custom_fields;
+    	if( isset( $custom_fields ) ) {
+        // Return an array of fields
+        return $custom_fields;
+      } else {
+        return false;
+      }
     }
     /**
      * Create Entry
      */
     function create_entry($settings, $merge_vars) {
+      $url      = check_url_crm($settings['gf_crm_url']);
+      $username = $settings['gf_crm_username'];
+      $password = $settings['gf_crm_apipassword'];
+        $dbname = $settings['gf_crm_odoodb'];
 
     	//Converts to Array
     	$i          = 0;
@@ -123,7 +132,7 @@ class CRMLIB_ODOO9 {
     		$url .= '/';
     	}
     	//adds slash to url
-    	$uid = odoo9_login($username, $password, $dbname, $url);
+    	$uid = $this->login($username, $password, $dbname, $url);
 
     	if ($uid != false) {
     		$models = ripcord::client($url . 'xmlrpc/2/object');

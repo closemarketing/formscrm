@@ -2,6 +2,9 @@
 define('WP_DEBUG',true);
 include_once 'debugtest.php';
 
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 // CRM Online
 //$test_url ='https://psl-uk.crm4.dynamics.com/';
 //$test_username ="warrenabrahams@psl-uk.co.uk";
@@ -31,14 +34,14 @@ $test_url = 'http://led123.crm3.dynamics.com';
 $test_username = 'k@led123.ca';
 $test_password = 'Led8899!';
 
-settings['gf_crm_type']        = "msdyn";
+$settings['gf_crm_type']        = "msdyn";
 $settings['gf_crm_username']    = "k@led123.ca";
 $settings['gf_crm_url']         = 'http://led123.crm3.dynamics.com';
 $settings['gf_crm_apipassword'] = "Led8899!";
 $settings['gf_crm_module']      = "Leads";
 
 
-require '../crm-msdyn.php';
+require '../class-crm-msdyn.php';
 $crmlib = new CRMLIB_MSDYN();
 ////////////////////////////////
 

@@ -15,6 +15,9 @@ $test_url ="http://crm.upfrontbydesign.com/2016/";
 define('WP_DEBUG',true);
 include_once 'debugtest.php';
 
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 /*
 $test_username ="admin";
 $test_password = "jurabus0314crm";
@@ -29,8 +32,8 @@ $settings['gf_crm_url']            = 'http://crm.upfrontbydesign.com/2016/';
 $settings['gf_crm_apipassword']    = "&IS@C%XDGF";
 $settings['gf_crm_module']         = "Leads";
 
+include '../class-crm-sugarcrm6.php';
 
-include '../crm-sugarcrm6.php';
 $crmlib = new CRMLIB_SUGARCRM6();
 //////////
 
@@ -63,7 +66,7 @@ $test_mergevars = array(
                 array( 'name' => 'description', 'value' => 'User test'),
                 array( 'name' => 'status', 'value' => 'New')
             );
-$leadid =$crmlib-> create_entry($settings, $test_mergevars);
+$leadid = $crmlib-> create_entry($settings, $test_mergevars);
 echo '<pre>';
 print_r($leadid);
 echo '<pre>';

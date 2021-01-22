@@ -1,6 +1,9 @@
 <?php
-define('WP_DEBUG', true);
+define('WP_DEBUG',true);
 include_once 'debugtest.php';
+
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
 
 $settings['gf_crm_type']        = "OfiWeb";
 $settings['gf_crm_url']         = 'https://ofiweb.com.es/cls/imsol/savedatosform.asp';

@@ -89,9 +89,10 @@ class CRMLIB_FACTURADIRECTA {
 	 * @return array           returns an array of mudules
 	 */
 	function list_modules( $settings ) {
+
 		$url      = check_url_crm( $settings['gf_crm_url'] );
 		$username = $settings['gf_crm_username'];
-        $password = $settings['gf_crm_apipassword'];
+        $token = $settings['gf_crm_apipassword'];
         
         $agent = 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.0.3705; .NET CLR 1.1.4322)';
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
@@ -195,7 +196,7 @@ class CRMLIB_FACTURADIRECTA {
 	function list_fields( $settings ) {
 		$url      = check_url_crm( $settings['gf_crm_url'] );
 		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
+		$token = $settings['gf_crm_apipassword'];
 		if ( isset( $settings['gf_crm_module'] ) ) {
 			$module = $settings['gf_crm_module'];
 		} else {
@@ -208,7 +209,7 @@ class CRMLIB_FACTURADIRECTA {
 	function create_entry( $settings, $merge_vars ) {
 		$url      = check_url_crm( $settings['gf_crm_url'] );
 		$username = $settings['gf_crm_username'];
-		$password = $settings['gf_crm_apipassword'];
+		$token = $settings['gf_crm_apipassword'];
 		if ( isset( $settings['gf_crm_module'] ) ) {
 			$module = $settings['gf_crm_module'];
 		} else {
@@ -219,63 +220,22 @@ class CRMLIB_FACTURADIRECTA {
         if(substr($url, -1) !='/') $url.='/'; //adds slash to url
         $url = $url."api/clients.xml?api_token=".$token;
         $param = $token.":x";
-        $xml = get_cleintxmlforcreate($mergevars);
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: text/xml'));
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($ch, CURLOPT_USERPWD, $param);
-        curl_setopt($ch, CURLOPT_USERAGENT, $agent);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
-        $response = curl_exec($ch);
-        $doc = new DomDocument();
-        $doc->loadXML($response);
 
-        debug_message($doc->textContent);
-
-        curl_close($ch);
-        if(isset($doc->getElementsByTagName("id")->item(0)->nodeValue))
-            $itemId = $doc->getElementsByTagName("id")->item(0)->nodeValue;
-        $httpStatus = $doc->getElementsByTagName("httpStatus")->item(0)->nodeValue;
-
-        //* error is true
-        if(!isset($itemId) && ($httpStatus == '400') ) {
-            debug_email_lead('FacturaDirecta',$doc->textContent,$mergevars);
-            $returnValue = false;
-        } else {
-            if(!empty($httpStatus)&& !isset($itemId)){
-                $returnValue = '0';
-            }else{
-                $returnValue = $itemId;
-            }
-        }
-        return $returnValue;
-    }
-    /** 
-	 * Helper functions
-	 */
-    function get_cleintxmlforcreate($mergevars){
         $xml  = "<?xml version='1.0' encoding='UTF-8'?>";
         $xml .= "<client>";
         // Obtain a list of columns
-        foreach ($mergevars as $key => $row) {
+        foreach ($merge_vars as $key => $row) {
             $akey[$key]  = $row['name'];
         }
         // Sort the data with volume descending, edition ascending
         // Add $data as the last parameter, to sort by the common key
-        array_multisort($akey, SORT_ASC, $mergevars);
+        array_multisort($akey, SORT_ASC, $merge_vars);
         //echo "<pre>";
-        //print_r($mergevars);
+        //print_r($merge_vars);
         //echo "</pre>";
         $i=0;
-        $count = count( $mergevars);
+        $count = count( $merge_vars);
         $firstlevel="";
         $address="";
         $bank="";
@@ -291,8 +251,8 @@ class CRMLIB_FACTURADIRECTA {
         $dueDate3="";
         $dueDate4="";
         for ( $i = 0; $i < $count; $i++ ){
-            $field=$mergevars[$i]['name'];
-            $fieldvalue=$mergevars[$i]['value'];
+            $field=$merge_vars[$i]['name'];
+            $fieldvalue=$merge_vars[$i]['value'];
             $fieldvalues = explode(".",$field);
             $fieldLevel = count($fieldvalues);
             //if($fieldLevel==1)
@@ -393,7 +353,45 @@ class CRMLIB_FACTURADIRECTA {
             $xml .= "<customAttributes>".$customAttributes."</customAttributes>";
 
         $xml .= "</client>";
-        //echo $xml;
-        return $xml;
+
+
+
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: text/xml'));
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($ch, CURLOPT_USERPWD, $param);
+        curl_setopt($ch, CURLOPT_USERAGENT, $agent);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+        $response = curl_exec($ch);
+        $doc = new DomDocument();
+        $doc->loadXML($response);
+
+        debug_message($doc->textContent);
+
+        curl_close($ch);
+        if(isset($doc->getElementsByTagName("id")->item(0)->nodeValue))
+            $itemId = $doc->getElementsByTagName("id")->item(0)->nodeValue;
+        $httpStatus = $doc->getElementsByTagName("httpStatus")->item(0)->nodeValue;
+
+        //* error is true
+        if(!isset($itemId) && ($httpStatus == '400') ) {
+            debug_email_lead('FacturaDirecta',$doc->textContent,$merge_vars);
+            $returnValue = false;
+        } else {
+            if(!empty($httpStatus)&& !isset($itemId)){
+                $returnValue = '0';
+            }else{
+                $returnValue = $itemId;
+            }
+        }
+        return $returnValue;
     }
 }

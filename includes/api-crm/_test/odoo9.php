@@ -1,4 +1,10 @@
 <?php
+define('WP_DEBUG',true);
+include_once 'debugtest.php';
+
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 /*
 $test_username ="admin";
 $test_password = "david12345";
@@ -30,8 +36,7 @@ $settings['gf_crm_apipassword'] = "Password#1";
 $settings['gf_crm_module']      = "Leads";
 $settings['gf_crm_odoodb']      ="convexa2";
 
-
-require '../crm-odoo9.php';
+require '../class-crm-odoo9.php';
 
 ////////////////////////////////
 $crmlib = new CRMLIB_ODOO9();

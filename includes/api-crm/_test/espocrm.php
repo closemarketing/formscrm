@@ -7,6 +7,9 @@ $test_url ="http://demo.espocrm.com/basic/";
 define('WP_DEBUG',true);
 include_once 'debugtest.php';
 
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 /*
 $test_username ="website";
 $test_password = "powermaster";
@@ -18,12 +21,12 @@ $settings = array();
 
 $settings['gf_crm_type']        = "ESPO CRM";
 $settings['gf_crm_username']    = "admin";
-$settings['gf_crm_url']         = 'http://demo.espocrm.com/basic/';
+$settings['gf_crm_url']         = 'https://demo.espocrm.com/';
 $settings['gf_crm_apipassword'] = "1";
 $settings['gf_crm_module']      = "Leads";
 
 include '../class-crm-espo_crm.php';
-$crmlib = new CRMLIB_ESPOCRM();
+$crmlib = new CRMLIB_ESPO_CRM();
 
 
 

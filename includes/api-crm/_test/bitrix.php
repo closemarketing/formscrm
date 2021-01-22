@@ -2,6 +2,11 @@
 // CRM server conection data
 define('CRM_PATH', '/crm/configs/import/lead.php'); // CRM server REST service path
 define('WP_DEBUG',true);
+include_once 'debugtest.php';
+
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 /*
 $test_username ="venky4crm@gmail.com";
 $test_password = "bitrix@02556";
@@ -18,7 +23,7 @@ $test_url ="energy.bitrix24.com";
 */
 
 
-$settings['gf_crm_type']        = "bitrix";
+$settings['gf_crm_type']        = "bitrix24";
 $settings['gf_crm_username']    = "zifit-leads@zifitinfraredfitness.com";
 $settings['gf_crm_url']         = 'http://zifit.bitrix24.com';
 $settings['gf_crm_apipassword'] = "P@ssword1";
@@ -26,8 +31,8 @@ $settings['gf_crm_module']      = "Leads";
 
 
 
-include '../crm-bitrix.php';
-$crmlib = new CRMLIB_BITRIX();
+include '../class-crm-bitrix24.php';
+$crmlib = new CRMLIB_BITRIX24();
 ///////////////// Test Bitrix 24 CRM ////////////////////////////////
 echo '<p>Login Bitrix CRM :</p>';
 

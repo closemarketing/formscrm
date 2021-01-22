@@ -2,6 +2,9 @@
 define('WP_DEBUG',true);
 include_once 'debugtest.php';
 
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 // CRM Online
 //$test_url ='https://psl-uk.crm4.dynamics.com/';
 //$test_username ="warrenabrahams@psl-uk.co.uk";
@@ -44,7 +47,7 @@ $settings['gf_crm_apipassword'] = '$MR0ll3n';
 $settings['gf_crm_module']      = 'Leads';
 
 
-require '../class-crm-msdynpfe.php';
+require '../class-crm-mspfe.php';
 
 ////////////////////////////////
 $crmlib = new CRMLIB_MSPFE();

@@ -2,6 +2,9 @@
 define('WP_DEBUG', true);
 include_once 'debugtest.php';
 
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 /*
 vTiger 6.1
 $test_username ="admin";
@@ -57,8 +60,9 @@ $settings['gf_crm_apipassword'] = "mzmXbG8cmoJxFr4D";
 $settings['gf_crm_module']      = "Leads";
 
 
-include_once '../crm-vtiger_6.php';
-$crmlib = new CRMLIB_VTIGER6();
+include_once '../class-crm-vtiger_6.php';
+
+$crmlib = new CRMLIB_VTIGER_6();
 
 echo '<p>Login VTIGER:</p>';
 $login_api = $crmlib->login($settings);

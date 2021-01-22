@@ -1,4 +1,10 @@
 <?php
+define('WP_DEBUG',true);
+include_once 'debugtest.php';
+
+define( 'WP_USE_THEMES', false ); // Don't load theme support functionality
+require( '../../../../../../wp-load.php' );
+
 /*
 $test_username ="venky";
 $test_password = "Sugar_02556";
@@ -15,8 +21,9 @@ $settings['gf_crm_url']         = 'https://konanmedical.sugarondemand.com/';
 $settings['gf_crm_apipassword'] = "chau1505S";
 $settings['gf_crm_module']      = "Leads";
 
-include_once '../crm-vtiger_7.php';
-$crmlib = new CRMLIB_VTIGER7();
+include '../class-crm-sugarcrm7.php';
+
+$crmlib = new CRMLIB_SUGARCRM7();
 
 echo '<p>Login SUGAR CRM 7:</p>';
 $login_api =$crmlib-> login($settings);
