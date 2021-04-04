@@ -14,7 +14,7 @@ GFForms::include_feed_addon_framework();
 
 class GFCRM extends GFFeedAddOn {
 
-	protected $_version                  = GF_CRM_VERSION;
+	protected $_version                  = FORMSCRM_VERSION;
 	protected $_min_gravityforms_version = '1.9.0';
 	protected $_slug                     = 'gravityformscrm';
 	protected $_path                     = 'gravityformscrm/crm.php';
@@ -79,7 +79,7 @@ class GFCRM extends GFFeedAddOn {
 				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'gravityformscrm' ),
 				'fields'      => array(
 					array(
-						'name'     => 'gf_crm_type',
+						'name'     => 'fc_crm_type',
 						'label'    => __( 'CRM Type', 'gravityformscrm' ),
 						'type'     => 'select',
 						'class'    => 'medium',
@@ -94,7 +94,7 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
-							'field'  => 'gf_crm_type',
+							'field'  => 'fc_crm_type',
 							'values' => array(
 								'bitrix24',
 								'espo_crm',
@@ -118,7 +118,7 @@ class GFCRM extends GFFeedAddOn {
 						'type'              => 'text',
 						'class'             => 'medium',
 						'dependency'        => array(
-							'field' => 'gf_crm_type',
+							'field' => 'fc_crm_type',
 							'values' => array(
 								'bitrix24',
 								'espo_crm',
@@ -146,7 +146,7 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip'       => __('Use the password of the actual user.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
-							'field' => 'gf_crm_type',
+							'field' => 'fc_crm_type',
 							'values' => array(
 								'bitrix24',
 								'espo_crm',
@@ -172,7 +172,7 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip'       => __('Find the API Password in the profile of the user in CRM.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
-							'field' => 'gf_crm_type',
+							'field' => 'fc_crm_type',
 							'values' => array(
 								'holded',
 								'hubspot',
@@ -189,7 +189,7 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip'       => __('"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'gravityformscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
-							'field'  => 'gf_crm_type',
+							'field'  => 'fc_crm_type',
 							'values' => array(
 								'salesforce',
 							),
@@ -201,7 +201,7 @@ class GFCRM extends GFFeedAddOn {
 						'type'       => 'text',
 						'class'      => 'medium',
 						'dependency' => array(
-							'field'  => 'gf_crm_type',
+							'field'  => 'fc_crm_type',
 							'values' => array(
 								'odoo8',
 								'odoo9',
@@ -274,7 +274,7 @@ class GFCRM extends GFFeedAddOn {
 	public function feed_settings_fields() {
 
 		$settings = $this->get_plugin_settings();
-		$this->include_library($settings['gf_crm_type']);
+		$this->include_library($settings['fc_crm_type']);
 
 		return array(
 			array(
@@ -342,9 +342,9 @@ class GFCRM extends GFFeedAddOn {
 
 	}
 
-	public function export_feed($entry, $form, $feed) {
+	public function export_feed( $entry, $form, $feed) {
             $settings = $this->get_plugin_settings();
-            $this->include_library($settings['gf_crm_type']);
+            $this->include_library($settings['fc_crm_type']);
 
 		if (!empty($feed['meta']['listFields_first_name'])) {
 			$name = $this->get_name($entry, $feed['meta']['listFields_first_name']);
@@ -406,8 +406,8 @@ class GFCRM extends GFFeedAddOn {
 
 		$settings = $this->get_plugin_settings();
 
-		debug_message($settings);
-		debug_message($merge_vars);
+		debug_message( $settings );
+		debug_message( $merge_vars );
 
 		$id = $this->crmlib->create_entry($settings, $merge_vars);
 
@@ -463,8 +463,8 @@ class GFCRM extends GFFeedAddOn {
 		//* Logins to CRM
 		$settings = $this->get_plugin_settings();
     
-    if(isset($settings['gf_crm_type']))
-      $this->include_library($settings['gf_crm_type']);
+    if(isset($settings['fc_crm_type']))
+      $this->include_library($settings['fc_crm_type']);
 
 		if(isset($this->crmlib))
 			$login_result = $this->crmlib->login($settings);

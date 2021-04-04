@@ -25,7 +25,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-define( 'GF_CRM_VERSION', '3.0beta1' );
+define( 'FORMSCRM_VERSION', '3.0beta1' );
 
 add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 
@@ -37,23 +37,38 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) ) {
 	class GF_CRM_Bootstrap {
 
 		public static function load(){
-	
+
 			if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
 				return;
 			}
-	
+
 			require_once( 'includes/class-gravityforms.php' );
-	
+
 			GFAddOn::register( 'GFCRM' );
 		}
 	}
-	
+
 	function gf_crm(){
 		return GFCRM::get_instance();
 	}
 }
 
-// ContactForms7
+// ContactForms7.
 if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 	require_once 'includes/class-contactform7.php';
+}
+
+
+// WPForms.
+if ( is_plugin_active( 'wpforms/wpforms.php' ) || is_plugin_active( 'wpforms-lite/wpforms.php' ) ) {
+	/**
+	 * Load the provider class.
+	 *
+	 * @since 1.0.0
+	 */
+	function wpforms_formscrm() {
+		require_once plugin_dir_path( __FILE__ ) . 'includes/class-wpforms.php';
+	}
+
+	add_action( 'wpforms_loaded', 'wpforms_formscrm' );
 }
