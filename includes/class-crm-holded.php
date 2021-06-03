@@ -17,13 +17,6 @@ require_once 'debug.php';
  */
 class CRMLIB_HOLDED {
 	/**
-	 * Variables
-	 *
-	 * @var string
-	 */
-	private $apikey;
-
-	/**
 	 * Gets information from Holded CRM
 	 *
 	 * @param string $url URL for module.
@@ -253,7 +246,9 @@ class CRMLIB_HOLDED {
 
 		$result = $this->post( $module, $contact, $apikey );
 
-		debug_email_lead( 'Holded', 'Error ' . $json['error']['message'], $merge_vars );
+		if ( isset( $result['error']['message'] ) ) {
+			debug_email_lead( 'Holded', 'Error ' . $result['error']['message'], $merge_vars );
+		}
 
 		return $result['id'];
 	}
