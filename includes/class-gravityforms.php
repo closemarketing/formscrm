@@ -140,7 +140,7 @@ class GFCRM extends GFFeedAddOn {
 						'label'         => __('Password and Security Key', 'formscrm'),
 						'type'          => 'api_key',
 						'class'         => 'medium',
-						'tooltip'       => __('"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm'),
+						'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
 							'field'  => 'fc_crm_type',
