@@ -11,6 +11,7 @@
  */
 
 GFForms::include_feed_addon_framework();
+global $formscrm_api;
 
 class GFCRM extends GFFeedAddOn {
 
@@ -71,7 +72,7 @@ class GFCRM extends GFFeedAddOn {
 	 */
 	public function plugin_settings_fields() {
 
-		global $choices_crm;
+		global $formscrm_api;
 
 		return array(
 			array(
@@ -84,10 +85,10 @@ class GFCRM extends GFFeedAddOn {
 						'type'     => 'select',
 						'class'    => 'medium',
 						'onchange' => 'jQuery(this).parents("form").submit();',
-						'choices'  => $choices_crm,
+						'choices'  => formscrm_get_choices(),
 					),
 					array(
-						'name'          => 'gf_crm_url',
+						'name'          => 'fc_crm_url',
 						'label'         => __( 'CRM URL', 'gravityformscrm' ),
 						'type'          => 'text',
 						'class'         => 'medium',
@@ -95,21 +96,7 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
 							'field'  => 'fc_crm_type',
-							'values' => array(
-								'bitrix24',
-								'espo_crm',
-								'facturadirecta',
-								'msdyn',
-								'mspfe',
-								'odoo8',
-								'odoo9',
-								'ofiweb',
-								'sugarcrm6',
-								'sugarcrm7',
-								'suitecrm_3_1',
-								'suitecrm_4_1',
-								'vtiger_6',
-							),
+							'values' => formscrm_get_dependency_url(),
 						),
 					),
 					array(
@@ -119,23 +106,8 @@ class GFCRM extends GFFeedAddOn {
 						'class'             => 'medium',
 						'dependency'        => array(
 							'field' => 'fc_crm_type',
-							'values' => array(
-								'bitrix24',
-								'espo_crm',
-								'facturadirecta',
-								'msdyn',
-								'mspfe',
-								'odoo8',
-								'odoo9',
-								'salesforce',
-								'solve360',
-								'sugarcrm6',
-								'sugarcrm7',
-								'suitecrm_3_1',
-								'suitecrm_4_1',
-								'vtiger_6',
-								'zoho'
-							)),
+							'values' => formscrm_get_dependency_username(),
+						),
 						'feedback_callback' => $this->login_api_crm(),
 					),
 					array(
@@ -263,11 +235,13 @@ class GFCRM extends GFFeedAddOn {
 			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
 			$crmname      = str_replace( ' ', '_', $crmname );
 
-			include_once 'api-crm/class-crm-' . $crmname . '.php';
+			//include_once 'api-crm/class-crm-' . $crmname . '.php';
 
 			debug_message( 'api-crm/class-crm-' . $crmname . '.php' );
-
-			$this->crmlib = new $crmclassname();
+			//add_action('plugins_loaded')
+			if ( class_exists( $crmclassname )) {
+				$this->crmlib = new $crmclassname();
+			}
 		}
 	}
 
