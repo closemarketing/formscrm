@@ -1,29 +1,37 @@
 <?php
-/*
-Plugin Name: FormsCRM
-Plugin URI: https://formscrm.com
-Description: Integrates Gravity Forms with CRM allowing form submissions to be automatically sent to your CRM.
-Version: 3.0-beta1
-Author: closemarketing
-Author URI: http://www.closemarketing.es
+/**
+ * Plugin Name: FormsCRM
+ * Plugin URI:  https://closemarketing.net/formscrm
+ * Description: Connects Forms with CRM.
+ * Version:     3.0
+ * Author:      Closemarketing
+ * Author URI:  https://close.marketing
+ * Text Domain: formscrm
+ * Domain Path: /languages
+ * License:     GPL-2.0+
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ *
+ * @package     WordPress
+ * @author      Closemarketing
+ * @copyright   2021 Closemarketing
+ * @license     GPL-2.0+
+ *
+ * @wordpress-plugin
+ *
+ * Prefix:      fcrm
+ */
 
-------------------------------------------------------------------------
-Copyright 2018 closemarketing
+defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-*/
+add_action( 'plugins_loaded', 'fcrm_plugin_init' );
+/**
+ * Load localization files
+ *
+ * @return void
+ */
+function fcrm_plugin_init() {
+	load_plugin_textdomain( 'formscrm', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
 
 define( 'FORMSCRM_VERSION', '3.0beta1' );
 
@@ -51,24 +59,4 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'g
 	function gf_crm(){
 		return GFCRM::get_instance();
 	}
-}
-
-// ContactForms7.
-if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
-	require_once 'includes/class-contactform7.php';
-}
-
-
-// WPForms.
-if ( is_plugin_active( 'wpforms/wpforms.php' ) || is_plugin_active( 'wpforms-lite/wpforms.php' ) ) {
-	/**
-	 * Load the provider class.
-	 *
-	 * @since 1.0.0
-	 */
-	function wpforms_formscrm() {
-		require_once plugin_dir_path( __FILE__ ) . 'includes/class-wpforms.php';
-	}
-
-	add_action( 'wpforms_loaded', 'wpforms_formscrm' );
 }

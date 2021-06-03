@@ -17,12 +17,12 @@ class GFCRM extends GFFeedAddOn {
 
 	protected $_version                  = FORMSCRM_VERSION;
 	protected $_min_gravityforms_version = '1.9.0';
-	protected $_slug                     = 'gravityformscrm';
+	protected $_slug                     = 'formscrm';
 	protected $_path                     = 'gravityformscrm/crm.php';
 	protected $_full_path                = __FILE__;
 	protected $_url                      = 'https://www.gravityforms.com';
 	protected $_title                    = 'CRM Add-On';
-	protected $_short_title              = 'CRM';
+	protected $_short_title              = 'FormsCRM';
 
 	// Members plugin integration.
 	protected $_capabilities = array(
@@ -76,12 +76,12 @@ class GFCRM extends GFFeedAddOn {
 
 		return array(
 			array(
-				'title'       => __( 'CRM Account Information', 'gravityformscrm' ),
-				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'gravityformscrm' ),
+				'title'       => __( 'CRM Account Information', 'formscrm' ),
+				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'formscrm' ),
 				'fields'      => array(
 					array(
 						'name'     => 'fc_crm_type',
-						'label'    => __( 'CRM Type', 'gravityformscrm' ),
+						'label'    => __( 'CRM Type', 'formscrm' ),
 						'type'     => 'select',
 						'class'    => 'medium',
 						'onchange' => 'jQuery(this).parents("form").submit();',
@@ -89,10 +89,10 @@ class GFCRM extends GFFeedAddOn {
 					),
 					array(
 						'name'          => 'fc_crm_url',
-						'label'         => __( 'CRM URL', 'gravityformscrm' ),
+						'label'         => __( 'CRM URL', 'formscrm' ),
 						'type'          => 'text',
 						'class'         => 'medium',
-						'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'gravityformscrm' ),
+						'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'formscrm' ),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
 							'field'  => 'fc_crm_type',
@@ -100,8 +100,8 @@ class GFCRM extends GFFeedAddOn {
 						),
 					),
 					array(
-						'name'              => 'gf_crm_username',
-						'label'             => __('Username', 'gravityformscrm'),
+						'name'              => 'fc_crm_username',
+						'label'             => __('Username', 'formscrm'),
 						'type'              => 'text',
 						'class'             => 'medium',
 						'dependency'        => array(
@@ -111,73 +111,50 @@ class GFCRM extends GFFeedAddOn {
 						'feedback_callback' => $this->login_api_crm(),
 					),
 					array(
-						'name'          => 'gf_crm_password',
-						'label'         => __('Password', 'gravityformscrm'),
+						'name'          => 'fc_crm_password',
+						'label'         => __('Password', 'formscrm' ),
 						'type'          => 'api_key',
 						'class'         => 'medium',
-						'tooltip'       => __('Use the password of the actual user.', 'gravityformscrm'),
+						'tooltip'       => __( 'Use the password of the actual user.', 'formscrm' ),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
 							'field' => 'fc_crm_type',
-							'values' => array(
-								'bitrix24',
-								'espo_crm',
-								'facturadirecta',
-								'msdyn',
-								'mspfe',
-								'odoo8',
-								'odoo9',
-								'sugarcrm6',
-								'sugarcrm7',
-								'suitecrm_3_1',
-								'suitecrm_4_1',
-								'zoho',
-							)
+							'values' => formscrm_get_dependency_password(),
 						),
 					),
 					array(
-						'name'          => 'gf_crm_apipassword',
-						'label'         => __('API Password for User', 'gravityformscrm'),
+						'name'          => 'fc_crm_apipassword',
+						'label'         => __('API Password for User', 'formscrm'),
 						'type'          => 'api_key',
 						'class'         => 'medium',
 						//'feedback_callback' => $this->login_api_crm(),
-						'tooltip'       => __('Find the API Password in the profile of the user in CRM.', 'gravityformscrm'),
+						'tooltip'       => __('Find the API Password in the profile of the user in CRM.', 'formscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
 							'field' => 'fc_crm_type',
-							'values' => array(
-								'holded',
-								'hubspot',
-								'solve360',
-								'vtiger_6',
-							)
+							'values' => formscrm_get_dependency_apipassword(),
 						),
 					),
 					array(
-						'name'          => 'gf_crm_apisales',
-						'label'         => __('Password and Security Key', 'gravityformscrm'),
+						'name'          => 'fc_crm_apisales',
+						'label'         => __('Password and Security Key', 'formscrm'),
 						'type'          => 'api_key',
 						'class'         => 'medium',
-						'tooltip'       => __('"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'gravityformscrm'),
+						'tooltip'       => __('"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm'),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
 							'field'  => 'fc_crm_type',
-							'values' => array(
-								'salesforce',
-							),
+							'values' => formscrm_get_dependency_apisales(),
 						),
 					),
 					array(
-						'name'       => 'gf_crm_odoodb',
-						'label'      => __('Odoo DB Name', 'gravityformscrm'),
+						'name'       => 'fc_crm_odoodb',
+						'label'      => __( 'Odoo DB Name', 'formscrm' ),
 						'type'       => 'text',
 						'class'      => 'medium',
 						'dependency' => array(
 							'field'  => 'fc_crm_type',
-							'values' => array(
-								'odoo8',
-								'odoo9',
-							),
+							'values' => formscrm_get_dependency_odoodb(),
 						),
 					),
 				),
@@ -194,7 +171,7 @@ class GFCRM extends GFFeedAddOn {
 		//switch type="text" to type="password" so the key is not visible
 		$api_key_field = str_replace('type="text"', 'type="password"', $api_key_field);
 
-		$caption = '<small>' . sprintf(__("Find a Password or API key depending of CRM.", 'gravityformscrm')) . '</small>';
+		$caption = '<small>' . sprintf(__("Find a Password or API key depending of CRM.", 'formscrm')) . '</small>';
 
 		if ( $echo ) {
 			echo $api_key_field . '</br>' . $caption;
@@ -210,8 +187,8 @@ class GFCRM extends GFFeedAddOn {
 		if ($this->login_api_crm() == false) {
 			?>
 			<div class="notice notice-error">
-			<?php _e('We are unable to login to CRM.', 'gravityformscrm');
-			echo ' <a href="' . $this->get_plugin_settings_url() . '">' . __('Use Settings Page', 'gravityformscrm') . '</a>'?>
+			<?php _e('We are unable to login to CRM.', 'formscrm');
+			echo ' <a href="' . $this->get_plugin_settings_url() . '">' . __('Use Settings Page', 'formscrm') . '</a>'?>
 			</div>
 			<?php
 			return;
@@ -235,11 +212,11 @@ class GFCRM extends GFFeedAddOn {
 			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
 			$crmname      = str_replace( ' ', '_', $crmname );
 
-			//include_once 'api-crm/class-crm-' . $crmname . '.php';
+			include_once 'class-crm-' . $crmname . '.php';
 
 			debug_message( 'api-crm/class-crm-' . $crmname . '.php' );
-			//add_action('plugins_loaded')
-			if ( class_exists( $crmclassname )) {
+
+			if ( class_exists( $crmclassname ) ) {
 				$this->crmlib = new $crmclassname();
 			}
 		}
@@ -252,32 +229,32 @@ class GFCRM extends GFFeedAddOn {
 
 		return array(
 			array(
-				'title'       => __('CRM Feed', 'gravityformscrm'),
+				'title'       => __('CRM Feed', 'formscrm'),
 				'description' => '',
 				'fields'      => array(
 					array(
 						'name'     => 'feedName',
-						'label'    => __('Name', 'gravityformscrm'),
+						'label'    => __('Name', 'formscrm'),
 						'type'     => 'text',
 						'required' => true,
 						'class'    => 'medium',
-						'tooltip'  => '<h6>' . __('Name', 'gravityformscrm') . '</h6>' . __('Enter a feed name to uniquely identify this setup.', 'gravityformscrm'),
+						'tooltip'  => '<h6>' . __('Name', 'formscrm') . '</h6>' . __('Enter a feed name to uniquely identify this setup.', 'formscrm'),
 					),
 					array(
 						'name'     => 'gf_crm_module',
-						'label'    => __('CRM Module', 'gravityformscrm'),
+						'label'    => __('CRM Module', 'formscrm'),
 						'type'     => 'select',
 						'class'    => 'medium',
 						'onchange' => 'jQuery(this).parents("form").submit();',
-						'choices'  => $this->crmlib->list_modules($settings),
+						'choices'  => $this->crmlib->list_modules( $settings ),
 					),
 					array(
 						'name'       => 'listFields',
-						'label'      => __('Map Fields', 'gravityformscrm'),
+						'label'      => __('Map Fields', 'formscrm'),
 						'type'       => 'field_map',
 						'dependency' => 'gf_crm_module',
-						'field_map'  => $this->crmlib->list_fields($settings, $this->get_setting('gf_crm_module')),
-						'tooltip'    => '<h6>' . __('Map Fields', 'gravityformscrm') . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'gravityformscrm'),
+						'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'gf_crm_module' ) ),
+						'tooltip'    => '<h6>' . __('Map Fields', 'formscrm') . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm'),
 					),
 				),
 			),
@@ -302,7 +279,7 @@ class GFCRM extends GFFeedAddOn {
 
 	public function feed_list_columns() {
 		return array(
-			'feedName' => __('Name', 'gravityformscrm'),
+			'feedName' => __('Name', 'formscrm'),
 		);
 	}
 

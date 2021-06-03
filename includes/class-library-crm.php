@@ -10,6 +10,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Returns dependecies CRM Choices.
+ *
+ * @return array
+ */
 function formscrm_get_choices() {
 	return apply_filters(
 		'formscrm_choices',
@@ -30,6 +35,11 @@ function formscrm_get_choices() {
 	);
 }
 
+/**
+ * Returns dependecies URL for forms depending of CRM.
+ *
+ * @return array
+ */
 function formscrm_get_dependency_url() {
 	return apply_filters(
 		'formscrm_dependency_url',
@@ -51,9 +61,14 @@ function formscrm_get_dependency_url() {
 	);
 }
 
+/**
+ * Returns dependecies Username for forms depending of CRM.
+ *
+ * @return array
+ */
 function formscrm_get_dependency_username() {
 	return apply_filters(
-		'formscrm_dependency_url',
+		'formscrm_dependency_username',
 		array(
 			'bitrix24',
 			'espo_crm',
@@ -74,3 +89,73 @@ function formscrm_get_dependency_username() {
 	);
 }
 
+/**
+ * Returns dependecies Password for forms depending of CRM.
+ *
+ * @return array
+ */
+function formscrm_get_dependency_password() {
+	return apply_filters(
+		'formscrm_dependency_password',
+		array(
+			'bitrix24',
+			'espo_crm',
+			'facturadirecta',
+			'msdyn',
+			'mspfe',
+			'odoo8',
+			'odoo9',
+			'sugarcrm6',
+			'sugarcrm7',
+			'suitecrm_3_1',
+			'suitecrm_4_1',
+			'zoho',
+		)
+	);
+}
+
+/**
+ * Returns dependecies API Password for forms depending of CRM.
+ *
+ * @return array
+ */
+function formscrm_get_dependency_apipassword() {
+	return apply_filters(
+		'formscrm_dependency_apipassword',
+		array(
+			'holded',
+			'hubspot',
+			'solve360',
+			'vtiger_6',
+		)
+	);
+}
+
+/**
+ * Returns dependecies API Password for forms depending of CRM.
+ *
+ * @return array
+ */
+function formscrm_get_dependency_apisales() {
+	return apply_filters(
+		'formscrm_dependency_apisales',
+		array(
+			'salesforce',
+		)
+	);
+}
+
+/**
+ * Returns dependecies Odoo DB for forms depending of CRM.
+ *
+ * @return array
+ */
+function formscrm_get_dependency_odoodb() {
+	return apply_filters(
+		'formscrm_dependency_odoodb',
+		array(
+			'odoo8',
+			'odoo9',
+		)
+	);
+}
