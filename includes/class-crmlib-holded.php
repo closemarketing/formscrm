@@ -4,11 +4,14 @@
  *
  * Has functions to login, list fields and create leadº
  *
- * @author   closemarketing
- * @category Functions
- * @package  Gravityforms CRM
- * @version  1.0.0
+ * @author    David Perez <david@closemarketing.es>
+ * @category  Functions
+ * @package   FormsCRM
+ * @version   1.0.0
+ * @copyright 2021 Closemarketing
  */
+
+defined( 'ABSPATH' ) || exit;
 
 require_once 'debug.php';
 
@@ -20,6 +23,7 @@ class CRMLIB_HOLDED {
 	 * Gets information from Holded CRM
 	 *
 	 * @param string $url URL for module.
+	 * @param string $apikey Pass to access.
 	 * @return array
 	 */
 	private function get( $url, $apikey ) {
@@ -44,6 +48,8 @@ class CRMLIB_HOLDED {
 	 * Posts information from Holded CRM
 	 *
 	 * @param string $url URL for module.
+	 * @param string $bodypost JSON to pass.
+	 * @param string $apikey Pass to access.
 	 * @return array
 	 */
 	private function post( $url, $bodypost, $apikey ) {
@@ -125,7 +131,7 @@ class CRMLIB_HOLDED {
 					}
 				}
 			} else {
-				// lead fields
+				// lead fields.
 				$fields = array(
 					// Contact Info static.
 					array(
@@ -199,7 +205,7 @@ class CRMLIB_HOLDED {
 						'required' => false,
 					),
 
-					// Bank
+					// Bank.
 					array(
 						'name'     => 'sepaiban',
 						'label'    => __( 'IBAN', 'gravityforms-crm' ),
@@ -236,7 +242,7 @@ class CRMLIB_HOLDED {
 	 */
 	public function create_entry( $settings, $merge_vars ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module   = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
+		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 
 		$contact = array();
 
