@@ -20,16 +20,8 @@ function formscrm_get_choices() {
 		'formscrm_choices',
 		array(
 			array(
-				'label'  => 'Holded',
-				'value'  => 'holded',
-				'fields' => array(
-					array(
-						'key'     => 'apipassword',
-						'label'   => __( 'API Password for User', 'formscrm' ),
-						'type'    => 'api_key',
-						'tooltip' => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
-					),
-				),
+				'label' => 'Holded',
+				'value' => 'holded',
 			),
 		)
 	);
