@@ -49,7 +49,7 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'g
 				return;
 			}
 
-			require_once( 'includes/class-gravityforms.php' );
+			require_once 'includes/class-gravityforms.php';
 
 			GFAddOn::register( 'GFCRM' );
 		}
