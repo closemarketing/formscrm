@@ -35,13 +35,12 @@ function fcrm_plugin_init() {
 
 define( 'FORMSCRM_VERSION', '3.0beta1' );
 
-add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
-
 require_once 'includes/debug.php';
 require_once 'includes/class-library-crm.php';
 
 // GravityForms.
 if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) {
+	add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 	class GF_CRM_Bootstrap {
 
 		public static function load(){
