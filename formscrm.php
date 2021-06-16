@@ -37,13 +37,14 @@ define( 'FORMSCRM_VERSION', '3.0beta1' );
 
 require_once 'includes/debug.php';
 require_once 'includes/class-library-crm.php';
+require_once 'includes/class-admin-options.php';
 
 // GravityForms.
 if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) {
 	add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
 	class GF_CRM_Bootstrap {
 
-		public static function load(){
+		public static function load() {
 
 			if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
 				return;
@@ -55,7 +56,42 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'g
 		}
 	}
 
-	function gf_crm(){
+	function gf_crm() {
 		return GFCRM::get_instance();
 	}
+}
+
+if ( ! function_exists( 'for_fs' ) ) {
+	// Create a helper function for easy SDK access.
+	function for_fs() {
+		global $for_fs;
+
+		if ( ! isset( $for_fs ) ) {
+			// Include Freemius SDK.
+			require_once dirname( __FILE__ ) . '/vendor/freemius/wordpress-sdk/start.php';
+
+			$for_fs = fs_dynamic_init(
+				array(
+					'id'             => '8504',
+					'slug'           => 'formscrm',
+					'type'           => 'plugin',
+					'public_key'     => 'pk_fa93ef3eb788d04ac4803d15c1511',
+					'is_premium'     => false,
+					'has_addons'     => false,
+					'has_paid_plans' => false,
+					'menu'           => array(
+						'slug'       => 'formscrm',
+						'first-path' => 'admin.php?page=formscrm',
+					),
+				)
+			);
+		}
+
+		return $for_fs;
+	}
+
+	// Init Freemius.
+	for_fs();
+	// Signal that SDK was initiated.
+	do_action( 'for_fs_loaded' );
 }
