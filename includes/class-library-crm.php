@@ -26,6 +26,19 @@ function formscrm_get_choices() {
 		)
 	);
 }
+/**
+ * Returns dependecies CRM Choices.
+ *
+ * @return array
+ */
+function formscrm_get_crmlib_path() {
+	return apply_filters(
+		'formscrm_crmlib_path',
+		array(
+			'holded' => 'class-crmlib-holded.php',
+		)
+	);
+}
 
 /**
  * Returns dependecies URL for forms depending of CRM.

@@ -206,15 +206,22 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
+		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) {
+			$crmtype = sanitize_text_field( $_POST['_gform_setting_fc_crm_type'] );
+		}
+
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );
 			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
 			$crmname      = str_replace( ' ', '_', $crmname );
 
-			include_once 'class-crmlib-' . $crmname . '.php';
+			$array_path = formscrm_get_crmlib_path();
+			if ( isset( $array_path[ $crmname ] ) ) {
+				include_once $array_path[ $crmname ];
+			}
 
-			debug_message( 'api-crm/class-crmlib-' . $crmname . '.php' );
+			debug_message( $array_path[ $crmname ]);
 
 			if ( class_exists( $crmclassname ) ) {
 				$this->crmlib = new $crmclassname();
@@ -225,7 +232,7 @@ class GFCRM extends GFFeedAddOn {
 	public function feed_settings_fields() {
 
 		$settings = $this->get_plugin_settings();
-		$this->include_library($settings['fc_crm_type']);
+		$this->include_library( $settings['fc_crm_type'] );
 
 		return array(
 			array(

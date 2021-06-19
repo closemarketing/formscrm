@@ -43,7 +43,7 @@ class FORMSCRM_Admin {
 			'manage_options',
 			'formscrm',
 			array( $this, 'create_admin_page' ),
-			'dashicons-index-card',
+			'dashicons-table-col-after',
 			99
 		);
 	}
@@ -58,6 +58,15 @@ class FORMSCRM_Admin {
 		<div class="wrap">
 			<h2><?php esc_html_e( 'Page information for FormsCRM', 'formscrm' ); ?></h2>
 			<p></p>
+			<p><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></p>
+			<ul>
+				<li><?php esc_html_e( 'GravityForms', 'formscrm' ); ?></li>
+			</ul>
+			<p><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></p>
+			<ul>
+				<li>Holded</li>
+				<li>Odoo (premium)</li>
+			</ul>
 		</div>
 		<?php
 	}
