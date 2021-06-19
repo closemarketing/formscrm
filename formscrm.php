@@ -33,7 +33,7 @@ function fcrm_plugin_init() {
 	load_plugin_textdomain( 'formscrm', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
 
-define( 'FORMSCRM_VERSION', '3.0beta1' );
+define( 'FORMSCRM_VERSION', '3.0' );
 
 require_once 'includes/debug.php';
 require_once 'includes/class-library-crm.php';
