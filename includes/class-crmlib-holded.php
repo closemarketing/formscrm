@@ -36,7 +36,7 @@ class CRMLIB_HOLDED {
 		$url      = 'https://api.holded.com/api/invoicing/v1/' . $url;
 		$response = wp_remote_get( $url, $args );
 		if ( is_wp_error( $response ) ) {
-			error_admin_message( 'ERROR', $response->errors['http_request_failed'][0] );
+			formscrm_error_admin_message( 'ERROR', $response->errors['http_request_failed'][0] );
 			return false;
 		} else {
 			$body = wp_remote_retrieve_body( $response );
@@ -63,7 +63,7 @@ class CRMLIB_HOLDED {
 		$url      = 'https://api.holded.com/api/invoicing/v1/' . $url;
 		$response = wp_remote_post( $url, $args );
 		if ( is_wp_error( $response ) ) {
-			error_admin_message( 'ERROR', $response->errors['http_request_failed'][0] );
+			formscrm_error_admin_message( 'ERROR', $response->errors['http_request_failed'][0] );
 			return false;
 		} else {
 			$body = wp_remote_retrieve_body( $response );
@@ -115,7 +115,7 @@ class CRMLIB_HOLDED {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 
-		debug_message( __( 'Module active:', 'gravityforms-crm' ) . $module );
+		formscrm_debug_message( __( 'Module active:', 'gravityforms-crm' ) . $module );
 		if ( 'contacts' === $module ) {
 			$result_contact = $this->get( $module, $apikey );
 
@@ -253,7 +253,7 @@ class CRMLIB_HOLDED {
 		$result = $this->post( $module, $contact, $apikey );
 
 		if ( isset( $result['error']['message'] ) ) {
-			debug_email_lead( 'Holded', 'Error ' . $result['error']['message'], $merge_vars );
+			formscrm_debug_email_lead( 'Holded', 'Error ' . $result['error']['message'], $merge_vars );
 		}
 
 		return $result['id'];

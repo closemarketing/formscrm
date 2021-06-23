@@ -77,7 +77,7 @@ if ( ! function_exists( 'for_fs' ) ) {
 					'type'           => 'plugin',
 					'public_key'     => 'pk_fa93ef3eb788d04ac4803d15c1511',
 					'is_premium'     => false,
-					'has_addons'     => false,
+					'has_addons'     => true,
 					'has_paid_plans' => false,
 					'menu'           => array(
 						'slug'       => 'formscrm',
