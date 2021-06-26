@@ -19,7 +19,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => 'd409a2e7b6807156d7613f8accb349752b4df278',
+    'reference' => 'cffde862566cd4f820ab689592507aba7b635e70',
     'name' => '__root__',
   ),
   'versions' => 
@@ -31,7 +31,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => 'd409a2e7b6807156d7613f8accb349752b4df278',
+      'reference' => 'cffde862566cd4f820ab689592507aba7b635e70',
     ),
     'freemius/wordpress-sdk' => 
     array (
