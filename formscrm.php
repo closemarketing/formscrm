@@ -61,6 +61,11 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'g
 	}
 }
 
+// ContactForms7.
+if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
+	require_once 'includes/class-contactform7.php';
+}
+
 if ( ! function_exists( 'formscrm_fs' ) ) {
 	// Create a helper function for easy SDK access.
 	function formscrm_fs() {
