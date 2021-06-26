@@ -6,5 +6,4 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Smoolabs\\WPU\\' => array($vendorDir . '/smoolabs/wordpress-plugin-updater/src'),
 );

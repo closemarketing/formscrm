@@ -4,40 +4,46 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "85dfe3a089c282ad266b9e7813a14d8b",
+    "content-hash": "34e943ff4ea58450e9b2ee2098c2681b",
     "packages": [
         {
-            "name": "smoolabs/wordpress-plugin-updater",
-            "version": "4.0.4",
+            "name": "freemius/wordpress-sdk",
+            "version": "2.4.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/Capevace/wordpress-plugin-updater.git",
-                "reference": "21b257e8f31fd85db5ce1070f2a84b9ce51f37af"
+                "url": "https://github.com/Freemius/wordpress-sdk.git",
+                "reference": "84a9be4717effd7697a217e0d931f48ae0d2ecc6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Capevace/wordpress-plugin-updater/zipball/21b257e8f31fd85db5ce1070f2a84b9ce51f37af",
-                "reference": "21b257e8f31fd85db5ce1070f2a84b9ce51f37af",
+                "url": "https://api.github.com/repos/Freemius/wordpress-sdk/zipball/84a9be4717effd7697a217e0d931f48ae0d2ecc6",
+                "reference": "84a9be4717effd7697a217e0d931f48ae0d2ecc6",
                 "shasum": ""
             },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Smoolabs\\WPU\\": "src/"
-                }
+            "require": {
+                "php": ">=5.2"
             },
+            "type": "library",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "MIT"
+                "GPL-3.0-only"
             ],
-            "authors": [
-                {
-                    "name": "Lukas Mateffy",
-                    "email": "info@smoolabs.com"
-                }
+            "description": "Freemius WordPress SDK",
+            "homepage": "https://freemius.com",
+            "keywords": [
+                "freemius",
+                "plugin",
+                "sdk",
+                "theme",
+                "wordpress",
+                "wordpress-plugin",
+                "wordpress-theme"
             ],
-            "description": "A library for WordPress plugins, to utilize license verification and auto-updating using WordPress License Server.",
-            "time": "2018-11-13T07:46:50+00:00"
+            "support": {
+                "issues": "https://github.com/Freemius/wordpress-sdk/issues",
+                "source": "https://github.com/Freemius/wordpress-sdk/tree/2.4.2"
+            },
+            "time": "2021-02-08T16:47:44+00:00"
         }
     ],
     "packages-dev": [],
@@ -47,5 +53,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }
