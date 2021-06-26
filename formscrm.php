@@ -39,27 +39,35 @@ require_once 'includes/debug.php';
 require_once 'includes/class-library-crm.php';
 require_once 'includes/class-admin-options.php';
 
-// GravityForms.
-if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) {
-	add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
-	class GF_CRM_Bootstrap {
+add_action( 'admin_init', 'formscrm_check_gravityforms_active' );
+/**
+ * Checks that Gravityforms is activated
+ *
+ * @return void
+ */
+function formscrm_check_gravityforms_active() {
+	if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) {
+		add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
+		class GF_CRM_Bootstrap {
 
-		public static function load() {
+			public static function load() {
 
-			if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
-				return;
+				if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
+					return;
+				}
+
+				require_once 'includes/class-gravityforms.php';
+
+				GFAddOn::register( 'GFCRM' );
 			}
+		}
 
-			require_once 'includes/class-gravityforms.php';
-
-			GFAddOn::register( 'GFCRM' );
+		function gf_crm() {
+			return GFCRM::get_instance();
 		}
 	}
-
-	function gf_crm() {
-		return GFCRM::get_instance();
-	}
 }
+
 
 if ( ! function_exists( 'formscrm_fs' ) ) {
 	// Create a helper function for easy SDK access.
