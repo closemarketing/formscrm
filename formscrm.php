@@ -61,16 +61,16 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'g
 	}
 }
 
-if ( ! function_exists( 'for_fs' ) ) {
+if ( ! function_exists( 'formscrm_fs' ) ) {
 	// Create a helper function for easy SDK access.
-	function for_fs() {
-		global $for_fs;
+	function formscrm_fs() {
+		global $formscrm_fs;
 
-		if ( ! isset( $for_fs ) ) {
+		if ( ! isset( $formscrm_fs ) ) {
 			// Include Freemius SDK.
 			require_once dirname( __FILE__ ) . '/vendor/freemius/wordpress-sdk/start.php';
 
-			$for_fs = fs_dynamic_init(
+			$formscrm_fs = fs_dynamic_init(
 				array(
 					'id'             => '8504',
 					'slug'           => 'formscrm',
@@ -87,11 +87,11 @@ if ( ! function_exists( 'for_fs' ) ) {
 			);
 		}
 
-		return $for_fs;
+		return $formscrm_fs;
 	}
 
 	// Init Freemius.
-	for_fs();
+	formscrm_fs();
 	// Signal that SDK was initiated.
-	do_action( 'for_fs_loaded' );
+	do_action( 'formscrm_fs_loaded' );
 }
