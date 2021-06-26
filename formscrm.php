@@ -61,6 +61,20 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'g
 	}
 }
 
+// WPForms.
+if ( is_plugin_active( 'wpforms/wpforms.php' ) || is_plugin_active( 'wpforms-lite/wpforms.php' ) ) {
+	/**
+	 * Load the provider class.
+	 *
+	 * @since 1.0.0
+	 */
+	function wpforms_formscrm() {
+		require_once plugin_dir_path( __FILE__ ) . 'includes/class-wpforms.php';
+	}
+
+	add_action( 'wpforms_loaded', 'wpforms_formscrm' );
+}
+
 if ( ! function_exists( 'formscrm_fs' ) ) {
 	// Create a helper function for easy SDK access.
 	function formscrm_fs() {
