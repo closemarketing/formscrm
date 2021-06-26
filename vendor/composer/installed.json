@@ -1,14 +1,9 @@
 {
-    "_readme": [
-        "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
-        "This file is @generated automatically"
-    ],
-    "content-hash": "34e943ff4ea58450e9b2ee2098c2681b",
     "packages": [
         {
             "name": "freemius/wordpress-sdk",
             "version": "2.4.2",
+            "version_normalized": "2.4.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Freemius/wordpress-sdk.git",
@@ -23,7 +18,9 @@
             "require": {
                 "php": ">=5.2"
             },
+            "time": "2021-02-08T16:47:44+00:00",
             "type": "library",
+            "installation-source": "dist",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "GPL-3.0-only"
@@ -43,16 +40,9 @@
                 "issues": "https://github.com/Freemius/wordpress-sdk/issues",
                 "source": "https://github.com/Freemius/wordpress-sdk/tree/2.4.2"
             },
-            "time": "2021-02-08T16:47:44+00:00"
+            "install-path": "../freemius/wordpress-sdk"
         }
     ],
-    "packages-dev": [],
-    "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": [],
-    "prefer-stable": false,
-    "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "dev": true,
+    "dev-package-names": []
 }

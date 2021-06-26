@@ -1,5 +1,5 @@
 {
     "require": {
-        "smoolabs/wordpress-plugin-updater": "^4.0"
+        "freemius/wordpress-sdk": "^2.4"
     }
 }
