@@ -3,9 +3,9 @@ Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://www.closemarketing.es/go/donate/
 Requires at least: 4.0
-Tested up to: 5.7.2
-Stable tag: 3.0
-Version: 3.0
+Tested up to: 5.8
+Stable tag: 3.1
+Version: 3.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,6 +31,7 @@ At this time, FormsCRM supports in free version:
 And you will find, that there are Premium Addons to support:
 - SugarCRM.
 - Odoo: versions 8 and 9 (more comming).
+- vTiger.
 
 You can only use one type of CRM in the web with this version.
 
@@ -40,6 +41,9 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
+= 3.1.0 =
+*	Updated Settings Page.
+*	Added vTiger.
 
 = 3.0.0 =
 *	WPORG version and changed name from GravityForms CRM Plugin. Refactured.
