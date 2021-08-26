@@ -35,7 +35,7 @@ At this time, FormsCRM supports in free version:
 And you will find, that there are Premium Addons to support:
 - SugarCRM.
 - Odoo: versions 8 and 9 (more comming).
-- vTiger.
+- [vTiger 7](https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/).
 
 You can only use one type of CRM in the web with this version.
 
