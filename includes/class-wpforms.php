@@ -5,6 +5,21 @@
  * @since 1.0.0
  */
 class WPForms_FormsCRM extends WPForms_Provider {
+	private $crmlib;
+
+	/**
+	 * Connection fields
+	 *
+	 * @return array
+	 */
+	private $connection_fields = array(
+		'fc_crm_url',
+		'fc_crm_username',
+		'fc_crm_password',
+		'fc_crm_apipassword',
+		'fc_crm_apisales',
+		'fc_crm_odoodb',
+	);
 
 	/**
 	 * Initialize.
@@ -225,6 +240,35 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * API methods - these methods interact directly with the provider API. *
 	 ************************************************************************/
 
+
+	/**
+	 * Include library connector
+	 *
+	 * @param string $crmtype Type of CRM.
+	 * @return void
+	 */
+	private function include_library( $crmtype ) {
+		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) {
+			$crmtype = sanitize_text_field( $_POST['_gform_setting_fc_crm_type'] );
+		}
+
+		if ( isset( $crmtype ) ) {
+			$crmname      = strtolower( $crmtype );
+			$crmclassname = str_replace( ' ', '', $crmname );
+			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+			$crmname      = str_replace( ' ', '_', $crmname );
+
+			$array_path = formscrm_get_crmlib_path();
+			if ( isset( $array_path[ $crmname ] ) ) {
+				include_once $array_path[ $crmname ];
+			}
+
+			if ( class_exists( $crmclassname ) ) {
+				$this->crmlib = new $crmclassname();
+			}
+		}
+	}
+
 	/**
 	 * Authenticate with the API.
 	 *
@@ -234,40 +278,33 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed id or WP_Error object.
 	 */
 	public function api_auth( $data = array(), $form_id = '' ) {
-
-		if ( ! class_exists( 'Campaign_Monitor' ) ) {
-			require_once plugin_dir_path( __FILE__ ) . '/vendor/campaign-monitor.php';
+		$this->include_library( $data['fc_crm_type'] );
+		$login_result = '';
+		if ( isset( $this->crmlib ) ) {
+			$login_result = $this->crmlib->login( $data );
 		}
 
-		// Connect via API.
-		$api = new Campaign_Monitor( $data['apikey'], $data['client_id'] );
+		formscrm_testserver();
 
-		// Test the API Key by getting lists for the given API Key and Client.
-		try {
-			$api->get_lists();
-		} catch ( Exception $e ) {
-			wpforms_log(
-				'Campaign Monitor API error',
-				$e->getMessage(),
-				array(
-					'type'    => array( 'provider', 'error' ),
-					'form_id' => $form_id['id'],
-				)
-			);
-
-			return $this->error( 'API authorization error: ' . $e->getMessage() );
+		if ( isset( $login_result ) && false === $login_result ) {
+			return $this->error( 'API authorization error: ' . $data['fc_crm_type'] );
 		}
 
 		$id                              = uniqid();
 		$providers                       = get_option( 'wpforms_providers', array() );
 		$providers[ $this->slug ][ $id ] = array(
-			'api'       => trim( $data['apikey'] ),
-			'label'     => sanitize_text_field( $data['label'] ),
-			'client_id' => sanitize_text_field( $data['client_id'] ),
-			'date'      => time(),
+			'fc_crm_type' => sanitize_text_field( $data['fc_crm_type'] ),
+			'date'        => time(),
+			'label'       => sanitize_text_field( $data['fc_crm_type'] ),
 		);
-		update_option( 'wpforms_providers', $providers );
 
+		foreach ( $this->connection_fields as $connection_field ) {
+			if ( isset( $data[ $connection_field ] ) && $data[ $connection_field ] ) {
+				$providers[ $this->slug ][ $id ][ $connection_field ] = $data[ $connection_field ];
+			}
+		}
+
+		update_option( 'wpforms_providers', $providers );
 		return $id;
 	}
 
@@ -282,9 +319,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 */
 	public function api_connect( $account_id ) {
 
-		if ( ! class_exists( 'Campaign_Monitor' ) ) {
-			require_once plugin_dir_path( __FILE__ ) . '/vendor/campaign-monitor.php';
-		}
+		error_log( 'hola');
 
 		if ( ! empty( $this->api[ $account_id ] ) ) {
 			return $this->api[ $account_id ];
@@ -422,7 +457,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		$output = '<div class="wpforms-provider-account-add ' . $class . ' wpforms-connection-block">';
 
-		$output .= '<h4>' . esc_html__( 'Add New Account', 'formscrm' ) . '</h4>';
+		$output .= '<h4>' . esc_html__( 'Setup CRM', 'formscrm' ) . '</h4>';
 
 		$output .= sprintf(
 			'<select type="text" data-name="fc_crm_type" placeholder="%s" class="wpforms-required">',
@@ -607,4 +642,4 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	}
 }
 
-new WPForms_FormsCRM;
+new WPForms_FormsCRM();
