@@ -17,7 +17,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		$this->name     = 'FormsCRM';
 		$this->slug     = 'formscrm';
 		$this->priority = 14;
-		$this->icon     = plugins_url( 'assets/images/addon-icon-campaign-monitor.png', __FILE__ );
+		$this->icon     = plugins_url( 'assets/addon-icon-wpforms.png', __FILE__ );
 	}
 
 	/**
@@ -345,7 +345,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		// Need to return an error otherwise all hell breaks loose.
 		// CM doesn't have a concept of 'groups'.
-		return new WP_Error( esc_html__( 'Groups do not exist.', 'wpforms-campaign-monitor' ) );
+		return new WP_Error( esc_html__( 'Groups do not exist.', 'formscrm' ) );
 	}
 
 	/**
@@ -396,7 +396,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			return $this->error(
 				sprintf(
 					/* translators: %s - API error message. */
-					esc_html__( 'API fields error: %s', 'wpforms-campaign-monitor' ),
+					esc_html__( 'API fields error: %s', 'formscrm' ),
 					$e->getMessage()
 				)
 			);
@@ -422,13 +422,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		$output = '<div class="wpforms-provider-account-add ' . $class . ' wpforms-connection-block">';
 
-		$output .= '<h4>' . esc_html__( 'Add New Account', 'wpforms-campaign-monitor' ) . '</h4>';
+		$output .= '<h4>' . esc_html__( 'Add New Account', 'formscrm' ) . '</h4>';
 
 		$output .= sprintf(
 			'<select type="text" data-name="fc_crm_type" placeholder="%s" class="wpforms-required">',
 			sprintf(
 				/* translators: %s - current provider name. */
-				esc_html__( '%s API Key', 'wpforms-campaign-monitor' ),
+				esc_html__( '%s API Key', 'formscrm' ),
 				$this->name
 			)
 		);
@@ -437,7 +437,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			'<input type="text" data-name="apikey" placeholder="%s" class="wpforms-required">',
 			sprintf(
 				/* translators: %s - current provider name. */
-				esc_html__( '%s API Key', 'wpforms-campaign-monitor' ),
+				esc_html__( '%s API Key', 'formscrm' ),
 				$this->name
 			)
 		);
@@ -446,7 +446,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			'<input type="text" data-name="client_id" placeholder="%s" class="wpforms-required">',
 			sprintf(
 				/* translators: %s - current provider name. */
-				esc_html__( '%s Client ID', 'wpforms-campaign-monitor' ),
+				esc_html__( '%s Client ID', 'formscrm' ),
 				$this->name
 			)
 		);
@@ -455,12 +455,12 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			'<input type="text" data-name="label" placeholder="%s" class="wpforms-required">',
 			sprintf(
 				/* translators: %s - current provider name. */
-				esc_html__( '%s Account Nickname', 'wpforms-campaign-monitor' ),
+				esc_html__( '%s Account Nickname', 'formscrm' ),
 				$this->name
 			)
 		);
 
-		$output .= sprintf( '<button data-provider="%s">%s</button>', esc_attr( $this->slug ), esc_html__( 'Connect', 'wpforms-campaign-monitor' ) );
+		$output .= sprintf( '<button data-provider="%s">%s</button>', esc_attr( $this->slug ), esc_html__( 'Connect', 'formscrm' ) );
 
 		$output .= '</div>';
 
@@ -495,31 +495,114 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 */
 	public function integrations_tab_new_form() {
 
-		printf(
-			'<input type="text" name="apikey" placeholder="%s">',
-			sprintf(
-				/* translators: %s - current provider name. */
-				esc_html__( '%s API Key', 'wpforms-campaign-monitor' ),
-				$this->name
-			)
-		);
+		$select_page  = '';
+		$options_crm  = formscrm_get_choices();
+		$option_saved = '';
+		foreach ( $options_crm as $option_crm ) {
+			$select_page .= '<option value="' . $option_crm['value'] . '"';
+			if ( $option_saved == $option_crm['value'] ) {
+				$select_page .= ' selected';
+			}
+			$select_page .= '>' . $option_crm['label'] . '</option>';
+		}
 
 		printf(
-			'<input type="text" name="client_id" placeholder="%s">',
-			sprintf(
-				/* translators: %s - current provider name. */
-				esc_html__( '%s Client ID', 'wpforms-campaign-monitor' ),
-				$this->name
-			)
+			'<select id="fc_crm_type" name="fc_crm_type">%s</select>',
+			$select_page
 		);
 
+		// CRM URL.
 		printf(
-			'<input type="text" name="label" placeholder="%s">',
-			sprintf(
-				/* translators: %s - current provider name. */
-				esc_html__( '%s Account Nickname', 'wpforms-campaign-monitor' ),
-				$this->name
-			)
+			'<input type="text" name="fc_crm_url" class="fc_crm_url" placeholder="%s">',
+			esc_html__( 'CRM URL', 'formscrm' )
+		);
+
+		// CRM Username.
+		printf(
+			'<input type="text" name="fc_crm_username" class="fc_crm_username" placeholder="%s">',
+			esc_html__( 'CRM Username', 'formscrm' )
+		);
+
+		// CRM Password.
+		printf(
+			'<input type="text" name="fc_crm_password" class="fc_crm_password" placeholder="%s">',
+			esc_html__( 'CRM Password', 'formscrm' )
+		);
+
+		// CRM API Password.
+		printf(
+			'<input type="text" name="fc_crm_apipassword" class="fc_crm_apipassword" placeholder="%s">',
+			esc_html__( 'CRM API Password', 'formscrm' )
+		);
+
+		// CRM API Sales.
+		printf(
+			'<input type="text" name="fc_crm_apisales" class="fc_crm_apisales" placeholder="%s">',
+			esc_html__( 'CRM API Sales', 'formscrm' )
+		);
+
+		// CRM Odoo DB.
+		printf(
+			'<input type="text" name="fc_crm_odoodb" class="fc_crm_odoodb" placeholder="%s">',
+			esc_html__( 'CRM Odoo DB', 'formscrm' )
+		);
+
+		$js_dependency = '';
+		foreach ( formscrm_get_choices() as $crm ) {
+			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_html( $crm['value'] ) . "') {";
+
+			// URL dependency.
+			if ( in_array( $crm['value'], formscrm_get_dependency_url() ) ) {
+				$js_dependency .= '$(".fc_crm_url").show();';
+			} else {
+				$js_dependency .= '$(".fc_crm_url").hide();';
+			}
+
+			// Username dependency.
+			if ( in_array( $crm['value'], formscrm_get_dependency_username() ) ) {
+				$js_dependency .= '$(".fc_crm_username").show();';
+			} else {
+				$js_dependency .= '$(".fc_crm_username").hide();';
+			}
+
+			// Password dependency.
+			if ( in_array( $crm['value'], formscrm_get_dependency_password() ) ) {
+				$js_dependency .= '$(".fc_crm_password").show();';
+			} else {
+				$js_dependency .= '$(".fc_crm_password").hide();';
+			}
+
+			// API Password dependency.
+			if ( in_array( $crm['value'], formscrm_get_dependency_apipassword() ) ) {
+				$js_dependency .= '$(".fc_crm_apipassword").show();';
+			} else {
+				$js_dependency .= '$(".fc_crm_apipassword").hide();';
+			}
+
+			// API Sales dependency.
+			if ( in_array( $crm['value'], formscrm_get_dependency_apisales() ) ) {
+				$js_dependency .= '$(".fc_crm_apisales").show();';
+			} else {
+				$js_dependency .= '$(".fc_crm_apisales").hide();';
+			}
+
+			// API Sales dependency.
+			if ( in_array( $crm['value'], formscrm_get_dependency_odoodb() ) ) {
+				$js_dependency .= '$(".fc_crm_odoodb").show();';
+			} else {
+				$js_dependency .= '$(".fc_crm_odoodb").hide();';
+			}
+
+			$js_dependency .= '}';
+		}
+
+		printf(
+			"<script>
+				jQuery( function($) {
+					" . $js_dependency . "
+					$('#fc_crm_type').change(function () { " . $js_dependency . " });
+				});
+			</script>"
 		);
 	}
 }
