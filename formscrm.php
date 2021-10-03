@@ -61,7 +61,7 @@ if ( function_exists( 'is_plugin_active' ) && ( is_plugin_active( 'gravityforms/
 }
 
 // WPForms.
-if ( is_plugin_active( 'wpforms/wpforms.php' ) || is_plugin_active( 'wpforms-lite/wpforms.php' ) ) {
+if ( function_exists( 'is_plugin_active' ) && ( is_plugin_active( 'wpforms/wpforms.php' ) || is_plugin_active( 'wpforms-lite/wpforms.php' ) ) ) {
 	/**
 	 * Load the provider class.
 	 *

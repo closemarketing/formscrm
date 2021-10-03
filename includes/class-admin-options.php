@@ -61,6 +61,7 @@ class FORMSCRM_Admin {
 			<h3><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></h3>
 			<ul>
 				<li><?php esc_html_e( 'GravityForms', 'formscrm' ); ?></li>
+				<li><?php esc_html_e( 'WPForms', 'formscrm' ); ?></li>
 			</ul>
 			<h3><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></h3>
 			<ul>
