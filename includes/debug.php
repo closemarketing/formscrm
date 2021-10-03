@@ -48,12 +48,12 @@ if ( ! function_exists( 'formscrm_error_admin_message' ) ) {
 if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
 	function formscrm_debug_email_lead( $crm, $error, $data ) {
 		$to      = get_option( 'admin_email' );
-		$subject = 'GravityForms CRM - ' . __( 'Error creating the Lead', 'formscrm' );
+		$subject = 'FormsCRM - ' . __( 'Error creating the Lead', 'formscrm' );
 		$body    = '<p>' . __( 'There was an error creating the Lead in the CRM', 'formscrm' ) . ' ' . $crm . ':</p><p><strong>' . $error . '</strong></p><p>' . __( 'Lead Data', 'formscrm' ) . ':</p>';
 		foreach ( $data as $dataitem ) {
 			$body .= '<p><strong>' . $dataitem['name'] . ': </strong>' . $dataitem['value'] . '</p>';
 		}
-		$body   .= '</br/><br/>GravityForms CRM';
+		$body   .= '</br/><br/>FormsCRM';
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		wp_mail( $to, $subject, $body, $headers );

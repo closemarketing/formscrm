@@ -55,18 +55,20 @@ class FORMSCRM_Admin {
 	 */
 	public function create_admin_page() {
 		?>
-		<div class="wrap">
-			<h2><?php esc_html_e( 'Page information for FormsCRM', 'formscrm' ); ?></h2>
+		<div class="wrap fs-section fs-full-size-wrapper">
+			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab fs-tab nav-tab-active home"><?php esc_html_e( 'Information', 'formscrm' ); ?></a></h2>
 			<p></p>
-			<p><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></p>
+			<h3><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></h3>
 			<ul>
 				<li><?php esc_html_e( 'GravityForms', 'formscrm' ); ?></li>
 			</ul>
-			<p><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></p>
+			<h3><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></h3>
 			<ul>
 				<li>Holded</li>
-				<li>Odoo (premium)</li>
+				<li>Odoo (Premium)</li>
+				<li>vTiger (Premium)</li>
 			</ul>
+			<a class="button button-primary" href="/wp-admin/admin.php?page=formscrm-addons"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
 		</div>
 		<?php
 	}

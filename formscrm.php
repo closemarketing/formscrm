@@ -3,7 +3,7 @@
  * Plugin Name: FormsCRM
  * Plugin URI:  https://closemarketing.net/formscrm
  * Description: Connects Forms with CRM.
- * Version:     3.0
+ * Version:     3.1.1
  * Author:      Closemarketing
  * Author URI:  https://close.marketing
  * Text Domain: formscrm
@@ -39,10 +39,9 @@ require_once 'includes/debug.php';
 require_once 'includes/class-library-crm.php';
 require_once 'includes/class-admin-options.php';
 
-// GravityForms.
-if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) {
-	add_action( 'gform_loaded', array( 'GF_CRM_Bootstrap', 'load' ), 5 );
-	class GF_CRM_Bootstrap {
+if ( function_exists( 'is_plugin_active' ) && ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) ) {
+	add_action( 'gform_loaded', array( 'FC_CRM_Bootstrap', 'load' ), 5 );
+	class FC_CRM_Bootstrap {
 
 		public static function load() {
 
@@ -57,7 +56,7 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'g
 	}
 
 	function gf_crm() {
-		return GFCRM::get_instance();
+		return FCCRM::get_instance();
 	}
 }
 
@@ -93,6 +92,7 @@ if ( ! function_exists( 'formscrm_fs' ) ) {
 					'is_premium'     => false,
 					'has_addons'     => true,
 					'has_paid_plans' => false,
+					'navigation'     => 'tabs',
 					'menu'           => array(
 						'slug'       => 'formscrm',
 						'first-path' => 'admin.php?page=formscrm',
