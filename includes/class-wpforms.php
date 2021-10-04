@@ -318,15 +318,14 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or WP_Error object.
 	 */
 	public function api_connect( $account_id ) {
-
-		error_log( 'hola');
+		error_log('account_id:' . $account_id);
 
 		if ( ! empty( $this->api[ $account_id ] ) ) {
 			return $this->api[ $account_id ];
 		} else {
 			$providers = get_option( 'wpforms_providers' );
 			if ( ! empty( $providers[ $this->slug ][ $account_id ]['api'] ) ) {
-				$this->api[ $account_id ] = new Campaign_Monitor( $providers[ $this->slug ][ $account_id ]['api'], $providers[ $this->slug ][ $account_id ]['client_id'] );
+				//$this->api[ $account_id ] = new Campaign_Monitor( $providers[ $this->slug ][ $account_id ]['api'], $providers[ $this->slug ][ $account_id ]['client_id'] );
 				return $this->api[ $account_id ];
 			} else {
 				return $this->error( 'API error' );
@@ -345,6 +344,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or WP_Error object.
 	 */
 	public function api_lists( $connection_id = '', $account_id = '' ) {
+		error_log( 'api_lists run' . $account_id );
 
 		$this->api_connect( $account_id );
 
@@ -377,6 +377,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or error object.
 	 */
 	public function api_groups( $connection_id = '', $account_id = '', $list_id = '' ) {
+		error_log( 'api_groups run' );
 
 		// Need to return an error otherwise all hell breaks loose.
 		// CM doesn't have a concept of 'groups'.
@@ -395,6 +396,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or WP_Error object.
 	 */
 	public function api_fields( $connection_id = '', $account_id = '', $list_id = '' ) {
+		error_log( 'api_fields run' );
 
 		$this->api_connect( $account_id );
 
@@ -457,7 +459,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		$output = '<div class="wpforms-provider-account-add ' . $class . ' wpforms-connection-block">';
 
-		$output .= '<h4>' . esc_html__( 'Setup CRM', 'formscrm' ) . '</h4>';
+		$output .= '<h4>' . esc_html__( 'Add New Account', 'formscrm' ) . '</h4>';
 
 		$output .= sprintf(
 			'<select type="text" data-name="fc_crm_type" placeholder="%s" class="wpforms-required">',
@@ -642,4 +644,4 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	}
 }
 
-new WPForms_FormsCRM();
+new WPForms_FormsCRM;
