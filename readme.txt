@@ -1,11 +1,11 @@
 === FormsCRM ===
 Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
-Donate link: https://www.closemarketing.es/go/donate/
+Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
-Tested up to: 5.8
-Stable tag: 3.1.1
-Version: 3.1.1
+Tested up to: 5.8.2
+Stable tag: 3.2
+Version: 3.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,7 +17,7 @@ Connects your CRM with the main Form Plugin directly, and send to your CRM when 
 With this plugin, you don't have to use third party software to send your Leads/data to your CRM. You will have a direct connection between your website and your CRM. It's a connector between Web <> CRM.
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
-- [GravityForms](https://www.closemarketing.es/likes/gravityforms/)
+- [GravityForms](https://close.marketing/likes/gravityforms/)
 - WPForms (soon!)
 - ContactForm7 (soon!)
 
@@ -35,7 +35,8 @@ At this time, FormsCRM supports in free version:
 And you will find, that there are Premium Addons to support:
 - SugarCRM.
 - Odoo: versions 8 and 9 (more comming).
-- [vTiger 7](https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/).
+- [vTiger 7](https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/licenses/1/currency/eur/).
+- [Clientify](https://checkout.freemius.com/mode/dialog/plugin/9345/plan/15716/licenses/1/currency/eur/).
 
 You can only use one type of CRM in the web with this version.
 
@@ -44,7 +45,13 @@ You can only use one type of CRM in the web with this version.
 Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your
 WordPress installation and then activate the Plugin from Plugins page.
 
+== Developers ==
+[Official Repository GitHub](https://github.com/closemarketing/formscrm/)
+
 == Changelog ==
+= 3.2 =
+*	Support to Clientify in Premium version.
+
 = 3.1.1 =
 *	Fixed fatal error.
 
