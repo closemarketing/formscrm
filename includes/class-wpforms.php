@@ -278,6 +278,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed id or WP_Error object.
 	 */
 	public function api_auth( $data = array(), $form_id = '' ) {
+		error_log( 'api_auth run' );
 		$this->include_library( $data['fc_crm_type'] );
 		$login_result = '';
 		if ( isset( $this->crmlib ) ) {
@@ -349,7 +350,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		$this->api_connect( $account_id );
 
 		try {
-			$lists = $this->api[ $account_id ]->get_lists();
+			$lists = $this->crmlib->get_modules( $data );
+
 
 			return $lists;
 		} catch ( Exception $e ) {
@@ -377,6 +379,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or error object.
 	 */
 	public function api_groups( $connection_id = '', $account_id = '', $list_id = '' ) {
+		echo 'hola';
 		error_log( 'api_groups run' );
 
 		// Need to return an error otherwise all hell breaks loose.
@@ -397,6 +400,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 */
 	public function api_fields( $connection_id = '', $account_id = '', $list_id = '' ) {
 		error_log( 'api_fields run' );
+		$this->include_library( $data['fc_crm_type'] );
+		$login_result = '';
+		if ( isset( $this->crmlib ) ) {
+			$login_result = $this->crmlib->login( $data );
+		}
+
+		formscrm_testserver();
 
 		$this->api_connect( $account_id );
 
