@@ -377,8 +377,9 @@ class GFCRM extends GFFeedAddOn {
 		formscrm_debug_message( $merge_vars );
 
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
+		$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 
-		if ( 'error' === $response_result['status'] ) {
+		if ( 'error' === $api_status ) {
 			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
 		} else {
 			formscrm_debug_message( $response_result['id'] );
