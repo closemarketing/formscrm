@@ -18,8 +18,8 @@ With this plugin, you don't have to use third party software to send your Leads/
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
 - [GravityForms](https://close.marketing/likes/gravityforms/)
+- Contact Form 7
 - WPForms (soon!)
-- ContactForm7 (soon!)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -31,12 +31,12 @@ The plugin connects with the CRM via API webservice, a secure and best way to co
 
 At this time, FormsCRM supports in free version:
 - Holded
+- Clientify
 
 And you will find, that there are Premium Addons to support:
 - SugarCRM.
 - Odoo: versions 8 and 9 (more comming).
 - [vTiger 7](https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/licenses/1/currency/eur/).
-- [Clientify](https://checkout.freemius.com/mode/dialog/plugin/9345/plan/15716/licenses/1/currency/eur/).
 
 You can only use one type of CRM in the web with this version.
 
