@@ -376,9 +376,13 @@ class GFCRM extends GFFeedAddOn {
 		formscrm_debug_message( $settings );
 		formscrm_debug_message( $merge_vars );
 
-		$id = $this->crmlib->create_entry( $settings, $merge_vars );
+		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
-		formscrm_debug_message( $id );
+		if ( 'error' === $response_result['status'] ) {
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
+		} else {
+			formscrm_debug_message( $response_result['id'] );
+		}
 	}
 
 	private static function remove_blank_custom_fields( $merge_vars ) {
