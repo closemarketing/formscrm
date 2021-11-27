@@ -20,6 +20,8 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [GravityForms](https://close.marketing/likes/gravityforms/)
 - Contact Form 7
 - WPForms (soon!)
+- Ninja Forms (soon!)
+- WooCommerce (soon!)
 
 If you need to support more Forms plugins, please contact in forum support.
 
