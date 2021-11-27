@@ -65,6 +65,11 @@ if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 	require_once 'includes/class-contactform7.php';
 }
 
+// Elementor.
+if ( is_plugin_active( 'elementor/elementor.php' ) ) {
+	//require_once 'includes/class-elementor.php';
+}
+
 if ( ! function_exists( 'formscrm_fs' ) ) {
 	// Create a helper function for easy SDK access.
 	function formscrm_fs() {
