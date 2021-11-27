@@ -18,452 +18,290 @@ defined( 'ABSPATH' ) || exit;
  * @copyright  2019 Closemarketing
  * @version    0.1
  */
-class FMC_Settings {
-	/**
-	 * Settings
-	 *
-	 * @var array
-	 */
-	private $fmc_settings;
+class CF7_Settings {
 
-	/**
-	 * Label for premium features
-	 *
-	 * @var string
-	 */
-	private $label_premium;
+	private $crmlib;
 
 	/**
 	 * Construct of class
 	 */
 	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'add_plugin_page' ) );
-		add_action( 'admin_init', array( $this, 'page_init' ) );
-		add_action( 'admin_head', array( $this, 'custom_css' ) );
+		add_filter( 'wpcf7_editor_panels', array( $this, 'show_cm_metabox' ) );
+		add_action( 'wpcf7_after_save', array( $this, 'wpcf7_crm_save_crm' ) );
+		add_action( 'wpcf7_before_send_mail', array( $this, 'wpcf7_crm_subscribe' ) );
+	}
+
+	public function show_cm_metabox ( $panels ) {
+	
+		$new_page = array(
+			'cme-Extension' => array(
+				'title'    => __( 'FormsCRM', 'formscrm' ),
+				'callback' => array( $this, 'wpcf7_crm_add_crm' ),
+			)
+		);
+	
+		$panels = array_merge($panels, $new_page);
+	
+		return $panels;
+	
 	}
 
 	/**
-	 * Adds plugin page.
+	 * Include library connector
 	 *
+	 * @param string $crmtype Type of CRM.
 	 * @return void
 	 */
-	public function add_plugin_page() {
-
-		add_submenu_page(
-			'wpcf7',
-			__( 'FormsCRM', 'formscrm' ),
-			__( 'FormsCRM', 'formscrm' ),
-			'manage_options',
-			'formscrm_settings',
-			array( $this, 'create_admin_page' ),
-		);
-	}
-
-	/**
-	 * Create admin page.
-	 *
-	 * @return void
-	 */
-	public function create_admin_page() {
-		$this->fmc_settings = get_option( 'formscrm_settings' );
-		?>
-
-		<div class="wrap">
-			<h2><?php esc_html_e( 'FormsCRM Settings', 'formscrm' ); ?></h2>
-			<p></p>
-			<?php settings_errors(); ?>
-			<form method="post" action="options.php">
-				<?php
-					settings_fields( 'import_formscrm_settings' );
-					do_settings_sections( 'import-formscrm-admin' );
-					submit_button(
-						__( 'Save settings', 'formscrm' ),
-						'primary',
-						'submit_settings'
-					);
-				?>
-			</form>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Init for page
-	 *
-	 * @return void
-	 */
-	public function page_init() {
-
-		register_setting(
-			'import_formscrm_settings',
-			'formscrm_settings',
-			array( $this, 'sanitize_fields' )
-		);
-
-		add_settings_section(
-			'import_formscrm_setting_section',
-			__( 'Settings for Importing from Oracle', 'formscrm' ),
-			array( $this, 'import_formscrm_section_info' ),
-			'import-formscrm-admin'
-		);
-
-		add_settings_field(
-			'fmc_username',
-			__( 'Username', 'formscrm' ),
-			array( $this, 'username_callback' ),
-			'import-formscrm-admin',
-			'import_formscrm_setting_section'
-		);
-
-		add_settings_field(
-			'fmc_password',
-			__( 'Password', 'formscrm' ),
-			array( $this, 'password_callback' ),
-			'import-formscrm-admin',
-			'import_formscrm_setting_section'
-		);
-
-		add_settings_field(
-			'fmc_connection',
-			__( 'Connection String', 'formscrm' ),
-			array( $this, 'connection_callback' ),
-			'import-formscrm-admin',
-			'import_formscrm_setting_section'
-		);
-
-		add_settings_field(
-			'fmc_charset',
-			__( 'Charset', 'formscrm' ),
-			array( $this, 'charset_callback' ),
-			'import-formscrm-admin',
-			'import_formscrm_setting_section'
-		);
-	}
-
-	/**
-	 * Sanitize fiels before saves in DB
-	 *
-	 * @param array $input Input fields.
-	 * @return array
-	 */
-	public function sanitize_fields( $input ) {
-		$sanitary_values = array();
-		$fmc_settings    = get_option( 'formscrm_settings' );
-
-		if ( isset( $input[ 'fmc_username' ] ) ) {
-			$sanitary_values[ 'fmc_username' ] = sanitize_text_field( $input[ 'fmc_username'] );
+	private function include_library( $crmtype ) {
+		if ( isset( $_POST['fc_crm_type'] ) ) {
+			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
 		}
 
-		if ( isset( $input[ 'fmc_password'] ) ) {
-			$sanitary_values[ 'fmc_password'] = sanitize_text_field( $input[ 'fmc_password'] );
-		}
+		if ( isset( $crmtype ) ) {
+			$crmname      = strtolower( $crmtype );
+			$crmclassname = str_replace( ' ', '', $crmname );
+			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+			$crmname      = str_replace( ' ', '_', $crmname );
 
-		if ( isset( $input[ 'fmc_connection'] ) ) {
-			$sanitary_values[ 'fmc_connection'] = $input[ 'fmc_connection'];
-		}
+			$array_path = formscrm_get_crmlib_path();
+			if ( isset( $array_path[ $crmname ] ) ) {
+				include_once $array_path[ $crmname ];
+			}
 
-		if ( isset( $input[ 'fmc_charset'] ) ) {
-			$sanitary_values[ 'fmc_charset'] = $input[ 'fmc_charset'];
-		}
+			formscrm_debug_message( $array_path[ $crmname ]);
 
-		return $sanitary_values;
+			if ( class_exists( $crmclassname ) ) {
+				$this->crmlib = new $crmclassname();
+			}
+		}
 	}
 
-	/**
-	 * Info for neo automate section.
-	 *
-	 * @return void
-	 */
-	public function import_formscrm_section_info() {
-		esc_html_e( 'Put the connection API key settings in order to connect and sync courses.', 'formscrm' );
-	}
-
-	public function username_callback() {
+	function wpcf7_crm_add_crm( $args ) {
 		global $choices_crm;
-		echo '<select name="formscrm_settings[fmc_crm]" id="fmc_crm">';
-		$selected = isset( $this->fmc_settings[ 'fmc_crm'] ) ? '' : 'selected';
-		echo '<option value="" ' . esc_html( $selected ) . '>---</option>';
-		foreach ( $choices_crm as $crm ) {
-			$selected = ( isset( $this->fmc_settings[ 'fmc_crm'] ) && $this->fmc_settings[ 'fmc_crm'] === 'yes' ) ? 'selected' : '';
-			echo '<option value="' . esc_html( $crm['value'] ) . '" ' . esc_html( $selected ) . '>' . $crm['label'] . '</option>';
-		}
-		echo '</select>';
-	}
+	
+		$cf7_crm_defaults = array();
+		$cf7_crm          = get_option( 'cf7_crm_' . $args->id(), $cf7_crm_defaults );
+	
+		echo '<pre>cf7_crm:';
+		print_r($cf7_crm);
+		echo '</pre>';
+		?>
+		<div class="metabox-holder">
+			<div class="cme-main-fields">
+				<p>
+					<select name="wpcf7-crm[fc_crm_type]" class="medium" onchange="jQuery(this).parents('form').submit();" id="fc_crm_type">
+						<?php 
+						foreach ( formscrm_get_choices() as $choice ) {
+							echo '<option value="' . esc_html( $choice['value'] ) . '" ';
+							if ( isset( $cf7_crm['fc_crm_type'] ) ) {
+								selected( $cf7_crm['fc_crm_type'], $choice['value'] );
+							}
+							echo '>' . $choice['label'] . '</option>';
+						}
+						?>
+					</select>
+				</p>
+				<?php if ( isset( $cf7_crm['fc_crm_type'] ) && $cf7_crm['fc_crm_type'] ) { ?>
+			
+					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_url(), true ) ) { ?>
+					<p>
+						<label for="wpcf7-crm-fc_crm_url"><?php esc_html_e( 'URL:', 'formscrm' ); ?></label><br />
+						<input type="text" id="wpcf7-crm-fc_crm_url" name="wpcf7-crm[fc_crm_url]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM URL', 'formscrm' ); ?>]" value="<?php echo (isset ( $cf7_crm['fc_crm_url'] ) ) ? esc_attr( $cf7_crm['fc_crm_url'] ) : ''; ?>" />
+					</p>
+					<?php } ?>
+			
+					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_username(), true ) ) { ?>
+					<p>
+						<label for="wpcf7-crm-fc_crm_username"><?php esc_html_e( 'URL:', 'formscrm' ); ?></label><br />
+						<input type="text" id="wpcf7-crm-fc_crm_username" name="wpcf7-crm[fc_crm_username]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Username', 'formscrm' ); ?>]" value="<?php echo (isset ( $cf7_crm['fc_crm_username'] ) ) ? esc_attr( $cf7_crm['fc_crm_username'] ) : ''; ?>" />
+					</p>
+					<?php } ?>
+			
+					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_password(), true ) ) { ?>
+					<p>
+						<label for="wpcf7-crm-fc_crm_password"><?php esc_html_e( 'Password:', 'formscrm' ); ?></label><br />
+						<input type="text" id="wpcf7-crm-fc_crm_password" name="wpcf7-crm[fc_crm_password]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Password', 'formscrm' ); ?>]" value="<?php echo (isset ( $cf7_crm['fc_crm_password'] ) ) ? esc_attr( $cf7_crm['fc_crm_password'] ) : ''; ?>" />
+					</p>
+					<?php } ?>
+			
+					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apipassword(), true ) ) { ?>
+					<p>
+						<label for="wpcf7-crm-fc_crm_apipassword"><?php esc_html_e( 'API Password:', 'formscrm' ); ?></label><br />
+						<input type="text" id="wpcf7-crm-fc_crm_apipassword" name="wpcf7-crm[fc_crm_apipassword]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM API Password', 'formscrm' ); ?>]" value="<?php echo (isset ( $cf7_crm['fc_crm_apipassword'] ) ) ? esc_attr( $cf7_crm['fc_crm_apipassword'] ) : ''; ?>" />
+					</p>
+					<?php } ?>
+			
+					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apisales(), true ) ) { ?>
+					<p>
+						<label for="wpcf7-crm-fc_crm_apisales"><?php esc_html_e( 'API Sales:', 'formscrm' ); ?></label><br />
+						<input type="text" id="wpcf7-crm-fc_crm_apisales" name="wpcf7-crm[fc_crm_apisales]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Sales', 'formscrm' ); ?>]" value="<?php echo (isset ( $cf7_crm['fc_crm_apisales'] ) ) ? esc_attr( $cf7_crm['fc_crm_apisales'] ) : ''; ?>" />
+					</p>
+					<?php } ?>
+			
+					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_odoodb(), true ) ) { ?>
+					<p>
+						<label for="wpcf7-crm-fc_crm_odoodb"><?php esc_html_e( 'API Sales:', 'formscrm' ); ?></label><br />
+						<input type="text" id="wpcf7-crm-fc_crm_odoodb" name="wpcf7-crm[fc_crm_odoodb]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Sales', 'formscrm' ); ?>]" value="<?php echo (isset ( $cf7_crm['fc_crm_odoodb'] ) ) ? esc_attr( $cf7_crm['fc_crm_odoodb'] ) : ''; ?>" />
+					</p>
+					<?php } ?>
 
-	public function password_callback() {
-		printf(
-			'<input class="regular-text" type="password" name="' . 'formscrm_settings' . '[' . 'fmc_password]" id="' . 'fmc_password" value="%s">',
-			isset( $this->fmc_settings[ 'fmc_password' ] ) ? esc_attr( $this->fmc_settings[ 'fmc_password' ] ) : ''
-		);
-	}
+					<p>
+						<?php $this->include_library( $cf7_crm['fc_crm_type'] ); ?>
+						<select name="wpcf7-crm[fc_crm_module]" class="medium" onchange="jQuery(this).parents('form').submit();" id="fc_crm_module">
+							<?php 
+							foreach ( $this->crmlib->list_modules( $cf7_crm ) as $module ) {
+								print_r( $module );
+								echo '<option value="' . esc_html( $module['name'] ) . '" ';
+								if ( isset( $module['name'] ) ) {
+									selected( $cf7_crm['fc_crm_module'], $module['name'] );
+								}
+								echo '>' . $module['label'] . '</option>';
+							}
+							?>
+						</select>
+					</p>
 
-	public function connection_callback() {
-		printf(
-			'<input class="regular-text" type="text" name="' . 'formscrm_settings' . '[' . 'fmc_connection]" id="' . 'fmc_connection" value="%s">',
-			isset( $this->fmc_settings[ 'fmc_connection'] ) ? esc_attr( $this->fmc_settings[ 'fmc_connection'] ) : ''
-		);
-	}
+				<?php } ?>
+			</div>
+		
+		<?php if ( isset( $cf7_crm['fc_crm_module'] ) && $cf7_crm['fc_crm_module'] ) {
+		
+			$crm_fields = $this->crmlib->list_fields( $cf7_crm );
+		?>
+		<table class="cf7-map-table" cellspacing="0" cellpadding="0">
+			<tbody>
+				<tr class="cf7-map-row">
+					<th class="cf7-map-column cf7-map-column-heading cf7-map-column-key">Campo</th>
+					<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value">Campo formulario</th>
+				</tr>
+					<?php
+					foreach ( $crm_fields as $crm_field ) { ?>
 
-	public function charset_callback() {
-		printf(
-			'<input class="regular-text" type="text" name="' . 'formscrm_settings' . '[' . 'fmc_charset]" id="' . 'fmc_charset" value="%s">',
-			isset( $this->fmc_settings[ 'fmc_charset'] ) ? esc_attr( $this->fmc_settings[ 'fmc_charset'] ) : ''
-		);
-	}
-
-	/**
-	 * Custom CSS for admin
-	 *
-	 * @return void
-	 */
-	public function custom_css() {
-		// Free Version.
-		echo '
-			<style>
-			.wp-admin .formscrm-plugin span.wcsen-premium{ 
-				color: #b4b9be;
-			}
-			.wp-admin.formscrm-plugin #fmc_catnp,
-			.wp-admin.formscrm-plugin #fmc_crm,
-			.wp-admin.formscrm-plugin #fmc_catsep {
-				width: 70px;
-			}
-			.wp-admin.formscrm-plugin #fmc_username,
-			.wp-admin.formscrm-plugin #fmc_sync_num {
-				width: 50px;
-			}
-			.wp-admin.formscrm-plugin #fmc_charset {
-				width: 150px;
-			}
-			.wp-admin.formscrm-plugin #fmc_password,
-			.wp-admin.formscrm-plugin #fmc_taxinc {
-				width: 270px;
-			}';
-		echo '</style>';
-	}
-
-}
-if ( is_admin() ) {
-	$import_sync = new FMC_Settings();
-}
-
-
-function wpcf7_crm_add_crm( $args ) {
-	global $choices_crm;
-
-	$cf7_crm_defaults = array();
-	$cf7_crm          = get_option( 'cf7_crm_' . $args->id(), $cf7_crm_defaults );
-
-	echo '<pre>cf7_crm:';
-	print_r($cf7_crm);
-	echo '</pre>';
-	?>
-	<div class="metabox-holder">
-		<div class="cme-main-fields">
-
-			<p>
-				<label for="wpcf7-crm-username"><?php echo esc_html( __( 'Username:', 'wpcf7' ) ); ?></label><br />
-				<input type="text" id="wpcf7-crm-username" name="wpcf7-crm[username]" class="wide" size="70" placeholder="[CRM Username]" value="<?php echo (isset ( $cf7_crm['username'] ) ) ? esc_attr( $cf7_crm['username'] ) : ''; ?>" />
-			</p>
-
-			<p>
-				<label for="wpcf7-crm-email"><?php echo esc_html( __( 'Subscriber Email:', 'wpcf7' ) ); ?></label><br />
-				<input type="text" id="wpcf7-crm-email" name="wpcf7-crm[email]" class="wide" size="70" placeholder="[your-email]" value="<?php echo (isset ( $cf7_crm['email'] ) ) ? esc_attr( $cf7_crm['email'] ) : ''; ?>" />
-			</p>
-
-
-			<p>
-				<label for="wpcf7-crm-name"><?php echo esc_html( __( 'Subscriber Name:', 'wpcf7' ) ); ?></label><br />
-				<input type="text" id="wpcf7-crm-name" name="wpcf7-crm[name]" class="wide" size="70" placeholder="[your-name]" value="<?php echo (isset ($cf7_crm['name'] ) ) ? esc_attr( $cf7_crm['name'] ) : '' ; ?>" />
-			</p>
-
-
-			<p>
-				<label for="wpcf7-crm-accept"><?php echo esc_html( __( 'Required Acceptance Field:', 'wpcf7' ) ); ?></label><br />
-				<input type="text" id="wpcf7-crm-accept" name="wpcf7-crm[accept]" class="wide" size="70" placeholder="[opt-in]" value="<?php echo (isset ($cf7_crm['accept'] ) ) ? esc_attr( $cf7_crm['accept'] ) : '' ; ?>" />
-			</p>
-
-
-			<p>
-				<label for="wpcf7-crm-api"><?php echo esc_html( __( 'Client API Key:', 'wpcf7' ) ); ?></label><br />
-				<input type="text" id="wpcf7-crm-api" name="wpcf7-crm[api]" class="wide" size="70" placeholder="512a2673a8fc4e588499e82e2d43680d100a824e8ba55394" value="<?php echo (isset($cf7_crm['api']) ) ? esc_attr( $cf7_crm['api'] ) : ''; ?>" />
-			</p>
-
-
-			<p>
-				<label for="wpcf7-crm-list"><?php echo esc_html( __( 'API Subscriber List ID:', 'wpcf7' ) ); ?></label><br />
-				<input type="text" id="wpcf7-crm-list" name="wpcf7-crm[list]" class="wide" size="70" placeholder="aadc9ca0b08c83fbb714490354463186" value="<?php echo (isset( $cf7_crm['list']) ) ?  esc_attr( $cf7_crm['list']) : '' ; ?>" />
-			</p>
-
-
-			<p>
-				<input type="checkbox" id="wpcf7-crm-resubscribeoption" name="wpcf7-crm[resubscribeoption]" value="1"<?php echo ( isset($cf7_crm['resubscribeoption']) ) ? ' checked="checked"' : ''; ?> />
-				<label for="wpcf7-crm-resubscribeoption"><?php echo esc_html( __( 'Allow Users to Resubscribe after being Deleted or Unsubscribed? (checked = true)', 'wpcf7' ) ); ?></label>
-			</p>
-
-
-			<p>
-				<input type="checkbox" id="wpcf7-crm-cf-active" name="wpcf7-crm[cfactive]" value="1"<?php echo ( isset($cf7_crm['cfactive']) ) ? ' checked="checked"' : ''; ?> />
-				<label for="wpcf7-crm-cfactive"><?php echo esc_html( __( 'Use Custom Fields', 'wpcf7' ) ); ?></label>
-			</p>
-		</div>
-
-	<div class="crm-custom-fields">
-
-		<?php for($i=1;$i<=13;$i++){ ?>
-
-		<div class="col-6">
-				<label for="wpcf7-crm-CustomValue<?php echo $i; ?>"><?php echo esc_html( __( 'Contact Form Value '.$i.':', 'wpcf7' ) ); ?></label><br />
-				<input type="text" id="wpcf7-crm-CustomValue<?php echo $i; ?>" name="wpcf7-crm[CustomValue<?php echo $i; ?>]" class="wide" size="70" placeholder="[your-example-value]" value="<?php echo (isset( $cf7_crm['CustomValue'.$i]) ) ?  esc_attr( $cf7_crm['CustomValue'.$i]) : '' ;  ?>" />
-		</div>
-
-
-		<div class="col-6">
-			<label for="wpcf7-crm-CustomKey<?php echo $i; ?>"><?php echo esc_html( __( 'crm Custom Field Name '.$i.':', 'wpcf7' ) ); ?></label><br />
-			<input type="text" id="wpcf7-crm-CustomKey<?php echo $i; ?>" name="wpcf7-crm[CustomKey<?php echo $i; ?>]" class="wide" size="70" placeholder="example-field" value="<?php echo (isset( $cf7_crm['CustomKey'.$i]) ) ?  esc_attr( $cf7_crm['CustomKey'.$i]) : '' ;  ?>" />
-		</div>
-
+				<tr class="cf7-map-row">
+						<td class="cf7-map-column cf7-map-column-key">
+							<label for="wpcf7-crm-field-<?php echo $crm_field['name']; ?>"><?php echo esc_html( $crm_field['label'] ); ?><?php if ( $crm_field['required'] ) { echo ' <span class="required">*</span>'; } ?></label>
+						</td>
+						<td class="cf7-map-column cf7-map-column-value">
+							<input type="text" id="wpcf7-crm-field-<?php echo $crm_field['name']; ?>" name="wpcf7-crm[fc_crm_field-<?php echo $crm_field['name']; ?>]" class="wide" size="70" placeholder="[<?php esc_html_e( 'Name of your field', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_field-' . $crm_field['name'] ] ) ) ?  esc_attr( $cf7_crm['fc_crm_field-' . $crm_field['name'] ] ) : '' ;  ?>" <?php if ( $crm_field['required'] ) { echo ' required'; } ?>/>
+						</td>
+				</tr>
+					<?php } ?>
+			</tbody>
+		</table>
 		<?php } ?>
-
 	</div>
-
-
-
-</div>
-
-<?php
-
-}
-
-
-function wpcf7_crm_save_crm($args) {
-
-	update_option( 'cf7_crm_'.$args->id, $_POST['wpcf7-crm'] );
-
-}
-add_action( 'wpcf7_after_save', 'wpcf7_crm_save_crm' );
-
-
-
-function show_cm_metabox ( $panels ) {
-
-	$new_page = array(
-		'cme-Extension' => array(
-			'title'    => __( 'FormsCRM', 'formscrm' ),
-			'callback' => 'wpcf7_crm_add_crm'
-		)
-	);
-
-	$panels = array_merge($panels, $new_page);
-
-	return $panels;
-
-}
-add_filter( 'wpcf7_editor_panels', 'show_cm_metabox' );
-
-
-
-function wpcf7_crm_subscribe($obj) {
-
-	$cf7_crm = get_option( 'cf7_crm_'.$obj->id() );
-	$submission = WPCF7_Submission::get_instance();
-
-	if( $cf7_crm )
-	{
-		$subscribe = false;
-
-		$regex = '/\[\s*([a-zA-Z_][0-9a-zA-Z:._-]*)\s*\]/';
-		$callback = array( &$obj, 'cf7_crm_callback' );
-
-		$email = cf7_crm_tag_replace( $regex, $cf7_crm['email'], $submission->get_posted_data() );
-		$name = cf7_crm_tag_replace( $regex, $cf7_crm['name'], $submission->get_posted_data() );
-
-		$lists = cf7_crm_tag_replace( $regex, $cf7_crm['list'], $submission->get_posted_data() );
-		$listarr = explode(',',$lists);
-
-		if( isset($cf7_crm['accept']) && strlen($cf7_crm['accept']) != 0 )
-		{
-			$accept = cf7_crm_tag_replace( $regex, $cf7_crm['accept'], $submission->get_posted_data() );
-			if($accept != $cf7_crm['accept'])
-			{
-				if(strlen($accept) > 0)
-					$subscribe = true;
-			}
-		}
-		else
-		{
-			$subscribe = true;
-		}
-
-		for($i=1;$i<=20;$i++){
-
-			if( isset($cf7_crm['CustomKey'.$i]) && isset($cf7_crm['CustomValue'.$i]) && strlen(trim($cf7_crm['CustomValue'.$i])) != 0 )
-			{
-				$CustomFields[] = array('Key'=>trim($cf7_crm['CustomKey'.$i]), 'Value'=>cf7_crm_tag_replace( $regex, trim($cf7_crm['CustomValue'.$i]), $submission->get_posted_data() ) );
-			}
-
-		}
-
-		if( isset($cf7_crm['resubscribeoption']) && strlen($cf7_crm['resubscribeoption']) != 0 )
-		{
-			$ResubscribeOption = true;
-		}
-			else
-		{
-			$ResubscribeOption = false;
-		}
-
-		if($subscribe && $email != $cf7_crm['email'])
-		{
-
-			require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'../api/csrest_subscribers.php');
-
-			$wrap = new SPARTAN_CS_REST_Subscribers( trim($listarr[0]), $cf7_crm['api'] );
-			foreach($listarr as $listid)
-			{
-				$wrap->set_list_id(trim($listid));
-				$wrap->add(array(
-					'EmailAddress' => $email,
-					'Name' => $name,
-					'CustomFields' => $CustomFields,
-					'Resubscribe' => $ResubscribeOption
-				));
-			}
-
-		}
-
+	<?php
 	}
-}
-add_action( 'wpcf7_before_send_mail', 'wpcf7_crm_subscribe' );
-
-
-
-function cf7_crm_tag_replace( $pattern, $subject, $posted_data, $html = false ) {
-	if( preg_match($pattern,$subject,$matches) > 0)
-	{
-
-		if ( isset( $posted_data[$matches[1]] ) ) {
-			$submitted = $posted_data[$matches[1]];
-
-			if ( is_array( $submitted ) )
-				$replaced = join( ', ', $submitted );
-			else
-				$replaced = $submitted;
-
-			if ( $html ) {
-				$replaced = strip_tags( $replaced );
-				$replaced = wptexturize( $replaced );
-			}
-
-			$replaced = apply_filters( 'wpcf7_mail_tag_replaced', $replaced, $submitted );
-
-			return stripslashes( $replaced );
-		}
-
-		if ( $special = apply_filters( 'wpcf7_special_mail_tags', '', $matches[1] ) )
-			return $special;
-
-		return $matches[0];
+	
+	function wpcf7_crm_save_crm($args) {
+	
+		update_option( 'cf7_crm_'.$args->id, $_POST['wpcf7-crm'] );
+	
 	}
-	return $subject;
+
+	
+	function wpcf7_crm_subscribe($obj) {
+	
+		$cf7_crm = get_option( 'cf7_crm_' . $obj->id() );
+		$submission = WPCF7_Submission::get_instance();
+	
+		if( $cf7_crm )
+		{
+			$subscribe = false;
+	
+			$regex = '/\[\s*([a-zA-Z_][0-9a-zA-Z:._-]*)\s*\]/';
+			$callback = array( &$obj, 'cf7_crm_callback' );
+	
+			$email = cf7_crm_tag_replace( $regex, $cf7_crm['email'], $submission->get_posted_data() );
+			$name = cf7_crm_tag_replace( $regex, $cf7_crm['name'], $submission->get_posted_data() );
+	
+			$lists = cf7_crm_tag_replace( $regex, $cf7_crm['list'], $submission->get_posted_data() );
+			$listarr = explode(',',$lists);
+	
+			if( isset($cf7_crm['accept']) && strlen($cf7_crm['accept']) != 0 )
+			{
+				$accept = cf7_crm_tag_replace( $regex, $cf7_crm['accept'], $submission->get_posted_data() );
+				if($accept != $cf7_crm['accept'])
+				{
+					if(strlen($accept) > 0)
+						$subscribe = true;
+				}
+			}
+			else
+			{
+				$subscribe = true;
+			}
+	
+			for($i=1;$i<=20;$i++){
+	
+				if( isset($cf7_crm['CustomKey'.$i]) && isset($cf7_crm['CustomValue'.$i]) && strlen(trim($cf7_crm['CustomValue'.$i])) != 0 )
+				{
+					$CustomFields[] = array('Key'=>trim($cf7_crm['CustomKey'.$i]), 'Value'=>cf7_crm_tag_replace( $regex, trim($cf7_crm['CustomValue'.$i]), $submission->get_posted_data() ) );
+				}
+	
+			}
+	
+			if( isset($cf7_crm['resubscribeoption']) && strlen($cf7_crm['resubscribeoption']) != 0 )
+			{
+				$ResubscribeOption = true;
+			}
+				else
+			{
+				$ResubscribeOption = false;
+			}
+	
+			if($subscribe && $email != $cf7_crm['email'])
+			{
+	
+				require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'../api/csrest_subscribers.php');
+	
+				$wrap = new SPARTAN_CS_REST_Subscribers( trim($listarr[0]), $cf7_crm['api'] );
+				foreach($listarr as $listid)
+				{
+					$wrap->set_list_id(trim($listid));
+					$wrap->add(array(
+						'EmailAddress' => $email,
+						'Name' => $name,
+						'CustomFields' => $CustomFields,
+						'Resubscribe' => $ResubscribeOption
+					));
+				}
+	
+			}
+	
+		}
+	}
+	
+	function cf7_crm_tag_replace( $pattern, $subject, $posted_data, $html = false ) {
+		if( preg_match($pattern,$subject,$matches) > 0)
+		{
+	
+			if ( isset( $posted_data[$matches[1]] ) ) {
+				$submitted = $posted_data[$matches[1]];
+	
+				if ( is_array( $submitted ) )
+					$replaced = join( ', ', $submitted );
+				else
+					$replaced = $submitted;
+	
+				if ( $html ) {
+					$replaced = strip_tags( $replaced );
+					$replaced = wptexturize( $replaced );
+				}
+	
+				$replaced = apply_filters( 'wpcf7_mail_tag_replaced', $replaced, $submitted );
+	
+				return stripslashes( $replaced );
+			}
+	
+			if ( $special = apply_filters( 'wpcf7_special_mail_tags', '', $matches[1] ) )
+				return $special;
+	
+			return $matches[0];
+		}
+		return $subject;
+	}
+
 }
+
+new CF7_Settings();
