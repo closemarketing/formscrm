@@ -158,7 +158,6 @@ class CF7_Settings {
 						<select name="wpcf7-crm[fc_crm_module]" class="medium" onchange="jQuery(this).parents('form').submit();" id="fc_crm_module">
 							<?php
 							foreach ( $this->crmlib->list_modules( $cf7_crm ) as $module ) {
-								print_r( $module );
 								echo '<option value="' . esc_html( $module['name'] ) . '" ';
 								if ( isset( $module['name'] ) ) {
 									selected( $cf7_crm['fc_crm_module'], $module['name'] );
@@ -179,8 +178,8 @@ class CF7_Settings {
 			<table class="cf7-map-table" cellspacing="0" cellpadding="0">
 				<tbody>
 					<tr class="cf7-map-row">
-						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-key">Campo</th>
-						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value">Campo formulario</th>
+						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-key"><?php esc_html_e( 'Field CRM', 'formscrm' ); ?></th>
+						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value"><?php esc_html_e( 'Form Field', 'formscrm' ); ?></th>
 					</tr>
 						<?php
 						foreach ( $crm_fields as $crm_field ) {
