@@ -49,6 +49,11 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.3 =
+*	Support ContactForm7!.
+*  Clientify connector in Free version.
+*  Better error management.
+
 = 3.2 =
 *	Support to Clientify in Premium version.
 
