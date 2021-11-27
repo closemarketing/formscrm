@@ -65,6 +65,11 @@ if ( function_exists( 'is_plugin_active' ) && is_plugin_active( 'contact-form-7/
 	require_once 'includes/class-contactform7.php';
 }
 
+// WooCommerce.
+if ( function_exists( 'is_plugin_active' ) && is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+	require_once 'includes/class-woocommerce.php';
+}
+
 if ( ! function_exists( 'formscrm_fs' ) ) {
 	// Create a helper function for easy SDK access.
 	function formscrm_fs() {
