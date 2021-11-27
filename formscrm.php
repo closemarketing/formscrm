@@ -61,7 +61,7 @@ if ( function_exists( 'is_plugin_active' ) && ( is_plugin_active( 'gravityforms/
 }
 
 // ContactForms7.
-if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
+if ( function_exists( 'is_plugin_active' ) && is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 	require_once 'includes/class-contactform7.php';
 }
 
