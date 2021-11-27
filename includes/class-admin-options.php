@@ -60,14 +60,15 @@ class FORMSCRM_Admin {
 			<p></p>
 			<h3><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></h3>
 			<ul>
-				<li><?php esc_html_e( 'GravityForms', 'formscrm' ); ?></li>
+				<li>GravityForms</li>
+				<li>Contact Form 7</li>
 			</ul>
 			<h3><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></h3>
 			<ul>
 				<li>Holded</li>
+				<li>Clientify</li>
 				<li>Odoo (Premium)</li>
 				<li>vTiger (Premium) <a href="https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/licenses/1/currency/eur/" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-				<li>Clientify (Premium) <a href="https://checkout.freemius.com/mode/dialog/plugin/9345/plan/15716/licenses/1/currency/eur/" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 			</ul>
 			<a class="button button-primary" href="/wp-admin/admin.php?page=formscrm-addons"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
 		</div>
