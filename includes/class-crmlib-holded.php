@@ -253,10 +253,19 @@ class CRMLIB_HOLDED {
 		$result = $this->post( $module, $contact, $apikey );
 
 		if ( isset( $result['error']['message'] ) ) {
-			formscrm_debug_email_lead( 'Holded', 'Error ' . $result['error']['message'], $merge_vars );
+			$response_result = array(
+				'status'  => 'error',
+				'message' => $result['error']['message'],
+			);
+		} else {
+			$response_result = array(
+				'status'  => 'ok',
+				'message' => 'success',
+				'id'      => $result['id'],
+			);
 		}
 
-		return $result['id'];
+		return $response_result;
 	}
 
 } //from Class
