@@ -259,7 +259,7 @@ class GFCRM extends GFFeedAddOn {
 						'tooltip'  => '<h6>' . __( 'Name', 'formscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'formscrm' ),
 					),
 					array(
-						'name'     => 'gf_crm_module',
+						'name'     => 'fc_crm_module',
 						'label'    => __( 'CRM Module', 'formscrm' ),
 						'type'     => 'select',
 						'class'    => 'medium',
@@ -270,8 +270,8 @@ class GFCRM extends GFFeedAddOn {
 						'name'       => 'listFields',
 						'label'      => __( 'Map Fields', 'formscrm' ),
 						'type'       => 'field_map',
-						'dependency' => 'gf_crm_module',
-						'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'gf_crm_module' ) ),
+						'dependency' => 'fc_crm_module',
+						'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'fc_crm_module' ) ),
 						'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 					),
 				),
@@ -281,7 +281,7 @@ class GFCRM extends GFFeedAddOn {
 
 	public function ensure_upgrade() {
 
-		if (get_option('gf_crm_upgrade')) {
+		if (get_option('fc_crm_upgrade')) {
 			return false;
 		}
 
@@ -292,7 +292,7 @@ class GFCRM extends GFFeedAddOn {
 			$this->upgrade( '2.0' );
 		}
 
-		update_option( 'gf_crm_upgrade', 1 );
+		update_option( 'fc_crm_upgrade', 1 );
 	}
 
 	public function feed_list_columns() {
