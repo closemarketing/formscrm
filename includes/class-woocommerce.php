@@ -34,8 +34,14 @@ class FormsCRM_WooCommerce {
 		add_filter( 'woocommerce_settings_tabs_array', array( $this, 'add_settings_tab' ), 50 );
 		add_action( 'woocommerce_settings_tabs_formscrm', array( $this, 'settings_tab' ) );
 		add_action( 'woocommerce_update_options_formscrm', array( $this, 'update_settings' ) );
+		add_action( 'woocommerce_new_order', array( $this, 'crm_process_entry' ), 1, 1 );
 	}
 
+	/**
+	 * Get Woocommerce Fields.
+	 *
+	 * @return array
+	 */
 	private function get_woocommerce_order_fields() {
 		// Function name and Label.
 		return array(
@@ -68,18 +74,35 @@ class FormsCRM_WooCommerce {
 		);
 	}
 
+	/**
+	 * Settings tab in WooCommerce
+	 *
+	 * @param array $settings_tabs Settings tabs.
+	 * @return array
+	 */
 	public static function add_settings_tab( $settings_tabs ) {
 		$settings_tabs['formscrm'] = __( 'FormsCRM', 'formscrm' );
 		return $settings_tabs;
-  	}
-	function settings_tab() {
+	}
+
+	/**
+	 * Get fields Woocommerce.
+	 *
+	 * @return void
+	 */
+	public function settings_tab() {
 			woocommerce_admin_fields( $this->get_settings() );
 	}
-  
-	function get_settings() {
+
+	/**
+	 * Get settings for WooCommerce.
+	 *
+	 * @return array
+	 */
+	public function get_settings() {
 		$settings_crm = array();
-		$options_crm = array();
-		$wc_formscrm = get_option( 'wc_formscrm' );
+		$options_crm  = array();
+		$wc_formscrm  = get_option( 'wc_formscrm' );
 
 		foreach ( formscrm_get_choices() as $choice ) {
 			$options_crm[ $choice['value'] ] = $choice['label'];
@@ -236,22 +259,21 @@ class FormsCRM_WooCommerce {
 	/**
 	 * Process the entry.
 	 *
-	 * @param obj $obj CF7 Object.
+	 * @param int $order_id Order ID.
 	 * @return void
 	 */
-	public function crm_process_entry( $obj ) {
+	public function crm_process_entry( $order_id ) {
+		$wc_formscrm = get_option( 'wc_formscrm' );
+		$order       = new WC_Order( $order_id );
 
-		$cf7_crm    = get_option( 'cf7_crm_' . $obj->id() );
-		$submission = WPCF7_Submission::get_instance();
+		if ( $wc_formscrm ) {
+			$this->include_library( $wc_formscrm['fc_crm_type'] );
+			$merge_vars = $this->get_merge_vars( $wc_formscrm, $order );
 
-		if ( $cf7_crm ) {
-			$this->include_library( $cf7_crm['fc_crm_type'] );
-			$merge_vars = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-
-			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
+			$response_result = $this->crmlib->create_entry( $wc_formscrm, $merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {
-				formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
+				formscrm_debug_email_lead( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
 			} else {
 				error_log( $response_result['id'] );
 			}
@@ -261,19 +283,23 @@ class FormsCRM_WooCommerce {
 	/**
 	 * Extract merge variables
 	 *
-	 * @param array $cf7_crm Array settings from CRM.
-	 * @param array $submitted_data Submitted data.
+	 * @param array  $wc_formscrm Array settings from CRM.
+	 * @param object $order Submitted data.
 	 * @return array
 	 */
-	private function get_merge_vars( $cf7_crm, $submitted_data ) {
+	private function get_merge_vars( $wc_formscrm, $order ) {
 		$merge_vars = array();
-		foreach ( $cf7_crm as $key => $value ) {
+
+		foreach ( $wc_formscrm as $key => $value ) {
 			if ( false !== strpos( $key, 'fc_crm_field' ) ) {
-				$crm_key      = str_replace( 'fc_crm_field-', '', $key );
-				$merge_vars[] = array(
-					'name'  => $crm_key,
-					'value' => isset( $submitted_data[ $value ] ) ? $submitted_data[ $value ] : '',
-				);
+				$crm_key   = str_replace( 'fc_crm_field-', '', $key );
+				$method_wc = 'get_' . $value;
+				if ( $method_wc && method_exists( $order, $method_wc ) ) {
+					$merge_vars[] = array(
+						'name'  => $crm_key,
+						'value' => $order->$method_wc(),
+					);
+				}
 			}
 		}
 
