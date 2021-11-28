@@ -19,9 +19,9 @@ With this plugin, you don't have to use third party software to send your Leads/
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
 - [GravityForms](https://close.marketing/likes/gravityforms/)
 - Contact Form 7
+- WooCommerce
 - WPForms (soon!)
 - Ninja Forms (soon!)
-- WooCommerce (soon!)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -32,8 +32,8 @@ After that, you'll go to each form feed that you want to connect with the CRM. Y
 The plugin connects with the CRM via API webservice, a secure and best way to connect it. It *doesn't use a third party software*. You'll comply GDPR becaouse of not having a third provider.
 
 At this time, FormsCRM supports in free version:
-- Holded
-- Clientify
+- [Holded](https://holded.com/?utm_source=FormsCRM)
+- [Clientify](https://clientify.com/?utm_source=FormsCRM)
 
 And you will find, that there are Premium Addons to support:
 - SugarCRM.
@@ -53,6 +53,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 3.3 =
 *	Support ContactForm7!.
+*  Support to WooCommerce!.
 *  Clientify connector in Free version.
 *  Better error management.
 
