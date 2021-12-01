@@ -4,8 +4,8 @@ Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
 Tested up to: 5.8.2
-Stable tag: 3.2
-Version: 3.2
+Stable tag: 3.3
+Version: 3.3
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,8 +18,8 @@ With this plugin, you don't have to use third party software to send your Leads/
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
 - [GravityForms](https://close.marketing/likes/gravityforms/)
-- Contact Form 7
-- WooCommerce
+- [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
+- [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - WPForms (soon!)
 - Ninja Forms (soon!)
 
@@ -32,7 +32,7 @@ After that, you'll go to each form feed that you want to connect with the CRM. Y
 The plugin connects with the CRM via API webservice, a secure and best way to connect it. It *doesn't use a third party software*. You'll comply GDPR becaouse of not having a third provider.
 
 At this time, FormsCRM supports in free version:
-- [Holded](https://holded.com/?utm_source=FormsCRM)
+- [Holded](https://close.marketing/likes/holded/))
 - [Clientify](https://clientify.com/?utm_source=FormsCRM)
 
 And you will find, that there are Premium Addons to support:
