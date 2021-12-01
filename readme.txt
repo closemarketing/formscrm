@@ -32,7 +32,7 @@ After that, you'll go to each form feed that you want to connect with the CRM. Y
 The plugin connects with the CRM via API webservice, a secure and best way to connect it. It *doesn't use a third party software*. You'll comply GDPR becaouse of not having a third provider.
 
 At this time, FormsCRM supports in free version:
-- [Holded](https://close.marketing/likes/holded/))
+- [Holded](https://close.marketing/likes/holded/)
 - [Clientify](https://clientify.com/?utm_source=FormsCRM)
 
 And you will find, that there are Premium Addons to support:
