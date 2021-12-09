@@ -128,14 +128,14 @@ class CF7_Settings {
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_password(), true ) ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_password"><?php esc_html_e( 'Password:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_password" name="wpcf7-crm[fc_crm_password]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Password', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_password'] ) ) ? esc_attr( $cf7_crm['fc_crm_password'] ) : ''; ?>" />
+						<input type="password" id="wpcf7-crm-fc_crm_password" name="wpcf7-crm[fc_crm_password]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Password', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_password'] ) ) ? esc_attr( $cf7_crm['fc_crm_password'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apipassword(), true ) ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_apipassword"><?php esc_html_e( 'API Password:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_apipassword" name="wpcf7-crm[fc_crm_apipassword]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM API Password', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_apipassword'] ) ) ? esc_attr( $cf7_crm['fc_crm_apipassword'] ) : ''; ?>" />
+						<input type="password" id="wpcf7-crm-fc_crm_apipassword" name="wpcf7-crm[fc_crm_apipassword]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM API Password', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_apipassword'] ) ) ? esc_attr( $cf7_crm['fc_crm_apipassword'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
