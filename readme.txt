@@ -4,8 +4,8 @@ Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
 Tested up to: 5.8.2
-Stable tag: 3.3
-Version: 3.3
+Stable tag: 3.4
+Version: 3.4
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,11 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.4 =
+*	Fix is_plugin_activated.
+*  Fix translations.
+*  Fix tags loaded.
+
 = 3.3 =
 *	Support ContactForm7!.
 *  Support to WooCommerce!.
