@@ -132,9 +132,7 @@ class CRMLIB_Clientify {
 			$fields[] = array( 'name' => 'lead_scoring', 'label' => __( 'Lead scoring points', 'formscrm' ), 'required' => false , );
 
 			$fields[] = array( 'name' => 'taxpayer_identification_number', 'label' => __( 'Taxpayer identification nummber', 'formscrm' ), 'required' => false , );
-
-			$fields[] = array( 'name' => 'tags', 'label' => __( 'Array of strings with the tags of the contact', 'formscrm' ), 'required' => false , );
-
+			$fields[] = array( 'name' => 'tags', 'label' => __( 'Array of strings with the tags of the contact (value separated by comma)', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'gdpr_accept', 'label' => __( 'True if the user accepted the GDPR false if not', 'formscrm' ), 'required' => false , );
 			$fields[] = array( 'name' => 'contact_source', 'label' => __( 'Contact source', 'formscrm' ), 'required' => false , );
 			$fields[] = array( 'name' => 'medium', 'label' => __( 'Contact Medium', 'formscrm' ), 'required' => false , );
@@ -202,6 +200,8 @@ class CRMLIB_Clientify {
 			if ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
 				$custom_field = explode( '|', $element['name'] );
 				$contact[ $custom_field[0] ][ $custom_field[1] ] = $element['value'];
+			} elseif ( 'tags' === $element['name'] && false != strpos( $element['value'], ',' ) ) {
+				$contact[ $element['name'] ] = explode( ',', $element['value'] );
 			} else {
 				$contact[ $element['name'] ] = $element['value'];
 			}
