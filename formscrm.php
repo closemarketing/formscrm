@@ -3,7 +3,7 @@
  * Plugin Name: FormsCRM
  * Plugin URI:  https://closemarketing.net/formscrm
  * Description: Connects Forms with CRM.
- * Version:     3.4
+ * Version:     3.5
  * Author:      Closemarketing
  * Author URI:  https://close.marketing
  * Text Domain: formscrm
@@ -22,7 +22,8 @@
  */
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
-define( 'FORMSCRM_VERSION', '3.4' );
+
+define( 'FORMSCRM_VERSION', '3.5' );
 
 add_action( 'plugins_loaded', 'fcrm_plugin_init' );
 /**
