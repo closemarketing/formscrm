@@ -33,15 +33,30 @@ class CRMLIB_HOLDED {
 			),
 			'timeout' => 120,
 		);
-		$url      = 'https://api.holded.com/api/invoicing/v1/' . $url;
-		$response = wp_remote_get( $url, $args );
-		if ( is_wp_error( $response ) ) {
-			formscrm_error_admin_message( 'ERROR', $response->errors['http_request_failed'][0] );
-			return false;
-		} else {
-			$body = wp_remote_retrieve_body( $response );
+		$url    = 'https://api.holded.com/api/invoicing/v1/' . $url;
+		$result = wp_remote_get( $url, $args );
+		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
-			return json_decode( $body, true );
+		if ( 2 !== $code ) {
+			$message = implode( ' ', $result['response'] ) . ' ';
+			$body    = json_decode( $result['body'], true );
+			if ( is_array( $body ) ) {
+				foreach ( $body as $key => $value ) {
+					$message .= $key . ': ' . $value;
+				}
+			}
+			formscrm_error_admin_message( 'ERROR', $message );
+			return array(
+				'status' => 'error',
+				'data'   => $message,
+			);
+		} else {
+			$body = wp_remote_retrieve_body( $result );
+
+			return array(
+				'status' => 'ok',
+				'data'   => json_decode( $body, true ),
+			);
 		}
 	}
 	/**
@@ -60,15 +75,30 @@ class CRMLIB_HOLDED {
 			'timeout' => 120,
 			'body'    => $bodypost,
 		);
-		$url      = 'https://api.holded.com/api/invoicing/v1/' . $url;
-		$response = wp_remote_post( $url, $args );
-		if ( is_wp_error( $response ) ) {
-			formscrm_error_admin_message( 'ERROR', $response->errors['http_request_failed'][0] );
-			return false;
-		} else {
-			$body = wp_remote_retrieve_body( $response );
+		$url    = 'https://api.holded.com/api/invoicing/v1/' . $url;
+		$result = wp_remote_post( $url, $args );
+		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
-			return json_decode( $body, true );
+		if ( 2 !== $code ) {
+			$message = implode( ' ', $result['response'] ) . ' ';
+			$body    = json_decode( $result['body'], true );
+			if ( is_array( $body ) ) {
+				foreach ( $body as $key => $value ) {
+					$message .= $key . ': ' . $value;
+				}
+			}
+			formscrm_error_admin_message( 'ERROR', $message );
+			return array(
+				'status' => 'error',
+				'data'   => $message,
+			);
+		} else {
+			$body = wp_remote_retrieve_body( $result );
+
+			return array(
+				'status' => 'ok',
+				'data'   => json_decode( $body, true ),
+			);
 		}
 	}
 
@@ -80,9 +110,10 @@ class CRMLIB_HOLDED {
 	 */
 	public function login( $settings ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$login_result = $this->get( 'contacts', $apikey );
 
-		if ( $apikey ) {
-			return $this->get( 'contacts', $apikey )[0]['id'];
+		if ( $apikey && 'error' !== $login_result['status'] ) {
+			return true;
 
 		} else {
 			return false;
@@ -119,14 +150,14 @@ class CRMLIB_HOLDED {
 		if ( 'contacts' === $module ) {
 			$result_contact = $this->get( $module, $apikey );
 
-			if ( $result_contact ) {
+			if ( $result_contact['data'] ) {
 				$fields = array();
 				$index  = 0;
-				foreach ( $result_contact[0] as $key => $value ) {
+				foreach ( $result_contact['data'][0] as $key => $value ) {
 					if ( '_id' !== $key && 'id' !== $key && 'customId' !== $key ) {
 						$fields[ $index ]['name']     = $key;
 						$fields[ $index ]['label']    = $key;
-						$fields[ $index ]['required'] = false;
+						$fields[ $index ]['required'] = 'name' === $key ? true : false;
 						$index++;
 					}
 				}
@@ -252,16 +283,16 @@ class CRMLIB_HOLDED {
 
 		$result = $this->post( $module, $contact, $apikey );
 
-		if ( isset( $result['error']['message'] ) ) {
+		if ( 'error' === $result['status'] ) {
 			$response_result = array(
 				'status'  => 'error',
-				'message' => $result['error']['message'],
+				'message' => $result['data'],
 			);
 		} else {
 			$response_result = array(
 				'status'  => 'ok',
 				'message' => 'success',
-				'id'      => $result['id'],
+				'id'      => $result['data']['id'],
 			);
 		}
 

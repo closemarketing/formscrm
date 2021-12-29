@@ -53,6 +53,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 3.5 =
 *	Clientify: adds visitor key from cookie.
+*  Better error management.
+*  Holded solved fixes.
+*  Holded name mandatory.
 
 = 3.4 =
 *	Fix is_plugin_activated.
