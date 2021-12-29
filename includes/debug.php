@@ -13,6 +13,9 @@
 if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	function formscrm_debug_message( $message ) {
 		if ( WP_DEBUG == true ) {
+			if ( is_array( $message ) ) {
+				$message = $message['status'] . ' ' . $message['data'];
+			}
 			// Debug Mode
 			echo '  <table class="widefat">
                   <thead>
@@ -38,9 +41,13 @@ if ( ! function_exists( 'formscrm_error_admin_message' ) ) {
 	 * @return void
 	 */
 	function formscrm_error_admin_message( $code, $message ) {
-		echo '<div class="error">';
-		echo '<p><strong>API ERROR ' . esc_html( $code ) . ': </strong> ' . esc_html( $message ) . '</p>';
-		echo '</div>';
+		if ( wp_doing_ajax() ) {
+			error_log( 'API ERROR ' . esc_html( $code ) . ': ' . esc_html( $message ) );
+		} else {
+			echo '<div class="error">';
+			echo '<p><strong>API ERROR ' . esc_html( $code ) . ': </strong> ' . esc_html( $message ) . '</p>';
+			echo '</div>';
+		}
 	}
 }
 

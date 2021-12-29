@@ -191,7 +191,6 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function feed_edit_page( $form, $feed_id ) {
-
 		// Ensures valid credentials were entered in the settings page.
 		if ( false == $this->login_api_crm() ) {
 			?>
@@ -302,14 +301,22 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	public function process_feed( $feed, $entry, $form ) {
-
-		if ( ! $this->is_valid_key() ) {
+		// Ensures valid credentials were entered in the settings page.
+		if ( false == $this->login_api_crm() ) {
 			return;
 		}
 
 		$this->export_feed( $entry, $form, $feed );
 	}
 
+	/**
+	 * Sends data to API
+	 *
+	 * @param array  $entry Entry data.
+	 * @param object $form Form data.
+	 * @param array  $feed Feed data.
+	 * @return void
+	 */
 	public function export_feed( $entry, $form, $feed ) {
 		$settings = $this->get_plugin_settings();
 		$this->include_library( $settings['fc_crm_type'] );
@@ -423,12 +430,11 @@ class GFCRM extends GFFeedAddOn {
 		return $name;
 	}
 
-	private function is_valid_key() {
-		$result_api = $this->login_api_crm();
-
-		return $result_api;
-	}
-
+	/**
+	 * Logins to the CRM.
+	 *
+	 * @return boolean
+	 */
 	private function login_api_crm() {
 		$login_result = false;
 
@@ -443,12 +449,7 @@ class GFCRM extends GFFeedAddOn {
 			$login_result = $this->crmlib->login( $settings );
 			formscrm_debug_message( $login_result );
 		}
-
 		formscrm_testserver();
-
-		if ( ! isset( $login_result ) ) {
-			$login_result = '';
-		}
 
 		return $login_result;
 	}

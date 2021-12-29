@@ -28,7 +28,7 @@ class CRMLIB_Clientify {
 			'timeout' => 120,
 		);
 		$url      = 'https://api.clientify.net/v1/' . $url;
-		$response = wp_remote_get( $url, $args );
+		$result = wp_remote_get( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
 		if ( 2 !== $code ) {
@@ -99,10 +99,10 @@ class CRMLIB_Clientify {
 	 * @return false or id     returns false if cannot login and string if gets token
 	 */
 	public function login( $settings ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$get_result = $this->get( 'settings/my-account/', $apikey );
 
-		if ( $apikey && isset( $get_result['count'] ) && $get_result['count'] > 0 ) {
+		if ( $apikey && isset( $get_result['data']['count'] ) && $get_result['data']['count'] > 0 ) {
 			return true;
 		} else {
 			return false;
