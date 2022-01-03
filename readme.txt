@@ -4,8 +4,8 @@ Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
 Tested up to: 5.9
-Stable tag: 3.5
-Version: 3.5
+Stable tag: 3.5.1
+Version: 3.5.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.5.1 =
+*	Hotfix: Clientify connector settings error.
+
 = 3.5 =
 *	Clientify: adds visitor key from cookie.
 *  Better error management.

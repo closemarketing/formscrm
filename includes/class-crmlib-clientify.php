@@ -21,6 +21,12 @@ class CRMLIB_Clientify {
 	 * @return array
 	 */
 	private function get( $url, $apikey ) {
+		if ( ! $apikey ) {
+			return array(
+				'status' => 'error',
+				'data'   => 'No API Key',
+			);
+		}
 		$args     = array(
 			'headers' => array(
 				'Authorization' => 'Token ' . $apikey,
@@ -34,9 +40,11 @@ class CRMLIB_Clientify {
 		if ( 2 !== $code ) {
 			$message = implode( ' ', $result['response'] ) . ' ';
 			$body    = json_decode( $result['body'], true );
+
 			if ( is_array( $body ) ) {
 				foreach ( $body as $key => $value ) {
-					$message .= $key . ': ' . implode( '.', $value );
+					$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
+					$message      .= $key . ': ' . $message_value;
 				}
 			}
 			formscrm_error_admin_message( 'ERROR', $message );
@@ -75,7 +83,8 @@ class CRMLIB_Clientify {
 			$body    = json_decode( $result['body'], true );
 			if ( is_array( $body ) ) {
 				foreach ( $body as $key => $value ) {
-					$message .= $key . ': ' . implode( '.', $value );
+					$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
+					$message      .= $key . ': ' . $message_value;
 				}
 			}
 			formscrm_error_admin_message( 'ERROR', $message );
