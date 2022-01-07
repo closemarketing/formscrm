@@ -74,39 +74,3 @@ if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 	require_once 'includes/class-woocommerce.php';
 }
-
-if ( ! function_exists( 'formscrm_fs' ) ) {
-	// Create a helper function for easy SDK access.
-	function formscrm_fs() {
-		global $formscrm_fs;
-
-		if ( ! isset( $formscrm_fs ) ) {
-			// Include Freemius SDK.
-			require_once dirname( __FILE__ ) . '/vendor/freemius/wordpress-sdk/start.php';
-
-			$formscrm_fs = fs_dynamic_init(
-				array(
-					'id'             => '8504',
-					'slug'           => 'formscrm',
-					'type'           => 'plugin',
-					'public_key'     => 'pk_fa93ef3eb788d04ac4803d15c1511',
-					'is_premium'     => false,
-					'has_addons'     => true,
-					'has_paid_plans' => false,
-					'navigation'     => 'tabs',
-					'menu'           => array(
-						'slug'       => 'formscrm',
-						'first-path' => 'admin.php?page=formscrm',
-					),
-				)
-			);
-		}
-
-		return $formscrm_fs;
-	}
-
-	// Init Freemius.
-	formscrm_fs();
-	// Signal that SDK was initiated.
-	do_action( 'formscrm_fs_loaded' );
-}
