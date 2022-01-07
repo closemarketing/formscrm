@@ -62,13 +62,14 @@ class FORMSCRM_Admin {
 			<ul>
 				<li>GravityForms</li>
 				<li>Contact Form 7</li>
+				<li>WooCommerce</li>
 			</ul>
 			<h3><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></h3>
 			<ul>
 				<li>Holded</li>
 				<li>Clientify</li>
 				<li>Odoo (Premium)</li>
-				<li>vTiger (Premium) <a href="https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/licenses/1/currency/eur/" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+				<li>vTiger (Premium) <a href="https://close.technology/wordpress-plugins/formscrm-vtiger/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 				<li>Inmovilla (Premium) <a href="https://close.technology/wordpress-plugins/formscrm-inmovilla/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 			</ul>
 			<a class="button button-primary" href="/wp-admin/admin.php?page=formscrm-addons"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
