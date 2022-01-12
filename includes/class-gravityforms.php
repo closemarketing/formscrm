@@ -229,9 +229,8 @@ class GFCRM extends GFFeedAddOn {
 			$array_path = formscrm_get_crmlib_path();
 			if ( isset( $array_path[ $crmname ] ) ) {
 				include_once $array_path[ $crmname ];
+				formscrm_debug_message( $array_path[ $crmname ] );
 			}
-
-			formscrm_debug_message( $array_path[ $crmname ]);
 
 			if ( class_exists( $crmclassname ) ) {
 				$this->crmlib = new $crmclassname();
