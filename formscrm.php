@@ -3,7 +3,7 @@
  * Plugin Name: FormsCRM
  * Plugin URI:  https://closemarketing.net/formscrm
  * Description: Connects Forms with CRM.
- * Version:     3.1.1
+ * Version:     3.5.1
  * Author:      Closemarketing
  * Author URI:  https://close.marketing
  * Text Domain: formscrm
@@ -23,6 +23,8 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
+define( 'FORMSCRM_VERSION', '3.5.1' );
+
 add_action( 'plugins_loaded', 'fcrm_plugin_init' );
 /**
  * Load localization files
@@ -33,13 +35,16 @@ function fcrm_plugin_init() {
 	load_plugin_textdomain( 'formscrm', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
 
-define( 'FORMSCRM_VERSION', '3.0' );
-
 require_once 'includes/debug.php';
 require_once 'includes/class-library-crm.php';
 require_once 'includes/class-admin-options.php';
 
-if ( function_exists( 'is_plugin_active' ) && ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) ) {
+// Prevents fatal error is_plugin_active.
+if ( ! function_exists( 'is_plugin_active' ) ) {
+	include_once ABSPATH . 'wp-admin/includes/plugin.php';
+}
+
+if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) {
 	add_action( 'gform_loaded', array( 'FC_CRM_Bootstrap', 'load' ), 5 );
 	class FC_CRM_Bootstrap {
 
@@ -60,6 +65,15 @@ if ( function_exists( 'is_plugin_active' ) && ( is_plugin_active( 'gravityforms/
 	}
 }
 
+// ContactForms7.
+if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
+	require_once 'includes/class-contactform7.php';
+}
+
+// WooCommerce.
+if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+	require_once 'includes/class-woocommerce.php';
+}
 
 add_action( 'wpforms_loaded', 'wpforms_formscrm' );
 /**

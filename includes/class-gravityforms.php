@@ -13,6 +13,9 @@
 GFForms::include_feed_addon_framework();
 global $formscrm_api;
 
+/**
+ * Class for Addon GravityForms
+ */
 class GFCRM extends GFFeedAddOn {
 
 	protected $_version                  = FORMSCRM_VERSION;
@@ -188,7 +191,6 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function feed_edit_page( $form, $feed_id ) {
-
 		// Ensures valid credentials were entered in the settings page.
 		if ( false == $this->login_api_crm() ) {
 			?>
@@ -244,19 +246,19 @@ class GFCRM extends GFFeedAddOn {
 
 		return array(
 			array(
-				'title'       => __('CRM Feed', 'formscrm'),
+				'title'       => __( 'CRM Feed', 'formscrm' ),
 				'description' => '',
 				'fields'      => array(
 					array(
 						'name'     => 'feedName',
-						'label'    => __('Name', 'formscrm' ),
+						'label'    => __( 'Name', 'formscrm' ),
 						'type'     => 'text',
 						'required' => true,
 						'class'    => 'medium',
-						'tooltip'  => '<h6>' . __('Name', 'formscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'formscrm' ),
+						'tooltip'  => '<h6>' . __( 'Name', 'formscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'formscrm' ),
 					),
 					array(
-						'name'     => 'gf_crm_module',
+						'name'     => 'fc_crm_module',
 						'label'    => __( 'CRM Module', 'formscrm' ),
 						'type'     => 'select',
 						'class'    => 'medium',
@@ -265,10 +267,10 @@ class GFCRM extends GFFeedAddOn {
 					),
 					array(
 						'name'       => 'listFields',
-						'label'      => __('Map Fields', 'formscrm' ),
+						'label'      => __( 'Map Fields', 'formscrm' ),
 						'type'       => 'field_map',
-						'dependency' => 'gf_crm_module',
-						'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'gf_crm_module' ) ),
+						'dependency' => 'fc_crm_module',
+						'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'fc_crm_module' ) ),
 						'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 					),
 				),
@@ -278,80 +280,87 @@ class GFCRM extends GFFeedAddOn {
 
 	public function ensure_upgrade() {
 
-		if (get_option('gf_crm_upgrade')) {
+		if (get_option('fc_crm_upgrade')) {
 			return false;
 		}
 
 		$feeds = $this->get_feeds();
-		if (empty($feeds)) {
+		if ( empty( $feeds ) ) {
 
-			//Force Add-On framework upgrade
-			$this->upgrade('2.0');
+			// Force Add-On framework upgrade.
+			$this->upgrade( '2.0' );
 		}
 
-		update_option('gf_crm_upgrade', 1);
+		update_option( 'fc_crm_upgrade', 1 );
 	}
 
 	public function feed_list_columns() {
 		return array(
-			'feedName' => __('Name', 'formscrm'),
+			'feedName' => __( 'Name', 'formscrm' ),
 		);
 	}
 
 	public function process_feed( $feed, $entry, $form ) {
-
-		if ( ! $this->is_valid_key() ) {
+		// Ensures valid credentials were entered in the settings page.
+		if ( false == $this->login_api_crm() ) {
 			return;
 		}
 
 		$this->export_feed( $entry, $form, $feed );
 	}
 
-	public function export_feed( $entry, $form, $feed) {
-      	$settings = $this->get_plugin_settings();
-      	$this->include_library($settings['fc_crm_type']);
+	/**
+	 * Sends data to API
+	 *
+	 * @param array  $entry Entry data.
+	 * @param object $form Form data.
+	 * @param array  $feed Feed data.
+	 * @return void
+	 */
+	public function export_feed( $entry, $form, $feed ) {
+		$settings = $this->get_plugin_settings();
+		$this->include_library( $settings['fc_crm_type'] );
 
-		if (!empty($feed['meta']['listFields_first_name'])) {
-			$name = $this->get_name($entry, $feed['meta']['listFields_first_name']);
+		if ( ! empty( $feed['meta']['listFields_first_name'] ) ) {
+			$name = $this->get_name( $entry, $feed['meta']['listFields_first_name'] );
 		}
 
 		$merge_vars = array();
-		$field_maps = $this->get_field_map_fields($feed, 'listFields');
+		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
 
-		foreach ($field_maps as $var_key => $field_id) {
+		foreach ( $field_maps as $var_key => $field_id ) {
 			$field = RGFormsModel::get_field( $form, $field_id );
 
-			if ( isset( $field['type'] ) && GFCommon::is_product_field($field['type']) && rgar( $field, 'enablePrice' )) {
+			if ( isset( $field['type'] ) && GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
 				$ary          = explode('|', $entry[$field_id]);
 				$product_name = count($ary) > 0 ? $ary[0] : '';
 				$merge_vars[] = array('name' => $var_key, 'value' => $product_name);
-			} elseif ( $field && RGFormsModel::get_input_type($field) == 'checkbox') {
+			} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
 				$value = '';
-				foreach ($field['inputs'] as $input) {
+				foreach ( $field['inputs'] as $input ) {
 					$index   = (string) $input['id'];
-					$value_n = apply_filters('formscrm_field_value', rgar($entry, $index), $form['id'], $field_id, $entry);
+					$value_n = apply_filters( 'formscrm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry );
 					$value .= $value_n;
-					if ($value_n) {
+					if ( $value_n ) {
 						$value .= '|';
 					}
-
 				}
-				$value        = substr($value, 0, -1);
+				$value        = substr( $value, 0, -1 );
 				$merge_vars[] = array(
 					'name'  => $var_key,
 					'value' => $value,
 				);
-			} elseif ( $field && RGFormsModel::get_input_type($field) == 'multiselect') {
-				$value = apply_filters('formscrm_field_value', rgar($entry, $field_id), $form['id'], $field_id, $entry);
-				$value = str_replace(',', '|', $value);
+			} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'multiselect' ) {
+				$value = apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+				$value = str_replace( ',', '|', $value );
 
 				$merge_vars[] = array(
 					'name'  => $var_key,
 					'value' => $value,
 				);
-			} elseif ( $field && RGFormsModel::get_input_type($field) == 'textarea') {
-				$value        = apply_filters('formscrm_field_value', rgar($entry, $field_id), $form['id'], $field_id, $entry);
-				$value        = str_replace(array("\r", "\n"), ' ', $value);
+			} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'textarea' ) {
+				$value        = apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+				$value        = str_replace( array( "\r", "\n" ), ' ', $value );
 				$merge_vars[] = array(
 					'name'  => $var_key,
 					'value' => $value,
@@ -374,9 +383,14 @@ class GFCRM extends GFFeedAddOn {
 		formscrm_debug_message( $settings );
 		formscrm_debug_message( $merge_vars );
 
-		$id = $this->crmlib->create_entry( $settings, $merge_vars );
+		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
+		$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 
-		formscrm_debug_message( $id );
+		if ( 'error' === $api_status ) {
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
+		} else {
+			formscrm_debug_message( $response_result['id'] );
+		}
 	}
 
 	private static function remove_blank_custom_fields( $merge_vars ) {
@@ -385,11 +399,11 @@ class GFCRM extends GFFeedAddOn {
 		$count = count( $merge_vars );
 
 		for ( $i = 0; $i < $count; $i++ ) {
-			if ( rgblank( $merge_vars[$i]['value'] ) ) {
-				unset( $merge_vars[$i] );
+			if ( rgblank( $merge_vars[ $i ]['value'] ) ) {
+				unset( $merge_vars[ $i ] );
 			}
 		}
-		//resort the array because items could have been removed, this will give an error from CRM if the keys are not in numeric sequence
+		// resort the array because items could have been removed, this will give an error from CRM if the keys are not in numeric sequence.
 		sort( $merge_vars );
 		return $merge_vars;
 	}
@@ -402,26 +416,25 @@ class GFCRM extends GFFeedAddOn {
 			return $name;
 		}
 
-		//Complex field (multiple inputs). Join all pieces and create name
-		$prefix = trim(rgar($entry, $field_id . '.2'));
-		$first  = trim(rgar($entry, $field_id . '.3'));
-		$last   = trim(rgar($entry, $field_id . '.6'));
-		$suffix = trim(rgar($entry, $field_id . '.8'));
+		// Complex field (multiple inputs). Join all pieces and create name.
+		$prefix = trim( rgar( $entry, $field_id . '.2' ) );
+		$first  = trim( rgar( $entry, $field_id . '.3' ) );
+		$last   = trim( rgar( $entry, $field_id . '.6' ) );
+		$suffix = trim( rgar( $entry, $field_id . '.8' ) );
 
 		$name = $prefix;
-		$name .= !empty($name) && !empty($first) ? " $first" : $first;
-		$name .= !empty($name) && !empty($last) ? " $last" : $last;
-		$name .= !empty($name) && !empty($suffix) ? " $suffix" : $suffix;
+		$name .= ! empty( $name ) && ! empty( $first ) ? " $first" : $first;
+		$name .= ! empty( $name ) && ! empty( $last ) ? " $last" : $last;
+		$name .= ! empty( $name ) && ! empty( $suffix ) ? " $suffix" : $suffix;
 
 		return $name;
 	}
 
-	private function is_valid_key() {
-		$result_api = $this->login_api_crm();
-
-		return $result_api;
-	}
-
+	/**
+	 * Logins to the CRM.
+	 *
+	 * @return boolean
+	 */
 	private function login_api_crm() {
 		$login_result = false;
 
@@ -429,19 +442,14 @@ class GFCRM extends GFFeedAddOn {
 		$settings = $this->get_plugin_settings();
 
 		if ( isset( $settings['fc_crm_type'] ) ) {
-			$this->include_library($settings['fc_crm_type']);
+			$this->include_library( $settings['fc_crm_type'] );
 		}
 
 		if ( isset( $this->crmlib ) ) {
 			$login_result = $this->crmlib->login( $settings );
 			formscrm_debug_message( $login_result );
 		}
-
 		formscrm_testserver();
-
-		if ( ! isset( $login_result ) ) {
-			$login_result = '';
-		}
 
 		return $login_result;
 	}

@@ -1,11 +1,11 @@
 === FormsCRM ===
 Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
-Donate link: https://www.closemarketing.es/go/donate/
+Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
-Tested up to: 5.8
-Stable tag: 3.1.1
-Version: 3.1.1
+Tested up to: 5.9
+Stable tag: 3.5.1
+Version: 3.5.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,9 +17,11 @@ Connects your CRM with the main Form Plugin directly, and send to your CRM when 
 With this plugin, you don't have to use third party software to send your Leads/data to your CRM. You will have a direct connection between your website and your CRM. It's a connector between Web <> CRM.
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
-- [GravityForms](https://www.closemarketing.es/likes/gravityforms/)
+- [GravityForms](https://close.marketing/likes/gravityforms/)
+- [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
+- [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - WPForms (soon!)
-- ContactForm7 (soon!)
+- Ninja Forms (soon!)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -30,12 +32,13 @@ After that, you'll go to each form feed that you want to connect with the CRM. Y
 The plugin connects with the CRM via API webservice, a secure and best way to connect it. It *doesn't use a third party software*. You'll comply GDPR becaouse of not having a third provider.
 
 At this time, FormsCRM supports in free version:
-- Holded
+- [Holded](https://close.marketing/likes/holded/)
+- [Clientify](https://clientify.com/?utm_source=FormsCRM)
 
 And you will find, that there are Premium Addons to support:
 - SugarCRM.
 - Odoo: versions 8 and 9 (more comming).
-- [vTiger 7](https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/).
+- [vTiger 7](https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/licenses/1/currency/eur/).
 
 You can only use one type of CRM in the web with this version.
 
@@ -44,7 +47,33 @@ You can only use one type of CRM in the web with this version.
 Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your
 WordPress installation and then activate the Plugin from Plugins page.
 
+== Developers ==
+[Official Repository GitHub](https://github.com/closemarketing/formscrm/)
+
 == Changelog ==
+= 3.5.1 =
+*	Hotfix: Clientify connector settings error.
+
+= 3.5 =
+*	Clientify: adds visitor key from cookie.
+*  Better error management.
+*  Holded solved fixes.
+*  Holded name mandatory.
+
+= 3.4 =
+*	Fix is_plugin_activated.
+*  Fix translations.
+*  Fix tags loaded.
+
+= 3.3 =
+*	Support ContactForm7!.
+*  Support to WooCommerce!.
+*  Clientify connector in Free version.
+*  Better error management.
+
+= 3.2 =
+*	Support to Clientify in Premium version.
+
 = 3.1.1 =
 *	Fixed fatal error.
 
