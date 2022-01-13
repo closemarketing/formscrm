@@ -31,7 +31,7 @@ class Ultimate_Member_Connector {
 	 * Construct of class
 	 */
 	public function __construct() {
-		/*add_filter( 'wpcf7_editor_panels', array( $this, 'show_cm_metabox' ) );
+		/*
 		add_action( 'wpcf7_after_save', array( $this, 'crm_save_options' ) );
 		add_action( 'wpcf7_before_send_mail', array( $this, 'crm_process_entry' ) );*/
 
@@ -60,72 +60,55 @@ class Ultimate_Member_Connector {
 
 	}
 
-/**
- * Render Meta Box content.
- *
- * @param WP_Post $post The post object.
- */
-function ultimatemember_group_ads_callback( $post ) {
-	wp_nonce_field( 'ultimatemember_group_ads', 'ultimatemember_group_ads_nonce' );
-	$value = get_post_meta( $post->ID, 'ultimatemember_group_ads', true );
+	/**
+	 * Render Meta Box content.
+	 *
+	 * @param WP_Post $post The post object.
+	 */
+	function ultimatemember_group_ads_callback( $post ) {
+		wp_nonce_field( 'ultimatemember_group_ads', 'ultimatemember_group_ads_nonce' );
+		$value = get_post_meta( $post->ID, 'ultimatemember_group_ads', true );
 
-	if ( 'on' == $value ) {
-		$value = 'checked';
-	} else {
-		$value = '';
-	}
-	echo '<input type="checkbox" id="ultimatemember_group_ads" name="ultimatemember_group_ads" ' . esc_attr( $value ) . ' />';
-	echo '<label>';
-	echo esc_html__( 'Desactivar la publicidad', 'ultimatemembernomos' );
-	echo '</label>';
-}
-
-/**
- * Save the meta when the post is saved.
- *
- * @param int $post_id The ID of the post being saved.
- */
-function ultimatemember_save_meta_box( $post_id ) {
-	if ( ! isset( $_POST['ultimatemember_group_ads_nonce'] ) ) {
-		return $post_id;
-	}
-
-	$nonce = $_POST['ultimatemember_group_ads_nonce'];
-	if ( ! wp_verify_nonce( $nonce, 'ultimatemember_group_ads' ) ) {
-		return $post_id;
-	}
-
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		return $post_id;
-	}
-
-	if ( 'page' == $_POST['post_type'] ) {
-		if ( ! current_user_can( 'edit_page', $post_id ) ) {
-			return $post_id;
+		if ( 'on' == $value ) {
+			$value = 'checked';
+		} else {
+			$value = '';
 		}
-	} elseif ( ! current_user_can( 'edit_post', $post_id ) ) {
-		return $post_id;
+		echo '<input type="checkbox" id="ultimatemember_group_ads" name="ultimatemember_group_ads" ' . esc_attr( $value ) . ' />';
+		echo '<label>';
+		echo esc_html__( 'Desactivar la publicidad', 'ultimatemembernomos' );
+		echo '</label>';
 	}
-
-	$mydata = sanitize_text_field( $_POST['ultimatemember_group_ads'] );
-	update_post_meta( $post_id, 'ultimatemember_group_ads', $mydata );
-}
 
 	/**
-	 * Shows metabox in form
+	 * Save the meta when the post is saved.
 	 *
-	 * @param array $panels Panels actived in CF7.
-	 * @return array
+	 * @param int $post_id The ID of the post being saved.
 	 */
-	public function show_cm_metabox( $panels ) {
-		$new_page = array(
-			'cme-Extension' => array(
-				'title'    => __( 'FormsCRM', 'formscrm' ),
-				'callback' => array( $this, 'settings_add_crm' ),
-			),
-		);
-		$panels = array_merge( $panels, $new_page );
-		return $panels;
+	function ultimatemember_save_meta_box( $post_id ) {
+		if ( ! isset( $_POST['ultimatemember_group_ads_nonce'] ) ) {
+			return $post_id;
+		}
+
+		$nonce = $_POST['ultimatemember_group_ads_nonce'];
+		if ( ! wp_verify_nonce( $nonce, 'ultimatemember_group_ads' ) ) {
+			return $post_id;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return $post_id;
+		}
+
+		if ( 'page' == $_POST['post_type'] ) {
+			if ( ! current_user_can( 'edit_page', $post_id ) ) {
+				return $post_id;
+			}
+		} elseif ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return $post_id;
+		}
+
+		$mydata = sanitize_text_field( $_POST['ultimatemember_group_ads'] );
+		update_post_meta( $post_id, 'ultimatemember_group_ads', $mydata );
 	}
 
 	/**
