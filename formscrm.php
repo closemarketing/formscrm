@@ -75,6 +75,11 @@ if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 	require_once 'includes/class-woocommerce.php';
 }
 
+// Ultimate Member.
+if ( is_plugin_active( 'ultimate-member/ultimate-member.php' ) ) {
+	require_once 'includes/class-ultimate-member.php';
+}
+
 if ( ! function_exists( 'formscrm_fs' ) ) {
 	// Create a helper function for easy SDK access.
 	function formscrm_fs() {
