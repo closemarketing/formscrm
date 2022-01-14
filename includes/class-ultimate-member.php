@@ -99,7 +99,7 @@ class Ultimate_Member_Connector {
 			return $post_id;
 		}
 
-		if ( 'page' == $_POST['post_type'] ) {
+		if ( 'um_form' == $_POST['post_type'] ) {
 			if ( ! current_user_can( 'edit_page', $post_id ) ) {
 				return $post_id;
 			}
@@ -107,8 +107,8 @@ class Ultimate_Member_Connector {
 			return $post_id;
 		}
 
-		$mydata = sanitize_text_field( $_POST['ultimatemember_group_ads'] );
-		update_post_meta( $post_id, 'ultimatemember_group_ads', $mydata );
+		$mydata = sanitize_text_field( $_POST['formscrm_ultimate_member'] );
+		update_post_meta( $post_id, 'formscrm_ultimate_member', $mydata );
 	}
 
 	/**
