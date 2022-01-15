@@ -54,6 +54,7 @@ class FORMSCRM_Admin {
 	 * @return void
 	 */
 	public function create_admin_page() {
+		$lang_url = 'es' === substr( get_locale(), 0, 2 ) ? '' : 'en';
 		?>
 		<div class="wrap fs-section fs-full-size-wrapper">
 			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab fs-tab nav-tab-active home"><?php esc_html_e( 'Information', 'formscrm' ); ?></a></h2>
@@ -68,8 +69,8 @@ class FORMSCRM_Admin {
 				<li>Holded</li>
 				<li>Clientify</li>
 				<li>Odoo (Premium)</li>
-				<li>vTiger (Premium) <a href="https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/licenses/1/currency/eur/" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-				<li>Inmovilla (Premium) <a href="https://close.technology/wordpress-plugins/formscrm-inmovilla/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+				<li>vTiger (Premium) <a href="https://<?php echo esc_html( $lang_url ); ?>close.technology/wordpress-plugins/formscrm-vtiger/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+				<li>Inmovilla (Premium) <a href="https://<?php echo esc_html( $lang_url ); ?>close.technology/wordpress-plugins/formscrm-inmovilla/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 			</ul>
 			<a class="button button-primary" href="/wp-admin/admin.php?page=formscrm-addons"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
 		</div>
