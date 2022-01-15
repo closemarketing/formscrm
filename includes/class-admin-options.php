@@ -54,7 +54,7 @@ class FORMSCRM_Admin {
 	 * @return void
 	 */
 	public function create_admin_page() {
-		$lang_url = 'es' === substr( get_locale(), 0, 2 ) ? '' : 'en';
+		$lang_url = 'es' === substr( get_locale(), 0, 2 ) ? '' : 'en.';
 		?>
 		<div class="wrap fs-section fs-full-size-wrapper">
 			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab fs-tab nav-tab-active home"><?php esc_html_e( 'Information', 'formscrm' ); ?></a></h2>
