@@ -216,6 +216,25 @@ class CRMLIB_Clientify {
 			$fields[] = array( 'name' => 'tags', 'label' => __( 'Tags', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'linkedin_picture_url', 'label' => __( 'Linkedin Picture URL', 'formscrm' ), 'required' => false, );
 		}
+
+		// Get Custom Fields.
+		$equivalent_module = array(
+			'contacts'  => 'contact',
+			'companies' => 'company',
+		);
+		$result_api = $this->get( 'custom-fields/', $apikey );
+		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
+			foreach ( $result_api['data']['results'] as $custom_field ) {
+
+				if ( isset( $equivalent_module[ $module ] ) && $equivalent_module[ $module ] === $custom_field['content_type'] ) {
+					$fields[] = array(
+						'name'     => $custom_field['name'],
+						'label'    => $custom_field['name'],
+						'required' => false,
+					);
+				}
+			}
+		}
 		return $fields;
 	}
 

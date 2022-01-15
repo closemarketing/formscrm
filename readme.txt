@@ -51,6 +51,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.6 =
+*  Added link to custom Addons: Inmovilla.
+*  Clientify: Added custom fields to select in the form.
+
 = 3.5.1 =
 *	Hotfix: Clientify connector settings error.
 
