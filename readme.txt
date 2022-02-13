@@ -38,9 +38,14 @@ At this time, FormsCRM supports in free version:
 And you will find, that there are Premium Addons to support:
 - SugarCRM.
 - Odoo: versions 8 and 9 (more comming).
-- [vTiger 7](https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/licenses/1/currency/eur/).
+- [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/).
+- [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/).
+- [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/).
 
 You can only use one type of CRM in the web with this version.
+
+Demo:
+[youtube https://www.youtube.com/watch?v=HHG763ikL7o]
 
 == Installation ==
 
@@ -52,8 +57,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = 3.6 =
-*  Added link to custom Addons: Inmovilla.
+*  Added link to custom Addons: Inmovilla, PipeDrive.
 *  Clientify: Added custom fields to select in the form.
+*	Removed Freemius engine to sell.
+*  Added support to shop in close.technology.
 
 = 3.5.1 =
 *	Hotfix: Clientify connector settings error.
