@@ -27,6 +27,7 @@ class FORMSCRM_Admin {
 	 */
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_plugin_page' ) );
+		add_action( 'formscrm_settings', array( $this, 'settings_page' ) );
 	}
 
 
@@ -55,25 +56,59 @@ class FORMSCRM_Admin {
 	 */
 	public function create_admin_page() {
 		?>
-		<div class="wrap fs-section fs-full-size-wrapper">
-			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab fs-tab nav-tab-active home"><?php esc_html_e( 'Information', 'formscrm' ); ?></a></h2>
+		<div class="wrap">
+			<h2><?php esc_html_e( 'FormsCRM', 'import-holded-products-woocommerce' ); ?></h2>
 			<p></p>
-			<h3><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></h3>
-			<ul>
-				<li>GravityForms</li>
-				<li>Contact Form 7</li>
-				<li>WooCommerce</li>
-			</ul>
-			<h3><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></h3>
-			<ul>
-				<li>Holded</li>
-				<li>Clientify</li>
-				<li>Odoo (Premium)</li>
-				<li>vTiger (Premium) <a href="https://close.technology/wordpress-plugins/formscrm-vtiger/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-				<li>Inmovilla (Premium) <a href="https://close.technology/wordpress-plugins/formscrm-inmovilla/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-			</ul>
-			<a class="button button-primary" href="/wp-admin/admin.php?page=formscrm-addons"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
+			<?php settings_errors(); ?>
+
+			<?php
+			$active_tab = isset( $_GET['tab'] ) ? strval( $_GET['tab'] ) : 'settings';
+
+			$formscrm_tabs = apply_filters(
+				'formscrm_settings_tabs',
+				array(
+					array(
+						'tab'    => 'settings',
+						'label'  => esc_html__( 'Settings', 'import-holded-products-woocommerce' ),
+						'action' => 'formscrm_settings',
+					),
+				)
+			);
+			echo '<h2 class="nav-tab-wrapper">';
+			foreach ( $formscrm_tabs as $tab ) {
+				echo '<a href="?page=formscrm&tab=' . esc_html( $tab['tab'] ) . '" class="nav-tab ';
+				echo $tab['tab'] === $active_tab ? 'nav-tab-active' : '';
+				echo '">' . esc_html( $tab['label'] ) . '</a>';
+			}
+			echo '</h2>';
+			foreach ( $formscrm_tabs as $tab ) {
+				if ( $tab['tab'] === $active_tab ) {
+					do_action( $tab['action'] );
+				}
+			}
+			?>
 		</div>
+		<?php
+	}
+
+	public function settings_page() {
+		?>
+		<h3><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></h3>
+		<ul>
+			<li>GravityForms</li>
+			<li>Contact Form 7</li>
+			<li>WooCommerce</li>
+		</ul>
+		<h3><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></h3>
+		<ul>
+			<li>Holded</li>
+			<li>Clientify</li>
+			<li>Odoo (Premium)</li>
+			<li>vTiger (Premium) <a href="https://close.technology/wordpress-plugins/formscrm-vtiger/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+			<li>Inmovilla (Premium) <a href="https://close.technology/wordpress-plugins/formscrm-inmovilla/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+			<li>PipeDrive (Premium) <a href="https://close.technology/wordpress-plugins/formscrm-pipedrive/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+		</ul>
+		<a class="button button-primary" href="/wp-admin/admin.php?page=formscrm-addons"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
 		<?php
 	}
 

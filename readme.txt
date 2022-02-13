@@ -39,6 +39,7 @@ And you will find, that there are Premium Addons to support:
 - SugarCRM.
 - Odoo: versions 8 and 9 (more comming).
 - [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/).
+- [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/).
 - [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/).
 
 You can only use one type of CRM in the web with this version.
@@ -55,6 +56,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.6 =
+*	Removed Freemius engine to sell.
+*  Added support to shop in close.technology.
+
 = 3.5.1 =
 *	Hotfix: Clientify connector settings error.
 
