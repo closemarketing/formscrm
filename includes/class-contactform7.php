@@ -228,6 +228,13 @@ class CF7_Settings {
 			$this->include_library( $cf7_crm['fc_crm_type'] );
 			$merge_vars = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
 
+			if ( isset( $_COOKIE['vk'] ) ) {
+				$merge_vars[] = array(
+					'name'  => 'visitor_key',
+					'value' => esc_attr( $_COOKIE['vk'] ),
+				);
+			}
+
 			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {

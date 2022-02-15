@@ -246,7 +246,6 @@ class CRMLIB_Clientify {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
-		global $clientify_vk;
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 		$contact = array();
@@ -269,14 +268,11 @@ class CRMLIB_Clientify {
 				$contact[ $element['name'] ] = $element['value'];
 			}
 		}
-		session_start();
-		// Adds Visitor Key.
-		if ( isset( $_SESSION['vk'] ) && $_SESSION['vk'] ) {
-			$contact['visitor_key'] = esc_attr( $_SESSION['vk'] );
-		}
 
 		// Clean tags blank.
-		$contact['tags'] = array_filter( $contact['tags'] );
+		if ( isset( $contact['tags'] ) ) {
+			$contact['tags'] = array_filter( $contact['tags'] );
+		}
 
 		$result = $this->post( $module, $contact, $apikey );
 

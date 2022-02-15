@@ -62,6 +62,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *	Removed Freemius engine to sell.
 *  Added support to shop in close.technology.
 *  Fix acceptance consent.
+*  Fix visitor key.
 
 = 3.5.1 =
 *	Hotfix: Clientify connector settings error.

@@ -454,3 +454,16 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 } //from main class
+
+add_action( 'gform_pre_submission', 'formscrm_pre_submission_handler' );
+/**
+ * Presubmission
+ *
+ * @param object $form Form object.
+ * @return void
+ */
+function formscrm_pre_submission_handler( $form ) {
+	if ( isset( $_COOKIE['vk'] ) && $_COOKIE['vk'] ) {
+		$_POST['vk'] = esc_attr( $_COOKIE['vk'] );
+	}
+}
