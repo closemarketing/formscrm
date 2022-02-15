@@ -93,6 +93,7 @@ class FORMSCRM_Admin {
 
 	public function settings_page() {
 		$source_shop_url = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://en.close.technology/';
+		$utm_source      = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
 		?>
 		<h3><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></h3>
 		<ul>
@@ -105,12 +106,13 @@ class FORMSCRM_Admin {
 			<li>Holded</li>
 			<li>Clientify</li>
 			<li>Odoo (Premium)</li>
-			<li>vTiger (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-vtiger/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-			<li>Inmovilla (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-inmovilla/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-			<li>PipeDrive (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-pipedrive/?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+			<li>vTiger (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-vtiger/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+			<li>Inmovilla (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-inmovilla/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+			<li>PipeDrive (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-pipedrive/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 		</ul>
 		<br/>
-		<a class="button button-primary" href="/wp-admin/admin.php?page=formscrm-addons"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
+		<a class="button button-primary" href="<?php echo esc_url( $source_shop_url ); ?>formscrm/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
+		<a class="button button-secondary" href="https://wordpress.org/support/plugin/formscrm/"><?php esc_html_e( 'Get Support', 'formscrm' ); ?></a>
 		<?php
 	}
 

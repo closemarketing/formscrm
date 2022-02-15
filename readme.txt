@@ -61,6 +61,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Clientify: Added custom fields to select in the form.
 *	Removed Freemius engine to sell.
 *  Added support to shop in close.technology.
+*  Fix acceptance consent.
 
 = 3.5.1 =
 *	Hotfix: Clientify connector settings error.
