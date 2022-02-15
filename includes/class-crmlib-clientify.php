@@ -246,6 +246,7 @@ class CRMLIB_Clientify {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
+		global $clientify_vk;
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 		$contact = array();
@@ -258,18 +259,24 @@ class CRMLIB_Clientify {
 			if ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
 				$custom_field = explode( '|', $element['name'] );
 				$contact[ $custom_field[0] ][ $custom_field[1] ] = $element['value'];
-			} elseif ( 'tags' === $element['name'] && false != strpos( $element['value'], ',' ) ) {
+			} elseif ( 'tags' === $element['name'] && false !== strpos( $element['value'], ',' ) ) {
 				$contact[ $element['name'] ] = explode( ',', $element['value'] );
 			} elseif ( 'tags' === $element['name'] && false === is_array( $element['value'] ) ) {
 				$contact[ $element['name'] ] = array( $element['value'] );
+			} elseif ( 'gdpr_accept' === $element['name'] ) { 
+				$contact[ $element['name'] ] = empty( $element['value'] ) ? false : true;
 			} else {
 				$contact[ $element['name'] ] = $element['value'];
 			}
 		}
+		session_start();
 		// Adds Visitor Key.
-		if ( isset( $_COOKIE['vk'] ) && $_COOKIE['vk'] ) {
-			$contact[ $element['visitor_key'] ] = esc_attr( $_COOKIE['vk'] );
+		if ( isset( $_SESSION['vk'] ) && $_SESSION['vk'] ) {
+			$contact['visitor_key'] = esc_attr( $_SESSION['vk'] );
 		}
+
+		// Clean tags blank.
+		$contact['tags'] = array_filter( $contact['tags'] );
 
 		$result = $this->post( $module, $contact, $apikey );
 
