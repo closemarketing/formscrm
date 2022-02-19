@@ -74,3 +74,19 @@ if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 	require_once 'includes/class-woocommerce.php';
 }
+
+// Visitor Key.
+add_action( 'init', 'formscrm_visitorkey_session', 1 );
+/**
+ * Adds visitor key to the session.
+ *
+ * @return void
+ */
+function formscrm_visitorkey_session() {
+	global $wp_session;
+
+	$visitor_key = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
+	if ( $visitor_key && ! isset( $wp_session['clientify_visitor_key'] ) ) {
+		$wp_session['clientify_visitor_key'] = $visitor_key;
+	}
+}

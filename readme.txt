@@ -4,8 +4,8 @@ Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
 Tested up to: 5.9
-Stable tag: 3.5.1
-Version: 3.5.1
+Stable tag: 3.6
+Version: 3.6
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,7 +37,7 @@ At this time, FormsCRM supports in free version:
 
 And you will find, that there are Premium Addons to support:
 - SugarCRM.
-- Odoo: versions 8 and 9 (more comming).
+- Odoo (soon!).
 - [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/).
 - [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/).
 - [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/).
