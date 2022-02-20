@@ -41,6 +41,7 @@ And you will find, that there are Premium Addons to support:
 - [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/).
 - [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/).
 - [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/).
+- [SuiteCRM](https://en.close.technology/wordpress-plugins/formscrm-suitecrm/).
 
 You can only use one type of CRM in the web with this version.
 
@@ -57,7 +58,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = 3.6 =
-*  Added link to custom Addons: Inmovilla, PipeDrive.
+*  Added link to custom Addons: Inmovilla, PipeDrive, SuiteCRM.
 *  Clientify: Added custom fields to select in the form.
 *	Removed Freemius engine to sell.
 *  Added support to shop in close.technology.

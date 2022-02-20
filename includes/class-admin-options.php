@@ -109,6 +109,7 @@ class FORMSCRM_Admin {
 			<li>vTiger (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-vtiger/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 			<li>Inmovilla (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-inmovilla/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 			<li>PipeDrive (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-pipedrive/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+			<li>SuiteCRM (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-suitecrm/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 		</ul>
 		<br/>
 		<a class="button button-primary" href="<?php echo esc_url( $source_shop_url ); ?>formscrm/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
