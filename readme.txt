@@ -42,6 +42,7 @@ And you will find, that there are Premium Addons to support:
 - [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/).
 - [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/).
 - [SuiteCRM](https://en.close.technology/wordpress-plugins/formscrm-suitecrm/).
+- [FacturaDirecta](https://en.close.technology/wordpress-plugins/formscrm-facturadirecta/).
 
 You can only use one type of CRM in the web with this version.
 
@@ -58,12 +59,12 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = 3.6 =
-*  Added link to custom Addons: Inmovilla, PipeDrive, SuiteCRM.
+*  Added link to custom Addons: Inmovilla, PipeDrive, SuiteCRM and FacturaDirecta.
 *  Clientify: Added custom fields to select in the form.
 *	Removed Freemius engine to sell.
 *  Added support to shop in close.technology.
-*  Fix acceptance consent.
-*  Fix visitor key.
+*  Fix acceptance consent in Clientify.
+*  Fix visitor key in Clientify.
 
 = 3.5.1 =
 *	Hotfix: Clientify connector settings error.
