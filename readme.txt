@@ -36,13 +36,13 @@ At this time, FormsCRM supports in free version:
 - [Clientify](https://clientify.com/?utm_source=FormsCRM)
 
 And you will find, that there are Premium Addons to support:
-- SugarCRM.
-- Odoo (soon!).
-- [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/).
-- [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/).
-- [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/).
-- [SuiteCRM](https://en.close.technology/wordpress-plugins/formscrm-suitecrm/).
-- [FacturaDirecta](https://en.close.technology/wordpress-plugins/formscrm-facturadirecta/).
+- SugarCRM
+- Odoo (soon!)
+- [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/)
+- [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/)
+- [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/)
+- [SuiteCRM](https://en.close.technology/wordpress-plugins/formscrm-suitecrm/)
+- [FacturaDirecta](https://en.close.technology/wordpress-plugins/formscrm-facturadirecta/)
 
 You can only use one type of CRM in the web with this version.
 
