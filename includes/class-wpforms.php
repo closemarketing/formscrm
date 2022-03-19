@@ -285,8 +285,6 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			$login_result = $this->crmlib->login( $data );
 		}
 
-		formscrm_testserver();
-
 		if ( isset( $login_result ) && false === $login_result ) {
 			return $this->error( 'API authorization error: ' . $data['fc_crm_type'] );
 		}
@@ -319,14 +317,12 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or WP_Error object.
 	 */
 	public function api_connect( $account_id ) {
-		error_log('account_id:' . $account_id);
 
 		if ( ! empty( $this->api[ $account_id ] ) ) {
 			return $this->api[ $account_id ];
 		} else {
 			$providers = get_option( 'wpforms_providers' );
 			if ( ! empty( $providers[ $this->slug ][ $account_id ]['api'] ) ) {
-				//$this->api[ $account_id ] = new Campaign_Monitor( $providers[ $this->slug ][ $account_id ]['api'], $providers[ $this->slug ][ $account_id ]['client_id'] );
 				return $this->api[ $account_id ];
 			} else {
 				return $this->error( 'API error' );
@@ -345,12 +341,11 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or WP_Error object.
 	 */
 	public function api_lists( $connection_id = '', $account_id = '' ) {
-		error_log( 'api_lists run' . $account_id );
-
-		$this->api_connect( $account_id );
-
+		
+		$settings_data = $this->api_connect( $account_id );
+		error_log( 'data' . print_r( $settings_data, true ) );
 		try {
-			$lists = $this->crmlib->get_modules( $data );
+			$lists = $this->crmlib->get_modules( $settings_data );
 
 
 			return $lists;
@@ -405,8 +400,6 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		if ( isset( $this->crmlib ) ) {
 			$login_result = $this->crmlib->login( $data );
 		}
-
-		formscrm_testserver();
 
 		$this->api_connect( $account_id );
 
