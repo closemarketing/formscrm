@@ -307,7 +307,6 @@ class GFCRM extends GFFeedAddOn {
 
 		$this->export_feed( $entry, $form, $feed );
 	}
-
 	/**
 	 * Sends data to API
 	 *
@@ -387,11 +386,19 @@ class GFCRM extends GFFeedAddOn {
 
 		if ( 'error' === $api_status ) {
 			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
+			$this->add_note( $entry['id'], 'Error ' . $response_result['message'], 'error' );
 		} else {
+			$this->add_note( $entry['id'], 'Success creating ' . esc_html( $settings['fc_crm_type'] ) . ' Entry ID:' . $response_result['id'], 'success' );
 			formscrm_debug_message( $response_result['id'] );
 		}
 	}
 
+	/**
+	 * Remove blank custom fields
+	 *
+	 * @param  array $merge_vars Vars to send to API.
+	 * @return array
+	 */
 	private static function remove_blank_custom_fields( $merge_vars ) {
 		$i = 0;
 
