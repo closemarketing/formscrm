@@ -246,11 +246,11 @@ class CRMLIB_Clientify {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
-		global $wp_session;
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 		$contact = array();
 
+		error_log( 'merge_vars' . print_r( $merge_vars, true ) );
 		foreach ( $merge_vars as $element ) {
 			if ( is_array( $element['value'] ) ) {
 				$element['value'] = implode( ',', $element['value'] );
@@ -270,11 +270,6 @@ class CRMLIB_Clientify {
 			}
 		}
 
-		// Gets visitors key.
-		if ( isset( $wp_session['clientify_visitor_key'] ) ) {
-			$contact['visitor_key'] = esc_attr( $wp_session['clientify_visitor_key'] );
-		}
-
 		// Clean tags blank.
 		if ( isset( $contact['tags'] ) ) {
 			$contact['tags'] = array_filter( $contact['tags'] );
@@ -289,7 +284,7 @@ class CRMLIB_Clientify {
 				'id'      => $result['data']['id'],
 			);
 		} else {
-			$message = isset( $result['data'] ) ? $result['data'] : '';
+			$message         = isset( $result['data'] ) ? $result['data'] : '';
 			$response_result = array(
 				'status'  => 'error',
 				'message' => $message,

@@ -330,7 +330,7 @@ class GFCRM extends GFFeedAddOn {
 			$field = RGFormsModel::get_field( $form, $field_id );
 
 			if ( isset( $field['type'] ) && GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
-				$ary          = explode('|', $entry[$field_id]);
+				$ary          = explode('|', $entry[ $field_id ] );
 				$product_name = count($ary) > 0 ? $ary[0] : '';
 				$merge_vars[] = array('name' => $var_key, 'value' => $product_name);
 			} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
@@ -367,6 +367,21 @@ class GFCRM extends GFFeedAddOn {
 				$merge_vars[] = array(
 					'name'  => $var_key,
 					'value' => apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry ),
+				);
+			}
+		}
+
+		// Adds Clientify visitor key.
+		if ( 'clientify' === $settings['fc_crm_type'] ) {
+			foreach ( $form['fields'] as $field ) {
+				if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
+					$field_clientify_id = $field->id;
+				}
+			}
+			if ( isset( $entry[ $field_clientify_id ] ) && ! empty( $entry[ $field_clientify_id ] ) ) {
+				$merge_vars[] = array(
+					'name'  => 'visitor_key',
+					'value' => $entry[ $field_clientify_id ],
 				);
 			}
 		}

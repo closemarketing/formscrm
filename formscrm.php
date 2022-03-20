@@ -38,6 +38,7 @@ function fcrm_plugin_init() {
 require_once 'includes/debug.php';
 require_once 'includes/class-library-crm.php';
 require_once 'includes/class-admin-options.php';
+require_once 'includes/class-forms-clientify.php';
 
 // Prevents fatal error is_plugin_active.
 if ( ! function_exists( 'is_plugin_active' ) ) {
