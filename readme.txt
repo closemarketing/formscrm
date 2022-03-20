@@ -4,8 +4,8 @@ Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
 Tested up to: 5.9
-Stable tag: 3.6
-Version: 3.6
+Stable tag: 3.7
+Version: 3.7
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 3.7 =
+*  New method for clientify visitor key.
+
 = 3.6 =
 *  Added link to custom Addons: Inmovilla, PipeDrive, SuiteCRM and FacturaDirecta.
 *  Clientify: Added custom fields to select in the form.
