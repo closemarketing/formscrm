@@ -30,6 +30,13 @@ class Forms_Clientify {
 			add_action( 'gform_after_save_form', array( $this, 'create_visitor_key_field' ), 10, 2 );
 			add_filter( 'gform_pre_render', array( $this, 'clientify_gravityforms_hidden_input' ) );
 		}
+		wp_register_script(
+			'forms-clientify-gravity',
+			plugins_url( '/js/clientify-gravity.js', __FILE__ ),
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -69,7 +76,8 @@ class Forms_Clientify {
 		foreach ( $form['fields'] as &$field ) {
 			if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) { //phpcs:ignore
 				$field->defaultValue = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
-			}
+            	wp_enqueue_script( 'forms-clientify-gravity' );
+         	}
 		}
 		return $form;
 	}

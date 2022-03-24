@@ -23,7 +23,7 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-define( 'FORMSCRM_VERSION', '3.6' );
+define( 'FORMSCRM_VERSION', '3.7-beta.2' );
 
 add_action( 'plugins_loaded', 'fcrm_plugin_init' );
 /**
