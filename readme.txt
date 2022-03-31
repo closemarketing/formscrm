@@ -61,6 +61,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 = 3.7 =
 *  New method for clientify visitor key.
+*  Fix Clientify pagination Custom fields problem.
+*  Better log management (in debug.log).
 
 = 3.6 =
 *  Added link to custom Addons: Inmovilla, PipeDrive, SuiteCRM and FacturaDirecta.
