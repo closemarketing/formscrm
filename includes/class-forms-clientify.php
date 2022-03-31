@@ -29,7 +29,16 @@ class Forms_Clientify {
 		if ( $is_clientify ) {
 			add_action( 'gform_after_save_form', array( $this, 'create_visitor_key_field' ), 10, 2 );
 			add_filter( 'gform_pre_render', array( $this, 'clientify_gravityforms_hidden_input' ) );
+			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		}
+	}
+
+	/**
+	 * Enqueue Scripts
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts() {
 		wp_register_script(
 			'forms-clientify-gravity',
 			plugins_url( '/js/clientify-gravity.js', __FILE__ ),
@@ -38,10 +47,6 @@ class Forms_Clientify {
 			true
 		);
 	}
-
-	/**
-	 * # Functions
-	 * ---------------------------------------------------------------------------------------------------- */
 
 	/**
 	 * Create field in editor visitor key
