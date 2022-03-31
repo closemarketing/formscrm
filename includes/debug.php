@@ -27,6 +27,26 @@ if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_get_module' ) ) {
+	/**
+	 * Gets default module in forms
+	 *
+	 * @param string $default_module To avoid.
+	 * @return string
+	 */
+	function formscrm_get_module( $default_module ) {
+		if ( isset( $_POST['_gform_setting_fc_crm_module'] ) ) {
+			$module = sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] );
+		} elseif ( isset( $settings['fc_crm_module'] ) ) {
+			$module = $settings['fc_crm_module'];
+		} else {
+			$module = $default_module;
+		}
+
+		return $module;
+	}
+}
+
 if ( ! function_exists( 'formscrm_error_admin_message' ) ) {
 	/**
 	 * Shows in WordPress error message

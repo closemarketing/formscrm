@@ -33,41 +33,59 @@ class CRMLIB_Clientify {
 			),
 			'timeout' => 120,
 		);
-		$url      = 'https://api.clientify.net/v1/' . $url;
-		$result = wp_remote_get( $url, $args );
-		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
+		// Loop.
+		$next          = true;
+		$page          = 1;
+		$results_value = array();
+		$url           = 'https://api.clientify.net/v1/' . $url;
 
-		if ( 2 !== $code ) {
-			$message = implode( ' ', $result['response'] ) . ' ';
-			$body    = json_decode( $result['body'], true );
+		while ( $next ) {
+			$result_api = wp_remote_get( $url, $args );
+			$results    = json_decode( wp_remote_retrieve_body( $result_api ), true );
+			$code       = isset( $result_api['response']['code'] ) ? (int) round( $result_api['response']['code'] / 100, 0 ) : 0;
 
-			if ( is_array( $body ) ) {
-				foreach ( $body as $key => $value ) {
-					$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
-					$message      .= $key . ': ' . $message_value;
+			if ( 2 !== $code ) {
+				$message = implode( ' ', $result_api['response'] ) . ' ';
+				$body    = json_decode( $result_api['body'], true );
+
+				if ( is_array( $body ) ) {
+					foreach ( $body as $key => $value ) {
+						$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
+						$message      .= $key . ': ' . $message_value;
+					}
 				}
+				formscrm_error_admin_message( 'ERROR', $message );
+				return array(
+					'status' => 'error',
+					'data'   => $message,
+				);
+			} elseif ( isset( $results['results'] ) ) {
+				$results_value = array_merge( $results_value, $results['results'] );
 			}
-			formscrm_error_admin_message( 'ERROR', $message );
-			return array(
-				'status' => 'error',
-				'data'   => $message,
-			);
-		} else {
-			$body = wp_remote_retrieve_body( $result );
-			return array(
-				'status' => 'ok',
-				'data'   => json_decode( $body, true ),
-			);
+
+			if ( isset( $results['next'] ) && $results['next'] ) {
+				$url = $results['next'];
+			} else {
+				$next = false;
+			}
 		}
+
+		$results['results'] = $results_value;
+		return array(
+			'status' => 'ok',
+			'data'   => $results,
+		);
 	}
 	/**
 	 * Posts information from Holded CRM
 	 *
-	 * @param string $url URL for module.
+	 * @param string $module   URL for module.
+	 * @param string $bodypost Params to send to API.
+	 * @param string $apikey   API Authentication.
 	 * @return array
 	 */
-	private function post( $url, $bodypost, $apikey ) {
-		$args     = array(
+	private function post( $module, $bodypost, $apikey ) {
+		$args   = array(
 			'headers' => array(
 				'Authorization' => 'Token ' . $apikey,
 				'Content-Type'  => 'application/json',
@@ -75,7 +93,7 @@ class CRMLIB_Clientify {
 			'timeout' => 120,
 			'body'    => wp_json_encode( $bodypost ),
 		);
-		$result = wp_remote_post( 'https://api.clientify.net/v1/' . $url, $args );
+		$result = wp_remote_post( 'https://api.clientify.net/v1/' . strtolower( $module ), $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
 		if ( 2 !== $code ) {
@@ -128,11 +146,11 @@ class CRMLIB_Clientify {
 		$modules = array(
 			array(
 				'name'  => 'contacts',
-				'label' => __( 'Contacts', 'formscrm' ),
+				'label' => 'Contacts',
 			),
 			array(
 				'name'  => 'companies',
-				'label' => __( 'Companies', 'formscrm' ),
+				'label' => 'Companies',
 			),
 		);
 		return $modules;
@@ -146,11 +164,11 @@ class CRMLIB_Clientify {
 	 */
 	public function list_fields( $settings ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
+		$module = formscrm_get_module( 'Contacts' );
 
 		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 		$fields = array();
-		if ( 'contacts' === $module ) {
+		if ( 'Contacts' === $module ) {
 			$fields[] = array( 'name' => 'owner', 'label' => __( 'username of the owner of the contact', 'formscrm' ), 'required' => false , );
 			$fields[] = array( 'name' => 'first_name', 'label' => __( 'contact first name', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'last_name', 'label' => __( 'Contact last name', 'formscrm' ), 'required' => false, );
@@ -189,7 +207,7 @@ class CRMLIB_Clientify {
 			$fields[] = array( 'name' => 'facebook_picture_url', 'label' => __( 'url of the facebook picture for the contact', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'twitter_picture_url', 'label' => __( 'url of the twitter picture for the contact', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'linkedin_picture_url', 'label' => __( 'url of the Linkedin picture for the contact', 'formscrm' ), 'required' => false, );
-		} elseif ( 'companies' === $module ) {
+		} elseif ( 'Companies' === $module ) {
 			$fields[] = array( 'name' => 'sector', 'label' => __( 'Sector', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'company_sector', 'label' => __( 'Sector of company', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'business_name', 'label' => __( 'Business Name', 'formscrm' ), 'required' => false, );
@@ -247,7 +265,7 @@ class CRMLIB_Clientify {
 	 */
 	public function create_entry( $settings, $merge_vars ) {
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
+		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
 		$contact = array();
 
 		error_log( 'merge_vars' . print_r( $merge_vars, true ) );
