@@ -237,11 +237,13 @@ class CRMLIB_Clientify {
 
 		// Get Custom Fields.
 		$equivalent_module = array(
-			'contacts'  => 'contact',
-			'companies' => 'company',
+			'Contacts'  => 'contact',
+			'Companies' => 'company',
 		);
 		$result_api = $this->get( 'custom-fields/', $apikey );
+
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
+			echo 'hola';
 			foreach ( $result_api['data']['results'] as $custom_field ) {
 
 				if ( isset( $equivalent_module[ $module ] ) && $equivalent_module[ $module ] === $custom_field['content_type'] ) {
@@ -268,7 +270,6 @@ class CRMLIB_Clientify {
 		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
 		$contact = array();
 
-		error_log( 'merge_vars' . print_r( $merge_vars, true ) );
 		foreach ( $merge_vars as $element ) {
 			if ( is_array( $element['value'] ) ) {
 				$element['value'] = implode( ',', $element['value'] );
