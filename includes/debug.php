@@ -34,7 +34,8 @@ if ( ! function_exists( 'formscrm_get_module' ) ) {
 	 * @param string $default_module To avoid.
 	 * @return string
 	 */
-	function formscrm_get_module( $default_module ) {
+	function formscrm_get_module( $default_module = '' ) {
+		global $settings;
 		if ( isset( $_POST['_gform_setting_fc_crm_module'] ) ) {
 			$module = sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] );
 		} elseif ( isset( $settings['fc_crm_module'] ) ) {
