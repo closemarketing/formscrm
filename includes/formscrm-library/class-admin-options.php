@@ -37,15 +37,13 @@ class FORMSCRM_Admin {
 	 * @return void
 	 */
 	public function add_plugin_page() {
-
-		add_menu_page(
+		add_submenu_page(
+			'options-general.php',
 			__( 'FormsCRM', 'formscrm' ),
 			__( 'FormsCRM', 'formscrm' ),
 			'manage_options',
 			'formscrm',
 			array( $this, 'create_admin_page' ),
-			'dashicons-table-col-after',
-			99
 		);
 	}
 
@@ -105,6 +103,7 @@ class FORMSCRM_Admin {
 		<ul>
 			<li>Holded</li>
 			<li>Clientify</li>
+			<li>AcumbaMail</li>
 			<li>Odoo (Premium)</li>
 			<li>vTiger (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-vtiger/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
 			<li>Inmovilla (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-inmovilla/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
