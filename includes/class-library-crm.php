@@ -27,6 +27,10 @@ function formscrm_get_choices() {
 				'label' => 'Clientify',
 				'value' => 'clientify',
 			),
+			array(
+				'label' => 'AcumbaMail',
+				'value' => 'acumbamail',
+			),
 		)
 	);
 }
@@ -39,8 +43,9 @@ function formscrm_get_crmlib_path() {
 	return apply_filters(
 		'formscrm_crmlib_path',
 		array(
-			'holded'    => 'class-crmlib-holded.php',
-			'clientify' => 'class-crmlib-clientify.php',
+			'holded'     => 'class-crmlib-holded.php',
+			'clientify'  => 'class-crmlib-clientify.php',
+			'acumbamail' => 'class-crmlib-acumbamail.php',
 		)
 	);
 }
