@@ -124,15 +124,24 @@ class CRMLIB_AcumbaMail {
 
 		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 
+		$get_result_lists = $this->post( $apikey, 'getLists' );
+		if ( ! empty( $get_result_lists['data'] ) && is_array( $get_result_lists['data'] ) ) {
+			foreach( $get_result_lists['data'] as $key => $list ) {
+				if ( isset( $list['name'] ) && $module === $list['name'] ) {
+					$module_id = $key;
+				}
+			}
+		}
+
 		$fields     = array();
 		$get_result = $this->post(
 			$apikey,
 			'getMergeFields',
 			array(
-				'list_id' => $module,
+				'list_id' => $module_id,
 			)
 		);
-		if ( ! empty( $get_result['data'] ) ) {
+		if ( ! empty( $get_result['data'] ) && is_array( $get_result['data'] ) ) {
 			foreach ( $get_result['data'] as $key => $type ) {
 				$fields[] = array(
 					'name'     => $key,
