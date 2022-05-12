@@ -27,6 +27,10 @@ function formscrm_get_choices() {
 				'label' => 'Clientify',
 				'value' => 'clientify',
 			),
+			array(
+				'label' => 'AcumbaMail',
+				'value' => 'acumbamail',
+			),
 		)
 	);
 }
@@ -39,8 +43,9 @@ function formscrm_get_crmlib_path() {
 	return apply_filters(
 		'formscrm_crmlib_path',
 		array(
-			'holded'    => 'class-crmlib-holded.php',
-			'clientify' => 'class-crmlib-clientify.php',
+			'holded'     => FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php',
+			'clientify'  => FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php',
+			'acumbamail' => FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php',
 		)
 	);
 }
@@ -135,6 +140,7 @@ function formscrm_get_dependency_apipassword() {
 		array(
 			'holded',
 			'clientify',
+			'acumbamail',
 			'hubspot',
 			'solve360',
 			'vtiger_6',

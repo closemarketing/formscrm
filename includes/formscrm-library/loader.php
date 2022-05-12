@@ -11,7 +11,7 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once 'debug.php';
-require_once 'class-library-crm.php';
+require_once 'helpers-library-crm.php';
 require_once 'class-admin-options.php';
 require_once 'class-forms-clientify.php';
 
