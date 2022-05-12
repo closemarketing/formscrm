@@ -387,10 +387,12 @@ class GFCRM extends GFFeedAddOn {
 			$merge_vars = $this->remove_blank_custom_fields( $merge_vars );
 		}
 
-		$settings = $this->get_plugin_settings();
-
 		formscrm_debug_message( $settings );
 		formscrm_debug_message( $merge_vars );
+
+		if ( isset( $feed['meta']['fc_crm_module'] ) ) {
+			$settings['fc_crm_module'] =  $feed['meta']['fc_crm_module'];
+		}
 
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 		$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
