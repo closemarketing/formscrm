@@ -71,12 +71,9 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Plugin settings
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function plugin_settings_fields() {
-
-		global $formscrm_api;
-
 		return array(
 			array(
 				'title'       => __( 'CRM Account Information', 'formscrm' ),
@@ -127,11 +124,10 @@ class GFCRM extends GFFeedAddOn {
 					),
 					array(
 						'name'          => 'fc_crm_apipassword',
-						'label'         => __('API Password for User', 'formscrm'),
+						'label'         => __( 'API Password for User', 'formscrm' ),
 						'type'          => 'api_key',
 						'class'         => 'medium',
-						//'feedback_callback' => $this->login_api_crm(),
-						'tooltip'       => __('Find the API Password in the profile of the user in CRM.', 'formscrm'),
+						'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
 						'tooltip_class' => 'tooltipclass',
 						'dependency'    => array(
 							'field' => 'fc_crm_type',
