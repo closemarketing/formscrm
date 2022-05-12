@@ -2,6 +2,7 @@
 /**
  * AcumbaMail connect library
  *
+ * API DOCS: https://acumbamail.com/apidoc/
  * Has functions to login, list fields and create leadº
  *
  * @author   closemarketing
@@ -11,11 +12,11 @@
  */
 
 /**
- * Class for Holded connection.
+ * Class for AcumbaMail connection.
  */
 class CRMLIB_AcumbaMail {
 	/**
-	 * Posts information from Holded CRM
+	 * Posts information from AcumbaMail CRM
 	 *
 	 * @param string $apikey  API Authentication.
 	 * @param string $module  URL for module.
@@ -75,6 +76,27 @@ class CRMLIB_AcumbaMail {
 	}
 
 	/**
+	 * Gets module id from AcumbaMail
+	 *
+	 * @param string $apikey API key for connection.
+	 * @param string $module Module name.
+	 * @return int
+	 */
+	private function get_module_id( $apikey, $module ) {
+		$module_id        = null;
+		$get_result_lists = $this->post( $apikey, 'getLists' );
+
+		if ( ! empty( $get_result_lists['data'] ) && is_array( $get_result_lists['data'] ) ) {
+			foreach ( $get_result_lists['data'] as $key => $list ) {
+				if ( isset( $list['name'] ) && $module === $list['name'] ) {
+					$module_id = $key;
+				}
+			}
+		}
+		return $module_id;
+	}
+
+	/**
 	 * Logins to a CRM
 	 *
 	 * @param  array $settings settings from Gravity Forms options.
@@ -124,21 +146,12 @@ class CRMLIB_AcumbaMail {
 
 		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 
-		$get_result_lists = $this->post( $apikey, 'getLists' );
-		if ( ! empty( $get_result_lists['data'] ) && is_array( $get_result_lists['data'] ) ) {
-			foreach( $get_result_lists['data'] as $key => $list ) {
-				if ( isset( $list['name'] ) && $module === $list['name'] ) {
-					$module_id = $key;
-				}
-			}
-		}
-
 		$fields     = array();
 		$get_result = $this->post(
 			$apikey,
 			'getMergeFields',
 			array(
-				'list_id' => $module_id,
+				'list_id' => $this->get_module_id( $apikey, $module ),
 			)
 		);
 		if ( ! empty( $get_result['data'] ) && is_array( $get_result['data'] ) ) {
@@ -178,7 +191,7 @@ class CRMLIB_AcumbaMail {
 			$apikey,
 			'addSubscriber',
 			array(
-				'list_id'      => $module,
+				'list_id'      => $this->get_module_id( $apikey, $module ),
 				'merge_fields' => $subscriber,
 			)
 		);

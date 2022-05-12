@@ -64,6 +64,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Fix Clientify pagination Custom fields problem.
 *  Better log management (in debug.log).
 *  Added AcumbaMail.
+*  Fix: GravityForms not sending right module to CRM.
 
 = 3.6 =
 *  Added link to custom Addons: Inmovilla, PipeDrive, SuiteCRM and FacturaDirecta.
