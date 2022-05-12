@@ -124,6 +124,10 @@ class CRMLIB_AcumbaMail {
 		$get_result = $this->post( $apikey, 'getLists' );
 
 		if ( ! empty( $get_result['data'] ) ) {
+			$modules[] = array(
+				'name'  => 'dinamic',
+				'label' => __( 'Dynamic list in field (use admin_label for fields)', 'formscrm' ),
+			);
 			foreach ( $get_result['data'] as $key => $list ) {
 				$modules[] = array(
 					'name'  => $key,
@@ -187,14 +191,32 @@ class CRMLIB_AcumbaMail {
 		foreach ( $merge_vars as $merge_var ) {
 			$subscriber[ $merge_var['name'] ] = $merge_var['value'];
 		}
-		$result = $this->post(
-			$apikey,
-			'addSubscriber',
-			array(
-				'list_id'      => $this->get_module_id( $apikey, $module ),
-				'merge_fields' => $subscriber,
-			)
-		);
+		if ( isset( $subscriber['list_id'] ) && is_array( $subscriber['list_id'] ) ) {
+			$lists_to_subscribe = $subscriber['list_id'];
+			unset( $subscriber['list_id'] );
+			foreach ( $lists_to_subscribe as $list ) {
+				if ( empty( $list ) ) {
+					continue;
+				}
+				$result = $this->post(
+					$apikey,
+					'addSubscriber',
+					array(
+						'list_id'      => $list,
+						'merge_fields' => $subscriber,
+					)
+				);
+			}
+		} else {
+			$result = $this->post(
+				$apikey,
+				'addSubscriber',
+				array(
+					'list_id'      => $this->get_module_id( $apikey, $module ),
+					'merge_fields' => $subscriber,
+				)
+			);
+		}
 		if ( 'ok' === $result['status'] ) {
 			$response_result = array(
 				'status'  => 'ok',
