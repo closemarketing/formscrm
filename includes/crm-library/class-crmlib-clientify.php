@@ -243,7 +243,6 @@ class CRMLIB_Clientify {
 		$result_api = $this->get( 'custom-fields/', $apikey );
 
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
-			echo 'hola';
 			foreach ( $result_api['data']['results'] as $custom_field ) {
 
 				if ( isset( $equivalent_module[ $module ] ) && $equivalent_module[ $module ] === $custom_field['content_type'] ) {

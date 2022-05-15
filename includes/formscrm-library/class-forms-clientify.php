@@ -31,6 +31,7 @@ class Forms_Clientify {
 			add_filter( 'gform_pre_render', array( $this, 'clientify_gravityforms_hidden_input' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		}
+		add_action( 'wpcf7_after_save', array( $this, 'add_custom_field_cf7_clientify' ), 50 );
 	}
 
 	/**
@@ -81,10 +82,34 @@ class Forms_Clientify {
 		foreach ( $form['fields'] as &$field ) {
 			if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) { //phpcs:ignore
 				$field->defaultValue = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
-            	wp_enqueue_script( 'forms-clientify-gravity' );
-         	}
+					wp_enqueue_script( 'forms-clientify-gravity' );
+			}
 		}
 		return $form;
+	}
+
+	/**
+	 * Adds field for Contact Form 7
+	 *
+	 * @param object $args Args of action.
+	 * @return void
+	 */
+	public function add_custom_field_cf7_clientify( $args ) {
+		$cf7_options = get_option( 'cf7_crm_' . $args->id );
+		$crm_type    = isset( $cf7_options['fc_crm_type'] ) ? $cf7_options['fc_crm_type'] : '';
+		if ( 'clientify' !== $crm_type ) {
+			return;
+		}
+		$form_content = get_post_meta( $args->id, '_form', true );
+
+		if ( false === strpos( $form_content, 'clientify_cookie' ) ) {
+			$pos_submit = strpos( $form_content, '[submit' );
+			if ( false !== $pos_submit ) {
+				$form_content = str_replace( '[submit', '[hidden clientify_cookie class:clientify_cookie][submit', $form_content );
+
+				update_post_meta( $args->id, '_form', $form_content );
+			}
+		}
 	}
 }
 
