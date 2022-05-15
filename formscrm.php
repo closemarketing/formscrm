@@ -38,5 +38,53 @@ function fcrm_plugin_init() {
 	load_plugin_textdomain( 'formscrm', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
 
+add_filter(
+	'formscrm_choices',
+	function( $choices ) {
+		// Add a new option to the styles array.
+		$choices[] = array(
+			'label' => 'Holded',
+			'value' => 'holded',
+		);
+
+		$choices[] =array(
+			'label' => 'Clientify',
+			'value' => 'clientify',
+		);
+
+		$choices[] = array(
+			'label' => 'AcumbaMail',
+			'value' => 'acumbamail',
+		);
+
+		// Return the array of style options.
+		return $choices;
+	}
+);
+
+add_filter(
+	'formscrm_dependency_apipassword',
+	function( $choices ) {
+
+		$choices[] = 'clientify';
+		$choices[] = 'acumbamail';
+		$choices[] = 'holded';
+
+		return $choices;
+	}
+);
+
+add_filter(
+	'formscrm_crmlib_path',
+	function( $choices ) {
+
+		$choices['holded']     = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
+		$choices['clientify']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
+		$choices['acumbamail'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
+
+		return $choices;
+	}
+);
+
 // Include files.
 require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';

@@ -54,10 +54,6 @@ class Forms_Clientify {
 		);
 	}
 
-	public function contanct_enqueue_scripts() {
-		wp_enqueue_script( 'formscrm-clientify-field' );
-	}
-
 	/**
 	 * Create field in editor visitor key
 	 *
@@ -120,6 +116,16 @@ class Forms_Clientify {
 			}
 		}
 	}
+
+	/**
+	 * Enqueue Contact Form 7
+	 *
+	 * @return void
+	 */
+	public function contanct_enqueue_scripts() {
+		wp_enqueue_script( 'formscrm-clientify-field' );
+	}
+
 }
 
 new Forms_Clientify();
