@@ -41,13 +41,12 @@ function fcrm_plugin_init() {
 add_filter(
 	'formscrm_choices',
 	function( $choices ) {
-		// Add a new option to the styles array.
 		$choices[] = array(
 			'label' => 'Holded',
 			'value' => 'holded',
 		);
 
-		$choices[] =array(
+		$choices[] = array(
 			'label' => 'Clientify',
 			'value' => 'clientify',
 		);
@@ -57,7 +56,6 @@ add_filter(
 			'value' => 'acumbamail',
 		);
 
-		// Return the array of style options.
 		return $choices;
 	}
 );
