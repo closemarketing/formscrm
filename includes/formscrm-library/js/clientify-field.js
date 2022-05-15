@@ -2,13 +2,21 @@
 
 let gravityHiddenInput = document.querySelectorAll( '.gfield.clientify_cookie input.gform_hidden' );
 if(gravityHiddenInput !== 'undefined'){
-    let vkcookie = forms_clientify_gravity_getCookie('vk');
+    let vkcookie = forms_clientify_getCookie('vk');
     for (let i = 0; i < gravityHiddenInput.length; i++) {
         gravityHiddenInput[i].value = vkcookie;
     }
 }
 
-function forms_clientify_gravity_getCookie(cname) {
+let contactformHiddenInput = document.querySelectorAll( 'input.wpcf7-form-control.clientify_cookie' );
+if(contactformHiddenInput !== 'undefined'){
+    let vkcookie = forms_clientify_getCookie('vk');
+    for (let i = 0; i < contactformHiddenInput.length; i++) {
+        contactformHiddenInput[i].value = vkcookie;
+    }
+}
+
+function forms_clientify_getCookie(cname) {
     if(document.cookie !== 'undefined') {
         let name = cname + "=";
         let decodedCookie = decodeURIComponent(document.cookie);

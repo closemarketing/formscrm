@@ -31,7 +31,12 @@ class Forms_Clientify {
 			add_filter( 'gform_pre_render', array( $this, 'clientify_gravityforms_hidden_input' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		}
-		add_action( 'wpcf7_after_save', array( $this, 'add_custom_field_cf7_clientify' ), 50 );
+
+		if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
+			add_action( 'wpcf7_after_save', array( $this, 'add_custom_field_cf7_clientify' ), 50 );
+			add_action( 'wpcf7_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+			add_action( 'wpcf7_contact_form', array( $this, 'contanct_enqueue_scripts' ) );
+		}
 	}
 
 	/**
@@ -41,12 +46,16 @@ class Forms_Clientify {
 	 */
 	public function enqueue_scripts() {
 		wp_register_script(
-			'forms-clientify-gravity',
-			plugins_url( '/js/clientify-gravity.js', __FILE__ ),
+			'formscrm-clientify-field',
+			plugins_url( '/js/clientify-field.js', __FILE__ ),
 			array(),
 			FORMSCRM_VERSION,
 			true
 		);
+	}
+
+	public function contanct_enqueue_scripts() {
+		wp_enqueue_script( 'formscrm-clientify-field' );
 	}
 
 	/**
@@ -82,7 +91,7 @@ class Forms_Clientify {
 		foreach ( $form['fields'] as &$field ) {
 			if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) { //phpcs:ignore
 				$field->defaultValue = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
-					wp_enqueue_script( 'forms-clientify-gravity' );
+				wp_enqueue_script( 'formscrm-clientify-field' );
 			}
 		}
 		return $form;
