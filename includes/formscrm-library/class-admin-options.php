@@ -117,6 +117,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 			<a class="button button-secondary" href="https://wordpress.org/support/plugin/formscrm/"><?php esc_html_e( 'Get Support', 'formscrm' ); ?></a>
 			<?php
 		}
+	}
 }
 if ( is_admin() ) {
 	$formscrm_admin = new FORMSCRM_Admin();
