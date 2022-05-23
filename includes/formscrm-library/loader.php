@@ -20,7 +20,11 @@ if ( ! function_exists( 'is_plugin_active' ) ) {
 	include_once ABSPATH . 'wp-admin/includes/plugin.php';
 }
 
+<<<<<<< HEAD
 if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) {
+=======
+if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) && ! class_exists( 'FC_CRM_Bootstrap' ) ) {
+>>>>>>> 96534909d3e4e54c720aabe6e54e60e434746524
 	add_action( 'gform_loaded', array( 'FC_CRM_Bootstrap', 'load' ), 5 );
 	class FC_CRM_Bootstrap {
 
@@ -42,11 +46,16 @@ if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'g
 }
 
 // ContactForms7.
+<<<<<<< HEAD
 if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
+=======
+if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) && ! class_exists( 'FORMSCRM_CF7_Settings' ) ) {
+>>>>>>> 96534909d3e4e54c720aabe6e54e60e434746524
 	require_once 'class-contactform7.php';
 }
 
 // WooCommerce.
+<<<<<<< HEAD
 if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 	require_once 'class-woocommerce.php';
 }
@@ -66,3 +75,8 @@ function formscrm_visitorkey_session() {
 		$wp_session['clientify_visitor_key'] = $visitor_key;
 	}
 }
+=======
+if ( is_plugin_active( 'woocommerce/woocommerce.php' ) && ! class_exists( 'FormsCRM_WooCommerce' ) ) {
+	require_once 'class-woocommerce.php';
+}
+>>>>>>> 96534909d3e4e54c720aabe6e54e60e434746524

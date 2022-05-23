@@ -10,15 +10,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Library for Contact Forms Settings
- *
- * @package    WordPress
- * @author     David Perez <david@closemarketing.es>
- * @copyright  2019 Closemarketing
- * @version    1.0
- */
-class CF7_Settings {
+	/**
+	 * Library for Contact Forms Settings
+	 *
+	 * @package    WordPress
+	 * @author     David Perez <david@closemarketing.es>
+	 * @copyright  2019 Closemarketing
+	 * @version    1.0
+	 */
+class FORMSCRM_CF7_Settings {
 
 	/**
 	 * CRM LIB external
@@ -268,4 +268,4 @@ class CF7_Settings {
 	}
 }
 
-new CF7_Settings();
+new FORMSCRM_CF7_Settings();
