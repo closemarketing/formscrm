@@ -47,6 +47,8 @@ class CRMLIB_AcumbaMail {
 				'body'        => $fields,
 			)
 		);
+		error_log( '$fields' . print_r( $fields, true ) );
+		error_log( '$response' . print_r( $response, true ) );
 
 		$code = intval( wp_remote_retrieve_response_code( $response ) / 100 );
 		if ( is_wp_error( $response ) ) {
@@ -198,12 +200,14 @@ class CRMLIB_AcumbaMail {
 				if ( empty( $list ) ) {
 					continue;
 				}
+				error_log( '$subscriber:' .print_r( $list, true ) .' ' . print_r( $subscriber, true ) );
 				$result = $this->post(
 					$apikey,
 					'addSubscriber',
 					array(
-						'list_id'      => $list,
-						'merge_fields' => $subscriber,
+						'list_id'           => (int) $list,
+						'merge_fields'      => $subscriber,
+						'update_subscriber' => 1,
 					)
 				);
 			}
