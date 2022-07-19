@@ -12,7 +12,10 @@ defined( 'ABSPATH' ) || exit;
 
 require_once 'debug.php';
 require_once 'helpers-library-crm.php';
-require_once 'class-admin-options.php';
+$load_admin_options = apply_filters( 'formscrm_load_options', true );
+if ( $load_admin_options ) {
+	require_once 'class-admin-options.php';
+}
 require_once 'class-forms-clientify.php';
 
 // Prevents fatal error is_plugin_active.
