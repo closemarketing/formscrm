@@ -237,6 +237,10 @@ class GFCRM extends GFFeedAddOn {
 	public function feed_settings_fields() {
 
 		$settings = $this->get_plugin_settings();
+
+		if ( empty( $settings['fc_crm_type'] ) ) {
+			return array();
+		}
 		$this->include_library( $settings['fc_crm_type'] );
 
 		return array(

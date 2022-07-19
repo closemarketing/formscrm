@@ -64,6 +64,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Fix Clientify pagination Custom fields problem.
 *  Better log management (in debug.log).
 *  Fix: Clientify custom fields not imported.
+*  Fix: Fatal error in feed admin if not selected CRM.
 
 = 3.6 =
 *  Added link to custom Addons: Inmovilla, PipeDrive, SuiteCRM and FacturaDirecta.
