@@ -32,7 +32,10 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 				add_filter( 'gform_pre_render', array( $this, 'clientify_gravityforms_hidden_input' ) );
 				add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 			}
-
+			// Prevents fatal error is_plugin_active.
+			if ( ! function_exists( 'is_plugin_active' ) ) {
+				include_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
 			if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 				add_action( 'wpcf7_after_save', array( $this, 'add_custom_field_cf7_clientify' ), 50 );
 				add_action( 'wpcf7_enqueue_scripts', array( $this, 'enqueue_scripts' ) );

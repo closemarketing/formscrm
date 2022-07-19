@@ -241,13 +241,12 @@ class CRMLIB_Clientify {
 			'Companies' => 'company',
 		);
 		$result_api = $this->get( 'custom-fields/', $apikey );
-
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
 			foreach ( $result_api['data']['results'] as $custom_field ) {
 
 				if ( isset( $equivalent_module[ $module ] ) && $equivalent_module[ $module ] === $custom_field['content_type'] ) {
 					$fields[] = array(
-						'name'     => $custom_field['name'],
+						'name'     => 'custom_fields|' . $custom_field['name'],
 						'label'    => $custom_field['name'],
 						'required' => false,
 					);
@@ -273,10 +272,12 @@ class CRMLIB_Clientify {
 			if ( is_array( $element['value'] ) ) {
 				$element['value'] = implode( ',', $element['value'] );
 			}
-
 			if ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
 				$custom_field = explode( '|', $element['name'] );
-				$contact[ $custom_field[0] ][ $custom_field[1] ] = $element['value'];
+				$contact['custom_fields'][] = array(
+					'field' => $custom_field[1],
+					'value' => $element['value'],
+				);
 			} elseif ( 'tags' === $element['name'] && false !== strpos( $element['value'], ',' ) ) {
 				$contact[ $element['name'] ] = explode( ',', $element['value'] );
 			} elseif ( 'tags' === $element['name'] && false === is_array( $element['value'] ) ) {
