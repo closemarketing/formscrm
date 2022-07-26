@@ -54,8 +54,7 @@ if ( ! function_exists( 'formscrm_get_dependency_url' ) ) {
 				'facturadirecta',
 				'msdyn',
 				'mspfe',
-				'odoo8',
-				'odoo9',
+				'odoo',
 				'ofiweb',
 				'sugarcrm6',
 				'sugarcrm7',
@@ -82,8 +81,7 @@ if ( ! function_exists( 'formscrm_get_dependency_username' ) ) {
 				'facturadirecta',
 				'msdyn',
 				'mspfe',
-				'odoo8',
-				'odoo9',
+				'odoo',
 				'salesforce',
 				'solve360',
 				'sugarcrm6',
@@ -112,8 +110,6 @@ if ( ! function_exists( 'formscrm_get_dependency_password' ) ) {
 				'facturadirecta',
 				'msdyn',
 				'mspfe',
-				'odoo8',
-				'odoo9',
 				'sugarcrm6',
 				'sugarcrm7',
 				'suitecrm_3_1',
@@ -137,6 +133,7 @@ if ( ! function_exists( 'formscrm_get_dependency_apipassword' ) ) {
 				'hubspot',
 				'solve360',
 				'vtiger_6',
+				'odoo',
 			)
 		);
 	}
@@ -168,8 +165,7 @@ if ( ! function_exists( 'formscrm_get_dependency_odoodb' ) ) {
 		return apply_filters(
 			'formscrm_dependency_odoodb',
 			array(
-				'odoo8',
-				'odoo9',
+				'odoo',
 			)
 		);
 	}
