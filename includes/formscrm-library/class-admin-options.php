@@ -123,7 +123,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					array( 'label' => 'Holded' ),
 					array( 'label' => 'Clientify' ),
 					array( 'label' => 'AcumbaMail' ),
-					array( 'slug' => 'odoo', 'label' => 'Odoo (Premium)', 'url' => true ),
+					array( 'slug' => 'odoo', 'label' => 'Odoo (Premium)', 'url' => true, 'img' => true ),
 					array( 'slug' => 'vtiger', 'label' => 'vTiger (Premium)', 'url' => true, 'img' => true ),
 					array( 'slug' => 'inmovilla', 'label' => 'Inmovilla (Premium)', 'url' => true, 'img' => true ),
 					array( 'slug' => 'pipedrive', 'label' => 'Pipedrive (Premium)', 'url' => true, 'img' => true ),
