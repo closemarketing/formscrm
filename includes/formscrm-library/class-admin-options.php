@@ -28,8 +28,24 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		 * Construct of class
 		 */
 		public function __construct() {
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+
 			add_action( 'admin_menu', array( $this, 'add_plugin_page' ) );
 			add_action( 'formscrm_settings', array( $this, 'settings_page' ) );
+		}
+
+		/**
+		 * Enqueue Scripts and styles
+		 *
+		 * @return void
+		 */
+		public function enqueue_admin_scripts() {
+			wp_enqueue_style(
+				'formscrm-admin',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/admin.css',
+				array(),
+				FORMSCRM_VERSION
+			);
 		}
 
 		/**
@@ -101,20 +117,40 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				<li>WooCommerce</li>
 			</ul>
 			<h3><strong><?php esc_html_e( 'CRMs supported:', 'formscrm' ); ?></strong></h3>
-			<ul>
-				<li>Holded</li>
-				<li>Clientify</li>
-				<li>AcumbaMail</li>
-				<li>Odoo (Premium)</li>
-				<li>vTiger (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-vtiger/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-				<li>Inmovilla (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-inmovilla/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-				<li>PipeDrive (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-pipedrive/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-				<li>SuiteCRM (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-suitecrm/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
-				<li>FacturaDirecta (Premium) <a href="<?php echo esc_url( $source_shop_url ); ?>wordpress-plugins/formscrm-facturadirecta/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'Buy', 'formscrm' ); ?></a></li>
+			<ul class="formscrm-list-crm">
+				<?php
+				$crms_supported = array(
+					array( 'label' => 'Holded' ),
+					array( 'label' => 'Clientify' ),
+					array( 'label' => 'AcumbaMail' ),
+					array( 'slug' => 'odoo', 'label' => 'Odoo (Premium)', 'url' => true ),
+					array( 'slug' => 'vtiger', 'label' => 'vTiger (Premium)', 'url' => true, 'img' => true ),
+					array( 'slug' => 'inmovilla', 'label' => 'Inmovilla (Premium)', 'url' => true, 'img' => true ),
+					array( 'slug' => 'pipedrive', 'label' => 'Pipedrive (Premium)', 'url' => true, 'img' => true ),
+					array( 'slug' => 'suitecrm', 'label' => 'SuiteCRM (Premium)', 'url' => true, 'img' => true ),
+					array( 'slug' => 'facturadirecta', 'label' => 'FacturaDirecta (Premium)', 'url' => true, 'img' => true ),
+				);
+
+				foreach ( $crms_supported as $crm ) {
+					echo '<li>';
+					if ( isset( $crm['url'] ) && $crm['url'] ) {
+						$url = esc_url( $source_shop_url ) . 'wordpress-plugins/formscrm-' . $crm['slug'] . '/' . esc_attr( $utm_source );
+						echo ' <a href="' . $url . '" target="_blank">';
+					}
+					if ( isset( $crm['img'] ) && $crm['img'] ) {
+						echo '<img src="' . FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $crm['slug'] . '.svg" width="250" /><br/>';
+					}
+					echo $crm['label'];
+					if ( isset( $crm['url'] ) && $crm['url'] ) {
+						echo '</a> <a class="button button-secondary" href="' . $url . '" target="_blank">' .esc_html__( 'Buy', 'formscrm' ) . '</a>';
+					}
+					echo '</li>';
+				}
+				?>
 			</ul>
 			<br/>
 			<a class="button button-primary" href="<?php echo esc_url( $source_shop_url ); ?>formscrm/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
-			<a class="button button-secondary" href="https://wordpress.org/support/plugin/formscrm/"><?php esc_html_e( 'Get Support', 'formscrm' ); ?></a>
+			<a class="button button-secondary" href="https://wordpress.org/support/plugin/formscrm/" target="_blank"><?php esc_html_e( 'Get Support', 'formscrm' ); ?></a>
 			<?php
 		}
 	}

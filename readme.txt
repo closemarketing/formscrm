@@ -63,6 +63,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  New method for clientify visitor key.
 *  Fix Clientify pagination Custom fields problem.
 *  Better log management (in debug.log).
+*  Added link to Odoo premium addon.
 *  Fix: Clientify custom fields not imported.
 *  Fix: Fatal error in feed admin if not selected CRM.
 
