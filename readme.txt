@@ -34,15 +34,16 @@ The plugin connects with the CRM via API webservice, a secure and best way to co
 At this time, FormsCRM supports in free version:
 - [Holded](https://close.marketing/likes/holded/)
 - [Clientify](https://clientify.com/?utm_source=FormsCRM)
+- [AcumbaMail](https://acumbamail.com/)
 
 And you will find, that there are Premium Addons to support:
 - SugarCRM
-- Odoo (soon!)
-- [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/)
-- [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/)
-- [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/)
-- [SuiteCRM](https://en.close.technology/wordpress-plugins/formscrm-suitecrm/)
-- [FacturaDirecta](https://en.close.technology/wordpress-plugins/formscrm-facturadirecta/)
+- [Odoo](https://en.close.technology/wordpress-plugins/formscrm-odoo/?utm_source=FormsCRM)
+- [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/?utm_source=FormsCRM)
+- [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/?utm_source=FormsCRM)
+- [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/?utm_source=FormsCRM)
+- [SuiteCRM](https://en.close.technology/wordpress-plugins/formscrm-suitecrm/?utm_source=FormsCRM)
+- [FacturaDirecta](https://en.close.technology/wordpress-plugins/formscrm-facturadirecta/?utm_source=FormsCRM)
 
 You can only use one type of CRM in the web with this version.
 
@@ -64,6 +65,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Fix Clientify pagination Custom fields problem.
 *  Better log management (in debug.log).
 *  Added link to Odoo premium addon.
+*  Added AcumbaMail in free version.
 *  Fix: Clientify custom fields not imported.
 *  Fix: Fatal error in feed admin if not selected CRM.
 
@@ -111,4 +113,5 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Links ==
 
 *	[Closemarketing](https://close.marketing/)
+*	[Closetechnology](https://close.technology/)
 *	[All Closemarketing Plugins](https://profiles.wordpress.org/closemarketing/#content-plugins)
