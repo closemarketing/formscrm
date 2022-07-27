@@ -38,12 +38,12 @@ At this time, FormsCRM supports in free version:
 
 And you will find, that there are Premium Addons to support:
 - SugarCRM
-- [Odoo](https://en.close.technology/wordpress-plugins/formscrm-odoo/?utm_source=FormsCRM)
-- [vTiger 7](https://en.close.technology/wordpress-plugins/formscrm-vtiger/?utm_source=FormsCRM)
-- [PipeDrive](https://en.close.technology/wordpress-plugins/formscrm-pipedrive/?utm_source=FormsCRM)
-- [Inmovilla](https://en.close.technology/wordpress-plugins/formscrm-inmovilla/?utm_source=FormsCRM)
-- [SuiteCRM](https://en.close.technology/wordpress-plugins/formscrm-suitecrm/?utm_source=FormsCRM)
-- [FacturaDirecta](https://en.close.technology/wordpress-plugins/formscrm-facturadirecta/?utm_source=FormsCRM)
+- [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/?utm_source=FormsCRM)
+- [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/?utm_source=FormsCRM)
+- [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/?utm_source=FormsCRM)
+- [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/?utm_source=FormsCRM)
+- [SuiteCRM](https://close.technology/en/wordpress-plugins/formscrm-suitecrm/?utm_source=FormsCRM)
+- [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/?utm_source=FormsCRM)
 
 You can only use one type of CRM in the web with this version.
 
