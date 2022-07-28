@@ -61,7 +61,7 @@ if ( ! function_exists( 'formscrm_get_dependency_url' ) ) {
 				'suitecrm_3_1',
 				'suitecrm_4_1',
 				'vtiger_6',
-			),
+			)
 		);
 	}
 }
