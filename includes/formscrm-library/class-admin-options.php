@@ -60,7 +60,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				__( 'FormsCRM', 'formscrm' ),
 				'manage_options',
 				'formscrm',
-				array( $this, 'create_admin_page' ),
+				array( $this, 'create_admin_page' )
 			);
 		}
 
