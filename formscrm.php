@@ -3,7 +3,7 @@
  * Plugin Name: FormsCRM
  * Plugin URI:  https://closemarketing.net/formscrm
  * Description: Connects Forms with CRM.
- * Version:     3.5.1
+ * Version:     3.7.2
  * Author:      Closemarketing
  * Author URI:  https://close.marketing
  * Text Domain: formscrm
@@ -23,7 +23,10 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-define( 'FORMSCRM_VERSION', '3.5.1' );
+define( 'FORMSCRM_VERSION', '3.7.2' );
+define( 'FORMSCRM_PLUGIN', __FILE__ );
+define( 'FORMSCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'FORMSCRM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 add_action( 'plugins_loaded', 'fcrm_plugin_init' );
 /**
@@ -35,90 +38,51 @@ function fcrm_plugin_init() {
 	load_plugin_textdomain( 'formscrm', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
 
-require_once 'includes/debug.php';
-require_once 'includes/class-library-crm.php';
-require_once 'includes/class-admin-options.php';
+add_filter(
+	'formscrm_choices',
+	function( $choices ) {
+		$choices[] = array(
+			'label' => 'Holded',
+			'value' => 'holded',
+		);
 
-// Prevents fatal error is_plugin_active.
-if ( ! function_exists( 'is_plugin_active' ) ) {
-	include_once ABSPATH . 'wp-admin/includes/plugin.php';
-}
+		$choices[] = array(
+			'label' => 'Clientify',
+			'value' => 'clientify',
+		);
 
-if ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) {
-	add_action( 'gform_loaded', array( 'FC_CRM_Bootstrap', 'load' ), 5 );
-	class FC_CRM_Bootstrap {
+		$choices[] = array(
+			'label' => 'AcumbaMail',
+			'value' => 'acumbamail',
+		);
 
-		public static function load() {
-
-			if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
-				return;
-			}
-
-			require_once 'includes/class-gravityforms.php';
-
-			GFAddOn::register( 'GFCRM' );
-		}
+		return $choices;
 	}
+);
 
-	function gf_crm() {
-		return FCCRM::get_instance();
+add_filter(
+	'formscrm_dependency_apipassword',
+	function( $choices ) {
+
+		$choices[] = 'clientify';
+		$choices[] = 'acumbamail';
+		$choices[] = 'holded';
+
+		return $choices;
 	}
-}
+);
 
-// ContactForms7.
-if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
-	require_once 'includes/class-contactform7.php';
-}
+add_filter(
+	'formscrm_crmlib_path',
+	function( $choices ) {
 
-// WooCommerce.
-if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
-	require_once 'includes/class-woocommerce.php';
-}
+		$choices['holded']     = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
+		$choices['clientify']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
+		$choices['acumbamail'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
 
-add_action( 'wpforms_loaded', 'wpforms_formscrm' );
-/**
- * Loads WP Forms library
- *
- * @return void
- */
-function wpforms_formscrm() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-wpforms.php';
-}
-
-
-
-if ( ! function_exists( 'formscrm_fs' ) ) {
-	// Create a helper function for easy SDK access.
-	function formscrm_fs() {
-		global $formscrm_fs;
-
-		if ( ! isset( $formscrm_fs ) ) {
-			// Include Freemius SDK.
-			require_once dirname( __FILE__ ) . '/vendor/freemius/wordpress-sdk/start.php';
-
-			$formscrm_fs = fs_dynamic_init(
-				array(
-					'id'             => '8504',
-					'slug'           => 'formscrm',
-					'type'           => 'plugin',
-					'public_key'     => 'pk_fa93ef3eb788d04ac4803d15c1511',
-					'is_premium'     => false,
-					'has_addons'     => true,
-					'has_paid_plans' => false,
-					'navigation'     => 'tabs',
-					'menu'           => array(
-						'slug'       => 'formscrm',
-						'first-path' => 'admin.php?page=formscrm',
-					),
-				)
-			);
-		}
-
-		return $formscrm_fs;
+		return $choices;
 	}
+);
 
-	// Init Freemius.
-	formscrm_fs();
-	// Signal that SDK was initiated.
-	do_action( 'formscrm_fs_loaded' );
-}
+// Include files.
+require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
