@@ -4,8 +4,8 @@ Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
 Tested up to: 6.0
-Stable tag: 3.7.1
-Version: 3.7.1
+Stable tag: 3.7.2
+Version: 3.7.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -59,6 +59,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.7.2 =
+*  Fix: Parse error: syntax error, unexpected ‘)’.
+*  Reviewed in PHP5.6.
+
 = 3.7.1 =
 *  Fix: Parse error: syntax error, unexpected ‘)’.
 
