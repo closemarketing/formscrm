@@ -56,50 +56,42 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		foreach ( $form_data['providers'][ $this->slug ] as $connection ) :
 
 			// Setup basic data.
-			$account_id = $connection['account_id'];
-			$list_id    = $connection['list_id'];
-			$name_data  = explode( '.', $connection['fields']['fullname'] );
-			$email_data = explode( '.', $connection['fields']['email'] );
-			$data       = array(
-				'Name'         => $fields[ $name_data[0] ]['value'],
-				'EmailAddress' => $fields[ $email_data[0] ]['value'],
-				'CustomFields' => array(),
-				'Resubscribe'  => true, // Set to false, won't subscribe even new email addresses to CM?
+			$account_id                = $connection['account_id'];
+			$settings                  = $this->api_connect( $account_id );
+			$settings['fc_crm_module'] = $connection['list_id'];
+			$merge_vars                = array();
+			$error_data                = array(
+				'type'    => array( 'provider', 'conditional_logic' ),
+				'parent'  => $entry_id,
+				'form_id' => $form_data['id'],
 			);
-			$api        = $this->api_connect( $account_id );
 
-			// Bail if there is any sort of issues with the API connection.
-			if ( is_wp_error( $api ) ) {
-				continue;
-			}
-
-			// Email is required.
-			if ( empty( $data['EmailAddress'] ) ) {
-				continue;
-			}
-
-			// Check for conditionals.
-			$pass = $this->process_conditionals( $fields, $entry, $form_data, $connection );
-			if ( ! $pass ) {
+			// Check for credentials.
+			if ( empty( $settings['fc_crm_type'] ) ) {
 				wpforms_log(
-					'Campaign Monitor Subscription stopped by conditional logic',
+					__( 'No connection details.', 'formscrm' ),
 					$fields,
-					array(
-						'type'    => array( 'provider', 'conditional_logic' ),
-						'parent'  => $entry_id,
-						'form_id' => $form_data['id'],
-					)
+					$error_data
 				);
-				continue;
+				return;
+			}
+			$this->include_library( $settings['fc_crm_type'] );
+			$login_result = false;
+			if ( isset( $this->crmlib ) ) {
+				$login_result = $this->crmlib->login( $settings );
+			}
+	
+			if ( ! $login_result ) {
+				wpforms_log(
+					__( 'Could not connect to CRM.', 'formscrm' ),
+					$fields,
+					$error_data
+				);
+				return;
 			}
 
 			// Setup the custom fields.
 			foreach ( $connection['fields'] as $name => $custom_field ) {
-
-				// Skip fullname and email fields, as these aren't custom fields.
-				if ( 'fullname' === $name || 'email' === $name ) {
-					continue;
-				}
 
 				// If the custom field isn't map, skip it.
 				if ( empty( $custom_field ) ) {
@@ -118,38 +110,55 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 				// Special formatting for different types.
 				switch ( $type ) {
+					/*
 					case 'MultiSelectMany':
-						$data['CustomFields'] = array_merge(
-							$data['CustomFields'],
+						$merge_vars = array_merge(
+							$merge_vars,
 							$this->format_multi_select_many( $fields[ $id ], $name )
+						);
+						break;*/
+
+					case 'Date':
+						$merge_vars[] =  array(
+							'name'  => $name,
+							'Value' => $this->format_date( $fields[ $id ], $name, $form_data['fields'][ $id ], 'Y-m-d' ),
 						);
 						break;
 
-					case 'Date':
-						$data['CustomFields'][] = $this->format_date( $fields[ $id ], $name, $form_data['fields'][ $id ], 'Y-m-d' );
-						break;
-
 					default:
-						$data['CustomFields'][] = [
-							'Key'   => '[' . $name . ']',
-							'Value' => $fields[ $id ][ $key ],
-						];
+						$merge_vars[] = array(
+							'name'  => $name,
+							'value' => $fields[ $id ][ $key ],
+						);
 						break;
 				}
 			}
-
 			// Submit to API.
 			try {
-				$this->api[ $account_id ]->subscribe( $list_id, $data );
+				$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
+				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
+
+				if ( 'error' === $api_status ) {
+					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
+
+					wpforms_log(
+						'Error ' . $response_result['message'],
+						$fields,
+						$error_data
+					);
+				} else {
+					wpforms_log(
+						__( 'Success creating:', 'formscrm' ) . ' ' . esc_html( $settings['fc_crm_type'] ),
+						$fields,
+						$error_data
+					);
+					formscrm_debug_message( $response_result['id'] );
+				}
 			} catch ( Exception $e ) {
 				wpforms_log(
-					'Campaign Monitor Subscription error',
+					__( 'Error sending information to CRM.', 'formscrm' ),
 					$e->getMessage(),
-					array(
-						'type'    => array( 'provider', 'error' ),
-						'parent'  => $entry_id,
-						'form_id' => $form_data['id'],
-					)
+					$error_data
 				);
 			}
 
@@ -317,16 +326,11 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or WP_Error object.
 	 */
 	public function api_connect( $account_id ) {
-
-		if ( ! empty( $this->api[ $account_id ] ) ) {
-			return $this->api[ $account_id ];
+		$providers = get_option( 'wpforms_providers' );
+		if ( ! empty( $providers[ $this->slug ][ $account_id ] ) ) {
+			return $providers[ $this->slug ][ $account_id ];
 		} else {
-			$providers = get_option( 'wpforms_providers' );
-			if ( ! empty( $providers[ $this->slug ][ $account_id ]['api'] ) ) {
-				return $this->api[ $account_id ];
-			} else {
-				return $this->error( 'API error' );
-			}
+			return $this->error( 'API error' );
 		}
 	}
 
@@ -342,13 +346,22 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 */
 	public function api_lists( $connection_id = '', $account_id = '' ) {
 		
-		$settings_data = $this->api_connect( $account_id );
-		error_log( 'data' . print_r( $settings_data, true ) );
+		$settings = $this->api_connect( $account_id );
 		try {
-			$lists = $this->crmlib->get_modules( $settings_data );
+			if ( empty( $settings['fc_crm_type'] ) ) {
+				$this->error( __( 'No connection details.', 'formscrm' ) );
+			}
+			$this->include_library( $settings['fc_crm_type'] );
+			$lists = $this->crmlib->list_modules( $settings );
 
-
-			return $lists;
+			$lists_wpforms = array();
+			foreach ( $lists as $list ) {
+				$lists_wpforms[] = array(
+					'id'    => $list['name'],
+					'name' => $list['label'],
+				);
+			}
+			return $lists_wpforms;
 		} catch ( Exception $e ) {
 			wpforms_log(
 				'Campaign Monitor API error',
@@ -374,9 +387,6 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed array or error object.
 	 */
 	public function api_groups( $connection_id = '', $account_id = '', $list_id = '' ) {
-		echo 'hola';
-		error_log( 'api_groups run' );
-
 		// Need to return an error otherwise all hell breaks loose.
 		// CM doesn't have a concept of 'groups'.
 		return new WP_Error( esc_html__( 'Groups do not exist.', 'formscrm' ) );
@@ -389,41 +399,40 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @param string $connection_id
 	 * @param string $account_id
-	 * @param string $list_id
+	 * @param string $module
 	 *
 	 * @return mixed array or WP_Error object.
 	 */
-	public function api_fields( $connection_id = '', $account_id = '', $list_id = '' ) {
-		error_log( 'api_fields run' );
-		$this->include_library( $data['fc_crm_type'] );
+	public function api_fields( $connection_id = '', $account_id = '', $module = '' ) {
+		$settings = $this->api_connect( $account_id );
+		if ( empty( $settings['fc_crm_type'] ) ) {
+			$this->error( __( 'No connection details.', 'formscrm' ) );
+		}
+		$this->include_library( $settings['fc_crm_type'] );
 		$login_result = '';
 		if ( isset( $this->crmlib ) ) {
-			$login_result = $this->crmlib->login( $data );
+			$login_result = $this->crmlib->login( $settings );
 		}
 
-		$this->api_connect( $account_id );
+		if ( ! $login_result ) {
+			$this->error( __( 'Could not connect to CRM.', 'formscrm' ) );
+		}
 
 		try {
 			// Get Custom Fields for the List from the API.
-			$fields = $this->api[ $account_id ]->get_list_custom_fields( $list_id );
+			$fields = $this->crmlib->list_fields( $settings, $module );
+			// name, label, required
 
-			// Prepend the Name and Email Fields to the list, as these aren't included in the custom fields API call.
-			$default_fields = array(
-				array(
-					'name'       => 'Full Name',
-					'req'        => false,
-					'tag'        => 'fullname',
+			$fields_wpforms = array();
+			foreach ( $fields as $field ) {
+				$fields_wpforms[] = array(
+					'name'       => $field['label'],
+					'req'        => $field['required'],
+					'tag'        => $field['name'],
 					'field_type' => 'text',
-				),
-				array(
-					'name'       => 'Email',
-					'req'        => true,
-					'tag'        => 'email',
-					'field_type' => 'email',
-				),
-			);
-
-			return array_merge( $default_fields, $fields );
+				);
+			}
+			return $fields_wpforms;
 		} catch ( Exception $e ) {
 			wpforms_log(
 				'Campaign Monitor API error',
@@ -455,64 +464,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return string
 	 */
 	public function output_auth() {
-		global $choices_crm;
-
-		$providers = get_option( 'wpforms_providers' );
-		$class     = ! empty( $providers[ $this->slug ] ) ? 'hidden' : '';
-
-		$output = '<div class="wpforms-provider-account-add ' . $class . ' wpforms-connection-block">';
-
-		$output .= '<h4>' . esc_html__( 'Add New Account', 'formscrm' ) . '</h4>';
-
-
-		if ( ! empty( $providers ) ) {
-
-			foreach ( $providers as $provider ) {
-				
-			}
-		}
-		
-		$output .= sprintf(
-			'<select type="text" data-name="fc_crm_type" placeholder="%s" class="wpforms-required">',
-			sprintf(
-				/* translators: %s - current provider name. */
-				esc_html__( '%s API Key', 'formscrm' ),
-				$this->name
-			)
-		);
-
-		$output .= sprintf(
-			'<input type="text" data-name="apikey" placeholder="%s" class="wpforms-required">',
-			sprintf(
-				/* translators: %s - current provider name. */
-				esc_html__( '%s API Key', 'formscrm' ),
-				$this->name
-			)
-		);
-
-		$output .= sprintf(
-			'<input type="text" data-name="client_id" placeholder="%s" class="wpforms-required">',
-			sprintf(
-				/* translators: %s - current provider name. */
-				esc_html__( '%s Client ID', 'formscrm' ),
-				$this->name
-			)
-		);
-
-		$output .= sprintf(
-			'<input type="text" data-name="label" placeholder="%s" class="wpforms-required">',
-			sprintf(
-				/* translators: %s - current provider name. */
-				esc_html__( '%s Account Nickname', 'formscrm' ),
-				$this->name
-			)
-		);
-
-		$output .= sprintf( '<button data-provider="%s">%s</button>', esc_attr( $this->slug ), esc_html__( 'Connect', 'formscrm' ) );
-
-		$output .= '</div>';
-
-		return $output;
+		return '';
 	}
 
 	/**
