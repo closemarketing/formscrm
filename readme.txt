@@ -20,7 +20,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [GravityForms](https://close.marketing/likes/gravityforms/)
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
-- WPForms (soon!)
+- [WPForms PRO](https://wpforms.com/)
 - Ninja Forms (soon!)
 
 If you need to support more Forms plugins, please contact in forum support.
@@ -59,6 +59,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.8.0 =
+*  Added WPForms PRO as new forms provider.
+
 = 3.7.2 =
 *  Fix: Parse error: syntax error, unexpected ‘)’.
 *  Reviewed in PHP5.6.
