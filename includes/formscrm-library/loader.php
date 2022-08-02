@@ -53,3 +53,21 @@ if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) && ! class_exist
 if ( is_plugin_active( 'woocommerce/woocommerce.php' ) && ! class_exists( 'FormsCRM_WooCommerce' ) ) {
 	require_once 'class-woocommerce.php';
 }
+
+// WPForms.
+if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_FormsCRM' ) ) {
+	add_action( 'wpforms_loaded', 'wpforms_formscrm' );
+	/**
+	 * Load the provider class.
+	 *
+	 * @since 3.7.2
+	 */
+	function wpforms_formscrm() {
+
+		// WPForms Pro is required.
+		if ( ! wpforms()->pro ) {
+			return;
+		}
+		require_once 'class-wpforms.php';
+	}
+}

@@ -32,7 +32,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		$this->name     = 'FormsCRM';
 		$this->slug     = 'formscrm';
 		$this->priority = 14;
-		$this->icon     = plugins_url( 'assets/addon-icon-wpforms.png', __FILE__ );
+		$this->icon     = plugins_url( '../assets/addon-icon-wpforms.png', __FILE__ );
 	}
 
 	/**
@@ -464,6 +464,14 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		$output .= '<h4>' . esc_html__( 'Add New Account', 'formscrm' ) . '</h4>';
 
+
+		if ( ! empty( $providers ) ) {
+
+			foreach ( $providers as $provider ) {
+				
+			}
+		}
+		
 		$output .= sprintf(
 			'<select type="text" data-name="fc_crm_type" placeholder="%s" class="wpforms-required">',
 			sprintf(
