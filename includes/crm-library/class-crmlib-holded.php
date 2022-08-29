@@ -13,8 +13,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once 'debug.php';
-
 /**
  * Class for Holded connection.
  */
