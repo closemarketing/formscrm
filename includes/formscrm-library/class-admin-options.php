@@ -72,9 +72,18 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		public function create_admin_page() {
 			$lang_url = 'es' === substr( get_locale(), 0, 2 ) ? '' : 'en.';
 			?>
+			<div class="header-wrap">
+				<div class="wrapper">
+					<h2 style="display: none;"></h2>
+					<div id="nag-container"></div>
+					<div class="header formscrm-header">
+						<div class="logo">
+							<h2><?php esc_html_e( 'FormsCRM Settings', 'formscrm' ); ?></h2>
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="wrap">
-				<h2><?php esc_html_e( 'FormsCRM', 'import-holded-products-woocommerce' ); ?></h2>
-				<p></p>
 				<?php
 				settings_errors();
 				$active_tab = isset( $_GET['tab'] ) ? strval( $_GET['tab'] ) : 'settings';
@@ -84,7 +93,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					array(
 						array(
 							'tab'    => 'settings',
-							'label'  => esc_html__( 'Settings', 'import-holded-products-woocommerce' ),
+							'label'  => esc_html__( 'Settings', 'formscrm' ),
 							'action' => 'formscrm_settings',
 						),
 					)
@@ -132,7 +141,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				);
 
 				foreach ( $crms_supported as $crm ) {
-					echo '<li>';
+					echo '<li class="item">';
 					if ( isset( $crm['url'] ) && $crm['url'] ) {
 						$url = esc_url( $source_shop_url ) . 'wordpress-plugins/formscrm-' . $crm['slug'] . '/' . esc_attr( $utm_source );
 						echo ' <a href="' . $url . '" target="_blank">';
