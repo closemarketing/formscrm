@@ -11,15 +11,6 @@
 	justify-content: center;
 }
 
-.settings_page_formscrm > div {
-	width: 35%;
-	padding: 0 20px;
-}
-
-.settings_page_formscrm .settings {
-	width: 18%;
-}
-
 .formscrm-header {
 	background: #F7C440 url( 'background.svg' );
 	margin-left: -20px;
