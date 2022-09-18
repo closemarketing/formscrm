@@ -13,8 +13,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once 'debug.php';
-
 /**
  * Class for Holded connection.
  */
@@ -26,14 +24,14 @@ class CRMLIB_HOLDED {
 	 * @param string $apikey Pass to access.
 	 * @return array
 	 */
-	private function get( $url, $apikey ) {
+	public function get( $url, $apikey, $function = 'invoicing' ) {
 		$args     = array(
 			'headers' => array(
 				'key' => $apikey,
 			),
 			'timeout' => 120,
 		);
-		$url    = 'https://api.holded.com/api/invoicing/v1/' . $url;
+		$url    = 'https://api.holded.com/api/' . $function . '/v1/' . $url;
 		$result = wp_remote_get( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
@@ -67,7 +65,7 @@ class CRMLIB_HOLDED {
 	 * @param string $apikey Pass to access.
 	 * @return array
 	 */
-	private function post( $url, $bodypost, $apikey ) {
+	public function post( $url, $bodypost, $apikey, $function = 'invoicing' ) {
 		$args   = array(
 			'headers' => array(
 				'key' => $apikey,
@@ -75,7 +73,7 @@ class CRMLIB_HOLDED {
 			'timeout' => 120,
 			'body'    => $bodypost,
 		);
-		$url    = 'https://api.holded.com/api/invoicing/v1/' . $url;
+		$url    = 'https://api.holded.com/api/' . $function . '/v1/' . $url;
 		$result = wp_remote_post( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
@@ -130,7 +128,8 @@ class CRMLIB_HOLDED {
 		$modules = array(
 			array(
 				'name'  => 'contacts',
-				'label' => 'Contacts',
+				'value' => 'contacts',
+				'label' => __( 'Contacts', 'formscrm' ),
 			),
 		);
 		return $modules;
