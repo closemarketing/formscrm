@@ -26,6 +26,7 @@ class GFCRM extends GFFeedAddOn {
 	protected $_url                      = 'https://www.formscrm.com';
 	protected $_title                    = 'CRM Add-On';
 	protected $_short_title              = 'FormsCRM';
+	public    $_async_feed_processing    = true;
 
 	// Members plugin integration.
 	protected $_capabilities = array(
@@ -223,6 +224,7 @@ class GFCRM extends GFFeedAddOn {
 			$crmname      = str_replace( ' ', '_', $crmname );
 
 			$array_path = formscrm_get_crmlib_path();
+
 			if ( isset( $array_path[ $crmname ] ) ) {
 				include_once $array_path[ $crmname ];
 				formscrm_debug_message( $array_path[ $crmname ] );
@@ -241,7 +243,13 @@ class GFCRM extends GFFeedAddOn {
 		if ( empty( $settings['fc_crm_type'] ) ) {
 			return array();
 		}
+
 		$this->include_library( $settings['fc_crm_type'] );
+
+		if ( isset( $_POST['_gform_setting_fc_crm_module'] ) ) {
+			$settings['fc_crm_module'] = sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] );
+		}
+		error_log( '$settings: ' . print_r( $settings, true ) );
 
 		return array(
 			array(
