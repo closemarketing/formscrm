@@ -249,36 +249,37 @@ class GFCRM extends GFFeedAddOn {
 		if ( isset( $_POST['_gform_setting_fc_crm_module'] ) ) {
 			$settings['fc_crm_module'] = sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] );
 		}
-		error_log( '$settings: ' . print_r( $settings, true ) );
-
-		return array(
+		return apply_filters(
+			'formscrm_gf_feed',
 			array(
-				'title'       => __( 'CRM Feed', 'formscrm' ),
-				'description' => '',
-				'fields'      => array(
-					array(
-						'name'     => 'feedName',
-						'label'    => __( 'Name', 'formscrm' ),
-						'type'     => 'text',
-						'required' => true,
-						'class'    => 'medium',
-						'tooltip'  => '<h6>' . __( 'Name', 'formscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'formscrm' ),
-					),
-					array(
-						'name'     => 'fc_crm_module',
-						'label'    => __( 'CRM Module', 'formscrm' ),
-						'type'     => 'select',
-						'class'    => 'medium',
-						'onchange' => 'jQuery(this).parents("form").submit();',
-						'choices'  => $this->crmlib->list_modules( $settings ),
-					),
-					array(
-						'name'       => 'listFields',
-						'label'      => __( 'Map Fields', 'formscrm' ),
-						'type'       => 'field_map',
-						'dependency' => 'fc_crm_module',
-						'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'fc_crm_module' ) ),
-						'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+				array(
+					'title'       => __( 'CRM Feed', 'formscrm' ),
+					'description' => '',
+					'fields'      => array(
+						array(
+							'name'     => 'feedName',
+							'label'    => __( 'Name', 'formscrm' ),
+							'type'     => 'text',
+							'required' => true,
+							'class'    => 'medium',
+							'tooltip'  => '<h6>' . __( 'Name', 'formscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'formscrm' ),
+						),
+						array(
+							'name'     => 'fc_crm_module',
+							'label'    => __( 'CRM Module', 'formscrm' ),
+							'type'     => 'select',
+							'class'    => 'medium',
+							'onchange' => 'jQuery(this).parents("form").submit();',
+							'choices'  => $this->crmlib->list_modules( $settings ),
+						),
+						array(
+							'name'       => 'listFields',
+							'label'      => __( 'Map Fields', 'formscrm' ),
+							'type'       => 'field_map',
+							'dependency' => 'fc_crm_module',
+							'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'fc_crm_module' ) ),
+							'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+						),
 					),
 				),
 			),
@@ -327,12 +328,10 @@ class GFCRM extends GFFeedAddOn {
 		$settings = $this->get_plugin_settings();
 		$this->include_library( $settings['fc_crm_type'] );
 
-		if ( ! empty( $feed['meta']['listFields_first_name'] ) ) {
-			$name = $this->get_name( $entry, $feed['meta']['listFields_first_name'] );
-		}
-
 		$merge_vars = array();
 		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
+
+		$file = rgar( $entry, 17 );
 
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
@@ -427,6 +426,15 @@ class GFCRM extends GFFeedAddOn {
 
 		formscrm_debug_message( $settings );
 		formscrm_debug_message( $merge_vars );
+
+		// Fill meta settings.
+		if ( ! empty( $feed['meta'] ) ) {
+			foreach ( $feed['meta'] as $key => $value ) {
+				if ( !empty( $value ) ) {
+					$settings[ $key ] = $value;
+				}
+			}
+		} 
 
 		if ( isset( $feed['meta']['fc_crm_module'] ) ) {
 			$settings['fc_crm_module'] =  $feed['meta']['fc_crm_module'];

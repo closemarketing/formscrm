@@ -141,11 +141,10 @@ class CRMLIB_HOLDED {
 	 * @param  array $settings settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_fields( $settings ) {
+	public function list_fields( $settings, $module ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
+		$module = ! empty( $module ) ? $module : 'contacts';
 
-		formscrm_debug_message( __( 'Module active:', 'gravityforms-crm' ) . $module );
 		if ( 'contacts' === $module ) {
 			$result_contact = $this->get( $module, $apikey );
 

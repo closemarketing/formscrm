@@ -146,11 +146,13 @@ class CRMLIB_Clientify {
 		$modules = array(
 			array(
 				'name'  => 'contacts',
-				'label' => 'Contacts',
+				'value' => 'Contacts',
+				'label' => __( 'Contacts', 'formscrm' ),
 			),
 			array(
 				'name'  => 'companies',
-				'label' => 'Companies',
+				'value' => 'companies',
+				'label' => __( 'Companies', 'formscrm' ),
 			),
 		);
 		return $modules;
@@ -162,9 +164,9 @@ class CRMLIB_Clientify {
 	 * @param  array $settings settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_fields( $settings ) {
+	public function list_fields( $settings, $module ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = formscrm_get_module( 'Contacts' );
+		$module = ! empty( $module ) ? $module : 'Contacts';
 
 		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 		$fields = array();
