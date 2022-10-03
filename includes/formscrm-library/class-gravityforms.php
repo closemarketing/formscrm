@@ -237,7 +237,6 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	public function feed_settings_fields() {
-
 		$settings = $this->get_plugin_settings();
 
 		if ( empty( $settings['fc_crm_type'] ) ) {
@@ -249,6 +248,7 @@ class GFCRM extends GFFeedAddOn {
 		if ( isset( $_POST['_gform_setting_fc_crm_module'] ) ) {
 			$settings['fc_crm_module'] = sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] );
 		}
+
 		return apply_filters(
 			'formscrm_gf_feed',
 			array(
@@ -330,8 +330,6 @@ class GFCRM extends GFFeedAddOn {
 
 		$merge_vars = array();
 		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
-
-		$file = rgar( $entry, 17 );
 
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
