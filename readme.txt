@@ -3,9 +3,9 @@ Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
-Tested up to: 6.0
-Stable tag: 3.7.2
-Version: 3.7.2
+Tested up to: 6.1
+Stable tag: 3.8.0
+Version: 3.8.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,10 @@ You can only use one type of CRM in the web with this version.
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
+
+**Instructions for adding Clientify cookie in the forms**
+
+Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
 == Installation ==
 
