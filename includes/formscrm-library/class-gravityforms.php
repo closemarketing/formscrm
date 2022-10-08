@@ -286,6 +286,19 @@ class GFCRM extends GFFeedAddOn {
 		);
 	}
 
+	/**
+	 * Return the plugin's icon for the plugin/form settings menu.
+	 *
+	 * @since 1.8
+	 *
+	 * @return string
+	 */
+	public function get_menu_icon() {
+
+		return file_get_contents( FORMSCRM_PLUGIN_PATH . 'includes/assets/icon.svg' );
+
+	}
+
 	public function ensure_upgrade() {
 
 		if (get_option('fc_crm_upgrade')) {
