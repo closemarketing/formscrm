@@ -1,5 +1,6 @@
 //Loads VK cookie into gravity hidden input. In case there is no cookie, sets value to empty.
 
+// GravityForms
 let gravityHiddenInput = document.querySelectorAll( '.gfield.clientify_cookie input.gform_hidden' );
 if(gravityHiddenInput !== 'undefined'){
     let vkcookie = forms_clientify_getCookie('vk');
@@ -8,11 +9,21 @@ if(gravityHiddenInput !== 'undefined'){
     }
 }
 
+// ContactForm 7
 let contactformHiddenInput = document.querySelectorAll( 'input.wpcf7-form-control.clientify_cookie' );
 if(contactformHiddenInput !== 'undefined'){
     let vkcookie = forms_clientify_getCookie('vk');
     for (let i = 0; i < contactformHiddenInput.length; i++) {
         contactformHiddenInput[i].value = vkcookie;
+    }
+}
+
+// WPForms
+let wpformsHiddenInput = document.querySelectorAll( '.wpforms-field.clientify_cookie input' );
+if ( wpformsHiddenInput !== 'undefined' ) {
+    let vkcookie = forms_clientify_getCookie('vk');
+    for (let i = 0; i < wpformsHiddenInput.length; i++) {
+        wpformsHiddenInput[i].value = vkcookie;
     }
 }
 
