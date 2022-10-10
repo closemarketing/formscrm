@@ -35,6 +35,7 @@ At this time, FormsCRM supports in free version:
 - [Holded](https://close.marketing/likes/holded/)
 - [Clientify](https://clientify.com/?utm_source=FormsCRM)
 - [AcumbaMail](https://acumbamail.com/)
+- [MailerLite](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
 - SugarCRM

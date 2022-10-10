@@ -194,7 +194,7 @@ class FormsCRM_WooCommerce {
 
 		// Settings Fields.
 		if ( isset( $wc_formscrm['fc_crm_module'] ) && $wc_formscrm['fc_crm_module'] ) {
-			$crm_fields     = $this->crmlib->list_fields( $wc_formscrm );
+			$crm_fields     = $this->crmlib->list_fields( $wc_formscrm, $wc_formscrm['fc_crm_module'] );
 			$settings_crm[] = array(
 				'name' => __( 'Field Settings', 'formscrm' ),
 				'type' => 'title',

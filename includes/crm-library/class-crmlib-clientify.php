@@ -164,7 +164,7 @@ class CRMLIB_Clientify {
 	 * @param  array $settings settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_fields( $settings, $module ) {
+	public function list_fields( $settings, $module = 'Contacts' ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module = ! empty( $module ) ? $module : 'Contacts';
 

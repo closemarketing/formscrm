@@ -173,7 +173,7 @@ class FORMSCRM_CF7_Settings {
 
 		<?php
 		if ( isset( $cf7_crm['fc_crm_module'] ) && $cf7_crm['fc_crm_module'] ) {
-			$crm_fields = $this->crmlib->list_fields( $cf7_crm );
+			$crm_fields = $this->crmlib->list_fields( $cf7_crm, $cf7_crm['fc_crm_module'] );
 			?>
 			<table class="cf7-map-table" cellspacing="0" cellpadding="0">
 				<tbody>
