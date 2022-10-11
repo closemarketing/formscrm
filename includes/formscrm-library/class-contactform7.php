@@ -209,32 +209,23 @@ class FORMSCRM_CF7_Settings {
 	public function crm_save_options( $args ) {
 
 		if ( isset( $_POST['wpcf7-crm'] ) && is_array( $_POST['wpcf7-crm'] ) ) {
-			update_option( 'cf7_crm_' . $args->id, array_filter( $_POST['wpcf7-crm'] ) );
+			update_option( 'cf7_crm_' . $args->id(), array_filter( $_POST['wpcf7-crm'] ) );
 		}
 	}
 
 	/**
 	 * Process the entry.
 	 *
-	 * @param obj $obj CF7 Object.
+	 * @param obj $contact_form CF7 Object.
 	 * @return void
 	 */
-	public function crm_process_entry( $obj ) {
-
-		$cf7_crm    = get_option( 'cf7_crm_' . $obj->id() );
+	public function crm_process_entry( $contact_form ) {
+		$cf7_crm    = get_option( 'cf7_crm_' . $contact_form->id() );
 		$submission = WPCF7_Submission::get_instance();
 
 		if ( $cf7_crm ) {
 			$this->include_library( $cf7_crm['fc_crm_type'] );
-			$merge_vars = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-
-			if ( isset( $_COOKIE['vk'] ) ) {
-				$merge_vars[] = array(
-					'name'  => 'visitor_key',
-					'value' => esc_attr( $_COOKIE['vk'] ),
-				);
-			}
-
+			$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
 			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {
