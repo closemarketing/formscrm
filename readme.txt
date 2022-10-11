@@ -69,6 +69,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Async create lead in GravityForms.
 *  Fixes for multistep APIs.
 *  Fix: CF7 deprecated error after submit.
+*  Fix: Clientify adds Address fields.
 
 = 3.7.2 =
 *  Fix: Parse error: syntax error, unexpected ‘)’.
