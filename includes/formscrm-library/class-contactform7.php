@@ -158,9 +158,9 @@ class FORMSCRM_CF7_Settings {
 						<select name="wpcf7-crm[fc_crm_module]" class="medium" onchange="jQuery(this).parents('form').submit();" id="fc_crm_module">
 							<?php
 							foreach ( $this->crmlib->list_modules( $cf7_crm ) as $module ) {
-								echo '<option value="' . esc_html( $module['name'] ) . '" ';
-								if ( isset( $module['name'] ) ) {
-									selected( $cf7_crm['fc_crm_module'], $module['name'] );
+								echo '<option value="' . esc_html( $module['value'] ) . '" ';
+								if ( isset( $module['value'] ) ) {
+									selected( $cf7_crm['fc_crm_module'], $module['value'] );
 								}
 								echo '>' . esc_html( $module['label'] ) . '</option>';
 							}

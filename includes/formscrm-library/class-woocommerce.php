@@ -176,7 +176,7 @@ class FormsCRM_WooCommerce {
 			$this->include_library( $wc_formscrm['fc_crm_type'] );
 			$options_module = array();
 			foreach ( $this->crmlib->list_modules( $wc_formscrm ) as $module ) {
-				$options_module[ $module['name'] ] = $module['label'];
+				$options_module[ $module['value'] ] = $module['label'];
 			}
 			$settings_crm[] = array(
 				'name'    => __( 'Module', 'formscrm' ),
