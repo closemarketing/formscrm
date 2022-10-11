@@ -68,6 +68,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Added WPForms PRO as new forms provider.
 *  Async create lead in GravityForms.
 *  Fixes for multistep APIs.
+*  Fix: CF7 deprecated error after submit.
 
 = 3.7.2 =
 *  Fix: Parse error: syntax error, unexpected ‘)’.
