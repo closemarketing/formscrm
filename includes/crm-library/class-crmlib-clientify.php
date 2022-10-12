@@ -151,7 +151,7 @@ class CRMLIB_Clientify {
 			),
 			array(
 				'name'  => 'companies',
-				'value' => 'companies',
+				'value' => 'Companies',
 				'label' => __( 'Companies', 'formscrm' ),
 			),
 		);

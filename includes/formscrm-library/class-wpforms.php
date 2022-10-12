@@ -1,6 +1,6 @@
 <?php
 /**
- * Campaign Monitor integration.
+ * FormsCRM integration.
  *
  * @since 1.0.0
  */
@@ -357,14 +357,14 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			$lists_wpforms = array();
 			foreach ( $lists as $list ) {
 				$lists_wpforms[] = array(
-					'id'    => $list['name'],
+					'id'   => $list['value'],
 					'name' => $list['label'],
 				);
 			}
 			return $lists_wpforms;
 		} catch ( Exception $e ) {
 			wpforms_log(
-				'Campaign Monitor API error',
+				'FormsCRM API error',
 				$e->getMessage(),
 				array(
 					'type' => array( 'provider', 'error' ),
@@ -435,7 +435,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			return $fields_wpforms;
 		} catch ( Exception $e ) {
 			wpforms_log(
-				'Campaign Monitor API error',
+				'FormsCRM API error',
 				$e->getMessage(),
 				array(
 					'type' => array( 'provider', 'error' ),
@@ -479,7 +479,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 */
 	public function output_options( $connection_id = '', $connection = array() ) {
 
-		// Double opt in and a welcome email are defined in the List options on Campaign Monitor.
+		// Double opt in and a welcome email are defined in the List options on FormsCRM.
 		// They can't be controlled via the API.
 		return '';
 	}
