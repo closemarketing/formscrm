@@ -303,6 +303,13 @@ class FormsCRM_WooCommerce {
 			}
 		}
 
+		if ( isset( $_POST['clientify_vk' ] ) ) {
+			$merge_vars[] = array(
+				'name'  => 'clientify_vk',
+				'value' => sanitize_text_field( $_POST['clientify_vk' ] ),
+			);
+		}
+
 		return $merge_vars;
 	}
 }
