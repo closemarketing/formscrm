@@ -72,6 +72,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Fix: CF7 deprecated error after submit.
 *  Fix: Clientify adds Address fields.
 *  Fix: Get Clientify Cookie in WooCommerce.
+*  Fix: Added Holded contact fields.
 *  Added unit tests: better consistency.
 
 = 3.7.3 =
