@@ -81,7 +81,7 @@ class FormsCRM_WooCommerce {
 	 * @return array
 	 */
 	public static function add_settings_tab( $settings_tabs ) {
-		$settings_tabs['formscrm'] = __( 'FormsCRM', 'formscrm' );
+		$settings_tabs['formscrm'] = 'FormsCRM';
 		return $settings_tabs;
 	}
 

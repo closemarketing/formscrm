@@ -27,6 +27,15 @@ if ( wpformsHiddenInput !== 'undefined' ) {
     }
 }
 
+// WooCommerce
+let woocommerceHiddenInput = document.querySelectorAll( '.woocommerce-billing-fields__field-wrapper .clientify_cookie input' );
+if ( woocommerceHiddenInput !== 'undefined' ) {
+	let vkcookie = forms_clientify_getCookie('vk');
+	for (let i = 0; i < woocommerceHiddenInput.length; i++) {
+		woocommerceHiddenInput[i].value = vkcookie;
+	}
+}
+
 function forms_clientify_getCookie(cname) {
     if(document.cookie !== 'undefined') {
         let name = cname + "=";

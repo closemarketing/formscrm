@@ -70,6 +70,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Fixes for multistep APIs.
 *  Fix: CF7 deprecated error after submit.
 *  Fix: Clientify adds Address fields.
+*  Fix: Get Clientify Cookie in WooCommerce.
+*  Added unit tests: better consistency.
 
 = 3.7.2 =
 *  Fix: Parse error: syntax error, unexpected ‘)’.
