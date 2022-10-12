@@ -67,6 +67,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 = 3.8.0 =
 *  Added WPForms PRO as new forms provider.
 *  Async create lead in GravityForms.
+*  Fix: GravityForms not getting Full name.
 *  Fix: Multistep APIs.
 *  Fix: CF7 deprecated error after submit.
 *  Fix: Clientify adds Address fields.

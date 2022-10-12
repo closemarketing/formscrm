@@ -386,6 +386,12 @@ class GFCRM extends GFFeedAddOn {
 						'name'  => $var_key,
 						'value' => $value,
 					);
+				} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'name' && false === strpos( $field_id, '.' ) ) {
+					$value        = rgar( $entry, $field_id . '.3' ) . ' ' . rgar( $entry, $field_id . '.6' );
+					$merge_vars[] = array(
+						'name'  => $var_key,
+						'value' => $value,
+					);
 				} else {
 					$merge_vars[] = array(
 						'name'  => $var_key,
