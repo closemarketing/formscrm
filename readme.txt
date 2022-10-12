@@ -3,9 +3,9 @@ Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 4.0
-Tested up to: 6.0
-Stable tag: 3.7.3
-Version: 3.7.3
+Tested up to: 6.1
+Stable tag: 3.8.0
+Version: 3.8.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,7 +20,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [GravityForms](https://close.marketing/likes/gravityforms/)
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
-- WPForms (soon!)
+- [WPForms PRO](https://close.marketing/likes/wpforms/)
 - Ninja Forms (soon!)
 
 If you need to support more Forms plugins, please contact in forum support.
@@ -35,6 +35,7 @@ At this time, FormsCRM supports in free version:
 - [Holded](https://close.marketing/likes/holded/)
 - [Clientify](https://clientify.com/?utm_source=FormsCRM)
 - [AcumbaMail](https://acumbamail.com/)
+- [MailerLite](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
 - SugarCRM
@@ -50,6 +51,10 @@ You can only use one type of CRM in the web with this version.
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
 
+**Instructions for adding Clientify cookie in the forms**
+
+Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
+
 == Installation ==
 
 Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your
@@ -59,6 +64,16 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.8.0 =
+*  Added WPForms PRO as new forms provider.
+*  Async create lead in GravityForms.
+*  Fix: GravityForms not getting Full name.
+*  Fix: Multistep APIs.
+*  Fix: CF7 deprecated error after submit.
+*  Fix: Clientify adds Address fields.
+*  Fix: Get Clientify Cookie in WooCommerce.
+*  Added unit tests: better consistency.
+
 = 3.7.3 =
 *  Fix: Error 500 in page ContactForm7.
 

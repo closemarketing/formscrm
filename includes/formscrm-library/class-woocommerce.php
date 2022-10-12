@@ -81,7 +81,7 @@ class FormsCRM_WooCommerce {
 	 * @return array
 	 */
 	public static function add_settings_tab( $settings_tabs ) {
-		$settings_tabs['formscrm'] = __( 'FormsCRM', 'formscrm' );
+		$settings_tabs['formscrm'] = 'FormsCRM';
 		return $settings_tabs;
 	}
 
@@ -176,7 +176,7 @@ class FormsCRM_WooCommerce {
 			$this->include_library( $wc_formscrm['fc_crm_type'] );
 			$options_module = array();
 			foreach ( $this->crmlib->list_modules( $wc_formscrm ) as $module ) {
-				$options_module[ $module['name'] ] = $module['label'];
+				$options_module[ $module['value'] ] = $module['label'];
 			}
 			$settings_crm[] = array(
 				'name'    => __( 'Module', 'formscrm' ),
@@ -194,7 +194,7 @@ class FormsCRM_WooCommerce {
 
 		// Settings Fields.
 		if ( isset( $wc_formscrm['fc_crm_module'] ) && $wc_formscrm['fc_crm_module'] ) {
-			$crm_fields     = $this->crmlib->list_fields( $wc_formscrm );
+			$crm_fields     = $this->crmlib->list_fields( $wc_formscrm, $wc_formscrm['fc_crm_module'] );
 			$settings_crm[] = array(
 				'name' => __( 'Field Settings', 'formscrm' ),
 				'type' => 'title',
@@ -301,6 +301,13 @@ class FormsCRM_WooCommerce {
 					);
 				}
 			}
+		}
+
+		if ( isset( $_POST['clientify_vk' ] ) ) {
+			$merge_vars[] = array(
+				'name'  => 'clientify_vk',
+				'value' => sanitize_text_field( $_POST['clientify_vk' ] ),
+			);
 		}
 
 		return $merge_vars;

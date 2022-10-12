@@ -24,14 +24,14 @@ class CRMLIB_HOLDED {
 	 * @param string $apikey Pass to access.
 	 * @return array
 	 */
-	private function get( $url, $apikey ) {
+	public function get( $url, $apikey, $function = 'invoicing' ) {
 		$args     = array(
 			'headers' => array(
 				'key' => $apikey,
 			),
 			'timeout' => 120,
 		);
-		$url    = 'https://api.holded.com/api/invoicing/v1/' . $url;
+		$url    = 'https://api.holded.com/api/' . $function . '/v1/' . $url;
 		$result = wp_remote_get( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
@@ -65,7 +65,7 @@ class CRMLIB_HOLDED {
 	 * @param string $apikey Pass to access.
 	 * @return array
 	 */
-	private function post( $url, $bodypost, $apikey ) {
+	public function post( $url, $bodypost, $apikey, $function = 'invoicing' ) {
 		$args   = array(
 			'headers' => array(
 				'key' => $apikey,
@@ -73,7 +73,7 @@ class CRMLIB_HOLDED {
 			'timeout' => 120,
 			'body'    => $bodypost,
 		);
-		$url    = 'https://api.holded.com/api/invoicing/v1/' . $url;
+		$url    = 'https://api.holded.com/api/' . $function . '/v1/' . $url;
 		$result = wp_remote_post( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
@@ -128,7 +128,8 @@ class CRMLIB_HOLDED {
 		$modules = array(
 			array(
 				'name'  => 'contacts',
-				'label' => 'Contacts',
+				'value' => 'contacts',
+				'label' => __( 'Contacts', 'formscrm' ),
 			),
 		);
 		return $modules;
@@ -140,123 +141,192 @@ class CRMLIB_HOLDED {
 	 * @param  array $settings settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_fields( $settings ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
+	public function list_fields( $settings, $module ) {
+		$module = ! empty( $module ) ? $module : 'contacts';
 
-		formscrm_debug_message( __( 'Module active:', 'gravityforms-crm' ) . $module );
 		if ( 'contacts' === $module ) {
-			$result_contact = $this->get( $module, $apikey );
-
-			if ( $result_contact['data'] ) {
-				$fields = array();
-				$index  = 0;
-				foreach ( $result_contact['data'][0] as $key => $value ) {
-					if ( '_id' !== $key && 'id' !== $key && 'customId' !== $key ) {
-						$fields[ $index ]['name']     = $key;
-						$fields[ $index ]['label']    = $key;
-						$fields[ $index ]['required'] = 'name' === $key ? true : false;
-						$index++;
-					}
-				}
-			} else {
-				// lead fields.
-				$fields = array(
-					// Contact Info static.
-					array(
-						'name'     => 'name',
-						'label'    => __( 'Name', 'gravityforms-crm' ),
-						'required' => true,
-					),
-					array(
-						'name'     => 'tradename',
-						'label'    => __( 'Fiscal name', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'code',
-						'label'    => __( 'VAT No', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'address',
-						'label'    => __( 'Address', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'mobile',
-						'label'    => __( 'Mobile', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'city',
-						'label'    => __( 'City', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'cp',
-						'label'    => __( 'ZIP', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'province',
-						'label'    => __( 'Province', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'country',
-						'label'    => __( 'Country', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'email',
-						'label'    => __( 'Email', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'phone',
-						'label'    => __( 'Phone', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'mobile',
-						'label'    => __( 'Mobile', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'moreinfo',
-						'label'    => __( 'More Info', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'tags',
-						'label'    => __( 'Tags', 'gravityforms-crm' ),
-						'required' => false,
-					),
-
-					// Bank.
-					array(
-						'name'     => 'sepaiban',
-						'label'    => __( 'IBAN', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'sepaswift',
-						'label'    => __( 'SWIFT', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'separef',
-						'label'    => __( 'SEPA Ref', 'gravityforms-crm' ),
-						'required' => false,
-					),
-					array(
-						'name'     => 'sepadate',
-						'label'    => __( 'SEPA Date', 'gravityforms-crm' ),
-						'required' => false,
-					),
-				);
-			}
+			// lead fields.
+			$fields = array(
+				// Contact Info static.
+				array(
+					'name'     => 'name',
+					'label'    => __( 'Name', 'formscrm' ),
+					'required' => true,
+				),
+				array(
+					'name'     => 'tradename',
+					'label'    => __( 'Fiscal name', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'code',
+					'label'    => __( 'VAT No', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'type',
+					'label'    => __( 'Type', 'formscrm' ),
+					'tooltip'  => __( 'Type of contact. Use: supplier, debtor, creditor, client, lead.', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'          => 'isperson',
+					'label'         => __( 'Is person?', 'formscrm' ),
+					'default_value' => '0',
+					'tooltip'       => __( 'Type of person. Use: 1 = Person, 0 = Company.', 'formscrm' ),
+					'required'      => false,
+				),
+				array(
+					'name'     => 'email',
+					'label'    => __( 'Email', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'phone',
+					'label'    => __( 'Phone', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'mobile',
+					'label'    => __( 'Mobile', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'billAddress|address',
+					'label'    => __( 'Billing Address', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'billAddress|city',
+					'label'    => __( 'Billing City', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'billAddress|postalCode',
+					'label'    => __( 'Billing ZIP', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'billAddress|province',
+					'label'    => __( 'Billing Province', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'billAddress|country',
+					'label'    => __( 'Billing Country', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'note',
+					'label'    => __( 'Note', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'tags',
+					'label'    => __( 'Tags', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'iban',
+					'label'    => __( 'IBAN', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'swift',
+					'label'    => __( 'SWIFT', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'sepaRef',
+					'label'    => __( 'SEPA Ref', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'sepaDate',
+					'label'    => __( 'SEPA Date', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'taxOperation',
+					'label'    => __( 'Tax Operation', 'formscrm' ),
+					'tooltip'  => __( 'Use: general, intra, nosujeto, receq, exento.', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'clientRecord',
+					'label'    => __( 'Client Record', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'supplierRecord',
+					'label'    => __( 'Supplier Record', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'socialNetworks|website',
+					'label'    => __( 'Social Networks: Website', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|expensesAccountRecord',
+					'label'    => __( 'Expenses Account Record', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|salesAccountRecord',
+					'label'    => __( 'Sales Account Name', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|salesAccountName',
+					'label'    => __( 'Sales Account Name', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|dueDays',
+					'label'    => __( 'Due Days', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|salesTax',
+					'label'    => __( 'Sales Tax', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|purchasesTax',
+					'label'    => __( 'Purchases Tax', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|discount',
+					'label'    => __( 'Discount', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|currency',
+					'label'    => __( 'Expenses Account Name', 'formscrm' ),
+					'required' => false,
+					'tooltip' => __( 'Currency ISO code in lowercase (e.g., eur = Euro, usd = U.S. Dollar, etc )', 'formscrm' ),
+				),
+				array(
+					'name'     => 'defaults|language',
+					'label'    => __( 'Language', 'formscrm' ),
+					'required' => false,
+					'tooltip' => __( 'options (es = spanish, en = english, fr = french, de = german, it = italian, ca = catalan, eu = euskera)', 'formscrm' ),
+				),
+				array(
+					'name'     => 'defaults|showTradeNameOnDocs',
+					'label'    => __( 'Show Trade Name on Docs', 'formscrm' ),
+					'tooltip' => __( 'Use: 1 = Yes, 0 = No.', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'defaults|showCountryOnDocs',
+					'label'    => __( 'Show Country on Docs', 'formscrm' ),
+					'tooltip'  => __( 'Use: 1 = Yes, 0 = No.', 'formscrm' ),
+					'required' => false,
+				),
+			);
 		} // module contacts
 
 		return $fields;

@@ -120,8 +120,8 @@ class FORMSCRM_CF7_Settings {
 
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_username(), true ) ) { ?>
 					<p>
-						<label for="wpcf7-crm-fc_crm_username"><?php esc_html_e( 'URL:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_username" name="wpcf7-crm[fc_crm_username]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Username', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_username'] ) ) ? esc_attr( $cf7_crm['fc_crm_username'] ) : ''; ?>" />
+						<label for="wpcf7-crm-fc_crm_username"><?php esc_html_e( 'Username:', 'formscrm' ); ?></label><br />
+						<input type="text" id="wpcf7-crm-fc_crm_username" name="wpcf7-crm[fc_crm_username]" class="wide" size="70" placeholder="[<?php esc_html_e( 'Username', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_username'] ) ) ? esc_attr( $cf7_crm['fc_crm_username'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
@@ -148,8 +148,8 @@ class FORMSCRM_CF7_Settings {
 
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_odoodb(), true ) ) { ?>
 					<p>
-						<label for="wpcf7-crm-fc_crm_odoodb"><?php esc_html_e( 'API Sales:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_odoodb" name="wpcf7-crm[fc_crm_odoodb]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Sales', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_odoodb'] ) ) ? esc_attr( $cf7_crm['fc_crm_odoodb'] ) : ''; ?>" />
+						<label for="wpcf7-crm-fc_crm_odoodb"><?php esc_html_e( 'Odoo DB:', 'formscrm' ); ?></label><br />
+						<input type="text" id="wpcf7-crm-fc_crm_odoodb" name="wpcf7-crm[fc_crm_odoodb]" class="wide" size="70" placeholder="[<?php esc_html_e( 'Odoo DB', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_odoodb'] ) ) ? esc_attr( $cf7_crm['fc_crm_odoodb'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
@@ -158,9 +158,9 @@ class FORMSCRM_CF7_Settings {
 						<select name="wpcf7-crm[fc_crm_module]" class="medium" onchange="jQuery(this).parents('form').submit();" id="fc_crm_module">
 							<?php
 							foreach ( $this->crmlib->list_modules( $cf7_crm ) as $module ) {
-								echo '<option value="' . esc_html( $module['name'] ) . '" ';
-								if ( isset( $module['name'] ) ) {
-									selected( $cf7_crm['fc_crm_module'], $module['name'] );
+								echo '<option value="' . esc_html( $module['value'] ) . '" ';
+								if ( isset( $module['value'] ) ) {
+									selected( $cf7_crm['fc_crm_module'], $module['value'] );
 								}
 								echo '>' . esc_html( $module['label'] ) . '</option>';
 							}
@@ -173,7 +173,7 @@ class FORMSCRM_CF7_Settings {
 
 		<?php
 		if ( isset( $cf7_crm['fc_crm_module'] ) && $cf7_crm['fc_crm_module'] ) {
-			$crm_fields = $this->crmlib->list_fields( $cf7_crm );
+			$crm_fields = $this->crmlib->list_fields( $cf7_crm, $cf7_crm['fc_crm_module'] );
 			?>
 			<table class="cf7-map-table" cellspacing="0" cellpadding="0">
 				<tbody>
@@ -209,32 +209,23 @@ class FORMSCRM_CF7_Settings {
 	public function crm_save_options( $args ) {
 
 		if ( isset( $_POST['wpcf7-crm'] ) && is_array( $_POST['wpcf7-crm'] ) ) {
-			update_option( 'cf7_crm_' . $args->id, array_filter( $_POST['wpcf7-crm'] ) );
+			update_option( 'cf7_crm_' . $args->id(), array_filter( $_POST['wpcf7-crm'] ) );
 		}
 	}
 
 	/**
 	 * Process the entry.
 	 *
-	 * @param obj $obj CF7 Object.
+	 * @param obj $contact_form CF7 Object.
 	 * @return void
 	 */
-	public function crm_process_entry( $obj ) {
-
-		$cf7_crm    = get_option( 'cf7_crm_' . $obj->id() );
+	public function crm_process_entry( $contact_form ) {
+		$cf7_crm    = get_option( 'cf7_crm_' . $contact_form->id() );
 		$submission = WPCF7_Submission::get_instance();
 
 		if ( $cf7_crm ) {
 			$this->include_library( $cf7_crm['fc_crm_type'] );
-			$merge_vars = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-
-			if ( isset( $_COOKIE['vk'] ) ) {
-				$merge_vars[] = array(
-					'name'  => 'visitor_key',
-					'value' => esc_attr( $_COOKIE['vk'] ),
-				);
-			}
-
+			$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
 			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {
