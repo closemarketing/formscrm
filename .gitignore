@@ -1,3 +1,7 @@
 desktop.ini
 .DS_Store
 _test
+/bin
+/vendor
+.phpunit.result.cache
+/tests/credentials.php
