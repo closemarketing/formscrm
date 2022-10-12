@@ -344,6 +344,9 @@ class CRMLIB_Clientify {
 					'field' => $custom_field[1],
 					'value' => $element['value'],
 				);
+			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'addresses' ) ) {
+				$address_field = explode( '|', $element['name'] );
+				$contact['addresses'][0][ $address_field[1] ] = $element['value'];
 			} elseif ( 'tags' === $element['name'] && false !== strpos( $element['value'], ',' ) ) {
 				$contact[ $element['name'] ] = explode( ',', $element['value'] );
 			} elseif ( 'tags' === $element['name'] && false === is_array( $element['value'] ) ) {
