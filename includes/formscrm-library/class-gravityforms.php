@@ -466,6 +466,7 @@ class GFCRM extends GFFeedAddOn {
 		} else {
 			$this->add_note( $entry['id'], 'Success creating ' . esc_html( $settings['fc_crm_type'] ) . ' Entry ID:' . $response_result['id'], 'success' );
 			formscrm_debug_message( $response_result['id'] );
+			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );
 		}
 	}
 
