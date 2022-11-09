@@ -417,7 +417,12 @@ class GFCRM extends GFFeedAddOn {
 			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
 			$this->add_note( $entry['id'], 'Error ' . $response_result['message'], 'error' );
 		} else {
-			$this->add_note( $entry['id'], 'Success creating ' . esc_html( $settings['fc_crm_type'] ) . ' Entry ID:' . $response_result['id'], 'success' );
+			$message = sprintf(
+				__( 'Success creating %s Entry ID: %s', 'formscrm' ),
+				esc_html( $settings['fc_crm_type'] ),
+				$response_result['id']
+			);
+			$this->add_note( $entry['id'], $message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
 			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );
 		}
