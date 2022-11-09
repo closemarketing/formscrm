@@ -470,7 +470,7 @@ class GFCRM extends GFFeedAddOn {
 			$value = apply_filters( 'formscrm_field_value_textarea', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 			return array(
 				'name'  => $var_key,
-				'value' => $value,
+				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
 			);
 		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'name' && false === strpos( $field_id, '.' ) ) {
 			$value = rgar( $entry, $field_id . '.3' ) . ' ' . rgar( $entry, $field_id . '.6' );
@@ -479,11 +479,71 @@ class GFCRM extends GFFeedAddOn {
 				'value' => $value,
 			);
 		} else {
+			$value = apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 			return array(
 				'name'  => $var_key,
-				'value' => apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry ),
+				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
 			);
 		}
+	}
+
+	/**
+	 * Fill field values dinamic with value
+	 *
+	 * @param string $field_value
+	 * @param array $entry
+	 * @return string
+	 */
+	private function fill_dynamic_value( $field_value, $entry, $form ) {
+		
+		if ( str_contains( $field_value, '{id:' ) || str_contains( $field_value, '{label:' ) ) { 
+			$dynamic_value = $field_value;
+			preg_match_all( '#\{(.*?)\}#', $field_value, $matches);
+			if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
+				foreach ( $matches[1] as $field ) {
+					$mode = str_contains( $field, 'id:' ) ? 'id' : 'label';
+					if ( 'id' === $mode ) {
+						$field_id = str_replace( 'id:', '', $field );
+						$value = ! isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+						if ( str_contains( $value, '[' ) ) {
+							// is array.
+							$value = str_replace( '[', '', $value );
+							$value = str_replace( ']', '', $value );
+							$files = explode( ',', $value );
+							$string_files = '';
+							$index = 1;
+							foreach ( $files as $file ){
+								if ( ! empty( $file ) ) {
+									$string_files .= '<a href='. stripcslashes( $file ) . '>' . __('File', 'formscrm-holded-pro') . ' ' . $index . '</a> <br/>';
+								}
+								$index++;
+							}
+							$value = $string_files;
+						}
+					} else {
+						$field_id   = str_replace( 'label:', '', $field );
+						$field_obj  = RGFormsModel::get_field( $form, $field_id );
+						$field_type = RGFormsModel::get_input_type( $field_obj );
+						if ( 'radio' === $field_type || 'select' === $field_type ) {
+							$value = array_search( $entry[ $field_id ], array_column( $field_obj['choices'], 'value', 'text' ) );
+						} elseif ( 'checkbox' === $field_type ) {
+							$search_values = array();
+							for ( $i = 1; $i <= count( $field_obj['choices'] ); $i++ ) {
+								if ( ! empty( $entry[ $field_id . '.' . $i ] ) ) {
+									$search_values[] = $entry[ $field_id . '.' . $i ];
+								}
+							}
+							$value = implode( ', ', $search_values );
+						} else {
+							$value = ! isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+						}
+					}
+					$dynamic_value = str_replace( '{' . $field . '}', $value, $dynamic_value );
+				}
+			}
+			return $dynamic_value;
+		}
+		return $field_value;
 	}
 
 	/**
