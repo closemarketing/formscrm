@@ -447,7 +447,7 @@ class GFCRM extends GFFeedAddOn {
 			$value = '';
 			foreach ( $field['inputs'] as $input ) {
 				$index   = (string) $input['id'];
-				$value_n = apply_filters( 'formscrm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry );
+				$value_n = apply_filters( 'formscrm_field_value_default', rgar( $entry, $index ), $form['id'], $field_id, $entry );
 				$value .= $value_n;
 				if ( $value_n ) {
 					$value .= '|';
@@ -459,7 +459,7 @@ class GFCRM extends GFFeedAddOn {
 				'value' => $value,
 			);
 		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'multiselect' ) {
-			$value = apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+			$value = apply_filters( 'formscrm_field_value_multiselect', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 			$value = str_replace( ',', '|', $value );
 
 			return array(
@@ -467,14 +467,13 @@ class GFCRM extends GFFeedAddOn {
 				'value' => $value,
 			);
 		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'textarea' ) {
-			$value        = apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
-			$value        = str_replace( array( "\r", "\n" ), ' ', $value );
+			$value = apply_filters( 'formscrm_field_value_textarea', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 			return array(
 				'name'  => $var_key,
 				'value' => $value,
 			);
 		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'name' && false === strpos( $field_id, '.' ) ) {
-			$value        = rgar( $entry, $field_id . '.3' ) . ' ' . rgar( $entry, $field_id . '.6' );
+			$value = rgar( $entry, $field_id . '.3' ) . ' ' . rgar( $entry, $field_id . '.6' );
 			return array(
 				'name'  => $var_key,
 				'value' => $value,
