@@ -64,6 +64,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.8.1 =
+*  Fix Error module in CF7.
+
 = 3.8.0 =
 *  Added WPForms PRO as new forms provider.
 *  Async create lead in GravityForms.
