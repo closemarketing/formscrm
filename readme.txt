@@ -64,9 +64,12 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
-= 3.8.1 =
+= 3.8.2 =
 *  Compose Dynamic values from other fields. Use {id:##} or {label:##}.
 *  Minor fixes and translations.
+
+= 3.8.1 =
+*  Fix Error module in CF7.
 
 = 3.8.0 =
 *  Added WPForms PRO as new forms provider.
