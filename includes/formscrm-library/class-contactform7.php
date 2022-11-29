@@ -187,13 +187,22 @@ class FORMSCRM_CF7_Settings {
 							?>
 							<tr class="cf7-map-row">
 									<td class="cf7-map-column cf7-map-column-key">
-										<label for="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>"><?php echo esc_html( $crm_field['label'] ); ?><?php if ( $crm_field['required'] ) { echo ' <span class="required">*</span>'; } ?></label>
+										<label for="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>">
+											<?php
+											echo esc_html( $crm_field['label'] );
+											if ( isset( $crm_field['required'] ) && $crm_field['required'] ) {
+												echo ' <span class="required">*</span>';
+											}
+											?>
+										</label>
 									</td>
 									<td class="cf7-map-column cf7-map-column-value">
-										<input type="text" id="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" class="wide" size="70" placeholder="[<?php esc_html_e( 'Name of your field', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) ? esc_attr( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) : ''; ?>" <?php if ( $crm_field['required'] ) { echo ' required'; } ?>/>
+										<input type="text" id="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" class="wide" size="70" placeholder="[<?php esc_html_e( 'Name of your field', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) ? esc_attr( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) : ''; ?>" <?php if ( isset( $crm_field['required'] ) && $crm_field['required'] ) { echo ' required'; } ?>/>
 									</td>
 							</tr>
-						<?php } ?>
+							<?php
+						}
+						?>
 				</tbody>
 			</table>
 		<?php } ?>
