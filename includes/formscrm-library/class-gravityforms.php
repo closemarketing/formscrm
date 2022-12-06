@@ -437,8 +437,8 @@ class GFCRM extends GFFeedAddOn {
 	public function get_value_from_field( $var_key, $field_id, $entry, $form ) {
 		$field = RGFormsModel::get_field( $form, $field_id );
 		if ( isset( $field['type'] ) && GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
-			$ary          = explode('|', $entry[ $field_id ] );
-			$product_name = count($ary) > 0 ? $ary[0] : '';
+			$ary          = explode( '|', $entry[ $field_id ] );
+			$product_name = count( $ary ) > 0 ? $ary[0] : '';
 			return array(
 				'name' => $var_key,
 				'value' => $product_name,
