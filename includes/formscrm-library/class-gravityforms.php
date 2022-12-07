@@ -495,30 +495,32 @@ class GFCRM extends GFFeedAddOn {
 	 * @return string
 	 */
 	private function fill_dynamic_value( $field_value, $entry, $form ) {
-		
 		if ( str_contains( $field_value, '{id:' ) || str_contains( $field_value, '{label:' ) ) { 
 			$dynamic_value = $field_value;
-			preg_match_all( '#\{(.*?)\}#', $field_value, $matches);
+			preg_match_all( '#\{(.*?)\}#', $field_value, $matches );
 			if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
 				foreach ( $matches[1] as $field ) {
 					$mode = str_contains( $field, 'id:' ) ? 'id' : 'label';
 					if ( 'id' === $mode ) {
-						$field_id = str_replace( 'id:', '', $field );
-						$value = ! isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+						$field_id = (int) str_replace( 'id:', '', $field );
+						$value    = ! isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						if ( str_contains( $value, '[' ) ) {
 							// is array.
-							$value = str_replace( '[', '', $value );
-							$value = str_replace( ']', '', $value );
-							$files = explode( ',', $value );
+							$value        = str_replace( '[', '', $value );
+							$value        = str_replace( ']', '', $value );
+							$files        = explode( ',', $value );
 							$string_files = '';
-							$index = 1;
-							foreach ( $files as $file ){
+							$index        = 1;
+
+							foreach ( $files as $file ) {
 								if ( ! empty( $file ) ) {
-									$string_files .= '<a href='. stripcslashes( $file ) . '>' . __('File', 'formscrm-holded-pro') . ' ' . $index . '</a> <br/>';
+									$string_files .= '<a href='. stripcslashes( $file ) . '>' . __('File', 'formscrm') . ' ' . $index . '</a> <br/>';
 								}
 								$index++;
 							}
 							$value = $string_files;
+						} else {
+							$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						}
 					} else {
 						$field_id   = str_replace( 'label:', '', $field );
@@ -535,7 +537,7 @@ class GFCRM extends GFFeedAddOn {
 							}
 							$value = implode( ', ', $search_values );
 						} else {
-							$value = ! isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+							$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						}
 					}
 					$dynamic_value = str_replace( '{' . $field . '}', $value, $dynamic_value );
