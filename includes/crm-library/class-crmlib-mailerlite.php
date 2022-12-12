@@ -30,7 +30,7 @@ class CRMLIB_Mailerlite {
 			return;
 		}
 		$args = array(
-			'method' => $method,
+			'method'  => $method,
 			'headers' => array(
 				'X-MailerLite-ApiKey' => $apikey,
 				'Content-Type'        => 'application/json',
@@ -59,13 +59,22 @@ class CRMLIB_Mailerlite {
 	 */
 	public function login( $settings ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$login_result = $this->api( 'GET', 'contacts', $apikey );
+		try {
+			$results = $this->api( 'GET', 'groups', $apikey );
 
-		if ( $apikey && 'error' !== $login_result['status'] ) {
-			return true;
+			if ( is_array( $results ) && ! isset( $results[0]->error->message ) ) {
+				return true;
+			}
 
-		} else {
 			return false;
+
+		} catch ( \Exception $e ) {
+
+			// Log that authentication test failed.
+			$this->log_error( __METHOD__ . '(): API credentials are invalid; '. $e->getMessage() );
+
+			return false;
+
 		}
 	}
 
@@ -76,14 +85,40 @@ class CRMLIB_Mailerlite {
 	 * @return array           returns an array of mudules
 	 */
 	public function list_modules( $settings ) {
-		$modules = array(
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+
+		// If API cannot be initialized, return array.
+		if ( ! $this->login( $settings ) ) {
+			return array();
+		}
+
+		// Initialize choices array.
+		$choices = array(
 			array(
-				'name'  => 'contacts',
-				'value' => 'contacts',
-				'label' => __( 'Contacts', 'formscrm' ),
+				'label' => esc_html__( 'Select a Group', 'connector-gravityforms-mailerlite' ),
+				'value' => '',
 			),
 		);
-		return $modules;
+
+		$groups = $this->api( 'GET', 'groups', $apikey );
+
+		// If no lists were found, return.
+		if ( empty( $groups ) ) {
+			return array();
+		}
+
+		// Loop through array.
+		foreach ( $groups as $group ) {
+
+			// Add list as choice.
+			$choices[] = array(
+				'label' => esc_html( $group['name'] ),
+				'value' => esc_attr( $group['id'] ),
+			);
+
+		}
+
+		return $choices;
 	}
 
 	/**
@@ -294,25 +329,28 @@ class CRMLIB_Mailerlite {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 
-		$contact = array();
+		try {
+			// Subscribe user.
+			$added_subscriber = $this->api( 'POST', 'groups/' . rgars( $feed, 'meta/groupList' ) . '/subscribers', $subscriber );
+			// returns added subscriber.
+			if ( isset( $added_subscriber['id'] ) ) {
+				return $added_subscriber['id'];
+			} else {
+				return false;
+			}
 
-		foreach ( $merge_vars as $element ) {
-			$contact[ $element['name'] ] = (string) $element['value'];
-		}
+			// Log that user was subscribed.
+			$this->log_debug( __METHOD__ . '(): User was subscribed to list.' );
 
-		$result = $this->post( $module, $contact, $apikey );
+			return;
 
-		if ( 'error' === $result['status'] ) {
-			$response_result = array(
-				'status'  => 'error',
-				'message' => $result['data'],
-			);
-		} else {
-			$response_result = array(
-				'status'  => 'ok',
-				'message' => 'success',
-				'id'      => $result['data']['id'],
-			);
+		} catch ( \Exception $e ) {
+
+			// Log that user could not be subscribed.
+			$this->add_feed_error( sprintf( esc_html__( 'User could not be subscribed: %s', 'connector-gravityforms-mailerlite' ), $e->getMessage() ), $feed, $entry, $form );
+
+			return;
+
 		}
 
 		return $response_result;
