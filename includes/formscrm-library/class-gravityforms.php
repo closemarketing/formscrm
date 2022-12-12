@@ -301,7 +301,7 @@ class GFCRM extends GFFeedAddOn {
 
 	public function ensure_upgrade() {
 
-		if (get_option('fc_crm_upgrade')) {
+		if ( get_option( 'fc_crm_upgrade' ) ) {
 			return false;
 		}
 
@@ -347,7 +347,9 @@ class GFCRM extends GFFeedAddOn {
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
 			foreach ( $field_maps as $var_key => $field_id ) {
-				$merge_vars[] = $this->get_value_from_field( $var_key, $field_id, $entry, $form );
+				if ( ! empty( $field_id ) ) {
+					$merge_vars[] = $this->get_value_from_field( $var_key, $field_id, $entry, $form );
+				}
 			}
 		} else {
 			// Dynamic Fields.
@@ -397,11 +399,11 @@ class GFCRM extends GFFeedAddOn {
 		// Fill meta settings.
 		if ( ! empty( $feed['meta'] ) ) {
 			foreach ( $feed['meta'] as $key => $value ) {
-				if ( !empty( $value ) ) {
+				if ( ! empty( $value ) ) {
 					$settings[ $key ] = $value;
 				}
 			}
-		} 
+		}
 
 		if ( isset( $feed['meta']['fc_crm_module'] ) ) {
 			$settings['fc_crm_module'] =  $feed['meta']['fc_crm_module'];
@@ -503,22 +505,20 @@ class GFCRM extends GFFeedAddOn {
 					$mode = str_contains( $field, 'id:' ) ? 'id' : 'label';
 					if ( 'id' === $mode ) {
 						$field_id = (int) str_replace( 'id:', '', $field );
-						$value    = ! isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+						$value    = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						if ( str_contains( $value, '[' ) ) {
 							// is array.
-							$value        = str_replace( '[', '', $value );
-							$value        = str_replace( ']', '', $value );
-							$files        = explode( ',', $value );
-							$string_files = '';
-							$index        = 1;
+							$clean_note_file = str_replace( '[', '', $value );
+							$clean_note_file = str_replace( ']', '', $clean_note_file );
+							$clean_note_file = str_replace( '"', '', $clean_note_file );
+							$clean_note_file = str_replace( '\/', '/', $clean_note_file );
 
+							$files     = explode( ',', $clean_note_file );
+							$file_note = '';
 							foreach ( $files as $file ) {
-								if ( ! empty( $file ) ) {
-									$string_files .= '<a href='. stripcslashes( $file ) . '>' . __('File', 'formscrm') . ' ' . $index . '</a> <br/>';
-								}
-								$index++;
+								$file_note .= $file . "\n";
 							}
-							$value = $string_files;
+							$value = $file_note;
 						} else {
 							$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						}
@@ -530,9 +530,10 @@ class GFCRM extends GFFeedAddOn {
 							$value = array_search( $entry[ $field_id ], array_column( $field_obj['choices'], 'value', 'text' ) );
 						} elseif ( 'checkbox' === $field_type ) {
 							$search_values = array();
-							for ( $i = 1; $i <= count( $field_obj['choices'] ); $i++ ) {
+							$count_choices = count( $field_obj['choices'] );
+							for ( $i = 1; $i <= $count_choices; $i++ ) {
 								if ( ! empty( $entry[ $field_id . '.' . $i ] ) ) {
-									$search_values[] = $entry[ $field_id . '.' . $i ];
+									$search_values[] = array_search( $field_id . '.' . $i, array_column( $field_obj['inputs'], 'id', 'label' ) );
 								}
 							}
 							$value = implode( ', ', $search_values );
