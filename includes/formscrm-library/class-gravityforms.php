@@ -406,7 +406,7 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		if ( isset( $feed['meta']['fc_crm_module'] ) ) {
-			$settings['fc_crm_module'] =  $feed['meta']['fc_crm_module'];
+			$settings['fc_crm_module'] = $feed['meta']['fc_crm_module'];
 		}
 		// Send info from entry and form filled.
 		$settings['entry'] = $entry;
@@ -416,15 +416,29 @@ class GFCRM extends GFFeedAddOn {
 		$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 
 		if ( 'error' === $api_status ) {
-			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
-			$this->add_note( $entry['id'], 'Error ' . $response_result['message'], 'error' );
+			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
+			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
+			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
+
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+
+			$response_message = sprintf(
+				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.
+				__( 'Error creating %1$s Error: %2$s URL: %3$s QUERY: %4$s', 'formscrm' ),
+				esc_html( $settings['fc_crm_type'] ),
+				$message,
+				$url,
+				$query
+			);
+			$this->add_note( $entry['id'], 'Error ' . $response_message, 'error' );
 		} else {
-			$message = sprintf(
-				__( 'Success creating %s Entry ID: %s', 'formscrm' ),
+			$response_message = sprintf(
+				// translators: %1$s CRM name %2$s ID number of entry created.
+				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
 				esc_html( $settings['fc_crm_type'] ),
 				$response_result['id']
 			);
-			$this->add_note( $entry['id'], $message, 'success' );
+			$this->add_note( $entry['id'], $response_message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
 			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );
 		}

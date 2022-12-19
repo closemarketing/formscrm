@@ -111,7 +111,7 @@ class CRMLIB_Clientify {
 				'status' => 'error',
 				'data'   => $message,
 				'url'    => $url,
-				'query'  => wp_json_encode( $args ),
+				'query'  => wp_json_encode( $bodypost ),
 			);
 		} else {
 			$body = wp_remote_retrieve_body( $result );
@@ -379,6 +379,8 @@ class CRMLIB_Clientify {
 			$response_result = array(
 				'status'  => 'error',
 				'message' => $message,
+				'url'     => isset( $result['url'] ) ? $result['url'] : '',
+				'query'   => isset( $result['query'] ) ? $result['query'] : '',
 			);
 		}
 		return $response_result;
