@@ -144,11 +144,9 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 				'type'  => 'hidden',
 				'class' => array( 'clientify_cookie' ),
 			);
-		 
-			return $fields;
-		 
-		}
 
+			return $fields;
+		}
 	}
 }
 new Forms_Clientify();
