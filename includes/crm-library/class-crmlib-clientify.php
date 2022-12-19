@@ -93,7 +93,8 @@ class CRMLIB_Clientify {
 			'timeout' => 120,
 			'body'    => wp_json_encode( $bodypost ),
 		);
-		$result = wp_remote_post( 'https://api.clientify.net/v1/' . strtolower( $module ), $args );
+		$url    = 'https://api.clientify.net/v1/' . strtolower( $module );
+		$result = wp_remote_post( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
 		if ( 2 !== $code ) {
@@ -109,6 +110,8 @@ class CRMLIB_Clientify {
 			return array(
 				'status' => 'error',
 				'data'   => $message,
+				'url'    => $url,
+				'query'  => wp_json_encode( $args ),
 			);
 		} else {
 			$body = wp_remote_retrieve_body( $result );
