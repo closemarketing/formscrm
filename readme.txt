@@ -2,10 +2,10 @@
 Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
-Requires at least: 4.0
-Tested up to: 6.1
-Stable tag: 3.9.1
-Version: 3.9.1
+Requires at least: 5.0
+Tested up to: 6.1.1
+Stable tag: 3.9.2
+Version: 3.9.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,7 +21,6 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
-- Ninja Forms (soon!)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -33,12 +32,11 @@ The plugin connects with the CRM via API webservice, a secure and best way to co
 
 At this time, FormsCRM supports in free version:
 - [Holded](https://close.marketing/likes/holded/)
-- [Clientify](https://clientify.com/?utm_source=FormsCRM)
+- [Clientify](https://close.marketing/likes/clientify/)
 - [AcumbaMail](https://acumbamail.com/)
 - [MailerLite](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
-- SugarCRM
 - [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/?utm_source=FormsCRM)
 - [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/?utm_source=FormsCRM)
 - [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/?utm_source=FormsCRM)
@@ -64,6 +62,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.9.2 =
+*  Fix: better information in Error debug email.
+
 = 3.9.1 =
 *  Fix: checkbox and files urls in dynamic values in GravityForms.
 
