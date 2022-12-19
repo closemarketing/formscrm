@@ -430,7 +430,7 @@ class GFCRM extends GFFeedAddOn {
 				$url,
 				$query
 			);
-			$this->add_note( $entry['id'], 'Error ' . $response_message, 'error' );
+			$this->add_note( $entry['id'], $response_message, 'error' );
 		} else {
 			$response_message = sprintf(
 				// translators: %1$s CRM name %2$s ID number of entry created.
