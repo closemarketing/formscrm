@@ -114,42 +114,42 @@ class FORMSCRM_CF7_Settings {
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_url(), true ) ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_url"><?php esc_html_e( 'URL:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_url" name="wpcf7-crm[fc_crm_url]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM URL', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_url'] ) ) ? esc_attr( $cf7_crm['fc_crm_url'] ) : ''; ?>" />
+						<input type="text" id="wpcf7-crm-fc_crm_url" name="wpcf7-crm[fc_crm_url]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM URL', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_url'] ) ) ? esc_attr( $cf7_crm['fc_crm_url'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_username(), true ) ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_username"><?php esc_html_e( 'Username:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_username" name="wpcf7-crm[fc_crm_username]" class="wide" size="70" placeholder="[<?php esc_html_e( 'Username', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_username'] ) ) ? esc_attr( $cf7_crm['fc_crm_username'] ) : ''; ?>" />
+						<input type="text" id="wpcf7-crm-fc_crm_username" name="wpcf7-crm[fc_crm_username]" class="wide" size="70" placeholder="<?php esc_html_e( 'Username', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_username'] ) ) ? esc_attr( $cf7_crm['fc_crm_username'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_password(), true ) ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_password"><?php esc_html_e( 'Password:', 'formscrm' ); ?></label><br />
-						<input type="password" id="wpcf7-crm-fc_crm_password" name="wpcf7-crm[fc_crm_password]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Password', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_password'] ) ) ? esc_attr( $cf7_crm['fc_crm_password'] ) : ''; ?>" />
+						<input type="password" id="wpcf7-crm-fc_crm_password" name="wpcf7-crm[fc_crm_password]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM Password', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_password'] ) ) ? esc_attr( $cf7_crm['fc_crm_password'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apipassword(), true ) ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_apipassword"><?php esc_html_e( 'API Password:', 'formscrm' ); ?></label><br />
-						<input type="password" id="wpcf7-crm-fc_crm_apipassword" name="wpcf7-crm[fc_crm_apipassword]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM API Password', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_apipassword'] ) ) ? esc_attr( $cf7_crm['fc_crm_apipassword'] ) : ''; ?>" />
+						<input type="password" id="wpcf7-crm-fc_crm_apipassword" name="wpcf7-crm[fc_crm_apipassword]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM API Password', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_apipassword'] ) ) ? esc_attr( $cf7_crm['fc_crm_apipassword'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apisales(), true ) ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_apisales"><?php esc_html_e( 'API Sales:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_apisales" name="wpcf7-crm[fc_crm_apisales]" class="wide" size="70" placeholder="[<?php esc_html_e( 'CRM Sales', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_apisales'] ) ) ? esc_attr( $cf7_crm['fc_crm_apisales'] ) : ''; ?>" />
+						<input type="text" id="wpcf7-crm-fc_crm_apisales" name="wpcf7-crm[fc_crm_apisales]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM Sales', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_apisales'] ) ) ? esc_attr( $cf7_crm['fc_crm_apisales'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
 					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_odoodb(), true ) ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_odoodb"><?php esc_html_e( 'Odoo DB:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_odoodb" name="wpcf7-crm[fc_crm_odoodb]" class="wide" size="70" placeholder="[<?php esc_html_e( 'Odoo DB', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm['fc_crm_odoodb'] ) ) ? esc_attr( $cf7_crm['fc_crm_odoodb'] ) : ''; ?>" />
+						<input type="text" id="wpcf7-crm-fc_crm_odoodb" name="wpcf7-crm[fc_crm_odoodb]" class="wide" size="70" placeholder="<?php esc_html_e( 'Odoo DB', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_odoodb'] ) ) ? esc_attr( $cf7_crm['fc_crm_odoodb'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
 
@@ -183,24 +183,26 @@ class FORMSCRM_CF7_Settings {
 						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value"><?php esc_html_e( 'Form Field', 'formscrm' ); ?></th>
 					</tr>
 						<?php
-						foreach ( $crm_fields as $crm_field ) {
-							?>
-							<tr class="cf7-map-row">
-									<td class="cf7-map-column cf7-map-column-key">
-										<label for="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>">
-											<?php
-											echo esc_html( $crm_field['label'] );
-											if ( isset( $crm_field['required'] ) && $crm_field['required'] ) {
-												echo ' <span class="required">*</span>';
-											}
-											?>
-										</label>
-									</td>
-									<td class="cf7-map-column cf7-map-column-value">
-										<input type="text" id="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" class="wide" size="70" placeholder="[<?php esc_html_e( 'Name of your field', 'formscrm' ); ?>]" value="<?php echo ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) ? esc_attr( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) : ''; ?>" <?php if ( isset( $crm_field['required'] ) && $crm_field['required'] ) { echo ' required'; } ?>/>
-									</td>
-							</tr>
-							<?php
+						if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
+							foreach ( $crm_fields as $crm_field ) {
+								?>
+								<tr class="cf7-map-row">
+										<td class="cf7-map-column cf7-map-column-key">
+											<label for="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>">
+												<?php
+												echo esc_html( $crm_field['label'] );
+												if ( isset( $crm_field['required'] ) && $crm_field['required'] ) {
+													echo ' <span class="required">*</span>';
+												}
+												?>
+											</label>
+										</td>
+										<td class="cf7-map-column cf7-map-column-value">
+											<input type="text" id="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" class="wide" size="70" placeholder="<?php esc_html_e( 'Name of your field', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) ? esc_attr( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) : ''; ?>" <?php if ( isset( $crm_field['required'] ) && $crm_field['required'] ) { echo ' required'; } ?>/>
+										</td>
+								</tr>
+								<?php
+							}
 						}
 						?>
 				</tbody>
@@ -239,9 +241,10 @@ class FORMSCRM_CF7_Settings {
 			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {
-				formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
-			} else {
-				error_log( $response_result['id'] );
+				$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
+				$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
+
+				formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
 			}
 		}
 	}
