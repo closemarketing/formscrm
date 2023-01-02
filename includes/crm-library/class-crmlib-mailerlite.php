@@ -39,14 +39,30 @@ class CRMLIB_Mailerlite {
 		if ( ! empty( $data ) ) {
 			$args['body'] = json_encode( $data );
 		}
-		$url = 'https://api.mailerlite.com/api/v2/' . $module;
-		$response = wp_remote_request( $url, $args );
+		$url    = 'https://api.mailerlite.com/api/v2/' . $module;
+		$result = wp_remote_request( $url, $args );
+		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
-		if ( 200 === $response['response']['code'] ) {
-			$body = wp_remote_retrieve_body( $response );
-			return json_decode( $body, true );
+		if ( 2 !== $code ) {
+			$message = implode( ' ', $result['response'] ) . ' ';
+			$body    = json_decode( $result['body'], true );
+			if ( ! empty( $body['error'] ) && is_array( $body['error'] ) ) {
+				foreach ( $body['error'] as $key => $value ) {
+					$message .= $key . ': ' . $value . ' ';
+				}
+			}
+			formscrm_error_admin_message( 'ERROR', $message );
+			return array(
+				'status' => 'error',
+				'data'   => $message,
+			);
 		} else {
-			return false;
+			$body = wp_remote_retrieve_body( $result );
+
+			return array(
+				'status' => 'ok',
+				'data'   => json_decode( $body, true ),
+			);
 		}
 	}
 
@@ -62,7 +78,7 @@ class CRMLIB_Mailerlite {
 		try {
 			$results = $this->api( 'GET', 'groups', $apikey );
 
-			if ( is_array( $results ) && ! isset( $results[0]->error->message ) ) {
+			if ( 'ok' === $results['status'] ) {
 				return true;
 			}
 
@@ -71,7 +87,7 @@ class CRMLIB_Mailerlite {
 		} catch ( \Exception $e ) {
 
 			// Log that authentication test failed.
-			$this->log_error( __METHOD__ . '(): API credentials are invalid; '. $e->getMessage() );
+			error_log( __METHOD__ . '(): API credentials are invalid; '. $e->getMessage() );
 
 			return false;
 
@@ -93,22 +109,17 @@ class CRMLIB_Mailerlite {
 		}
 
 		// Initialize choices array.
-		$choices = array(
-			array(
-				'label' => esc_html__( 'Select a Group', 'connector-gravityforms-mailerlite' ),
-				'value' => '',
-			),
-		);
+		$choices = array();
 
-		$groups = $this->api( 'GET', 'groups', $apikey );
+		$result_groups = $this->api( 'GET', 'groups', $apikey );
 
 		// If no lists were found, return.
-		if ( empty( $groups ) ) {
+		if ( 'error' === $result_groups['status'] || empty( $result_groups['data'] ) ) {
 			return array();
 		}
 
 		// Loop through array.
-		foreach ( $groups as $group ) {
+		foreach ( $result_groups['data'] as $group ) {
 
 			// Add list as choice.
 			$choices[] = array(
@@ -127,230 +138,86 @@ class CRMLIB_Mailerlite {
 	 * @param  array $settings settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_fields( $settings, $module ) {
-		$module = ! empty( $module ) ? $module : 'contacts';
+	public function list_fields( $settings, $list_id ) {
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$module = ! empty( $module ) ? $module : '';
 
-		if ( 'contacts' === $module ) {
-			// lead fields.
-			$fields = array(
-				// Contact Info static.
-				array(
-					'name'     => 'name',
-					'label'    => __( 'Name', 'formscrm' ),
-					'required' => true,
-				),
-				array(
-					'name'     => 'tradename',
-					'label'    => __( 'Fiscal name', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'code',
-					'label'    => __( 'VAT No', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'type',
-					'label'    => __( 'Type', 'formscrm' ),
-					'tooltip'  => __( 'Type of contact. Use: supplier, debtor, creditor, client, lead.', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'          => 'isperson',
-					'label'         => __( 'Is person?', 'formscrm' ),
-					'default_value' => '0',
-					'tooltip'       => __( 'Type of person. Use: 1 = Person, 0 = Company.', 'formscrm' ),
-					'required'      => false,
-				),
-				array(
-					'name'     => 'email',
-					'label'    => __( 'Email', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'phone',
-					'label'    => __( 'Phone', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'mobile',
-					'label'    => __( 'Mobile', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'billAddress|address',
-					'label'    => __( 'Billing Address', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'billAddress|city',
-					'label'    => __( 'Billing City', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'billAddress|postalCode',
-					'label'    => __( 'Billing ZIP', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'billAddress|province',
-					'label'    => __( 'Billing Province', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'billAddress|country',
-					'label'    => __( 'Billing Country', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'note',
-					'label'    => __( 'Note', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'tags',
-					'label'    => __( 'Tags', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'iban',
-					'label'    => __( 'IBAN', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'swift',
-					'label'    => __( 'SWIFT', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'sepaRef',
-					'label'    => __( 'SEPA Ref', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'sepaDate',
-					'label'    => __( 'SEPA Date', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'taxOperation',
-					'label'    => __( 'Tax Operation', 'formscrm' ),
-					'tooltip'  => __( 'Use: general, intra, nosujeto, receq, exento.', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'clientRecord',
-					'label'    => __( 'Client Record', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'supplierRecord',
-					'label'    => __( 'Supplier Record', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'socialNetworks|website',
-					'label'    => __( 'Social Networks: Website', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|expensesAccountRecord',
-					'label'    => __( 'Expenses Account Record', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|salesAccountRecord',
-					'label'    => __( 'Sales Account Name', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|salesAccountName',
-					'label'    => __( 'Sales Account Name', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|dueDays',
-					'label'    => __( 'Due Days', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|salesTax',
-					'label'    => __( 'Sales Tax', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|purchasesTax',
-					'label'    => __( 'Purchases Tax', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|discount',
-					'label'    => __( 'Discount', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|currency',
-					'label'    => __( 'Expenses Account Name', 'formscrm' ),
-					'required' => false,
-					'tooltip' => __( 'Currency ISO code in lowercase (e.g., eur = Euro, usd = U.S. Dollar, etc )', 'formscrm' ),
-				),
-				array(
-					'name'     => 'defaults|language',
-					'label'    => __( 'Language', 'formscrm' ),
-					'required' => false,
-					'tooltip' => __( 'options (es = spanish, en = english, fr = french, de = german, it = italian, ca = catalan, eu = euskera)', 'formscrm' ),
-				),
-				array(
-					'name'     => 'defaults|showTradeNameOnDocs',
-					'label'    => __( 'Show Trade Name on Docs', 'formscrm' ),
-					'tooltip' => __( 'Use: 1 = Yes, 0 = No.', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'defaults|showCountryOnDocs',
-					'label'    => __( 'Show Country on Docs', 'formscrm' ),
-					'tooltip'  => __( 'Use: 1 = Yes, 0 = No.', 'formscrm' ),
-					'required' => false,
-				),
+		// Initialize field map.
+		$field_map = array();
+
+		try {
+			$custom_fields = $this->api( 'GET', 'fields', $apikey );
+
+		} catch ( \Exception $e ) {
+
+			// Log that we could not retrieve custom fields.
+			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() );
+
+			return $field_map;
+
+		}
+
+		// Loop through custom fields.
+		foreach ( $custom_fields['data'] as $custom_field ) {
+
+			// Add custom field to field map.
+			$field_map[] = array(
+				'name'  => $custom_field['key'],
+				'label' => $custom_field['title'],
 			);
-		} // module contacts
 
-		return $fields;
+		}
+		return $field_map;
 	}
 
 	/**
 	 * Creates an entry for given module of a CRM
 	 *
 	 * @param  array $settings settings from Gravity Forms options.
-	 * @param  array $merge_vars array of values for the entry.
+	 * @param  array $subscriber array of values for the entry.
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
+		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$list_id = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
+
+		$subscriber = array();
+
+		foreach ( $merge_vars as $element ) {
+			if ( 'email' === $element['name'] ) {
+				$subscriber[ $element['name'] ] = $element['value'];
+			} else {
+				$subscriber['fields'][ $element['name'] ] = $element['value'];
+			}
+		}
 
 		try {
 			// Subscribe user.
-			$added_subscriber = $this->api( 'POST', 'groups/' . rgars( $feed, 'meta/groupList' ) . '/subscribers', $subscriber );
-			// returns added subscriber.
-			if ( isset( $added_subscriber['id'] ) ) {
-				return $added_subscriber['id'];
+			$result = $this->api( 'POST', 'groups/' . $list_id . '/subscribers', $apikey, $subscriber );
+
+			if ( 'ok' === $result['status'] ) {
+				$response_result = array(
+					'status'  => 'ok',
+					'message' => 'success',
+					'id'      => $result['data']['id'],
+				);
 			} else {
-				return false;
+				$message         = isset( $result['data'] ) ? $result['data'] : '';
+				$response_result = array(
+					'status'  => 'error',
+					'message' => $message,
+					'url'     => isset( $result['url'] ) ? $result['url'] : '',
+					'query'   => isset( $result['query'] ) ? $result['query'] : '',
+				);
 			}
-
-			// Log that user was subscribed.
-			$this->log_debug( __METHOD__ . '(): User was subscribed to list.' );
-
-			return;
-
 		} catch ( \Exception $e ) {
-
-			// Log that user could not be subscribed.
-			$this->add_feed_error( sprintf( esc_html__( 'User could not be subscribed: %s', 'connector-gravityforms-mailerlite' ), $e->getMessage() ), $feed, $entry, $form );
-
-			return;
-
+			$message         = isset( $result['data'] ) ? $result['data'] : '';
+			$response_result = array(
+				'status'  => 'error',
+				'message' => $message,
+				'url'     => isset( $result['url'] ) ? $result['url'] : '',
+				'query'   => isset( $result['query'] ) ? $result['query'] : '',
+			);
 		}
 
 		return $response_result;
