@@ -12,6 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 require_once 'helpers-functions.php';
 require_once 'helpers-library-crm.php';
+
 $load_admin_options = apply_filters( 'formscrm_load_options', true );
 if ( $load_admin_options ) {
 	require_once 'class-admin-options.php';
@@ -70,4 +71,9 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 		}
 		require_once 'class-wpforms.php';
 	}
+}
+
+// Elementor.
+if ( is_plugin_active( 'elementor/elementor.php' ) ) {
+	require_once 'class-elementor.php';
 }
