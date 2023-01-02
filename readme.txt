@@ -2,10 +2,10 @@
 Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
-Requires at least: 4.0
-Tested up to: 5.8.2
-Stable tag: 3.2
-Version: 3.2
+Requires at least: 5.0
+Tested up to: 6.1.1
+Stable tag: 3.9.2
+Version: 3.9.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,8 +18,9 @@ With this plugin, you don't have to use third party software to send your Leads/
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
 - [GravityForms](https://close.marketing/likes/gravityforms/)
-- WPForms (soon!)
-- ContactForm7 (soon!)
+- [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
+- [WooCommerce](https://wordpress.org/plugins/woocommerce/)
+- [WPForms PRO](https://close.marketing/likes/wpforms/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -30,15 +31,27 @@ After that, you'll go to each form feed that you want to connect with the CRM. Y
 The plugin connects with the CRM via API webservice, a secure and best way to connect it. It *doesn't use a third party software*. You'll comply GDPR becaouse of not having a third provider.
 
 At this time, FormsCRM supports in free version:
-- Holded
+- [Holded](https://close.marketing/likes/holded/)
+- [Clientify](https://close.marketing/likes/clientify/)
+- [AcumbaMail](https://acumbamail.com/)
+- [MailerLite](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
-- SugarCRM.
-- Odoo: versions 8 and 9 (more comming).
-- [vTiger 7](https://checkout.freemius.com/mode/dialog/plugin/8767/plan/14673/licenses/1/currency/eur/).
-- [Clientify](https://checkout.freemius.com/mode/dialog/plugin/9345/plan/15716/licenses/1/currency/eur/).
+- [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/?utm_source=FormsCRM)
+- [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/?utm_source=FormsCRM)
+- [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/?utm_source=FormsCRM)
+- [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/?utm_source=FormsCRM)
+- [SuiteCRM](https://close.technology/en/wordpress-plugins/formscrm-suitecrm/?utm_source=FormsCRM)
+- [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/?utm_source=FormsCRM)
 
 You can only use one type of CRM in the web with this version.
+
+Demo:
+[youtube https://www.youtube.com/watch?v=HHG763ikL7o]
+
+**Instructions for adding Clientify cookie in the forms**
+
+Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
 == Installation ==
 
@@ -49,8 +62,80 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.10.0 =
+*  Added: Support to MailerLite.
+
+= 3.9.2 =
+*  Fix: better information in Error debug email.
+
+= 3.9.1 =
+*  Fix: checkbox and files urls in dynamic values in GravityForms.
+
+= 3.9.0 =
+*  Compose Dynamic values from other fields in GravityForms. Use {id:##} or {label:##}.
+*  Minor fixes and translations.
+
+= 3.8.2 =
+*  Fix Error fields in CF7.
+
+= 3.8.1 =
+*  Fix Error module in CF7.
+
+= 3.8.0 =
+*  Added WPForms PRO as new forms provider.
+*  Async create lead in GravityForms.
+*  Fix: GravityForms not getting Full name.
+*  Fix: Multistep APIs.
+*  Fix: CF7 deprecated error after submit.
+*  Fix: Clientify adds Address fields.
+*  Fix: Get Clientify Cookie in WooCommerce.
+*  Fix: Added Holded contact fields.
+*  Added unit tests: better consistency.
+
+= 3.7.3 =
+*  Fix: Error 500 in page ContactForm7.
+
+= 3.7.2 =
+*  Fix: Parse error: syntax error, unexpected ‘)’.
+*  Reviewed in PHP5.6.
+
+= 3.7.1 =
+*  Fix: Parse error: syntax error, unexpected ‘)’.
+
+= 3.7 =
+*  New method for clientify visitor key.
+*  Fix Clientify pagination Custom fields problem.
+*  Better log management (in debug.log).
+*  Added link to Odoo premium addon.
+*  Added AcumbaMail in free version.
+*  Fix: Clientify custom fields not imported.
+*  Fix: Fatal error in feed admin if not selected CRM.
+
+= 3.6 =
+*  Added link to custom Addons: Inmovilla, PipeDrive, SuiteCRM and FacturaDirecta.
+*  Clientify: Added custom fields to select in the form.
+*	Removed Freemius engine to sell.
+*  Added support to shop in close.technology.
+*  Fix acceptance consent in Clientify.
+*  Fix visitor key in Clientify.
+
+= 3.5.1 =
+*	Hotfix: Clientify connector settings error.
+
+= 3.5 =
+*	Clientify: adds visitor key from cookie.
+*  Better error management.
+*  Holded solved fixes.
+*  Holded name mandatory.
+
+= 3.4 =
+*	Fix is_plugin_activated.
+*  Fix translations.
+*  Fix tags loaded.
+
 = 3.3 =
 *	Support ContactForm7!.
+*  Support to WooCommerce!.
 *  Clientify connector in Free version.
 *  Better error management.
 
@@ -70,4 +155,5 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Links ==
 
 *	[Closemarketing](https://close.marketing/)
+*	[Closetechnology](https://close.technology/)
 *	[All Closemarketing Plugins](https://profiles.wordpress.org/closemarketing/#content-plugins)

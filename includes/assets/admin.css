@@ -1,0 +1,32 @@
+.wp-admin ul.formscrm-list-crm {
+	display: grid;
+	grid-column-gap: 10px;
+	grid-row-gap: 20px;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+.settings_page_formscrm {
+	display: -ms-flexbox;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.formscrm-header {
+	background: #F7C440 url( 'background.svg' );
+	margin-left: -20px;
+	padding: 20px 15%;
+	display: flex;
+	justify-content: space-between;
+	color: white;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+.formscrm-header .logo {
+	min-width: 20%;
+}
+.formscrm-header h2 {
+	float: right;
+	color: white;
+	padding: 10px 0 0 30px;
+	margin: 0;
+}
