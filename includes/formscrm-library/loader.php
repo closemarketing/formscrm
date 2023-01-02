@@ -10,7 +10,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once 'debug.php';
+require_once 'helpers-functions.php';
 require_once 'helpers-library-crm.php';
 $load_admin_options = apply_filters( 'formscrm_load_options', true );
 if ( $load_admin_options ) {

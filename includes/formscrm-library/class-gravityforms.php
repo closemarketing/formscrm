@@ -301,7 +301,7 @@ class GFCRM extends GFFeedAddOn {
 
 	public function ensure_upgrade() {
 
-		if (get_option('fc_crm_upgrade')) {
+		if ( get_option( 'fc_crm_upgrade' ) ) {
 			return false;
 		}
 
@@ -347,50 +347,8 @@ class GFCRM extends GFFeedAddOn {
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
 			foreach ( $field_maps as $var_key => $field_id ) {
-				$field = RGFormsModel::get_field( $form, $field_id );
-	
-				if ( isset( $field['type'] ) && GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
-					$ary          = explode('|', $entry[ $field_id ] );
-					$product_name = count($ary) > 0 ? $ary[0] : '';
-					$merge_vars[] = array(
-						'name' => $var_key,
-						'value' => $product_name,
-					);
-				} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
-					$value = '';
-					foreach ( $field['inputs'] as $input ) {
-						$index   = (string) $input['id'];
-						$value_n = apply_filters( 'formscrm_field_value', rgar( $entry, $index ), $form['id'], $field_id, $entry );
-						$value .= $value_n;
-						if ( $value_n ) {
-							$value .= '|';
-						}
-					}
-					$value        = substr( $value, 0, -1 );
-					$merge_vars[] = array(
-						'name'  => $var_key,
-						'value' => $value,
-					);
-				} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'multiselect' ) {
-					$value = apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
-					$value = str_replace( ',', '|', $value );
-
-					$merge_vars[] = array(
-						'name'  => $var_key,
-						'value' => $value,
-					);
-				} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'textarea' ) {
-					$value        = apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
-					$value        = str_replace( array( "\r", "\n" ), ' ', $value );
-					$merge_vars[] = array(
-						'name'  => $var_key,
-						'value' => $value,
-					);
-				} else {
-					$merge_vars[] = array(
-						'name'  => $var_key,
-						'value' => apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry ),
-					);
+				if ( ! empty( $field_id ) ) {
+					$merge_vars[] = $this->get_value_from_field( $var_key, $field_id, $entry, $form );
 				}
 			}
 		} else {
@@ -441,26 +399,168 @@ class GFCRM extends GFFeedAddOn {
 		// Fill meta settings.
 		if ( ! empty( $feed['meta'] ) ) {
 			foreach ( $feed['meta'] as $key => $value ) {
-				if ( !empty( $value ) ) {
+				if ( ! empty( $value ) ) {
 					$settings[ $key ] = $value;
 				}
 			}
-		} 
-
-		if ( isset( $feed['meta']['fc_crm_module'] ) ) {
-			$settings['fc_crm_module'] =  $feed['meta']['fc_crm_module'];
 		}
 
+		if ( isset( $feed['meta']['fc_crm_module'] ) ) {
+			$settings['fc_crm_module'] = $feed['meta']['fc_crm_module'];
+		}
+		// Send info from entry and form filled.
+		$settings['entry'] = $entry;
+
+		// Sends the entry to CRM.
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 		$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 
 		if ( 'error' === $api_status ) {
-			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
-			$this->add_note( $entry['id'], 'Error ' . $response_result['message'], 'error' );
+			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
+			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
+			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
+
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+
+			$response_message = sprintf(
+				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.
+				__( 'Error creating %1$s Error: %2$s URL: %3$s QUERY: %4$s', 'formscrm' ),
+				esc_html( $settings['fc_crm_type'] ),
+				$message,
+				$url,
+				$query
+			);
+			$this->add_note( $entry['id'], $response_message, 'error' );
 		} else {
-			$this->add_note( $entry['id'], 'Success creating ' . esc_html( $settings['fc_crm_type'] ) . ' Entry ID:' . $response_result['id'], 'success' );
+			$response_message = sprintf(
+				// translators: %1$s CRM name %2$s ID number of entry created.
+				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
+				esc_html( $settings['fc_crm_type'] ),
+				$response_result['id']
+			);
+			$this->add_note( $entry['id'], $response_message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
+			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );
 		}
+	}
+
+	/**
+	 * Returns the value of GF Field depending of type.
+	 *
+	 * @param array $field
+	 * @return array
+	 */
+	public function get_value_from_field( $var_key, $field_id, $entry, $form ) {
+		$field = RGFormsModel::get_field( $form, $field_id );
+		if ( isset( $field['type'] ) && GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
+			$ary          = explode( '|', $entry[ $field_id ] );
+			$product_name = count( $ary ) > 0 ? $ary[0] : '';
+			return array(
+				'name' => $var_key,
+				'value' => $product_name,
+			);
+		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
+			$value = '';
+			foreach ( $field['inputs'] as $input ) {
+				$index   = (string) $input['id'];
+				$value_n = apply_filters( 'formscrm_field_value_default', rgar( $entry, $index ), $form['id'], $field_id, $entry );
+				$value .= $value_n;
+				if ( $value_n ) {
+					$value .= '|';
+				}
+			}
+			$value        = substr( $value, 0, -1 );
+			return array(
+				'name'  => $var_key,
+				'value' => $value,
+			);
+		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'multiselect' ) {
+			$value = apply_filters( 'formscrm_field_value_multiselect', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+			$value = str_replace( ',', '|', $value );
+
+			return array(
+				'name'  => $var_key,
+				'value' => $value,
+			);
+		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'textarea' ) {
+			$value = apply_filters( 'formscrm_field_value_textarea', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+			return array(
+				'name'  => $var_key,
+				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
+			);
+		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'name' && false === strpos( $field_id, '.' ) ) {
+			$value = rgar( $entry, $field_id . '.3' ) . ' ' . rgar( $entry, $field_id . '.6' );
+			return array(
+				'name'  => $var_key,
+				'value' => $value,
+			);
+		} else {
+			$value = apply_filters( 'formscrm_field_value', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+			return array(
+				'name'  => $var_key,
+				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
+			);
+		}
+	}
+
+	/**
+	 * Fill field values dinamic with value
+	 *
+	 * @param string $field_value
+	 * @param array $entry
+	 * @return string
+	 */
+	private function fill_dynamic_value( $field_value, $entry, $form ) {
+		if ( str_contains( $field_value, '{id:' ) || str_contains( $field_value, '{label:' ) ) { 
+			$dynamic_value = $field_value;
+			preg_match_all( '#\{(.*?)\}#', $field_value, $matches );
+			if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
+				foreach ( $matches[1] as $field ) {
+					$mode = str_contains( $field, 'id:' ) ? 'id' : 'label';
+					if ( 'id' === $mode ) {
+						$field_id = (int) str_replace( 'id:', '', $field );
+						$value    = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+						if ( str_contains( $value, '[' ) ) {
+							// is array.
+							$clean_note_file = str_replace( '[', '', $value );
+							$clean_note_file = str_replace( ']', '', $clean_note_file );
+							$clean_note_file = str_replace( '"', '', $clean_note_file );
+							$clean_note_file = str_replace( '\/', '/', $clean_note_file );
+
+							$files     = explode( ',', $clean_note_file );
+							$file_note = '';
+							foreach ( $files as $file ) {
+								$file_note .= $file . "\n";
+							}
+							$value = $file_note;
+						} else {
+							$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+						}
+					} else {
+						$field_id   = str_replace( 'label:', '', $field );
+						$field_obj  = RGFormsModel::get_field( $form, $field_id );
+						$field_type = RGFormsModel::get_input_type( $field_obj );
+						if ( 'radio' === $field_type || 'select' === $field_type ) {
+							$value = array_search( $entry[ $field_id ], array_column( $field_obj['choices'], 'value', 'text' ) );
+						} elseif ( 'checkbox' === $field_type ) {
+							$search_values = array();
+							$count_choices = count( $field_obj['choices'] );
+							for ( $i = 1; $i <= $count_choices; $i++ ) {
+								if ( ! empty( $entry[ $field_id . '.' . $i ] ) ) {
+									$search_values[] = array_search( $field_id . '.' . $i, array_column( $field_obj['inputs'], 'id', 'label' ) );
+								}
+							}
+							$value = implode( ', ', $search_values );
+						} else {
+							$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+						}
+					}
+					$dynamic_value = str_replace( '{' . $field . '}', $value, $dynamic_value );
+				}
+			}
+			return $dynamic_value;
+		}
+		return $field_value;
 	}
 
 	/**

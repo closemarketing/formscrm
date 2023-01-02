@@ -1,6 +1,6 @@
 <?php
 /**
- * Campaign Monitor integration.
+ * FormsCRM integration.
  *
  * @since 1.0.0
  */
@@ -108,6 +108,11 @@ class WPForms_FormsCRM extends WPForms_Provider {
 					continue;
 				}
 
+				// Address type.
+				if ( 'address' === $fields[ $id ]['type'] ) {
+					$type = 'Address';
+				}
+
 				// Special formatting for different types.
 				switch ( $type ) {
 					/*
@@ -121,7 +126,25 @@ class WPForms_FormsCRM extends WPForms_Provider {
 					case 'Date':
 						$merge_vars[] =  array(
 							'name'  => $name,
-							'Value' => $this->format_date( $fields[ $id ], $name, $form_data['fields'][ $id ], 'Y-m-d' ),
+							'value' => $this->format_date( $fields[ $id ], $name, $form_data['fields'][ $id ], 'Y-m-d' ),
+						);
+						break;
+
+					case 'Address':
+						if ( str_contains( $name, '|' ) ) {
+							$address_key = explode( '|', $name );
+							$address_key = $address_key[1];
+						} else {
+							$address_key = $name;
+						}
+						$equivalence = array(
+							'street'      => 'address1',
+							'postal_code' => 'postal',
+						);
+						$key = isset( $equivalence[ $address_key ] ) ? $equivalence[ $address_key ] : $address_key;
+						$merge_vars[] = array(
+							'name'  => $name,
+							'value' => $fields[ $id ][ $key ],
 						);
 						break;
 
@@ -357,14 +380,14 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			$lists_wpforms = array();
 			foreach ( $lists as $list ) {
 				$lists_wpforms[] = array(
-					'id'    => $list['name'],
+					'id'   => $list['value'],
 					'name' => $list['label'],
 				);
 			}
 			return $lists_wpforms;
 		} catch ( Exception $e ) {
 			wpforms_log(
-				'Campaign Monitor API error',
+				'FormsCRM API error',
 				$e->getMessage(),
 				array(
 					'type' => array( 'provider', 'error' ),
@@ -435,7 +458,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			return $fields_wpforms;
 		} catch ( Exception $e ) {
 			wpforms_log(
-				'Campaign Monitor API error',
+				'FormsCRM API error',
 				$e->getMessage(),
 				array(
 					'type' => array( 'provider', 'error' ),
@@ -479,7 +502,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 */
 	public function output_options( $connection_id = '', $connection = array() ) {
 
-		// Double opt in and a welcome email are defined in the List options on Campaign Monitor.
+		// Double opt in and a welcome email are defined in the List options on FormsCRM.
 		// They can't be controlled via the API.
 		return '';
 	}

@@ -41,6 +41,9 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 				add_action( 'wpcf7_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 				add_action( 'wpcf7_contact_form', array( $this, 'contanct_enqueue_scripts' ) );
 			}
+			if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+				add_filter( 'woocommerce_checkout_fields' , array( $this, 'clientify_cookie_checkout_field' ) );
+			}
 		}
 
 		/**
@@ -130,6 +133,20 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 			wp_enqueue_script( 'formscrm-clientify-field' );
 		}
 
+		/**
+		 * Adds field checkout
+		 *
+		 * @param array $fields
+		 * @return array
+		 */
+		public function clientify_cookie_checkout_field( $fields ) {
+			$fields['billing']['clientify_vk'] = array(
+				'type'  => 'hidden',
+				'class' => array( 'clientify_cookie' ),
+			);
+
+			return $fields;
+		}
 	}
 }
 new Forms_Clientify();

@@ -82,7 +82,7 @@ class CRMLIB_HOLDED {
 			$body    = json_decode( $result['body'], true );
 			if ( is_array( $body ) ) {
 				foreach ( $body as $key => $value ) {
-					$message .= $key . ': ' . $value;
+					$message .= $key . ': ' . $value . ' ';
 				}
 			}
 			formscrm_error_admin_message( 'ERROR', $message );

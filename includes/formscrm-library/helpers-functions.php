@@ -72,14 +72,21 @@ if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
 	 * @param array  $data  Data of error.
 	 * @return void
 	 */
-	function formscrm_debug_email_lead( $crm, $error, $data ) {
+	function formscrm_debug_email_lead( $crm, $error, $data, $url = '', $json = '' ) {
 		$to      = get_option( 'admin_email' );
 		$subject = 'FormsCRM - ' . __( 'Error creating the Lead', 'formscrm' );
 		$body    = '<p>' . __( 'There was an error creating the Lead in the CRM', 'formscrm' ) . ' ' . $crm . ':</p><p><strong>' . $error . '</strong></p><p>' . __( 'Lead Data', 'formscrm' ) . ':</p>';
 		foreach ( $data as $dataitem ) {
 			$body .= '<p><strong>' . $dataitem['name'] . ': </strong>' . $dataitem['value'] . '</p>';
 		}
-		$body   .= '</br/><br/>FormsCRM';
+		$body .= '</br/><br/>';
+		if ( $url ) {
+			$body .= '<p>URL: ' . $url . '</p>';
+		}
+		if ( $url ) {
+			$body .= '<p>JSON: ' . $json . '</p>';
+		}
+		$body   .= 'FormsCRM';
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		wp_mail( $to, $subject, $body, $headers );
