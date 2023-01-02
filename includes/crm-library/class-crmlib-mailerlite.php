@@ -22,6 +22,7 @@ class CRMLIB_Mailerlite {
 	 *
 	 * @param string $method Method to connect: GET, POST..
 	 * @param string $module URL endpoint.
+	 * @param string $apikey API Key credential.
 	 * @param array  $data   Body data.
 	 * @return array
 	 */
@@ -37,7 +38,7 @@ class CRMLIB_Mailerlite {
 			),
 		);
 		if ( ! empty( $data ) ) {
-			$args['body'] = json_encode( $data );
+			$args['body'] = wp_json_encode( $data );
 		}
 		$url    = 'https://api.mailerlite.com/api/v2/' . $module;
 		$result = wp_remote_request( $url, $args );
@@ -87,7 +88,7 @@ class CRMLIB_Mailerlite {
 		} catch ( \Exception $e ) {
 
 			// Log that authentication test failed.
-			error_log( __METHOD__ . '(): API credentials are invalid; '. $e->getMessage() );
+			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() );
 
 			return false;
 
@@ -136,9 +137,10 @@ class CRMLIB_Mailerlite {
 	 * List fields for given module of a CRM
 	 *
 	 * @param  array $settings settings from Gravity Forms options.
+	 * @param  string $module settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_fields( $settings, $list_id ) {
+	public function list_fields( $settings, $module ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module = ! empty( $module ) ? $module : '';
 
@@ -154,7 +156,6 @@ class CRMLIB_Mailerlite {
 			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() );
 
 			return $field_map;
-
 		}
 
 		// Loop through custom fields.
@@ -174,7 +175,7 @@ class CRMLIB_Mailerlite {
 	 * Creates an entry for given module of a CRM
 	 *
 	 * @param  array $settings settings from Gravity Forms options.
-	 * @param  array $subscriber array of values for the entry.
+	 * @param  array $merge_vars array of values for the entry.
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {

@@ -62,6 +62,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.10.0 =
+*  Added: Support to MailerLite.
+
 = 3.9.2 =
 *  Fix: better information in Error debug email.
 
