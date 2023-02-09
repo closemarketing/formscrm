@@ -159,9 +159,18 @@ class FORMSCRM_CF7_Settings {
 							<?php
 							$settings_module = isset( $cf7_crm['fc_crm_module'] ) ? $cf7_crm['fc_crm_module'] : '';
 							foreach ( $this->crmlib->list_modules( $cf7_crm ) as $module ) {
-								echo '<option value="' . esc_html( $module['value'] ) . '" ';
-								if ( isset( $module['value'] ) ) {
-									selected( $settings_module, $module['value'] );
+								$value = '';
+								if ( ! empty( $module['value'] ) ) {
+									$value = $module['value'];
+								} elseif ( ! empty( $module['name'] ) ) {
+									$value = $module['name'];
+								}
+								if ( empty( $value ) || ! isset( $module['label'] ) ) {
+									continue;
+								}
+								echo '<option value="' . esc_html( $value ) . '" ';
+								if ( isset( $value ) ) {
+									selected( $settings_module, $value );
 								}
 								echo '>' . esc_html( $module['label'] ) . '</option>';
 							}
