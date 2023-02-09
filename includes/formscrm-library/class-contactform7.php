@@ -90,7 +90,6 @@ class FORMSCRM_CF7_Settings {
 	 * @return void
 	 */
 	public function settings_add_crm( $args ) {
-
 		$cf7_crm_defaults = array();
 		$cf7_crm          = get_option( 'cf7_crm_' . $args->id(), $cf7_crm_defaults );
 		?>
@@ -159,6 +158,15 @@ class FORMSCRM_CF7_Settings {
 							<?php
 							$settings_module = isset( $cf7_crm['fc_crm_module'] ) ? $cf7_crm['fc_crm_module'] : '';
 							foreach ( $this->crmlib->list_modules( $cf7_crm ) as $module ) {
+								$value = '';
+								if ( ! empty( $module['value'] ) ) {
+									$value = $module['value'];
+								} elseif ( ! empty( $module['name'] ) ) {
+									$value = $module['name'];
+								}
+								if ( empty( $value ) || ! isset( $module['label'] ) ) {
+									continue;
+								}
 								echo '<option value="' . esc_html( $module['value'] ) . '" ';
 								if ( isset( $module['value'] ) ) {
 									selected( $settings_module, $module['value'] );

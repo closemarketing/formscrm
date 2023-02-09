@@ -75,5 +75,19 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 
 // Elementor.
 if ( is_plugin_active( 'elementor/elementor.php' ) ) {
-	require_once 'class-elementor.php';
+	
+
+		//require_once 'class-elementor.php';
+	
+		add_action( 'elementor_pro/init', function() {
+			// Here its safe to include our action class file
+			include_once( dirname(__FILE__).'/class-elementor.php' );
+		
+			// Instantiate the action class
+			$formscrm_action = new FormsCRM_Elementor_Action_After_Submit();
+		
+			// Register the action with form widget
+			\ElementorPro\Plugin::instance()->modules_manager->get_modules( 'forms' )->add_form_action( $formscrm_action->get_name(), $formscrm_action );
+		});
+	
 }
