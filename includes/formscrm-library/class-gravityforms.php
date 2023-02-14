@@ -57,10 +57,7 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function init() {
-
 		parent::init();
-		load_plugin_textdomain( 'formscrm', FALSE, '/formscrm/languages' );
-
 	}
 
 	public function init_admin() {
