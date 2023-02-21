@@ -66,6 +66,97 @@ class GFCRM extends GFFeedAddOn {
 		$this->ensure_upgrade();
 	}
 
+	private function get_crm_fields( $crm_type = true, $key = '' ) {
+		$crm_fields = array(
+			array(
+				'name'          => 'fc_crm_url',
+				'label'         => __( 'CRM URL', 'formscrm' ),
+				'type'          => 'text',
+				'class'         => 'medium',
+				'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'formscrm' ),
+				'tooltip_class' => 'tooltipclass',
+				'dependency'    => array(
+					'field'  => 'fc_crm_type',
+					'values' => formscrm_get_dependency_url(),
+				),
+			),
+			array(
+				'name'              => 'fc_crm_username',
+				'label'             => __( 'Username', 'formscrm' ),
+				'type'              => 'text',
+				'class'             => 'medium',
+				'dependency'        => array(
+					'field' => 'fc_crm_type',
+					'values' => formscrm_get_dependency_username(),
+				),
+				'feedback_callback' => $this->login_api_crm(),
+			),
+			array(
+				'name'          => 'fc_crm_password',
+				'label'         => __('Password', 'formscrm' ),
+				'type'          => 'api_key',
+				'class'         => 'medium',
+				'tooltip'       => __( 'Use the password of the actual user.', 'formscrm' ),
+				'tooltip_class' => 'tooltipclass',
+				'dependency'    => array(
+					'field' => 'fc_crm_type',
+					'values' => formscrm_get_dependency_password(),
+				),
+			),
+			array(
+				'name'          => 'fc_crm_apipassword',
+				'label'         => __( 'API Password for User', 'formscrm' ),
+				'type'          => 'api_key',
+				'class'         => 'medium',
+				'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
+				'tooltip_class' => 'tooltipclass',
+				'dependency'    => array(
+					'field' => 'fc_crm_type',
+					'values' => formscrm_get_dependency_apipassword(),
+				),
+			),
+			array(
+				'name'          => 'fc_crm_apisales',
+				'label'         => __('Password and Security Key', 'formscrm'),
+				'type'          => 'api_key',
+				'class'         => 'medium',
+				'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm'),
+				'tooltip_class' => 'tooltipclass',
+				'dependency'    => array(
+					'field'  => 'fc_crm_type',
+					'values' => formscrm_get_dependency_apisales(),
+				),
+			),
+			array(
+				'name'       => 'fc_crm_odoodb',
+				'label'      => __( 'Odoo DB Name', 'formscrm' ),
+				'type'       => 'text',
+				'class'      => 'medium',
+				'dependency' => array(
+					'field'  => 'fc_crm_type',
+					'values' => formscrm_get_dependency_odoodb(),
+				),
+			),
+		);
+
+		if ( $crm_type ) {
+			$crm_fields = array_merge(
+				$crm_fields,
+				array(
+					array(
+						'name'          => 'fc_crm_type',
+						'label'         => __( 'CRM Type', 'formscrm' ),
+						'type'          => 'select',
+						'class'         => 'medium',
+						'choices'       => formscrm_get_crm_types(),
+						'default_value' => $crm_type,
+					),
+				)
+			);
+		}
+		return $crm_fields;
+	}
+
 	/**
 	 * Plugin settings
 	 *
@@ -76,85 +167,7 @@ class GFCRM extends GFFeedAddOn {
 			array(
 				'title'       => __( 'CRM Account Information', 'formscrm' ),
 				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'formscrm' ),
-				'fields'      => array(
-					array(
-						'name'     => 'fc_crm_type',
-						'label'    => __( 'CRM Type', 'formscrm' ),
-						'type'     => 'select',
-						'class'    => 'medium',
-						'onchange' => 'jQuery(this).parents("form").submit();',
-						'choices'  => formscrm_get_choices(),
-					),
-					array(
-						'name'          => 'fc_crm_url',
-						'label'         => __( 'CRM URL', 'formscrm' ),
-						'type'          => 'text',
-						'class'         => 'medium',
-						'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'formscrm' ),
-						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array(
-							'field'  => 'fc_crm_type',
-							'values' => formscrm_get_dependency_url(),
-						),
-					),
-					array(
-						'name'              => 'fc_crm_username',
-						'label'             => __( 'Username', 'formscrm' ),
-						'type'              => 'text',
-						'class'             => 'medium',
-						'dependency'        => array(
-							'field' => 'fc_crm_type',
-							'values' => formscrm_get_dependency_username(),
-						),
-						'feedback_callback' => $this->login_api_crm(),
-					),
-					array(
-						'name'          => 'fc_crm_password',
-						'label'         => __('Password', 'formscrm' ),
-						'type'          => 'api_key',
-						'class'         => 'medium',
-						'tooltip'       => __( 'Use the password of the actual user.', 'formscrm' ),
-						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array(
-							'field' => 'fc_crm_type',
-							'values' => formscrm_get_dependency_password(),
-						),
-					),
-					array(
-						'name'          => 'fc_crm_apipassword',
-						'label'         => __( 'API Password for User', 'formscrm' ),
-						'type'          => 'api_key',
-						'class'         => 'medium',
-						'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
-						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array(
-							'field' => 'fc_crm_type',
-							'values' => formscrm_get_dependency_apipassword(),
-						),
-					),
-					array(
-						'name'          => 'fc_crm_apisales',
-						'label'         => __('Password and Security Key', 'formscrm'),
-						'type'          => 'api_key',
-						'class'         => 'medium',
-						'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm'),
-						'tooltip_class' => 'tooltipclass',
-						'dependency'    => array(
-							'field'  => 'fc_crm_type',
-							'values' => formscrm_get_dependency_apisales(),
-						),
-					),
-					array(
-						'name'       => 'fc_crm_odoodb',
-						'label'      => __( 'Odoo DB Name', 'formscrm' ),
-						'type'       => 'text',
-						'class'      => 'medium',
-						'dependency' => array(
-							'field'  => 'fc_crm_type',
-							'values' => formscrm_get_dependency_odoodb(),
-						),
-					),
-				),
+				'fields'      => $this->get_crm_fields(),
 			),
 		);
 	}
@@ -252,30 +265,53 @@ class GFCRM extends GFFeedAddOn {
 				array(
 					'title'       => __( 'CRM Feed', 'formscrm' ),
 					'description' => '',
-					'fields'      => array(
+					'fields'      => array_merge(
 						array(
-							'name'     => 'feedName',
-							'label'    => __( 'Name', 'formscrm' ),
-							'type'     => 'text',
-							'required' => true,
-							'class'    => 'medium',
-							'tooltip'  => '<h6>' . __( 'Name', 'formscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'formscrm' ),
+							array(
+								'name'     => 'feedName',
+								'label'    => __( 'Name', 'formscrm' ),
+								'type'     => 'text',
+								'required' => true,
+								'class'    => 'medium',
+								'tooltip'  => '<h6>' . __( 'Name', 'formscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'formscrm' ),
+							),
+							array(
+								'name'     => 'fc_crm_custom_crm',
+								'label'    => __( 'Custom CRM Settings', 'formscrm' ),
+								'type'     => 'select',
+								'class'    => 'medium',
+								'onchange' => 'jQuery(this).parents("form").submit();',
+								'choices'  => 
+								array_merge(
+									array(
+										array(
+											'label' => __( 'No', 'formscrm' ),
+											'value' => 'no',
+										),	
+									),
+									formscrm_get_choices()
+								),
+							),
 						),
+						$this->get_crm_fields( false ),
 						array(
-							'name'     => 'fc_crm_module',
-							'label'    => __( 'CRM Module', 'formscrm' ),
-							'type'     => 'select',
-							'class'    => 'medium',
-							'onchange' => 'jQuery(this).parents("form").submit();',
-							'choices'  => $this->crmlib->list_modules( $settings ),
-						),
-						array(
-							'name'       => 'listFields',
-							'label'      => __( 'Map Fields', 'formscrm' ),
-							'type'       => 'field_map',
-							'dependency' => 'fc_crm_module',
-							'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'fc_crm_module' ) ),
-							'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+							array(
+								'name'     => 'fc_crm_module',
+								'label'    => __( 'CRM Module', 'formscrm' ),
+								'type'     => 'select',
+								'dependency' => 'fc_crm_custom_crm',
+								'class'    => 'medium',
+								'onchange' => 'jQuery(this).parents("form").submit();',
+								'choices'  => $this->crmlib->list_modules( $settings ),
+							),
+							array(
+								'name'       => 'listFields',
+								'label'      => __( 'Map Fields', 'formscrm' ),
+								'type'       => 'field_map',
+								'dependency' => 'fc_crm_module',
+								'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'fc_crm_module' ) ),
+								'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+							),
 						),
 					),
 				),
