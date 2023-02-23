@@ -1,12 +1,5 @@
 <?php
 /**
- * The WooCommerce API Manager PHP Client Library is designed to be droppped into a WordPress plugin or theme.
- * This version is designed to be used with the WooCommerce API Manager version 2.x.
- *
- * Intellectual Property rights, and copyright, reserved by Todd Lahman, LLC as allowed by law include,
- * but are not limited to, the working concept, function, and behavior of this software,
- * the logical code structure and expression as written.
- *
  * @version       2.8.1
  * @author        Todd Lahman LLC https://www.toddlahman.com/
  * @copyright     Copyright (c) Todd Lahman LLC (support@toddlahman.com)
@@ -138,17 +131,6 @@ class FormsCRM_Updater {
 			$this->wc_am_plugin_name       = $this->plugin_or_theme == 'plugin' ? untrailingslashit( plugin_basename( $this->file ) ) : basename( dirname( plugin_basename( $file ) ) ); // same as plugin slug. if a theme use a theme name like 'twentyeleven'
 			$this->wc_am_renew_license_url = $this->api_url . 'my-account'; // URL to renew an License. Trailing slash in the upgrade_url is required.
 			$this->wc_am_instance_id       = get_option( $this->wc_am_instance_key ); // Instance ID (unique to each blog activation)
-			/**
-			 * Some web hosts have security policies that block the : (colon) and // (slashes) in http://,
-			 * so only the host portion of the URL can be sent. For example the host portion might be
-			 * www.example.com or example.com. http://www.example.com includes the scheme http,
-			 * and the host www.example.com.
-			 * Sending only the host also eliminates issues when a client site changes from http to https,
-			 * but their activation still uses the original scheme.
-			 * To send only the host, use a line like the one below:
-			 *
-			 * $this->wc_am_domain = str_ireplace( array( 'http://', 'https://' ), '', home_url() ); // blog domain name
-			 */
 			$this->wc_am_domain           = str_ireplace( array( 'http://', 'https://' ), '', home_url() ); // blog domain name
 			$this->wc_am_software_version = $this->software_version; // The software version
 
@@ -169,7 +151,6 @@ class FormsCRM_Updater {
 			$this->try_automatic_updates();
 
 			if ( $this->plugin_or_theme == 'plugin' ) {
-				//add_action( 'wp_ajax_update_auto_update_setting', array( $this, 'update_auto_update_setting' ) );
 				add_filter( 'plugin_auto_update_setting_html', array( $this, 'auto_update_message' ), 10, 3 );
 			}
 		}
@@ -184,9 +165,6 @@ class FormsCRM_Updater {
 		global $wp_version;
 
 		if ( version_compare( $wp_version, '5.5', '>=' ) ) {
-			//if ( empty( get_option( $this->wc_am_auto_update_key ) ) ) {
-			//	update_option( $this->wc_am_auto_update_key, 'on' );
-			//}
 
 			if ( $this->plugin_or_theme == 'plugin' ) {
 				add_filter( 'auto_update_plugin', array( $this, 'maybe_auto_update' ), 10, 2 );
@@ -261,9 +239,6 @@ class FormsCRM_Updater {
 			return true;
 		}
 
-		// Return true if this plugin or theme background update is disabled.
-		// return get_option( $this->wc_am_auto_update_key ) !== 'on';
-
 		return false;
 	}
 
@@ -286,7 +261,6 @@ class FormsCRM_Updater {
 		if ( $this->wc_am_plugin_name == $plugin_file ) {
 			global $status, $page;
 
-			// if ( ! $this->get_api_key_status( true ) || get_option( $this->wc_am_auto_update_key ) !== 'on' ) {
 			if ( ! $this->get_api_key_status() || ! $this->get_api_key_status( true ) ) {
 				return esc_html__( 'Auto-updates unavailable.', 'formscrm' );
 			}
@@ -356,6 +330,14 @@ class FormsCRM_Updater {
 
 			update_option( $this->wc_am_deactivate_checkbox_key, 'on' );
 			update_option( $this->wc_am_activated_key, 'Deactivated' );
+		}
+	}
+
+	private function generate_instance() {
+		$instance_exists = get_option( $this->wc_am_instance_key );
+
+		if ( $instance_exists === false ) {
+			update_option( $this->wc_am_instance_key, wp_generate_password( 12, false ) );
 		}
 	}
 
@@ -519,15 +501,6 @@ class FormsCRM_Updater {
 			), $this->wc_am_activation_tab_key, $this->wc_am_api_key_key );
 		}
 
-		/**
-		 * @since 2.8
-		 */ //if ( version_compare( $wp_version, '5.5', '>=' ) ) {
-		//	add_settings_field( $this->wc_am_auto_update_key, esc_html__( 'Auto Plugin Updates', 'formscrm' ), array(
-		//		$this,
-		//		'wc_am_auto_update_radio'
-		//	), $this->wc_am_activation_tab_key, $this->wc_am_api_key_key );
-		//}
-
 		add_settings_field( 'status', esc_html__( 'License Status', 'formscrm' ), array(
 			$this,
 			'wc_am_api_key_status'
@@ -561,6 +534,8 @@ class FormsCRM_Updater {
 		}
 
 		echo esc_attr( $license_status_check );
+
+		$this->generate_instance();
 	}
 
 	/**
@@ -605,11 +580,8 @@ class FormsCRM_Updater {
 
 	// Returns License text field
 	public function wc_am_api_key_field() {
-		if ( ! empty( $this->data[ $this->wc_am_api_key_key ] ) ) {
-			echo "<input id='api_key' name='" . esc_attr( $this->data_key ) . "[" . esc_attr( $this->wc_am_api_key_key ) . "]' size='25' type='text' value='" . esc_attr( $this->data[ $this->wc_am_api_key_key ] ) . "' />";
-		} else {
-			echo "<input id='api_key' name='" . esc_attr( $this->data_key ) . "[" . esc_attr( $this->wc_am_api_key_key ) . "]' size='25' type='text' value='' />";
-		}
+		$value = ! empty( $this->data[ $this->wc_am_api_key_key ] ) ? $this->data[ $this->wc_am_api_key_key ] : '';
+		echo "<input id='api_key' name='" . esc_attr( $this->data_key ) . "[" . esc_attr( $this->wc_am_api_key_key ) . "]' size='35' type='password' value='" . esc_attr( $value ) . "' />";
 	}
 
 	/**
@@ -621,23 +593,9 @@ class FormsCRM_Updater {
 		if ( ! empty( $product_id ) ) {
 			$this->product_id = $product_id;
 		}
-
-		if ( ! empty( $product_id ) ) {
-			echo "<input id='product_id' name='" . esc_attr( $this->wc_am_product_id ) . "' size='25' type='text' value='" . absint( $this->product_id ) . "' />";
-		} else {
-			echo "<input id='product_id' name='" . esc_attr( $this->wc_am_product_id ) . "' size='25' type='text' value='' />";
-		}
+		$value = $this->product_id ? $this->product_id : '';
+		echo "<input id='product_id' name='" . esc_attr( $this->wc_am_product_id ) . "' size='7' type='text' value='" . absint( $value ) . "' />";
 	}
-
-	/**
-	 * Radio buttons to toggle auto-updates on or off.
-	 *
-	 * @since 2.8
-	 */
-	//public function wc_am_auto_update_radio() {
-	//	echo '<input type="radio" name="' . esc_attr( $this->wc_am_auto_update_key ) . '" value="on"' . checked( get_option( $this->wc_am_auto_update_key ), 'on', false ) . '>' . esc_html__( 'On', 'formscrm' ) . '<br /><br />';
-	//	echo '<input type="radio" name="' . esc_attr( $this->wc_am_auto_update_key ) . '" value="off"' . checked( get_option( $this->wc_am_auto_update_key ), 'off', false ) . '>' . esc_html__( 'Off', 'formscrm' );
-	//}
 
 	/**
 	 * Sanitizes and validates all input and output for Dashboard
@@ -668,16 +626,6 @@ class FormsCRM_Updater {
 				$this->product_id = $new_product_id;
 			}
 		}
-
-		/**
-		 * Toggle auto-updates.
-		 *
-		 * @since 2.8
-		 */ //if ( ! empty( $_REQUEST[ $this->wc_am_auto_update_key ] ) && $_REQUEST[ $this->wc_am_auto_update_key ] == 'on' ) {
-		//	update_option( $this->wc_am_auto_update_key, 'on' );
-		//} else {
-		//	update_option( $this->wc_am_auto_update_key, 'off' );
-		//}
 
 		// Should match the settings_fields() value
 		if ( ! empty( $_REQUEST[ 'option_page' ] ) && $_REQUEST[ 'option_page' ] != $this->wc_am_deactivate_checkbox_key ) {
