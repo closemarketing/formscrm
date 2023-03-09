@@ -66,7 +66,7 @@ class GFCRM extends GFFeedAddOn {
 		$this->ensure_upgrade();
 	}
 
-	private function get_crm_fields( $crm_type = true, $key = '' ) {
+	private function get_crm_fields( $select_crm_type = true, $settings = array() ) {
 		$crm_fields = array(
 			array(
 				'name'          => 'fc_crm_url',
@@ -138,8 +138,7 @@ class GFCRM extends GFFeedAddOn {
 				),
 			),
 		);
-
-		if ( $crm_type ) {
+		if ( empty( $settings['fc_crm_custom_crm'] ) ) {
 			$crm_fields = array_merge(
 				$crm_fields,
 				array(
@@ -149,7 +148,6 @@ class GFCRM extends GFFeedAddOn {
 						'type'          => 'select',
 						'class'         => 'medium',
 						'choices'       => formscrm_get_crm_types(),
-						'default_value' => $crm_type,
 					),
 				)
 			);
@@ -255,9 +253,9 @@ class GFCRM extends GFFeedAddOn {
 
 		$this->include_library( $settings['fc_crm_type'] );
 
-		if ( isset( $_POST['_gform_setting_fc_crm_module'] ) ) {
-			$settings['fc_crm_module'] = sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] );
-		}
+		$settings['fc_crm_module'] = isset( $_POST['_gform_setting_fc_crm_module'] ) ? sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] ) : '';
+
+		$settings['fc_crm_custom_crm'] = isset( $_POST['_gform_setting_fc_crm_custom_crm'] ) ? sanitize_text_field( $_POST['_gform_setting_fc_crm_custom_crm'] ) : '';
 
 		return apply_filters(
 			'formscrm_gf_feed',
@@ -293,7 +291,7 @@ class GFCRM extends GFFeedAddOn {
 								),
 							),
 						),
-						$this->get_crm_fields( false ),
+						$this->get_crm_fields( false, $settings ),
 						array(
 							array(
 								'name'     => 'fc_crm_module',
