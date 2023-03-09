@@ -235,6 +235,11 @@ class GFCRM extends GFFeedAddOn {
 		}
 	}
 
+	/**
+	 * Get Settings fields
+	 *
+	 * @return array
+	 */
 	public function feed_settings_fields() {
 		$settings   = $this->get_api_settings_custom();
 		$custom_crm = $this->get_custom_crm();
@@ -340,6 +345,12 @@ class GFCRM extends GFFeedAddOn {
 		return $crm_feed_fields;
 	}
 
+	/**
+	 * Get Settings with custom CRM in feed
+	 *
+	 * @param array $settings
+	 * @return array
+	 */
 	private function get_api_settings_custom( $feed = array() ) {
 		if ( empty( $feed ) ) {
 			$feed = $this->get_current_feed();
@@ -363,10 +374,13 @@ class GFCRM extends GFFeedAddOn {
 		return $settings;
 	}
 
-	private function get_custom_prefix() {
-		return 'no' !== $this->get_custom_crm() ? 'fc_crm_custom_' : 'fc_crm_';
-	}
-
+	/**
+	 * Get actual feed value
+	 *
+	 * @param [type] $value
+	 * @param array $feed_settings
+	 * @return void
+	 */
 	private function get_actual_feed_value( $value, $feed_settings ) {
 		if ( isset( $_POST['_gform_setting_' . $value] ) ) {
 			$feed_value = sanitize_text_field( $_POST['_gform_setting_' . $value] );
@@ -375,6 +389,7 @@ class GFCRM extends GFFeedAddOn {
 		}
 		return $feed_value;
 	}
+
 	/**
 	 * Get custom crm from feed
 	 *
@@ -393,7 +408,6 @@ class GFCRM extends GFFeedAddOn {
 		}
 		return $custom_crm;
 	}
-
 
 	/**
 	 * Return the plugin's icon for the plugin/form settings menu.
