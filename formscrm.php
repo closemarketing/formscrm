@@ -27,6 +27,7 @@ define( 'FORMSCRM_VERSION', '3.10.0' );
 define( 'FORMSCRM_PLUGIN', __FILE__ );
 define( 'FORMSCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FORMSCRM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'FORMSCRM_CRED_VARIABLES', array( 'url', 'username', 'password', 'apipassword', 'odoodb', 'apisales' ) );
 
 add_action( 'plugins_loaded', 'fcrm_plugin_init' );
 /**
