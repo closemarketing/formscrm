@@ -67,89 +67,96 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	private function get_crm_fields( $select_crm_type = true, $settings = array() ) {
+		$custom_crm = isset( $settings['fc_crm_custom_type'] ) ? $settings['fc_crm_custom_type'] : 'no';
+		$field_name = 'no' !== $custom_crm ? 'fc_crm_custom_type' : 'fc_crm_type';
+		$prefix     = 'no' !== $custom_crm ? 'fc_crm_custom_' : 'fc_crm_';
+		if ( 'no' === $custom_crm || empty( $custom_crm ) ) {
+			return array();			
+		}
+
 		$crm_fields = array(
 			array(
-				'name'          => 'fc_crm_url',
+				'name'          => $prefix . 'url',
 				'label'         => __( 'CRM URL', 'formscrm' ),
 				'type'          => 'text',
 				'class'         => 'medium',
 				'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'formscrm' ),
 				'tooltip_class' => 'tooltipclass',
 				'dependency'    => array(
-					'field'  => 'fc_crm_type',
+					'field'  => $field_name,
 					'values' => formscrm_get_dependency_url(),
 				),
 			),
 			array(
-				'name'              => 'fc_crm_username',
+				'name'              => $prefix . 'username',
 				'label'             => __( 'Username', 'formscrm' ),
 				'type'              => 'text',
 				'class'             => 'medium',
 				'dependency'        => array(
-					'field' => 'fc_crm_type',
+					'field' => $field_name,
 					'values' => formscrm_get_dependency_username(),
 				),
-				'feedback_callback' => $this->login_api_crm(),
 			),
 			array(
-				'name'          => 'fc_crm_password',
+				'name'          => $prefix . 'password',
 				'label'         => __('Password', 'formscrm' ),
 				'type'          => 'api_key',
 				'class'         => 'medium',
 				'tooltip'       => __( 'Use the password of the actual user.', 'formscrm' ),
 				'tooltip_class' => 'tooltipclass',
 				'dependency'    => array(
-					'field' => 'fc_crm_type',
+					'field' => $field_name,
 					'values' => formscrm_get_dependency_password(),
 				),
 			),
 			array(
-				'name'          => 'fc_crm_apipassword',
+				'name'          => $prefix . 'apipassword',
 				'label'         => __( 'API Password for User', 'formscrm' ),
 				'type'          => 'api_key',
 				'class'         => 'medium',
 				'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
 				'tooltip_class' => 'tooltipclass',
 				'dependency'    => array(
-					'field' => 'fc_crm_type',
+					'field' => $field_name,
 					'values' => formscrm_get_dependency_apipassword(),
 				),
 			),
 			array(
-				'name'          => 'fc_crm_apisales',
+				'name'          => $prefix . 'apisales',
 				'label'         => __('Password and Security Key', 'formscrm'),
 				'type'          => 'api_key',
 				'class'         => 'medium',
 				'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm'),
 				'tooltip_class' => 'tooltipclass',
 				'dependency'    => array(
-					'field'  => 'fc_crm_type',
+					'field'  => $field_name,
 					'values' => formscrm_get_dependency_apisales(),
 				),
 			),
 			array(
-				'name'       => 'fc_crm_odoodb',
+				'name'       => $prefix . 'odoodb',
 				'label'      => __( 'Odoo DB Name', 'formscrm' ),
 				'type'       => 'text',
 				'class'      => 'medium',
 				'dependency' => array(
-					'field'  => 'fc_crm_type',
+					'field'  => $field_name,
 					'values' => formscrm_get_dependency_odoodb(),
 				),
 			),
 		);
-		if ( empty( $settings['fc_crm_custom_crm'] ) ) {
+		if ( $select_crm_type ) {
 			$crm_fields = array_merge(
-				$crm_fields,
 				array(
 					array(
-						'name'          => 'fc_crm_type',
-						'label'         => __( 'CRM Type', 'formscrm' ),
-						'type'          => 'select',
-						'class'         => 'medium',
-						'choices'       => formscrm_get_crm_types(),
+						'name'     => $prefix . 'type',
+						'label'    => __( 'CRM Type', 'formscrm' ),
+						'type'     => 'select',
+						'class'    => 'medium',
+						'onchange' => 'jQuery(this).parents("form").submit();',
+						'choices'  => formscrm_get_choices(),
 					),
-				)
+				),
+				$crm_fields,
 			);
 		}
 		return $crm_fields;
@@ -196,18 +203,6 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function feed_edit_page( $form, $feed_id ) {
-		// Ensures valid credentials were entered in the settings page.
-		if ( false == $this->login_api_crm() ) {
-			?>
-			<div class="notice notice-error">
-				<?php 
-				esc_html_e( 'We are unable to login to CRM.', 'formscrm' );
-				echo ' <a href="' . esc_url( $this->get_plugin_settings_url() ) . '">' . esc_html__( 'Use Settings Page', 'formscrm' ) . '</a>';
-				?>
-			</div>
-			<?php
-			return;
-		}
 
 		echo '<script type="text/javascript">var form = ' . esc_html( GFCommon::json_encode( $form ) ) . ';</script>';
 
@@ -220,13 +215,17 @@ class GFCRM extends GFFeedAddOn {
 	 * @param string $crmtype Type of CRM.
 	 * @return void
 	 */
-	private function include_library( $crmtype ) {
-		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['_gform_setting_fc_crm_type'] );
+	private function include_library( $crm_type ) {
+		$custom_crm = $this->get_custom_crm();
+
+		if ( 'no' !== $custom_crm ) {
+			$crm_type = $custom_crm;
+		} elseif( isset( $_POST['_gform_setting_fc_crm_type'] ) ) {
+			$crm_type = sanitize_text_field( $_POST['_gform_setting_fc_crm_type'] );
 		}
 
-		if ( isset( $crmtype ) ) {
-			$crmname      = strtolower( $crmtype );
+		if ( isset( $crm_type ) ) {
+			$crmname      = strtolower( $crm_type );
 			$crmclassname = str_replace( ' ', '', $crmname );
 			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
 			$crmname      = str_replace( ' ', '_', $crmname );
@@ -245,17 +244,19 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	public function feed_settings_fields() {
-		$settings = $this->get_plugin_settings();
+		$settings   = $this->get_plugin_settings();
+		$custom_crm = $this->get_custom_crm();
 
 		if ( empty( $settings['fc_crm_type'] ) ) {
 			return array();
+		} elseif ( 'no' !== $custom_crm ) {
+			$settings['fc_crm_type'] = $custom_crm;
 		}
 
 		$this->include_library( $settings['fc_crm_type'] );
 
-		$settings['fc_crm_module'] = isset( $_POST['_gform_setting_fc_crm_module'] ) ? sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] ) : '';
-
-		$settings['fc_crm_custom_crm'] = isset( $_POST['_gform_setting_fc_crm_custom_crm'] ) ? sanitize_text_field( $_POST['_gform_setting_fc_crm_custom_crm'] ) : '';
+		$settings['fc_crm_module']      = isset( $_POST['_gform_setting_fc_crm_module'] ) ? sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] ) : '';
+		$settings['fc_crm_custom_type'] = $custom_crm;
 
 		return apply_filters(
 			'formscrm_gf_feed',
@@ -274,7 +275,7 @@ class GFCRM extends GFFeedAddOn {
 								'tooltip'  => '<h6>' . __( 'Name', 'formscrm' ) . '</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'formscrm' ),
 							),
 							array(
-								'name'     => 'fc_crm_custom_crm',
+								'name'     => 'fc_crm_custom_type',
 								'label'    => __( 'Custom CRM Settings', 'formscrm' ),
 								'type'     => 'select',
 								'class'    => 'medium',
@@ -292,30 +293,108 @@ class GFCRM extends GFFeedAddOn {
 							),
 						),
 						$this->get_crm_fields( false, $settings ),
-						array(
-							array(
-								'name'     => 'fc_crm_module',
-								'label'    => __( 'CRM Module', 'formscrm' ),
-								'type'     => 'select',
-								'dependency' => 'fc_crm_custom_crm',
-								'class'    => 'medium',
-								'onchange' => 'jQuery(this).parents("form").submit();',
-								'choices'  => $this->crmlib->list_modules( $settings ),
-							),
-							array(
-								'name'       => 'listFields',
-								'label'      => __( 'Map Fields', 'formscrm' ),
-								'type'       => 'field_map',
-								'dependency' => 'fc_crm_module',
-								'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'fc_crm_module' ) ),
-								'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
-							),
-						),
+						$this->get_crm_feed_fields( $settings ),
 					),
 				),
 			),
 		);
 	}
+
+	/**
+	 * Get CRM fields
+	 *
+	 * @param [type] $settings
+	 * @return void
+	 */
+	private function get_crm_feed_fields( $settings ) {
+		$crm_feed_fields = array();
+
+		if ( $this->is_credentials_valid_custom( $settings ) ) {
+		
+			// Ensures valid credentials were entered in the settings page.
+			if ( false === $this->login_api_crm() ) {
+				$crm_feed_fields[] = array(
+					'name'  => 'fc_login_result',
+					'label' => esc_html( 'We are unable to login to CRM.', 'formscrm' ),
+					'type'  => 'error',
+					'class' => 'medium',
+				);
+			} else {
+				$crm_feed_fields[] = array(
+						'name'     => 'fc_crm_module',
+						'label'    => __( 'CRM Module', 'formscrm' ),
+						'type'     => 'select',
+						'class'    => 'medium',
+						'onchange' => 'jQuery(this).parents("form").submit();',
+						'choices'  => $this->crmlib->list_modules( $settings ),
+				);
+				
+				$crm_feed_fields[] = array(
+					'name'       => 'listFields',
+					'label'      => __( 'Map Fields', 'formscrm' ),
+					'type'       => 'field_map',
+					'dependency' => 'fc_crm_module',
+					'field_map'  => $this->crmlib->list_fields( $settings, $this->get_setting( 'fc_crm_module' ) ),
+					'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+				);
+			}
+		}
+		
+		return $crm_feed_fields;
+	}
+
+	private function is_credentials_valid_custom( $settings ) {
+		$prefix      = $this->get_custom_prefix();
+		if ( 'no' === $this->get_custom_crm() ) {
+			return true;
+		}
+		$credentials_valid = false;
+
+		foreach ( FORMSCRM_CRED_VARIABLES as $variable ) {
+			$value = isset( $_POST['_gform_setting_' . $prefix . $variable] ) ? sanitize_text_field( $_POST['_gform_setting_' . $prefix . $variable] ) : '';
+
+			$function = 'formscrm_get_dependency_' . $variable;
+			if ( function_exists( $function ) && false !== array_search( $settings['fc_crm_type'], $function(), true ) && ! empty( $value ) ) {
+				$credentials_valid = true;
+			}
+		}
+
+		return $credentials_valid;
+	}
+
+	private function get_api_settings_custom() {
+		$custom_crm = $this->get_custom_crm();
+		$settings   = $this->get_plugin_settings();
+		if ( 'no' === $custom_crm ) {
+			return $settings;
+		}
+		$settings['fc_crm_type'] = $custom_crm;
+		foreach ( FORMSCRM_CRED_VARIABLES as $variable ) {
+			if ( isset( $_POST['_gform_setting_fc_crm_custom_' . $variable ] ) ) {
+				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( $_POST['_gform_setting_fc_crm_custom_' . $variable ] );
+			} elseif ( isset( $settings[ 'fc_crm_custom_' . $variable ] ) ) {
+				$settings[ 'fc_crm_' . $variable ] = $settings[ 'fc_crm_custom_' . $variable ];
+				unset( $settings[ 'fc_crm_custom_' . $variable ] );
+			}
+		}
+		return $settings;
+	}
+
+	private function get_custom_prefix() {
+		return 'no' !== $this->get_custom_crm() ? 'fc_crm_custom_' : 'fc_crm_';
+	} 
+	private function get_custom_crm() {
+		$actual_settings = $this->get_plugin_settings();
+		if ( isset( $_POST['_gform_setting_fc_crm_custom_type'] ) ) {
+			$custom_crm = sanitize_text_field( $_POST['_gform_setting_fc_crm_custom_type'] );
+		} elseif ( ! empty( $actual_settings['fc_crm_custom_type'] ) ) {
+			$custom_crm = $actual_settings['fc_crm_custom_type'];
+		} else {
+			$custom_crm = 'no';
+		}
+		return $custom_crm;
+	}
+
 
 	/**
 	 * Return the plugin's icon for the plugin/form settings menu.
@@ -352,14 +431,6 @@ class GFCRM extends GFFeedAddOn {
 		);
 	}
 
-	public function process_feed( $feed, $entry, $form ) {
-		// Ensures valid credentials were entered in the settings page.
-		if ( false == $this->login_api_crm() ) {
-			return;
-		}
-
-		$this->export_feed( $entry, $form, $feed );
-	}
 	/**
 	 * Sends data to API
 	 *
@@ -368,7 +439,7 @@ class GFCRM extends GFFeedAddOn {
 	 * @param array  $feed Feed data.
 	 * @return void
 	 */
-	public function export_feed( $entry, $form, $feed ) {
+	public function process_feed( $feed, $entry, $form ) {
 		$settings = $this->get_plugin_settings();
 		$this->include_library( $settings['fc_crm_type'] );
 
@@ -646,7 +717,7 @@ class GFCRM extends GFFeedAddOn {
 		$login_result = false;
 
 		// Logins to CRM.
-		$settings = $this->get_plugin_settings();
+		$settings = $this->get_api_settings_custom();
 
 		if ( isset( $settings['fc_crm_type'] ) ) {
 			$this->include_library( $settings['fc_crm_type'] );
