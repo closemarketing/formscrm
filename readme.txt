@@ -64,7 +64,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 3.10.0 =
 *  Added: Support to MailerLite.
-*  Custom CRMs connector in Gravity Forms.
+*  Custom CRMs connector by feed in Gravity Forms.
 
 = 3.9.2 =
 *  Fix: better information in Error debug email.
