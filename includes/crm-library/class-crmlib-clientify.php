@@ -196,6 +196,7 @@ class CRMLIB_Clientify {
 		$fields[] = array(
 			'name'  => 'addresses|type',
 			'label' => __( 'Address Type', 'formscrm' ),
+			'tooltip'  => __( 'Type of address. Use: 1=Work,2=Home,3=Billing,4=Other,5=Main.', 'formscrm' ),
 			'required' => false,
 		);
 
