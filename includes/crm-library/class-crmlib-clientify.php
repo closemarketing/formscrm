@@ -255,7 +255,12 @@ class CRMLIB_Clientify {
 			$fields[] = array( 'name' => 'company', 'label' => __( 'Company name', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'email', 'label' => __( 'Email', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'website', 'label' => __( 'Website', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'status', 'label' => __( 'Stores the contact status identifier', 'formscrm' ), 'required' => false, );
+			$fields[] = array(
+				'name' => 'status',
+				'label' => __( 'Stores the contact status identifier', 'formscrm' ),
+				'tooltip'  => __( 'Status of contact: other,not-qualified-lead,visitor,cold-lead,warm-lead,hot-lead,in-deal,lost-lead,client,lost-client', 'formscrm' ),
+				'required' => false,
+			);
 			$fields[] = array( 'name' => 'picture_url', 'label' => __( 'url of the picture for the contact', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'title', 'label' => __( 'Contact title', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'summary', 'label' => __( 'Summary', 'formscrm' ), 'required' => false, );
