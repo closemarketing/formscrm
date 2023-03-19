@@ -66,12 +66,12 @@ class GFCRM extends GFFeedAddOn {
 		$this->ensure_upgrade();
 	}
 
-	private function get_crm_fields( $select_crm_type = true, $settings = array() ) {
+	private function get_crm_fields( $select_crm_type = true, $settings = array(), $page = 'feed' ) {
 		$custom_crm = isset( $settings['fc_crm_custom_type'] ) ? $settings['fc_crm_custom_type'] : 'no';
 		$field_name = 'no' !== $custom_crm ? 'fc_crm_custom_type' : 'fc_crm_type';
 		$prefix     = 'no' !== $custom_crm ? 'fc_crm_custom_' : 'fc_crm_';
-		if ( 'no' === $custom_crm || empty( $custom_crm ) ) {
-			return array();			
+		if ( 'feed' === $page && ( 'no' === $custom_crm || empty( $custom_crm ) ) ) {
+			return array();
 		}
 
 		$crm_fields = array(
@@ -172,7 +172,7 @@ class GFCRM extends GFFeedAddOn {
 			array(
 				'title'       => __( 'CRM Account Information', 'formscrm' ),
 				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'formscrm' ),
-				'fields'      => $this->get_crm_fields(),
+				'fields'      => $this->get_crm_fields( true, array(), 'settings'),
 			),
 		);
 	}
@@ -243,6 +243,7 @@ class GFCRM extends GFFeedAddOn {
 	public function feed_settings_fields() {
 		$settings   = $this->get_api_settings_custom();
 		$custom_crm = $this->get_custom_crm();
+		$settings_crm = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 
 		if ( empty( $settings['fc_crm_type'] ) ) {
 			return array();
@@ -281,7 +282,10 @@ class GFCRM extends GFFeedAddOn {
 								array_merge(
 									array(
 										array(
-											'label' => __( 'Use default CRM defined in Settings', 'formscrm' ),
+											'label' => sprintf(
+												__( 'Use default CRM defined in Settings: %s', 'formscrm' ),
+												ucfirst( $settings_crm )
+											),
 											'value' => 'no',
 										),	
 									),
