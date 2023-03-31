@@ -153,9 +153,19 @@ class CRMLIB_Clientify {
 				'label' => __( 'Contacts', 'formscrm' ),
 			),
 			array(
+				'name'  => 'contacts-deals',
+				'value' => 'Contacts-Deals',
+				'label' => __( 'Contacts & Deals', 'formscrm' ),
+			),
+			array(
 				'name'  => 'companies',
 				'value' => 'Companies',
 				'label' => __( 'Companies', 'formscrm' ),
+			),
+			array(
+				'name'  => 'companies-deals',
+				'value' => 'Companies-Deals',
+				'label' => __( 'Companies & Deals', 'formscrm' ),
 			),
 		);
 		return $modules;
@@ -248,7 +258,7 @@ class CRMLIB_Clientify {
 
 		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 		$fields = array();
-		if ( 'Contacts' === $module ) {
+		if ( 'Contacts' === $module || 'Contacts-Deals' === $module ) {
 			$fields[] = array( 'name' => 'owner', 'label' => __( 'username of the owner of the contact', 'formscrm' ), 'required' => false , );
 			$fields[] = array( 'name' => 'first_name', 'label' => __( 'contact first name', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'last_name', 'label' => __( 'Contact last name', 'formscrm' ), 'required' => false, );
@@ -282,7 +292,7 @@ class CRMLIB_Clientify {
 			$fields[] = array( 'name' => 'birthday', 'label' => __( 'Birthday date', 'formscrm' ), 'required' => false, );
 			// Social.
 			$fields = array_merge( $fields, $this->get_fields_social() );
-		} elseif ( 'Companies' === $module ) {
+		} elseif ( 'Companies' === $module || 'Companies-Deals' === $module  ) {
 			$fields[] = array( 'name' => 'sector', 'label' => __( 'Sector', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'company_sector', 'label' => __( 'Sector of company', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'business_name', 'label' => __( 'Business Name', 'formscrm' ), 'required' => false, );
@@ -310,19 +320,50 @@ class CRMLIB_Clientify {
 			$fields[] = array( 'name' => 'tags', 'label' => __( 'Tags', 'formscrm' ), 'required' => false, );
 		}
 
+		if ( 'Contacts-Deals' === $module ) {
+			$fields[] = array(
+				'name'     => 'deal|name',
+				'label'    => __( 'Deal Name', 'formscrm' ),
+				'required' => true,
+			);
+			$fields[] = array(
+				'name'     => 'deal|amount',
+				'label'    => __( 'Deal Amount', 'formscrm' ),
+				'required' => true,
+			);
+			$fields[] = array(
+				'name'     => 'deal|pipeline',
+				'label'    => __( 'Pipeline URL', 'formscrm' ),
+				'required' => false,
+			);
+		}
+
 		// Get Custom Fields.
 		$equivalent_module = array(
-			'Contacts'  => 'contact',
-			'Companies' => 'company',
+			'Contacts'        => array( 'contact' ),
+			'Companies'       => array( 'company' ),
+			'Contacts-Deals'  => array( 'deal', 'contact' ),
+			'Companies-Deals' => array( 'deal', 'contact' ),
 		);
+		$label_module = array(
+			'contact' => __( 'Contact', 'formscrm' ),
+			'company' => __( 'Company', 'formscrm' ),
+			'deal'    => __( 'Deal', 'formscrm' ),
+		);
+
 		$result_api = $this->get( 'custom-fields/', $apikey );
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
 			foreach ( $result_api['data']['results'] as $custom_field ) {
 
-				if ( isset( $equivalent_module[ $module ] ) && $equivalent_module[ $module ] === $custom_field['content_type'] ) {
+				if ( isset( $equivalent_module[ $module ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module ], true ) ) {
+					$key  = 'deal' === $custom_field['content_type'] ? 'deal|' : '';
+					$key .= 'custom_fields|' . $custom_field['name'];
+
+					$label = isset( $label_module[ $custom_field['content_type'] ] ) ? $label_module[ $custom_field['content_type'] ] . ': ' : '';
+
 					$fields[] = array(
-						'name'     => 'custom_fields|' . $custom_field['name'],
-						'label'    => $custom_field['name'],
+						'name'     => $key,
+						'label'    => $label . $custom_field['name'],
 						'required' => false,
 					);
 				}
@@ -342,12 +383,24 @@ class CRMLIB_Clientify {
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
 		$contact = array();
+		$deal    = array();
+
+		$module  = str_replace( '-Deals', '', $module );
 
 		foreach ( $merge_vars as $element ) {
 			if ( is_array( $element['value'] ) ) {
 				$element['value'] = implode( ',', $element['value'] );
 			}
-			if ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
+			if ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal|custom_fields' ) ) {
+				$custom_field = explode( '|', $element['name'] );
+				$deal['custom_fields'][] = array(
+					'field' => $custom_field[2],
+					'value' => $element['value'],
+				);
+			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal' ) ) {
+				$custom_field = explode( '|', $element['name'] );
+				$deal[ $custom_field[1] ] = $element['value'];
+			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
 				$custom_field = explode( '|', $element['name'] );
 				$contact['custom_fields'][] = array(
 					'field' => $custom_field[1],
@@ -375,11 +428,28 @@ class CRMLIB_Clientify {
 		$result = $this->post( $module, $contact, $apikey );
 
 		if ( 'ok' === $result['status'] ) {
+			$contact_id      = $result['data']['id'];
 			$response_result = array(
 				'status'  => 'ok',
 				'message' => 'success',
 				'id'      => $result['data']['id'],
 			);
+
+			// Crea ahora la oportunidad.
+			if ( ! empty( $deal ) ) {
+				if ( 'Contacts' === $module ) {
+					$key  = 'contact';
+					$slug = 'contacts';
+				} elseif ( 'Companies' === $module ) {
+					$key  = 'company';
+					$slug = 'companies';
+				}
+				$deal[ $key ] = "https://api.clientify.net/v1/$slug/$contact_id/";
+				$result          = $this->post( 'deals', $deal, $apikey );
+				if ( 'ok' === $result['status'] ) {
+					$response_result['deal_id'] = $result['data']['id'];
+				}
+			}
 		} else {
 			$message         = isset( $result['data'] ) ? $result['data'] : '';
 			$response_result = array(
