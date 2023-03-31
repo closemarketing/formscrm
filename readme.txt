@@ -62,6 +62,11 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.11.0 =
+*  Module Clientify now supports Deals.
+*  Added: Conditional logic for Feed in Gravity Forms.
+*  Fix: Woocommerce Mailerlite gets activated.
+
 = 3.10.0 =
 *  Added: Support to MailerLite.
 *  Custom CRMs connector by feed in Gravity Forms.
