@@ -344,6 +344,18 @@ class GFCRM extends GFFeedAddOn {
 				'field_map'  => $this->crmlib->list_fields( $settings, $module ),
 				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 			);
+
+			$crm_feed_fields[] = array(
+				'name'       => 'optin',
+				'label'      => esc_html__( 'Conditional Logic', 'formscrm' ),
+				'type'       => 'feed_condition',
+				'dependency' => 'fc_crm_module',
+				'tooltip'    => sprintf(
+					'<h6>%s</h6>%s',
+					esc_html__( 'Conditional Logic', 'formscrm' ),
+					esc_html__( 'When conditional logic is enabled, form submissions will only be exported to MailerLite when the condition is met. When disabled all form submissions will be exported.', 'formscrm' )
+				),
+			);
 		}
 		
 		return $crm_feed_fields;
