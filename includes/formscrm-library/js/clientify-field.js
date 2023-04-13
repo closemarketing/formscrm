@@ -1,7 +1,7 @@
 //Loads VK cookie into gravity hidden input. In case there is no cookie, sets value to empty.
 
 // GravityForms
-let gravityHiddenInput = document.querySelectorAll( '.gfield.clientify_cookie input.gform_hidden' );
+let gravityHiddenInput = document.querySelectorAll( '.gfield.clientify_cookie input' );
 if(gravityHiddenInput !== 'undefined'){
     let vkcookie = forms_clientify_getCookie('vk');
     for (let i = 0; i < gravityHiddenInput.length; i++) {
