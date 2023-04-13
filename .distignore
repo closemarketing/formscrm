@@ -5,3 +5,8 @@
 .travis.yml
 circle.yml
 .DS_Store
+.phpcs.xml.dist
+composer.json
+composer.lock
+phpunit.xml.dist
+/tests/

@@ -4,8 +4,8 @@ Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.0
 Tested up to: 6.1.1
-Stable tag: 3.10.0
-Version: 3.10.0
+Stable tag: 3.11.0
+Version: 3.11.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,12 +37,12 @@ At this time, FormsCRM supports in free version:
 - [MailerLite](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
-- [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/?utm_source=FormsCRM)
-- [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/?utm_source=FormsCRM)
-- [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/?utm_source=FormsCRM)
-- [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/?utm_source=FormsCRM)
-- [SuiteCRM](https://close.technology/en/wordpress-plugins/formscrm-suitecrm/?utm_source=FormsCRM)
-- [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/?utm_source=FormsCRM)
+- [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/)
+- [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/)
+- [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/)
+- [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/)
+- [SuiteCRM](https://close.technology/en/wordpress-plugins/formscrm-suitecrm/)
+- [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/)
 
 You can only use one type of CRM in the web with this version.
 
