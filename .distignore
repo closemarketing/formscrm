@@ -10,3 +10,7 @@ composer.json
 composer.lock
 phpunit.xml.dist
 /tests/
+.github
+composer.json
+composer.lock
+.wordpress-org
