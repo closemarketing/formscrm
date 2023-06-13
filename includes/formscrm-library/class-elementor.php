@@ -163,6 +163,11 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			)
 		);
 
+		/**
+		 * ## Fields
+		 * --------------------------- */
+		
+
 		$widget->add_control(
 			'formscrm_double_optin',
 			[
