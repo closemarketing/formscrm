@@ -3,7 +3,7 @@ Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.0
-Tested up to: 6.1.1
+Tested up to: 6.2.2
 Stable tag: 3.11.0
 Version: 3.11.0
 License: GPL2
