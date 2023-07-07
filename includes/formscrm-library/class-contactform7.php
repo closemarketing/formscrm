@@ -183,6 +183,7 @@ class FORMSCRM_CF7_Settings {
 
 		<?php
 		if ( isset( $cf7_crm['fc_crm_module'] ) && $cf7_crm['fc_crm_module'] ) {
+			
 			$crm_fields = $this->crmlib->list_fields( $cf7_crm, $cf7_crm['fc_crm_module'] );
 			?>
 			<table class="cf7-map-table" cellspacing="0" cellpadding="0">
@@ -244,10 +245,37 @@ class FORMSCRM_CF7_Settings {
 		$cf7_crm    = get_option( 'cf7_crm_' . $contact_form->id() );
 		$submission = WPCF7_Submission::get_instance();
 
-		if ( $cf7_crm ) {
+		if ( $cf7_crm == 'res.part' ) {
+			//create contact in Odoo
 			$this->include_library( $cf7_crm['fc_crm_type'] );
 			$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
+			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );			
+
+			if ( 'error' === $response_result['status'] ) {
+				$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
+				$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
+
+				formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+			}
+
+		}else{
+			//create contact in Odoo
+			$this->include_library( $cf7_crm['fc_crm_type'] );
+			$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+						
+			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );			
+
+			if ( 'error' === $response_result['status'] ) {
+				$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
+				$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
+
+				formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+			}
+
+			$this->include_library( $cf7_crm['fc_crm_type'] );
+			//create lead in Oddo with using the previously created contact
+			$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+			$response_result = $this->crmlib->create_lead( $cf7_crm, $response_result,$merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {
 				$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
