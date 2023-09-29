@@ -421,7 +421,7 @@ class CRMLIB_Clientify {
 		}
 
 		// Clean tags blank.
-		if ( isset( $contact['tags'] ) ) {
+		if ( ! empty( $contact['tags'] ) && is_array( $contact['tags'] ) ) {
 			$contact_tags    = array_map( 'trim', $contact['tags'] );
 			$contact['tags'] = array_filter( $contact_tags );
 		}
