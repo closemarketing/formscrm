@@ -26,11 +26,9 @@ class TestsCRM extends WP_UnitTestCase {
 	 */
 	public function test_clientify() {
 		require_once dirname( dirname( __FILE__ ) ) . '/includes/crm-library/class-crmlib-clientify.php';
-		require_once 'credentials.php';
+		$clientify_cred = file_get_contents( 'credentials/clientify.json' );
 
-		$settings['fc_crm_type'] = "Clientify";
-		$settings['fc_crm_apipassword'] = FC_CRM_CLIENTIFY_APIKEY; // const FC_CRM_CLIENTIFY_APIKEY;
-		$settings['fc_crm_module'] = "contacts";
+		$settings = json_decode( $clientify_cred, true );
 
 		echo 'Test clientify';
 
