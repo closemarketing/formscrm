@@ -62,6 +62,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.12.0 =
+*  Fix: Clientify does not allow blanks in tags.
+
 = 3.11.0 =
 *  Module Clientify now supports Deals.
 *  Added: Conditional logic for Feed in Gravity Forms.
