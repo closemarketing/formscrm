@@ -422,7 +422,8 @@ class CRMLIB_Clientify {
 
 		// Clean tags blank.
 		if ( isset( $contact['tags'] ) ) {
-			$contact['tags'] = array_filter( $contact['tags'] );
+			$contact_tags    = array_map( 'trim', $contact['tags'] );
+			$contact['tags'] = array_filter( $contact_tags );
 		}
 
 		$result = $this->post( $module, $contact, $apikey );
