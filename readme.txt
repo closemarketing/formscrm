@@ -64,6 +64,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 3.12.0 =
 *  Fix: Clientify does not allow blanks in tags.
+*  Fix: Odoo creation contact.
 
 = 3.11.0 =
 *  Module Clientify now supports Deals.
