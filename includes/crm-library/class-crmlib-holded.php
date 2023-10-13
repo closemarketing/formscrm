@@ -346,7 +346,16 @@ class CRMLIB_HOLDED {
 		$contact = array();
 
 		foreach ( $merge_vars as $element ) {
-			$contact[ $element['name'] ] = (string) $element['value'];
+			if ( false !== strpos( $element['name'], '|' ) ) {
+				$data_field = explode( '|', $element['name'] );
+				if ( is_array( $data_field ) && ! empty( $data_field ) ) {
+					$contact[ $data_field[0] ][ $data_field[1] ] = (string) $element['value'];
+				}
+			} elseif ( 'tags' === $element['name'] ) {
+				$contact[ $element['name'] ] = explode( ',', $element['value'] );
+			} else {
+				$contact[ $element['name'] ] = (string) $element['value'];
+			}
 		}
 
 		$result = $this->post( $module, $contact, $apikey );
