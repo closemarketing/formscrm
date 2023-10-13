@@ -244,37 +244,21 @@ class FORMSCRM_CF7_Settings {
 	public function crm_process_entry( $contact_form ) {
 		$cf7_crm    = get_option( 'cf7_crm_' . $contact_form->id() );
 		$submission = WPCF7_Submission::get_instance();
+		$crm_type   = ! empty( $cf7_crm['fc_crm_type'] ) ? sanitize_title( $cf7_crm['fc_crm_type'] ) : '';
 
-		if ( $cf7_crm == 'res.part' ) {
-			//create contact in Odoo
-			$this->include_library( $cf7_crm['fc_crm_type'] );
-			$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );			
+		// Create contact in CRM.
+		$this->include_library( $cf7_crm['fc_crm_type'] );
+		$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );			
 
-			if ( 'error' === $response_result['status'] ) {
-				$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
-				$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
+		if ( 'error' === $response_result['status'] ) {
+			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
+			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
 
-				formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
-			}
+			formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+		}
 
-		}else{
-			//create contact in Odoo
-			$this->include_library( $cf7_crm['fc_crm_type'] );
-			$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-						
-			$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );			
-
-			if ( 'error' === $response_result['status'] ) {
-				$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
-				$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
-
-				formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
-			}
-
-			$this->include_library( $cf7_crm['fc_crm_type'] );
-			//create lead in Oddo with using the previously created contact
-			$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+		if ( 'odoo' === $crm_type && $cf7_crm !== 'res.part' ) {
 			$response_result = $this->crmlib->create_lead( $cf7_crm, $response_result,$merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {
@@ -298,9 +282,14 @@ class FORMSCRM_CF7_Settings {
 		foreach ( $cf7_crm as $key => $value ) {
 			if ( false !== strpos( $key, 'fc_crm_field' ) ) {
 				$crm_key      = str_replace( 'fc_crm_field-', '', $key );
+
+				if ( ! empty( $submitted_data[ $value ] ) ) {
+					$value = $submitted_data[ $value ];					
+				}
+
 				$merge_vars[] = array(
 					'name'  => $crm_key,
-					'value' => isset( $submitted_data[ $value ] ) ? $submitted_data[ $value ] : '',
+					'value' => $value,
 				);
 			}
 		}
