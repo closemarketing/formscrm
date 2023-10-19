@@ -145,6 +145,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					array( 'label' => 'Clientify', 'url' => false, ),
 					array( 'label' => 'AcumbaMail', 'url' => false, ),
 					array( 'label' => 'Odoo', 'url' => true, ),
+					array( 'label' => 'WHMCS', 'url' => true, ),
 					array( 'label' => 'vTiger', 'url' => true, ),
 					array( 'label' => 'Inmovilla', 'url' => true, ),
 					array( 'label' => 'Pipedrive', 'url' => true, ),
