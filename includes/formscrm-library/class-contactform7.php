@@ -90,7 +90,6 @@ class FORMSCRM_CF7_Settings {
 	 * @return void
 	 */
 	public function settings_add_crm( $args ) {
-
 		$cf7_crm_defaults = array();
 		$cf7_crm          = get_option( 'cf7_crm_' . $args->id(), $cf7_crm_defaults );
 		?>
@@ -183,14 +182,15 @@ class FORMSCRM_CF7_Settings {
 
 		<?php
 		if ( isset( $cf7_crm['fc_crm_module'] ) && $cf7_crm['fc_crm_module'] ) {
-			
 			$crm_fields = $this->crmlib->list_fields( $cf7_crm, $cf7_crm['fc_crm_module'] );
+			$cf7_form   = WPCF7_ContactForm::get_instance( $args->id() );
+			$form_fields = ! empty( $cf7_form ) ? $cf7_form->scan_form_tags() : array();
 			?>
 			<table class="cf7-map-table" cellspacing="0" cellpadding="0">
 				<tbody>
 					<tr class="cf7-map-row">
 						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-key"><?php esc_html_e( 'Field CRM', 'formscrm' ); ?></th>
-						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value"><?php esc_html_e( 'Form Field', 'formscrm' ); ?></th>
+						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value"><?php esc_html_e( 'Select Form Field or default value', 'formscrm' ); ?></th>
 					</tr>
 						<?php
 						if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
@@ -208,7 +208,19 @@ class FORMSCRM_CF7_Settings {
 											</label>
 										</td>
 										<td class="cf7-map-column cf7-map-column-value">
-											<input type="text" id="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" class="wide" size="70" placeholder="<?php esc_html_e( 'Name of your field or Default value sent to the CRM', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) ? esc_attr( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) : ''; ?>" <?php if ( isset( $crm_field['required'] ) && $crm_field['required'] ) { echo ' required'; } ?>/>
+											<select>
+												<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
+												<?php
+												foreach ( $form_fields as $form_field ) {
+													echo '<option value="' . esc_html( $form_field['name'] ) . '" ';
+													if ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) {
+														selected( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ], $form_field['name'] );
+													}
+													echo '>' . esc_html( $form_field['name'] ) . '</option>';
+												}
+												?>
+											</select>
+											<input type="text" id="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" class="wide" size="40" placeholder="<?php esc_html_e( 'Name of your field or Default value sent to the CRM', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) ? esc_attr( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) : ''; ?>" <?php if ( isset( $crm_field['required'] ) && $crm_field['required'] ) { echo ' required'; } ?>/>
 										</td>
 								</tr>
 								<?php
