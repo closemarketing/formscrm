@@ -551,7 +551,7 @@ class GFCRM extends GFFeedAddOn {
 			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
 			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
-			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query );
 
 			$response_message = sprintf(
 				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.

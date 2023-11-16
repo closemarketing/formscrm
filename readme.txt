@@ -62,6 +62,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.12.4 =
+*  Fix: Prevents error in error message GF send.
+
 = 3.12.3 =
 *  Added: CF7 now allows values by default.
 *  Fix: CF7 error after sending a lead.
