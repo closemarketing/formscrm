@@ -208,7 +208,7 @@ class FORMSCRM_CF7_Settings {
 											</label>
 										</td>
 										<td class="cf7-map-column cf7-map-column-value">
-											<select>
+											<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" style="min-width:300px; margin-bottom: 10px;">
 												<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 												<?php
 												foreach ( $form_fields as $form_field ) {
@@ -220,7 +220,6 @@ class FORMSCRM_CF7_Settings {
 												}
 												?>
 											</select>
-											<input type="text" id="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" class="wide" size="40" placeholder="<?php esc_html_e( 'Name of your field or Default value sent to the CRM', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) ? esc_attr( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) : ''; ?>" <?php if ( isset( $crm_field['required'] ) && $crm_field['required'] ) { echo ' required'; } ?>/>
 										</td>
 								</tr>
 								<?php
