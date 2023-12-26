@@ -185,15 +185,16 @@ class FORMSCRM_CF7_Settings {
 			$crm_fields = $this->crmlib->list_fields( $cf7_crm, $cf7_crm['fc_crm_module'] );
 			$cf7_form   = WPCF7_ContactForm::get_instance( $args->id() );
 			$form_fields = ! empty( $cf7_form ) ? $cf7_form->scan_form_tags() : array();
+
+			if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
 			?>
 			<table class="cf7-map-table" cellspacing="0" cellpadding="0">
 				<tbody>
 					<tr class="cf7-map-row">
 						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-key"><?php esc_html_e( 'Field CRM', 'formscrm' ); ?></th>
-						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value"><?php esc_html_e( 'Select Form Field or default value', 'formscrm' ); ?></th>
+						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value"><?php esc_html_e( 'Select Form Field', 'formscrm' ); ?></th>
 					</tr>
 						<?php
-						if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
 							foreach ( $crm_fields as $crm_field ) {
 								?>
 								<tr class="cf7-map-row">
@@ -224,11 +225,15 @@ class FORMSCRM_CF7_Settings {
 								</tr>
 								<?php
 							}
-						}
 						?>
 				</tbody>
 			</table>
-		<?php } ?>
+			<?php
+			} else {
+				echo '<p>' . esc_html__( 'No fields found. Reconnect your CRM.', 'formscrm' ) . '</p>';
+			}
+		}
+		?>
 	</div>
 		<?php
 	}
