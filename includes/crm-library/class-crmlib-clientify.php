@@ -253,12 +253,12 @@ class CRMLIB_Clientify {
 	 * @return array           returns an array of mudules
 	 */
 	public function list_fields( $settings, $module = 'Contacts' ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = ! empty( $module ) ? $module : 'Contacts';
+		$apikey      = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$module      = ! empty( $module ) ? $module : 'Contacts';
+		$module_slug = sanitize_title( $module );
 
-		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 		$fields = array();
-		if ( 'Contacts' === $module || 'Contacts-Deals' === $module ) {
+		if ( 'contacts' === $module_slug || 'contacts-deals' === $module_slug ) {
 			$fields[] = array( 'name' => 'owner', 'label' => __( 'username of the owner of the contact', 'formscrm' ), 'required' => false , );
 			$fields[] = array( 'name' => 'first_name', 'label' => __( 'contact first name', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'last_name', 'label' => __( 'Contact last name', 'formscrm' ), 'required' => false, );
@@ -292,7 +292,7 @@ class CRMLIB_Clientify {
 			$fields[] = array( 'name' => 'birthday', 'label' => __( 'Birthday date', 'formscrm' ), 'required' => false, );
 			// Social.
 			$fields = array_merge( $fields, $this->get_fields_social() );
-		} elseif ( 'Companies' === $module || 'Companies-Deals' === $module  ) {
+		} elseif ( 'companies' === $module_slug || 'companies-deals' === $module_slug  ) {
 			$fields[] = array( 'name' => 'sector', 'label' => __( 'Sector', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'company_sector', 'label' => __( 'Sector of company', 'formscrm' ), 'required' => false, );
 			$fields[] = array( 'name' => 'business_name', 'label' => __( 'Business Name', 'formscrm' ), 'required' => false, );
@@ -320,7 +320,7 @@ class CRMLIB_Clientify {
 			$fields[] = array( 'name' => 'tags', 'label' => __( 'Tags', 'formscrm' ), 'required' => false, );
 		}
 
-		if ( 'Contacts-Deals' === $module ) {
+		if ( 'contacts-deals' === $module_slug ) {
 			$fields[] = array(
 				'name'     => 'deal|name',
 				'label'    => __( 'Deal Name', 'formscrm' ),
@@ -340,22 +340,25 @@ class CRMLIB_Clientify {
 
 		// Get Custom Fields.
 		$equivalent_module = array(
-			'Contacts'        => array( 'contact' ),
-			'Companies'       => array( 'company' ),
-			'Contacts-Deals'  => array( 'deal', 'contact' ),
-			'Companies-Deals' => array( 'deal', 'contact' ),
+			'contacts'        => array( 'contact', 'contacts | contact' ),
+			'companies'       => array( 'company', 'companies | company' ),
+			'contacts-deals'  => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
+			'companies-deals' => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
 		);
 		$label_module = array(
-			'contact' => __( 'Contact', 'formscrm' ),
-			'company' => __( 'Company', 'formscrm' ),
-			'deal'    => __( 'Deal', 'formscrm' ),
+			'contact'             => __( 'Contact', 'formscrm' ),
+			'company'             => __( 'Company', 'formscrm' ),
+			'deal'                => __( 'Deal', 'formscrm' ),
+			'contacts | contact'  => __( 'Contact', 'formscrm' ),
+			'companies | company' => __( 'Company', 'formscrm' ),
+			'deals | deal'        => __( 'Deal', 'formscrm' ),
 		);
 
 		$result_api = $this->get( 'custom-fields/', $apikey );
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
 			foreach ( $result_api['data']['results'] as $custom_field ) {
 
-				if ( isset( $equivalent_module[ $module ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module ], true ) ) {
+				if ( isset( $equivalent_module[ $module_slug ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module_slug ], true ) ) {
 					$key  = 'deal' === $custom_field['content_type'] ? 'deal|' : '';
 					$key .= 'custom_fields|' . $custom_field['name'];
 
