@@ -62,6 +62,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.13.0 =
+*  Added: CF7 now allows you to select the fields defined in the form.
+*  Fix: Clientify changed names of custom fields in API. Now it's importing custom fields correctly.
+
 = 3.12.4 =
 *  Fix: Prevents error in error message GF send.
 
