@@ -62,6 +62,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.12.5 =
+*  Fix: Clientify changed names of custom fields in API. Now it's importing custom fields correctly.
+
 = 3.12.4 =
 *  Fix: Prevents error in error message GF send.
 
