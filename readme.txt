@@ -4,8 +4,8 @@ Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.0
 Tested up to: 6.3.0
-Stable tag: 3.12.3
-Version: 3.12.3
+Stable tag: 3.13.1
+Version: 3.13.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.13.0 =
+*  Fix not launching autoupdate.
+
 = 3.13.0 =
 *  Added: CF7 now allows you to select the fields defined in the form.
 *  Fix: Clientify changed names of custom fields in API. Now it's importing custom fields correctly.
