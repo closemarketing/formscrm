@@ -62,7 +62,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
-= 3.13.0 =
+= 3.13.1 =
 *  Fix not launching autoupdate.
 
 = 3.13.0 =
