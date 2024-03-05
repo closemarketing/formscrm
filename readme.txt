@@ -1,6 +1,6 @@
 === FormsCRM ===
 Contributors: closemarketing, davidperez, sacrajaimez
-Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
+Tags: gravityforms, forms-api, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.0
 Tested up to: 6.5.0
