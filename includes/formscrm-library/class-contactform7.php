@@ -273,17 +273,6 @@ class FORMSCRM_CF7_Settings {
 
 			formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
 		}
-
-		if ( 'odoo' === $crm_type && $cf7_crm !== 'res.part' ) {
-			$response_result = $this->crmlib->create_lead( $cf7_crm, $response_result,$merge_vars );
-
-			if ( 'error' === $response_result['status'] ) {
-				$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
-				$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
-
-				formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
-			}
-		}
 	}
 
 	/**
