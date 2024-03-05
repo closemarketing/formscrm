@@ -43,6 +43,7 @@ And you will find, that there are Premium Addons to support:
 - [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/)
 - [SuiteCRM](https://close.technology/en/wordpress-plugins/formscrm-suitecrm/)
 - [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/)
+- [WHMCS](https://close.technology/en/wordpress-plugins/formscrm-whmcs/)
 
 You can only use one type of CRM in the web with this version.
 
