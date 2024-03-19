@@ -432,11 +432,11 @@ class CRMLIB_Clientify {
 		$result = $this->post( $module, $contact, $apikey );
 
 		if ( 'ok' === $result['status'] ) {
-			$contact_id      = $result['data']['id'];
+			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
 			$response_result = array(
 				'status'  => 'ok',
 				'message' => 'success',
-				'id'      => $result['data']['id'],
+				'id'      => $contact_id,
 			);
 
 			// Crea ahora la oportunidad.
@@ -451,7 +451,7 @@ class CRMLIB_Clientify {
 				$deal[ $key ] = "https://api.clientify.net/v1/$slug/$contact_id/";
 				$result          = $this->post( 'deals', $deal, $apikey );
 				if ( 'ok' === $result['status'] ) {
-					$response_result['deal_id'] = $result['data']['id'];
+					$response_result['id'] = $contact_id . '|' . $result['data']['id'];
 				}
 			}
 		} else {
