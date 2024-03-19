@@ -62,18 +62,24 @@ add_filter(
 			'value' => 'mailerlite',
 		);
 
+		$choices[] = array(
+			'label' => 'Dinahosting',
+			'value' => 'dinahosting',
+		);
+
 		return $choices;
 	}
 );
 
 add_filter(
 	'formscrm_dependency_apipassword',
-	function( $choices ) {
+	function ( $choices ) {
 
 		$choices[] = 'clientify';
 		$choices[] = 'acumbamail';
 		$choices[] = 'holded';
 		$choices[] = 'mailerlite';
+		$choices[] = 'dinahosting';
 
 		return $choices;
 	}
@@ -81,12 +87,13 @@ add_filter(
 
 add_filter(
 	'formscrm_crmlib_path',
-	function( $choices ) {
+	function ( $choices ) {
 
-		$choices['holded']     = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
-		$choices['clientify']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
-		$choices['acumbamail'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
-		$choices['mailerlite'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite.php';
+		$choices['holded']      = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
+		$choices['clientify']   = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
+		$choices['acumbamail']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
+		$choices['mailerlite']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite.php';
+		$choices['dinahosting'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-dinahosting.php';
 
 		return $choices;
 	}
