@@ -74,12 +74,10 @@ add_filter(
 add_filter(
 	'formscrm_dependency_apipassword',
 	function ( $choices ) {
-
 		$choices[] = 'clientify';
 		$choices[] = 'acumbamail';
 		$choices[] = 'holded';
 		$choices[] = 'mailerlite';
-		$choices[] = 'dinahosting';
 
 		return $choices;
 	}
