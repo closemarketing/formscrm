@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class CRMLIB_Dinahosting {
 	/**
-	 * Mailer Lite Connector API
+	 * Dinahosting Connector API
 	 *
 	 * @param string $method Method to connect: GET, POST..
 	 * @param string $module URL endpoint.
@@ -26,45 +26,59 @@ class CRMLIB_Dinahosting {
 	 * @param array  $data   Body data.
 	 * @return array
 	 */
-	private function api( $method, $module, $apikey, $data = array() ) {
-		if ( empty( $apikey ) ) {
-			return;
+	private function request( $method, $module, $credentials, $data = array() ) {
+		if ( empty( $credentials['fc_crm_username'] ) || empty( $credentials['fc_crm_password'] ) ) {
+			return array(
+				'status'  => 'ok',
+				'message' => 'No credentials',
+				'data'    => array()
+			);
 		}
+
 		$args = array(
 			'method'  => $method,
-			'headers' => array(
-				'X-Dinahosting-ApiKey' => $apikey,
-				'Content-Type'        => 'application/json',
-			),
+			'headers' => array(),
 		);
-		if ( ! empty( $data ) ) {
-			$args['body'] = wp_json_encode( $data );
-		}
-		$url    = 'https://api.mailerlite.com/api/v2/' . $module;
-		$result = wp_remote_request( $url, $args );
-		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
-		if ( 2 !== $code ) {
-			$message = implode( ' ', $result['response'] ) . ' ';
-			$body    = json_decode( $result['body'], true );
-			if ( ! empty( $body['error'] ) && is_array( $body['error'] ) ) {
-				foreach ( $body['error'] as $key => $value ) {
-					$message .= $key . ': ' . $value . ' ';
-				}
+		$url    = 'https://dinahosting.com/special/api.php';
+		$url   .= '?AUTH_USER=' . $credentials['fc_crm_username'];
+		$url   .= '&AUTH_PWD=' . $credentials['fc_crm_password'];
+		$url   .= '&responseType=Json';
+		$url   .= '&command=' . $module;
+
+		if ( ! empty( $data ) ) {
+			$data_login = array(
+				'loginData'    => array(
+					'login'    => $credentials['fc_crm_username'],
+					'password' => $credentials['fc_crm_password'],
+				),
+			);
+			$url .= '&' . http_build_query( array_merge( $data_login, $data ) );
+			error_log( 'URL: ' . $url );
+		}
+
+		$result    = wp_remote_request( $url, $args );
+		$body      = wp_remote_retrieve_body( $result );
+		$body_data = json_decode( $body, true );
+
+		if ( ! empty( $body_data['errors'] ) ) {
+			if ( is_array( $body_data['errors'] ) ) {
+				$messages = array_column( $body_data['errors'], 'message' );
+				$message  = implode( '; ', $messages );
+			} else {
+				$message = $body_data['errors'];
 			}
-			formscrm_error_admin_message( 'ERROR', $message );
+
 			return array(
 				'status' => 'error',
 				'data'   => $message,
 			);
-		} else {
-			$body = wp_remote_retrieve_body( $result );
-
-			return array(
-				'status' => 'ok',
-				'data'   => json_decode( $body, true ),
-			);
 		}
+
+		return array(
+			'status' => 'ok',
+			'data'   => $body_data,
+		);
 	}
 
 
@@ -75,9 +89,8 @@ class CRMLIB_Dinahosting {
 	 * @return false or id     returns false if cannot login and string if gets token
 	 */
 	public function login( $settings ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		try {
-			$results = $this->api( 'GET', 'groups', $apikey );
+			$results = $this->request( 'GET', 'User_GetInfo', $settings );
 
 			if ( 'ok' === $results['status'] ) {
 				return true;
@@ -102,35 +115,14 @@ class CRMLIB_Dinahosting {
 	 * @return array           returns an array of mudules
 	 */
 	public function list_modules( $settings ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-
-		// If API cannot be initialized, return array.
-		if ( ! $this->login( $settings ) ) {
-			return array();
-		}
-
-		// Initialize choices array.
-		$choices = array();
-
-		$result_groups = $this->api( 'GET', 'groups', $apikey );
-
-		// If no lists were found, return.
-		if ( 'error' === $result_groups['status'] || empty( $result_groups['data'] ) ) {
-			return array();
-		}
-
-		// Loop through array.
-		foreach ( $result_groups['data'] as $group ) {
-
-			// Add list as choice.
-			$choices[] = array(
-				'label' => esc_html( $group['name'] ),
-				'value' => esc_attr( $group['id'] ),
-			);
-
-		}
-
-		return $choices;
+		$modules = array(
+			array(
+				'name'  => 'users',
+				'value' => 'users',
+				'label' => __( 'Users', 'formscrm' ),
+			),
+		);
+		return $modules;
 	}
 
 	/**
@@ -141,33 +133,76 @@ class CRMLIB_Dinahosting {
 	 * @return array           returns an array of mudules
 	 */
 	public function list_fields( $settings, $module ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module = ! empty( $module ) ? $module : '';
 
 		// Initialize field map.
-		$field_map = array();
+		$field_map = array(
+			array(
+				'name'  => 'personalData|firstname',
+				'label' => __( 'First Name', 'formscrm' ),
+			),
+			array(
+				'name'  => 'personalData|lastname',
+				'label' => __( 'Last Name', 'formscrm' ),
+			),
+			array(
+				'name'  => 'personalData|NIF',
+				'label' => __( 'NIF', 'formscrm' ),
+			),
+			array(
+				'name'  => 'companyData|company',
+				'label' => __( 'Company', 'formscrm' ),
+			),
+			array(
+				'name'  => 'companyData|legal_form',
+				'label' => __( 'Legal Form', 'formscrm' ),
+			),
+			array(
+				'name'  => 'companyData|CIF',
+				'label' => __( 'CIF', 'formscrm' ),
+			),
+			array(
+				'name'  => 'companyData|company_phone',
+				'label' => __( 'Company Phone', 'formscrm' ),
+			),
+			array(
+				'name'  => 'companyData|company_fax',
+				'label' => __( 'Company Fax', 'formscrm' ),
+			),
+			array(
+				'name'  => 'contactData|country_code',
+				'label' => __( 'Country Code', 'formscrm' ),
+			),
+			array(
+				'name'  => 'contactData|state',
+				'label' => __( 'State', 'formscrm' ),
+			),
+			array(
+				'name'  => 'contactData|city',
+				'label' => __( 'City', 'formscrm' ),
+			),
+			array(
+				'name'  => 'contactData|postal_code',
+				'label' => __( 'Postal Code', 'formscrm' ),
+			),
+			array(
+				'name'  => 'contactData|address',
+				'label' => __( 'Address', 'formscrm' ),
+			),
+			array(
+				'name'  => 'contactData|phone',
+				'label' => __( 'Phone', 'formscrm' ),
+			),
+			array(
+				'name'  => 'contactData|fax',
+				'label' => __( 'Fax', 'formscrm' ),
+			),
+			array(
+				'name'  => 'contactData|email_address',
+				'label' => __( 'Email Address', 'formscrm' ),
+			),
+		);
 
-		try {
-			$custom_fields = $this->api( 'GET', 'fields', $apikey );
-
-		} catch ( \Exception $e ) {
-
-			// Log that we could not retrieve custom fields.
-			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() );
-
-			return $field_map;
-		}
-
-		// Loop through custom fields.
-		foreach ( $custom_fields['data'] as $custom_field ) {
-
-			// Add custom field to field map.
-			$field_map[] = array(
-				'name'  => $custom_field['key'],
-				'label' => $custom_field['title'],
-			);
-
-		}
 		return $field_map;
 	}
 
@@ -179,22 +214,19 @@ class CRMLIB_Dinahosting {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
-		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$list_id = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
-
-		$subscriber = array();
-
+		$data = array();
 		foreach ( $merge_vars as $element ) {
-			if ( 'email' === $element['name'] ) {
-				$subscriber[ $element['name'] ] = $element['value'];
+			$key = explode( '|', $element['name'] );
+			if ( 2 === count( $key ) ) {
+				$data[ $key[0] ][ $key[1] ] = $element['value'];
 			} else {
-				$subscriber['fields'][ $element['name'] ] = $element['value'];
+				$data[ $element['name'] ] = $element['value'];
 			}
 		}
 
 		try {
-			// Subscribe user.
-			$result = $this->api( 'POST', 'groups/' . $list_id . '/subscribers', $apikey, $subscriber );
+			// Create user.
+			$result = $this->request( 'GET', 'User_Secondary_Create', $settings, $data );
 
 			if ( 'ok' === $result['status'] ) {
 				$response_result = array(
@@ -203,19 +235,17 @@ class CRMLIB_Dinahosting {
 					'id'      => $result['data']['id'],
 				);
 			} else {
-				$message         = isset( $result['data'] ) ? $result['data'] : '';
 				$response_result = array(
 					'status'  => 'error',
-					'message' => $message,
+					'message' => isset( $result['data'] ) ? $result['data'] : '',
 					'url'     => isset( $result['url'] ) ? $result['url'] : '',
 					'query'   => isset( $result['query'] ) ? $result['query'] : '',
 				);
 			}
 		} catch ( \Exception $e ) {
-			$message         = isset( $result['data'] ) ? $result['data'] : '';
 			$response_result = array(
 				'status'  => 'error',
-				'message' => $message,
+				'message' => isset( $result['data'] ) ? $result['data'] . $e->getMessage() : '',
 				'url'     => isset( $result['url'] ) ? $result['url'] : '',
 				'query'   => isset( $result['query'] ) ? $result['query'] : '',
 			);
