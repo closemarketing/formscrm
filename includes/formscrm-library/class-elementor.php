@@ -42,6 +42,36 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	}
 
 	/**
+	 * Include library connector
+	 *
+	 * @param string $crmtype Type of CRM.
+	 * @return void
+	 */
+	private function include_library( $crmtype ) {
+		if ( isset( $_POST['fc_crm_type'] ) ) {
+			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
+		}
+
+		if ( isset( $crmtype ) ) {
+			$crmname      = strtolower( $crmtype );
+			$crmclassname = str_replace( ' ', '', $crmname );
+			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+			$crmname      = str_replace( ' ', '_', $crmname );
+
+			$array_path = formscrm_get_crmlib_path();
+			if ( isset( $array_path[ $crmname ] ) ) {
+				include_once $array_path[ $crmname ];
+			}
+
+			formscrm_debug_message( $array_path[ $crmname ] );
+
+			if ( class_exists( $crmclassname ) ) {
+				$this->crmlib = new $crmclassname();
+			}
+		}
+	}
+
+	/**
 	 * Register Settings Section
 	 *
 	 * Registers the Action controls
@@ -166,16 +196,18 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		/**
 		 * ## Fields
 		 * --------------------------- */
-		
 
-		$widget->add_control(
-			'formscrm_double_optin',
-			[
-				'label' => __( 'Double Opt-in', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::SWITCHER,
-				'separator' => 'before'
-			]
-		);
+		foreach ( $crm_types as $key => $value ) {
+			$crmname      = strtolower( $value );
+			$crmclassname = str_replace( ' ', '', $crmname );
+			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+			$crmname      = str_replace( ' ', '_', $crmname );
+
+			if ( class_exists( $crmclassname ) ) {
+				$crmlib[ $crmname ] = new $crmclassname();
+			}
+		}
+		/*
 
 		$widget->add_control(
 			'formscrm_double_optin_template',
@@ -349,6 +381,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'raw' => __('Need help? <a href="https://plugins.webtica.be/support/?ref=plugin-widget" target="_blank">Check out our support page.</a>', 'formscrm'),
 			]
 		);
+		*/
 
 		$widget->end_controls_section();
 
