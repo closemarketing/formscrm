@@ -4,8 +4,8 @@ Tags: gravityforms, forms-api, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.0
 Tested up to: 6.5.0
-Stable tag: 3.13.3
-Version: 3.13.3
+Stable tag: 3.14.0
+Version: 3.14.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,12 +63,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
-= 3.13.5 =
+= 3.14.0 =
 *  Fixed: Custom fields not send to Opportunities in Clientify.
-
-= 3.13.4 =
 *  Fixed: Error Clientify not detecting module.
-*  Added: Testing for Clientify.
+*  Added: Internal testing for Clientify.
 
 = 3.13.3 =
 *  Fixed image in settings.
