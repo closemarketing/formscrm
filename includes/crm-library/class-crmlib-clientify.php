@@ -357,9 +357,8 @@ class CRMLIB_Clientify {
 		$result_api = $this->get( 'custom-fields/', $apikey );
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
 			foreach ( $result_api['data']['results'] as $custom_field ) {
-
 				if ( isset( $equivalent_module[ $module_slug ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module_slug ], true ) ) {
-					$key  = 'deal' === $custom_field['content_type'] ? 'deal|' : '';
+					$key  = 'deals | deal' === $custom_field['content_type'] ? 'deal|' : '';
 					$key .= 'custom_fields|' . $custom_field['name'];
 
 					$label = isset( $label_module[ $custom_field['content_type'] ] ) ? $label_module[ $custom_field['content_type'] ] . ': ' : '';

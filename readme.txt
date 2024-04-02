@@ -63,6 +63,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.13.5 =
+*  Fixed: Custom fields not send to Opportunities in Clientify.
+
 = 3.13.4 =
 *  Fixed: Error Clientify not detecting module.
 *  Added: Testing for Clientify.
