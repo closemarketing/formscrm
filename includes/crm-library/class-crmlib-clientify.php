@@ -388,7 +388,8 @@ class CRMLIB_Clientify {
 		$contact = array();
 		$deal    = array();
 
-		$module  = str_replace( '-Deals', '', $module );
+		$module = sanitize_title( $module );
+		$module = str_replace( '-deals', '', $module );
 
 		foreach ( $merge_vars as $element ) {
 			if ( is_array( $element['value'] ) ) {
@@ -441,10 +442,10 @@ class CRMLIB_Clientify {
 
 			// Crea ahora la oportunidad.
 			if ( ! empty( $deal ) ) {
-				if ( 'Contacts' === $module ) {
+				if ( 'contacts' === $module ) {
 					$key  = 'contact';
 					$slug = 'contacts';
-				} elseif ( 'Companies' === $module ) {
+				} elseif ( 'companies' === $module ) {
 					$key  = 'company';
 					$slug = 'companies';
 				}

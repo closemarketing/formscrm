@@ -63,6 +63,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.13.4 =
+*  Fixed: Error Clientify not detecting module.
+*  Added: Testing for Clientify.
+
 = 3.13.3 =
 *  Fixed image in settings.
 
