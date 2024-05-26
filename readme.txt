@@ -63,6 +63,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.15.0 =
+*  Added: New widget in GravityForms Entries to resend the lead to CRM.
+
 = 3.14.0 =
 *  Fixed: Custom fields not send to Opportunities in Clientify.
 *  Fixed: Error Clientify not detecting module.
