@@ -14,3 +14,4 @@ phpunit.xml.dist
 composer.json
 composer.lock
 .wordpress-org
+.phpcs.xml.dist
