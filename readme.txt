@@ -65,6 +65,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 3.15.0 =
 *  Added: New widget in GravityForms Entries to resend the lead to CRM.
+*  Added: New field Disclaimer in Clientify.
 *  Fixed: Prevents possible errors in admin CF7.
 
 = 3.14.0 =
