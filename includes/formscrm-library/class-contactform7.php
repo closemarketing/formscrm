@@ -194,38 +194,49 @@ class FORMSCRM_CF7_Settings {
 						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-key"><?php esc_html_e( 'Field CRM', 'formscrm' ); ?></th>
 						<th class="cf7-map-column cf7-map-column-heading cf7-map-column-value"><?php esc_html_e( 'Select Form Field', 'formscrm' ); ?></th>
 					</tr>
-						<?php
-							foreach ( $crm_fields as $crm_field ) {
-								?>
-								<tr class="cf7-map-row">
-										<td class="cf7-map-column cf7-map-column-key">
-											<label for="wpcf7-crm-field-<?php echo esc_html( $crm_field['name'] ); ?>">
-												<?php
-												echo esc_html( $crm_field['label'] );
-												if ( isset( $crm_field['required'] ) && $crm_field['required'] ) {
-													echo ' <span class="required">*</span>';
-												}
-												?>
-											</label>
-										</td>
-										<td class="cf7-map-column cf7-map-column-value">
-											<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field['name'] ); ?>]" style="min-width:300px; margin-bottom: 10px;">
-												<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
-												<?php
-												foreach ( $form_fields as $form_field ) {
-													echo '<option value="' . esc_html( $form_field['name'] ) . '" ';
-													if ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ] ) ) {
-														selected( $cf7_crm[ 'fc_crm_field-' . $crm_field['name'] ], $form_field['name'] );
-													}
-													echo '>' . esc_html( $form_field['name'] ) . '</option>';
-												}
-												?>
-											</select>
-										</td>
-								</tr>
-								<?php
-							}
+					<?php
+					$count_fields = 0;
+					foreach ( $crm_fields as $crm_field ) {
+						if ( empty( $crm_field['name'] ) ) {
+							continue;
+						}
+						$crm_field_name  = sanitize_text_field( $crm_field['name'] );
+						$crm_field_label = isset( $crm_field['label'] ) ? sanitize_text_field( $crm_field['label'] ) : '';
+						$crm_field_req   = isset( $crm_field['req'] ) ? (bool) $crm_field['req'] : false;
 						?>
+						<tr class="cf7-map-row">
+								<td class="cf7-map-column cf7-map-column-key">
+									<label for="wpcf7-crm-field-<?php echo esc_html( $crm_field_name ); ?>">
+										<?php
+										echo esc_html( $crm_field_label );
+										if ( isset( $crm_field_req ) && $crm_field_req ) {
+											echo ' <span class="required">*</span>';
+										}
+										?>
+									</label>
+								</td>
+								<td class="cf7-map-column cf7-map-column-value">
+									<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>]" style="min-width:300px; margin-bottom: 10px;">
+										<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
+										<?php
+										foreach ( $form_fields as $form_field ) {
+											echo '<option value="' . esc_html( $form_field['name'] ) . '" ';
+											if ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] ) ) {
+												selected( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ], $form_field['name'] );
+											}
+											echo '>' . esc_html( $form_field['name'] ) . '</option>';
+										}
+										?>
+									</select>
+								</td>
+						</tr>
+						<?php
+						$count_fields++;
+					}
+					if ( 0 === $count_fields ) {
+						echo '<tr><td colspan="2">' . esc_html__( 'No fields found, or the connection has not got the right permissions.', 'formscrm' ) . '</td></tr>';
+					}
+					?>
 				</tbody>
 			</table>
 			<?php
