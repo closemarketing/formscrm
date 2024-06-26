@@ -24,18 +24,17 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 		 * Construct of Class
 		 */
 		public function __construct() {
-			$settings     = get_option( 'gravityformsaddon_formscrm_settings' );
-			$is_clientify = isset( $settings['fc_crm_type'] ) && 'clientify' === $settings['fc_crm_type'] ? true : false;
-
-			if ( $is_clientify ) {
-				add_action( 'gform_after_save_form', array( $this, 'create_visitor_key_field' ), 10, 2 );
-				add_filter( 'gform_pre_render', array( $this, 'clientify_gravityforms_hidden_input' ) );
-				add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-			}
 			// Prevents fatal error is_plugin_active.
 			if ( ! function_exists( 'is_plugin_active' ) ) {
 				include_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
+
+			if ( is_plugin_active( 'gravityforms/gravityforms.php' ) && $this->has_gravity_feed_clientify() ) {
+				add_action( 'gform_after_save_form', array( $this, 'create_visitor_key_field' ), 10, 2 );
+				add_filter( 'gform_pre_render', array( $this, 'clientify_gravityforms_hidden_input' ) );
+				add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+			}
+
 			if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 				add_action( 'wpcf7_after_save', array( $this, 'add_custom_field_cf7_clientify' ), 50 );
 				add_action( 'wpcf7_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
@@ -54,11 +53,39 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 		public function enqueue_scripts() {
 			wp_register_script(
 				'formscrm-clientify-field',
-				plugins_url( '/js/clientify-field.js', __FILE__ ),
+				FORMSCRM_PLUGIN_URL . 'includes/formscrm-library/js/clientify-field.js',
 				array(),
 				FORMSCRM_VERSION,
 				true
 			);
+		}
+
+		/**
+		 * Has gravity any clientify?
+		 *
+		 * @return boolean
+		 */
+		private function has_gravity_feed_clientify() {
+			$is_clientify = get_transient( 'formscrm_query_is_clientify' );
+			if ( ! $is_clientify ) {
+				$is_clientify       = 'no_clientify';
+				$settings           = get_option( 'gravityformsaddon_formscrm_settings' );
+				$crm_type_clientify = isset( $settings['fc_crm_type'] ) && 'clientify' === $settings['fc_crm_type'] ? true : false;
+				
+				if ( $crm_type_clientify ) {
+					return true;
+				}
+				$feeds = GFAPI::get_feeds();
+				foreach ( $feeds as $feed ) {
+					if ( 'clientify' === $feed['meta']['fc_crm_custom_type'] ) {
+						$is_clientify = 'has_clientify';
+						break;
+					}
+				}
+				set_transient( 'formscrm_query_is_clientify', $is_clientify, HOUR_IN_SECONDS * 3 );
+			}			
+
+			return 'has_clientify' === $is_clientify ? true : false;
 		}
 
 		/**
@@ -90,7 +117,6 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 		}
 
 		public function clientify_gravityforms_hidden_input( $form ) {
-
 			foreach ( $form['fields'] as &$field ) {
 				if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) { //phpcs:ignore
 					$field->defaultValue = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
