@@ -66,6 +66,7 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 		 * @return boolean
 		 */
 		private function has_gravity_feed_clientify() {
+			global $wpdb;
 			$is_clientify = get_transient( 'formscrm_query_is_clientify' );
 			if ( ! $is_clientify ) {
 				$is_clientify       = 'no_clientify';
@@ -75,12 +76,12 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 				if ( $crm_type_clientify ) {
 					return true;
 				}
-				$feeds = GFAPI::get_feeds();
-				foreach ( $feeds as $feed ) {
-					if ( 'clientify' === $feed['meta']['fc_crm_custom_type'] ) {
-						$is_clientify = 'has_clientify';
-						break;
-					}
+
+				$table = $wpdb->prefix . 'gf_addon_feed';
+				$sql   = "SELECT COUNT(*) as count FROM $table WHERE `meta` LIKE '%clientify%';";
+				$count = (int) $wpdb->get_var( $sql );
+				if ( $count > 0 ) {
+					$is_clientify = 'has_clientify';
 				}
 				set_transient( 'formscrm_query_is_clientify', $is_clientify, HOUR_IN_SECONDS * 3 );
 			}			
