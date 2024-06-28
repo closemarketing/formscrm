@@ -31,14 +31,14 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 
 			if ( is_plugin_active( 'gravityforms/gravityforms.php' ) && $this->has_gravity_feed_clientify() ) {
 				add_action( 'gform_after_save_form', array( $this, 'create_visitor_key_field' ), 10, 2 );
-				add_filter( 'gform_pre_render', array( $this, 'clientify_gravityforms_hidden_input' ) );
-				add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+				add_action( 'gform_enqueue_scripts',  array( $this, 'enqueue_scripts' ), 10, 2 );
+				add_action( 'gform_enqueue_scripts', array( $this, 'contact_enqueue_scripts' ), 15, 2 );
 			}
 
 			if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 				add_action( 'wpcf7_after_save', array( $this, 'add_custom_field_cf7_clientify' ), 50 );
 				add_action( 'wpcf7_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-				add_action( 'wpcf7_contact_form', array( $this, 'contanct_enqueue_scripts' ) );
+				add_action( 'wpcf7_contact_form', array( $this, 'contact_enqueue_scripts' ) );
 			}
 			if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 				add_filter( 'woocommerce_checkout_fields' , array( $this, 'clientify_cookie_checkout_field' ) );
@@ -118,24 +118,6 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 		}
 
 		/**
-		 * Hidden input for Gravity Forms
-		 *
-		 * @param [type] $form
-		 * @return void
-		 */
-		public function clientify_gravityforms_hidden_input( $form ) {
-			foreach ( $form['fields'] as &$field ) {
-				$field_slug        = isset( $field->label ) ? sanitize_title( $field->label ) : '';
-				$field_admin_label = isset( $field->adminLabel ) ? $field->adminLabel : '';
-				if ( 'clientify_visitor_key' === $field_admin_label || 'clientify-visitor-key' === $field_slug ) {
-					$field->defaultValue = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
-					wp_enqueue_script( 'formscrm-clientify-field' );
-				}
-			}
-			return $form;
-		}
-
-		/**
 		 * Adds field for Contact Form 7
 		 *
 		 * @param object $args Args of action.
@@ -164,7 +146,7 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 		 *
 		 * @return void
 		 */
-		public function contanct_enqueue_scripts() {
+		public function contact_enqueue_scripts() {
 			wp_enqueue_script( 'formscrm-clientify-field' );
 		}
 
