@@ -117,9 +117,17 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 			GFAPI::update_form( $form );
 		}
 
+		/**
+		 * Hidden input for Gravity Forms
+		 *
+		 * @param [type] $form
+		 * @return void
+		 */
 		public function clientify_gravityforms_hidden_input( $form ) {
 			foreach ( $form['fields'] as &$field ) {
-				if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) { //phpcs:ignore
+				$field_slug        = isset( $field->label ) ? sanitize_title( $field->label ) : '';
+				$field_admin_label = isset( $field->adminLabel ) ? $field->adminLabel : '';
+				if ( 'clientify_visitor_key' === $field_admin_label || 'clientify-visitor-key' === $field_slug ) {
 					$field->defaultValue = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
 					wp_enqueue_script( 'formscrm-clientify-field' );
 				}
