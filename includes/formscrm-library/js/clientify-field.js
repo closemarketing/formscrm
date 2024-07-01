@@ -5,7 +5,7 @@ let gravityHiddenInput = document.querySelectorAll( '.gfield.clientify_cookie in
 if(gravityHiddenInput !== 'undefined'){
     let vkcookie = forms_clientify_getCookie('vk');
     for (let i = 0; i < gravityHiddenInput.length; i++) {
-        gravityHiddenInput[i].value = vkcookie;
+      gravityHiddenInput[i].setAttribute('value',vkcookie);
     }
 }
 
@@ -14,7 +14,7 @@ let contactformHiddenInput = document.querySelectorAll( 'input.wpcf7-form-contro
 if(contactformHiddenInput !== 'undefined'){
     let vkcookie = forms_clientify_getCookie('vk');
     for (let i = 0; i < contactformHiddenInput.length; i++) {
-        contactformHiddenInput[i].value = vkcookie;
+      contactformHiddenInput[i].setAttribute('value',vkcookie);
     }
 }
 
@@ -23,7 +23,7 @@ let wpformsHiddenInput = document.querySelectorAll( '.wpforms-field.clientify_co
 if ( wpformsHiddenInput !== 'undefined' ) {
     let vkcookie = forms_clientify_getCookie('vk');
     for (let i = 0; i < wpformsHiddenInput.length; i++) {
-        wpformsHiddenInput[i].value = vkcookie;
+      wpformsHiddenInput[i].setAttribute('value',vkcookie);
     }
 }
 
@@ -32,7 +32,7 @@ let woocommerceHiddenInput = document.querySelectorAll( '.woocommerce-billing-fi
 if ( woocommerceHiddenInput !== 'undefined' ) {
 	let vkcookie = forms_clientify_getCookie('vk');
 	for (let i = 0; i < woocommerceHiddenInput.length; i++) {
-		woocommerceHiddenInput[i].value = vkcookie;
+		woocommerceHiddenInput[i].setAttribute('value',vkcookie);
 	}
 }
 
