@@ -472,8 +472,9 @@ class GFCRM extends GFFeedAddOn {
 		$settings = $this->get_api_settings_custom( $feed );
 		$this->include_library( $settings['fc_crm_type'] );
 
-		$merge_vars = array();
-		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
+		$merge_vars         = array();
+		$field_maps         = $this->get_field_map_fields( $feed, 'listFields' );
+		$field_clientify_id = 0;
 
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
@@ -482,9 +483,11 @@ class GFCRM extends GFFeedAddOn {
 					$merge_vars[] = $this->get_value_from_field( $var_key, $field_id, $entry, $form );
 				}
 			}
-		} else {
-			// Dynamic Fields.
-			foreach ( $form['fields'] as $field ) {
+		}
+
+		// Dynamic Fields.
+		foreach ( $form['fields'] as $field ) {
+			if ( empty( $field_maps ) ) {
 				if ( ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
 					$merge_vars[] = array(
 						'name'  => $field->adminLabel,
@@ -502,21 +505,17 @@ class GFCRM extends GFFeedAddOn {
 					);
 				}
 			}
+			if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
+				$field_clientify_id = $field->id;
+			}
 		}
 
 		// Adds Clientify visitor key.
-		if ( 'clientify' === $settings['fc_crm_type'] ) {
-			foreach ( $form['fields'] as $field ) {
-				if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
-					$field_clientify_id = $field->id;
-				}
-			}
-			if ( isset( $entry[ $field_clientify_id ] ) && ! empty( $entry[ $field_clientify_id ] ) ) {
-				$merge_vars[] = array(
-					'name'  => 'visitor_key',
-					'value' => $entry[ $field_clientify_id ],
-				);
-			}
+		if ( ! empty( $field_clientify_id ) && ! empty( $entry[ $field_clientify_id ] ) ) {
+			$merge_vars[] = array(
+				'name'  => 'visitor_key',
+				'value' => $entry[ $field_clientify_id ],
+			);
 		}
 
 		$override_custom_fields = apply_filters( 'formscrm_override_blank_custom_fields', false, $entry, $form, $feed );
