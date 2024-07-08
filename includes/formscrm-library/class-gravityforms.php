@@ -469,8 +469,9 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function process_feed( $feed, $entry, $form ) {
-		$settings = $this->get_api_settings_custom( $feed );
-		$this->include_library( $settings['fc_crm_type'] );
+		$settings  = $this->get_api_settings_custom( $feed );
+		$feed_type = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
+		$this->include_library( $feed_type );
 
 		$merge_vars         = array();
 		$field_maps         = $this->get_field_map_fields( $feed, 'listFields' );
@@ -505,7 +506,7 @@ class GFCRM extends GFFeedAddOn {
 					);
 				}
 			}
-			if ( isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
+			if ( 'clientify' === $feed_type && isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
 				$field_clientify_id = $field->id;
 			}
 		}
