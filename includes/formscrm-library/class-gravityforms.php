@@ -220,7 +220,8 @@ class GFCRM extends GFFeedAddOn {
 			$crmname      = strtolower( $crm_type );
 			$crmclassname = str_replace( ' ', '', $crmname );
 			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
+			$crmclassname = str_replace( ' ', '_', $crmclassname );
+			$crmclassname = str_replace( '-', '_', $crmclassname );
 
 			$array_path = formscrm_get_crmlib_path();
 

@@ -68,7 +68,8 @@ class FORMSCRM_CF7_Settings {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );
 			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
+			$crmclassname = str_replace( ' ', '_', $crmclassname );
+			$crmclassname = str_replace( '-', '_', $crmclassname );
 
 			$array_path = formscrm_get_crmlib_path();
 			if ( isset( $array_path[ $crmname ] ) ) {

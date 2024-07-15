@@ -58,8 +58,13 @@ add_filter(
 		);
 
 		$choices[] = array(
-			'label' => 'MailerLite',
+			'label' => 'MailerLite Classic',
 			'value' => 'mailerlite',
+		);
+
+		$choices[] = array(
+			'label' => 'MailerLite',
+			'value' => 'mailerlite-new',
 		);
 
 		return $choices;
@@ -74,6 +79,7 @@ add_filter(
 		$choices[] = 'acumbamail';
 		$choices[] = 'holded';
 		$choices[] = 'mailerlite';
+		$choices[] = 'mailerlite-new';
 
 		return $choices;
 	}
@@ -87,6 +93,7 @@ add_filter(
 		$choices['clientify']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
 		$choices['acumbamail'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
 		$choices['mailerlite'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite.php';
+		$choices['mailerlite-new'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite-new.php';
 
 		return $choices;
 	}

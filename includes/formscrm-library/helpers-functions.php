@@ -126,3 +126,4 @@ if ( ! function_exists( 'formscrm_check_url_crm' ) ) {
 		return $url;
 	}
 }
+
