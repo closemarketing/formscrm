@@ -45,7 +45,7 @@ And you will find, that there are Premium Addons to support:
 - [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/)
 - [WHMCS](https://close.technology/en/wordpress-plugins/formscrm-whmcs/)
 
-You can only use one type of CRM in the web with this version.
+You can use multiple feed connector in GravityForms, WPForms PRO and ContactForm7, and you can use multiple CRM connectors in the same form.
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
