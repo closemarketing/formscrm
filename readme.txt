@@ -65,6 +65,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 3.15.1 =
 *  Added: Support to multiple feeds in GravityForms for Clientify.
+*  Fixed: Sometimes we were getting an error in the feed.
 
 = 3.15.0 =
 *  Added: New widget in GravityForms Entries to resend the lead to CRM.
