@@ -941,7 +941,7 @@ class FormsCRM_Updater {
 			add_settings_error( 'wc_am_client_error_text', 'wc_am_client_error', "{$response['data']['error']}", 'error' );
 		}
 
-		if ( $response !== false && $response[ 'success' ] === true ) {
+		if ( ! empty( $response ) && $response[ 'success' ] === true ) {
 			// New plugin version from the API
 			$new_ver = (string) $response[ 'data' ][ 'package' ][ 'new_version' ];
 			// Current installed plugin version
