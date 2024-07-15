@@ -54,6 +54,13 @@ Demo:
 
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
+** Dynamic values in GravityForms **
+We have developed a way to get values from other fields in GravityForms. You can use this in the field mapping in the feed. You can use:
+{id:N} in order to get the value from field N
+{label:N} in order to get the label from field N
+
+We recommend to use this in the field mapping in the feed and hidden field that gets the value.
+
 == Installation ==
 
 Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your
