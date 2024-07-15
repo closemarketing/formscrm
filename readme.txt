@@ -34,7 +34,7 @@ At this time, FormsCRM supports in free version:
 - [Holded](https://close.marketing/likes/holded/)
 - [Clientify](https://close.marketing/likes/clientify/)
 - [AcumbaMail](https://acumbamail.com/)
-- [MailerLite](https://close.marketing/likes/mailerlite/)
+- [MailerLite Classic](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
 - [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/)
@@ -66,6 +66,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 = 3.15.1 =
 *  Added: Support to multiple feeds in GravityForms for Clientify.
 *  Fixed: Sometimes we were getting an error in the feed.
+*  Fixed: MailerLite Classic multiple pagination API. When you have more thatn 100 entries, it will get all entries.
 
 = 3.15.0 =
 *  Added: New widget in GravityForms Entries to resend the lead to CRM.
