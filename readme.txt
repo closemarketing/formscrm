@@ -67,6 +67,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Added: Support to multiple feeds in GravityForms for Clientify.
 *  Fixed: Sometimes we were getting an error in the feed.
 *  Fixed: MailerLite Classic multiple pagination API. When you have more thatn 100 entries, it will get all entries.
+*  Fixed: Fatal error not authenticating in WooCommerce library.
 
 = 3.15.0 =
 *  Added: New widget in GravityForms Entries to resend the lead to CRM.
