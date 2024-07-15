@@ -58,7 +58,7 @@ add_filter(
 		);
 
 		$choices[] = array(
-			'label' => 'MailerLite',
+			'label' => 'MailerLite Classic',
 			'value' => 'mailerlite',
 		);
 
