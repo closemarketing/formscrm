@@ -153,9 +153,19 @@ class CRMLIB_Clientify {
 				'label' => __( 'Contacts', 'formscrm' ),
 			),
 			array(
+				'name'  => 'contacts-deals',
+				'value' => 'Contacts-Deals',
+				'label' => __( 'Contacts & Deals', 'formscrm' ),
+			),
+			array(
 				'name'  => 'companies',
 				'value' => 'Companies',
 				'label' => __( 'Companies', 'formscrm' ),
+			),
+			array(
+				'name'  => 'companies-deals',
+				'value' => 'Companies-Deals',
+				'label' => __( 'Companies & Deals', 'formscrm' ),
 			),
 		);
 		return $modules;
@@ -167,35 +177,42 @@ class CRMLIB_Clientify {
 	 * @return array
 	 */
 	private function get_fields_addresses() {
-		$fields = array();
+		$fields = array()
+		;
 		$fields[] = array(
 			'name'  => 'addresses|street',
 			'label' => __( 'Address Street', 'formscrm' ),
 			'required' => false,
 		);
+
 		$fields[] = array(
 			'name'  => 'addresses|city',
 			'label' => __( 'Address City', 'formscrm' ),
 			'required' => false,
 		);
+
 		$fields[] = array(
 			'name'  => 'addresses|state',
 			'label' => __( 'Address State', 'formscrm' ),
 			'required' => false,
 		);
+
 		$fields[] = array(
 			'name'  => 'addresses|country',
 			'label' => __( 'Address Country', 'formscrm' ),
 			'required' => false,
 		);
+
 		$fields[] = array(
 			'name'  => 'addresses|postal_code',
 			'label' => __( 'Address Postal Code', 'formscrm' ),
 			'required' => false,
 		);
+
 		$fields[] = array(
 			'name'  => 'addresses|type',
 			'label' => __( 'Address Type', 'formscrm' ),
+			'tooltip'  => __( 'Type of address. Use: 1=Work,2=Home,3=Billing,4=Other,5=Main.', 'formscrm' ),
 			'required' => false,
 		);
 
@@ -216,21 +233,96 @@ class CRMLIB_Clientify {
 			'label'    => __( 'Picture URL', 'formscrm' ),
 			'required' => false,
 		);
-		$fields[] = array( 'name' => 'pinterest_url', 'label' => __( 'URL of the Pinterest', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'twitter_url', 'label' => __( 'URL of the twitter', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'facebook_url', 'label' => __( 'url of the facebook', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'linkedin_url', 'label' => __( 'URL of the Linkedin', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'googleplus_url', 'label' => __( 'URL of the Google Plus', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'foursquare_url', 'label' => __( 'Foursquare id', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'klout_url', 'label' => __( 'url of the klout picture', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'skype_username', 'label' => __( 'Skype username', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'twitter_id', 'label' => __( 'Id of the contact in twitter', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'google_id', 'label' => __( 'Google id', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'facebook_id', 'label' => __( 'Facebook id', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'linkedin_id', 'label' => __( 'Linkedin user id', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'facebook_picture_url', 'label' => __( 'url of the facebook picture', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'twitter_picture_url', 'label' => __( 'url of the twitter picture', 'formscrm' ), 'required' => false, );
-		$fields[] = array( 'name' => 'linkedin_picture_url', 'label' => __( 'url of the Linkedin picture', 'formscrm' ), 'required' => false, );
+
+		$fields[] = array(
+			'name' => 'pinterest_url',
+			'label' => __( 'URL of the Pinterest', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'twitter_url',
+			'label' => __( 'URL of the twitter', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'facebook_url',
+			'label' => __( 'url of the facebook', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'linkedin_url',
+			'label' => __( 'URL of the Linkedin', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'googleplus_url',
+			'label' => __( 'URL of the Google Plus', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'foursquare_url',
+			'label' => __( 'Foursquare id', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'klout_url',
+			'label' => __( 'url of the klout picture', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'skype_username',
+			'label' => __( 'Skype username', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'twitter_id',
+			'label' => __( 'Id of the contact in twitter', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'google_id',
+			'label' => __( 'Google id', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'facebook_id',
+			'label' => __( 'Facebook id', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'linkedin_id',
+			'label' => __( 'Linkedin user id', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'facebook_picture_url',
+			'label' => __( 'url of the facebook picture', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'twitter_picture_url',
+			'label' => __( 'url of the twitter picture', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name' => 'linkedin_picture_url',
+			'label' => __( 'url of the Linkedin picture', 'formscrm' ),
+			'required' => false,
+		);
 
 		return $fields;
 	}
@@ -242,81 +334,323 @@ class CRMLIB_Clientify {
 	 * @return array           returns an array of mudules
 	 */
 	public function list_fields( $settings, $module = 'Contacts' ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = ! empty( $module ) ? $module : 'Contacts';
+		$apikey      = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$module      = ! empty( $module ) ? $module : 'Contacts';
+		$module_slug = sanitize_title( $module );
 
-		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 		$fields = array();
-		if ( 'Contacts' === $module ) {
-			$fields[] = array( 'name' => 'owner', 'label' => __( 'username of the owner of the contact', 'formscrm' ), 'required' => false , );
-			$fields[] = array( 'name' => 'first_name', 'label' => __( 'contact first name', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'last_name', 'label' => __( 'Contact last name', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'phone', 'label' => __( 'Phone', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'company', 'label' => __( 'Company name', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'email', 'label' => __( 'Email', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'website', 'label' => __( 'Website', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'status', 'label' => __( 'Stores the contact status identifier', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'picture_url', 'label' => __( 'url of the picture for the contact', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'title', 'label' => __( 'Contact title', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'summary', 'label' => __( 'Summary', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'description', 'label' => __( 'Description', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'remarks', 'label' => __( 'Remarks', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'message', 'label' => __( 'Message text to be shown in the contact wall', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'lead_scoring', 'label' => __( 'Lead scoring points', 'formscrm' ), 'required' => false, );
+		if ( 'contacts' === $module_slug || 'contacts-deals' === $module_slug ) {
+			$fields[] = array(
+				'name'     => 'owner',
+				'label'    => __( 'username of the owner of the contact', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'first_name',
+				'label' => __( 'contact first name', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'last_name',
+				'label' => __( 'Contact last name', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'phone',
+				'label' => __( 'Phone', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'company',
+				'label' => __( 'Company name', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'email',
+				'label' => __( 'Email', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'website',
+				'label' => __( 'Website', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'status',
+				'label' => __( 'Stores the contact status identifier', 'formscrm' ),
+				'tooltip'  => __( 'Status of contact: other,not-qualified-lead,visitor,cold-lead,warm-lead,hot-lead,in-deal,lost-lead,client,lost-client', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'picture_url',
+				'label' => __( 'url of the picture for the contact', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'title',
+				'label' => __( 'Contact title', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'summary',
+				'label' => __( 'Summary', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'description',
+				'label' => __( 'Description', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'remarks',
+				'label' => __( 'Remarks', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'disclaimer',
+				'label' => __( 'Disclaimer', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'message',
+				'label' => __( 'Message text to be shown in the contact wall', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'lead_scoring',
+				'label' => __( 'Lead scoring points', 'formscrm' ),
+				'required' => false,
+			);
 
-			$fields[] = array( 'name' => 'taxpayer_identification_number', 'label' => __( 'Taxpayer identification nummber', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'tags', 'label' => __( 'Array of strings with the tags of the contact (value separated by comma)', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'gdpr_accept', 'label' => __( 'True if the user accepted the GDPR false if not', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'contact_source', 'label' => __( 'Contact source', 'formscrm' ), 'required' => false, );
+			
+			$fields[] = array(
+				'name' => 'taxpayer_identification_number',
+				'label' => __( 'Taxpayer identification nummber', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'tags',
+				'label' => __( 'Array of strings with the tags of the contact (value separated by comma)', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'gdpr_accept',
+				'label' => __( 'True if the user accepted the GDPR false if not', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'contact_source',
+				'label' => __( 'Contact source', 'formscrm' ),
+				'required' => false,
+			);
 			// Address.
 			$fields = array_merge( $fields, $this->get_fields_addresses() );
 
-			$fields[] = array( 'name' => 'medium', 'label' => __( 'Contact Medium', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'contact_type', 'label' => __( 'Contact type', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'birthday', 'label' => __( 'Birthday date', 'formscrm' ), 'required' => false, );
+			
+			$fields[] = array(
+				'name' => 'medium',
+				'label' => __( 'Contact Medium', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'contact_type',
+				'label' => __( 'Contact type', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'birthday',
+				'label' => __( 'Birthday date', 'formscrm' ),
+				'required' => false,
+			);
 			// Social.
 			$fields = array_merge( $fields, $this->get_fields_social() );
-		} elseif ( 'Companies' === $module ) {
-			$fields[] = array( 'name' => 'sector', 'label' => __( 'Sector', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'company_sector', 'label' => __( 'Sector of company', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'business_name', 'label' => __( 'Business Name', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'taxpayer_identification_number', 'label' => __( 'Taxpayer identification nummber', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'fax', 'label' => __( 'Fax', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'number_of_employees', 'label' => __( 'Number of employees', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'owner', 'label' => __( 'username of the owner of the contact', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'email', 'label' => __( 'Email of company', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'phone', 'label' => __( 'Phone of company', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'website', 'label' => __( 'Website', 'formscrm' ), 'required' => false, );
+		} elseif ( 'companies' === $module_slug || 'companies-deals' === $module_slug  ) {
+			
+			$fields[] = array(
+				'name' => 'sector',
+				'label' => __( 'Sector', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'company_sector',
+				'label' => __( 'Sector of company', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'business_name',
+				'label' => __( 'Business Name', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'taxpayer_identification_number',
+				'label' => __( 'Taxpayer identification nummber', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'fax',
+				'label' => __( 'Fax', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'number_of_employees',
+				'label' => __( 'Number of employees', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'owner',
+				'label' => __( 'username of the owner of the contact', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'email',
+				'label' => __( 'Email of company', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'phone',
+				'label' => __( 'Phone of company', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'website',
+				'label' => __( 'Website', 'formscrm' ),
+				'required' => false,
+			);
 			// Address.
 			$fields = array_merge( $fields, $this->get_fields_addresses() );
 
-			$fields[] = array( 'name' => 'rank', 'label' => __( 'Rank', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'rank_manual', 'label' => __( 'Rank Manual', 'formscrm' ), 'required' => false, );
+			
+			$fields[] = array(
+				'name' => 'rank',
+				'label' => __( 'Rank', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'rank_manual',
+				'label' => __( 'Rank Manual', 'formscrm' ),
+				'required' => false,
+			);
 
 			// Social.
 			$fields = array_merge( $fields, $this->get_fields_social() );
 
-			$fields[] = array( 'name' => 'founded', 'label' => __( 'Founded', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'approx_employees', 'label' => __( 'Approximate employees', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'description', 'label' => __( 'Description', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'remarks', 'label' => __( 'Remarks', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'summary', 'label' => __( 'Summary', 'formscrm' ), 'required' => false, );
-			$fields[] = array( 'name' => 'tags', 'label' => __( 'Tags', 'formscrm' ), 'required' => false, );
+			
+			$fields[] = array(
+				'name' => 'founded',
+				'label' => __( 'Founded', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'approx_employees',
+				'label' => __( 'Approximate employees', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'description',
+				'label' => __( 'Description', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'remarks',
+				'label' => __( 'Remarks', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'summary',
+				'label' => __( 'Summary', 'formscrm' ),
+				'required' => false,
+			);
+			
+			$fields[] = array(
+				'name' => 'tags',
+				'label' => __( 'Tags', 'formscrm' ),
+				'required' => false,
+			);
+		}
+
+		if ( 'contacts-deals' === $module_slug ) {
+			
+			$fields[] = array(
+				'name'     => 'deal|name',
+				'label'    => __( 'Deal Name', 'formscrm' ),
+				'required' => true,
+			);
+			
+			$fields[] = array(
+				'name'     => 'deal|amount',
+				'label'    => __( 'Deal Amount', 'formscrm' ),
+				'required' => true,
+			);
+			
+			$fields[] = array(
+				'name'     => 'deal|pipeline',
+				'label'    => __( 'Pipeline URL', 'formscrm' ),
+				'required' => false,
+			);
 		}
 
 		// Get Custom Fields.
 		$equivalent_module = array(
-			'Contacts'  => 'contact',
-			'Companies' => 'company',
+			'contacts'        => array( 'contact', 'contacts | contact' ),
+			'companies'       => array( 'company', 'companies | company' ),
+			'contacts-deals'  => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
+			'companies-deals' => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
 		);
+		$label_module = array(
+			'contact'             => __( 'Contact', 'formscrm' ),
+			'company'             => __( 'Company', 'formscrm' ),
+			'deal'                => __( 'Deal', 'formscrm' ),
+			'contacts | contact'  => __( 'Contact', 'formscrm' ),
+			'companies | company' => __( 'Company', 'formscrm' ),
+			'deals | deal'        => __( 'Deal', 'formscrm' ),
+		);
+
 		$result_api = $this->get( 'custom-fields/', $apikey );
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
 			foreach ( $result_api['data']['results'] as $custom_field ) {
+				if ( isset( $equivalent_module[ $module_slug ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module_slug ], true ) ) {
+					$key  = 'deals | deal' === $custom_field['content_type'] ? 'deal|' : '';
+					$key .= 'custom_fields|' . $custom_field['name'];
 
-				if ( isset( $equivalent_module[ $module ] ) && $equivalent_module[ $module ] === $custom_field['content_type'] ) {
+					$label = isset( $label_module[ $custom_field['content_type'] ] ) ? $label_module[ $custom_field['content_type'] ] . ': ' : '';
+
 					$fields[] = array(
-						'name'     => 'custom_fields|' . $custom_field['name'],
-						'label'    => $custom_field['name'],
+						'name'     => $key,
+						'label'    => $label . $custom_field['name'],
 						'required' => false,
 					);
 				}
@@ -336,12 +670,25 @@ class CRMLIB_Clientify {
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
 		$contact = array();
+		$deal    = array();
+
+		$module = sanitize_title( $module );
+		$module = str_replace( '-deals', '', $module );
 
 		foreach ( $merge_vars as $element ) {
 			if ( is_array( $element['value'] ) ) {
 				$element['value'] = implode( ',', $element['value'] );
 			}
-			if ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
+			if ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal|custom_fields' ) ) {
+				$custom_field = explode( '|', $element['name'] );
+				$deal['custom_fields'][] = array(
+					'field' => $custom_field[2],
+					'value' => $element['value'],
+				);
+			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal' ) ) {
+				$custom_field = explode( '|', $element['name'] );
+				$deal[ $custom_field[1] ] = $element['value'];
+			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
 				$custom_field = explode( '|', $element['name'] );
 				$contact['custom_fields'][] = array(
 					'field' => $custom_field[1],
@@ -362,18 +709,36 @@ class CRMLIB_Clientify {
 		}
 
 		// Clean tags blank.
-		if ( isset( $contact['tags'] ) ) {
-			$contact['tags'] = array_filter( $contact['tags'] );
+		if ( ! empty( $contact['tags'] ) && is_array( $contact['tags'] ) ) {
+			$contact_tags    = array_map( 'trim', $contact['tags'] );
+			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
 		$result = $this->post( $module, $contact, $apikey );
 
 		if ( 'ok' === $result['status'] ) {
+			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
 			$response_result = array(
 				'status'  => 'ok',
 				'message' => 'success',
-				'id'      => $result['data']['id'],
+				'id'      => $contact_id,
 			);
+
+			// Crea ahora la oportunidad.
+			if ( ! empty( $deal ) ) {
+				if ( 'contacts' === $module ) {
+					$key  = 'contact';
+					$slug = 'contacts';
+				} elseif ( 'companies' === $module ) {
+					$key  = 'company';
+					$slug = 'companies';
+				}
+				$deal[ $key ] = "https://api.clientify.net/v1/$slug/$contact_id/";
+				$result          = $this->post( 'deals', $deal, $apikey );
+				if ( 'ok' === $result['status'] ) {
+					$response_result['id'] = $contact_id . '|' . $result['data']['id'];
+				}
+			}
 		} else {
 			$message         = isset( $result['data'] ) ? $result['data'] : '';
 			$response_result = array(

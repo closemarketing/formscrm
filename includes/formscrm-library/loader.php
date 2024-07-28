@@ -43,6 +43,8 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 	function gf_crm() {
 		return FCCRM::get_instance();
 	}
+
+	require_once 'class-gravityforms-widget.php';
 }
 
 // ContactForms7.

@@ -104,6 +104,7 @@ class FormsCRM_WooCommerce {
 		$options_crm  = array();
 		$wc_formscrm  = get_option( 'wc_formscrm' );
 
+		$options_crm[] = __(' None', 'formscrm' );
 		foreach ( formscrm_get_choices() as $choice ) {
 			$options_crm[ $choice['value'] ] = $choice['label'];
 		}
@@ -175,8 +176,10 @@ class FormsCRM_WooCommerce {
 			// Module.
 			$this->include_library( $wc_formscrm['fc_crm_type'] );
 			$options_module = array();
-			foreach ( $this->crmlib->list_modules( $wc_formscrm ) as $module ) {
-				$options_module[ $module['value'] ] = $module['label'];
+			if ( ! empty( $this->crmlib ) && method_exists( $this->crmlib, 'list_modules' ) ) {
+				foreach ( $this->crmlib->list_modules( $wc_formscrm ) as $module ) {
+					$options_module[ $module['value'] ] = $module['label'];
+				}
 			}
 			$settings_crm[] = array(
 				'name'    => __( 'Module', 'formscrm' ),
@@ -266,7 +269,7 @@ class FormsCRM_WooCommerce {
 		$wc_formscrm = get_option( 'wc_formscrm' );
 		$order       = new WC_Order( $order_id );
 
-		if ( $wc_formscrm ) {
+		if ( $wc_formscrm && ! empty( $wc_formscrm['fc_crm_type'] ) ) {
 			$this->include_library( $wc_formscrm['fc_crm_type'] );
 			$merge_vars = $this->get_merge_vars( $wc_formscrm, $order );
 

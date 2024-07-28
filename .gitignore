@@ -4,4 +4,4 @@ _test
 /bin
 /vendor
 .phpunit.result.cache
-/tests/credentials/
+/tests/credentials/*

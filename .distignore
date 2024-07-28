@@ -5,3 +5,13 @@
 .travis.yml
 circle.yml
 .DS_Store
+.phpcs.xml.dist
+composer.json
+composer.lock
+phpunit.xml.dist
+/tests/
+.github
+composer.json
+composer.lock
+.wordpress-org
+.phpcs.xml.dist

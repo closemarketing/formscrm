@@ -26,7 +26,7 @@ class CRMLIB_Mailerlite {
 	 * @param array  $data   Body data.
 	 * @return array
 	 */
-	private function api( $method, $module, $apikey, $data = array() ) {
+	private function api( $method, $module, $apikey, $query = array() ) {
 		if ( empty( $apikey ) ) {
 			return;
 		}
@@ -37,18 +37,56 @@ class CRMLIB_Mailerlite {
 				'Content-Type'        => 'application/json',
 			),
 		);
-		if ( ! empty( $data ) ) {
-			$args['body'] = wp_json_encode( $data );
+		if ( ! empty( $query ) ) {
+			$args['body'] = wp_json_encode( $query );
 		}
-		$url    = 'https://api.mailerlite.com/api/v2/' . $module;
-		$result = wp_remote_request( $url, $args );
-		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
-		if ( 2 !== $code ) {
-			$message = implode( ' ', $result['response'] ) . ' ';
-			$body    = json_decode( $result['body'], true );
-			if ( ! empty( $body['error'] ) && is_array( $body['error'] ) ) {
-				foreach ( $body['error'] as $key => $value ) {
+		if ( 'GET' === $method ) {
+			$limit  = 100; // default limit.
+			$offset = 0;
+			$result_data  = array();
+			$repeat_query = false;
+			do {
+				$result = $this->request( $module . '?limit=' . $limit . '&offset=' . $offset, $args );
+
+				if ( 'ok' === $result['status'] && ! empty( $result['data'] ) && is_array( $result['data'] ) ) {
+					$offset      += count( $result['data'] );
+					$result_data  = array_merge( $result_data, $result['data'] );
+					$repeat_query = count( $result['data'] ) === $limit ? true : false;
+				} else {
+					return $result;
+				}
+	
+			} while ( $repeat_query );
+			return array(
+				'status' => 'ok',
+				'data'   => $result_data,
+			);
+		} else {
+			$result = $this->request( $module, $args );
+			return $result;
+		}
+
+	}
+
+	/**
+	 * Request to MailerLite API
+	 *
+	 * @param string $module URL endpoint with parameters.
+	 * @param array  $args  Body data.
+	 * @return array
+	 */
+	private function request( $module, $args ) {
+		$url         = 'https://api.mailerlite.com/api/v2/' . $module;
+		$result      = wp_remote_request( $url, $args );
+		$result_code = wp_remote_retrieve_response_code( $result );
+		$body        = wp_remote_retrieve_body( $result );
+		$api_data    = json_decode( $body, true );
+
+		if ( is_wp_error( $result ) || 200 !== $result_code ) {
+			$message = 'Error: ' . $result->get_error_message() . ' ';
+			if ( ! empty( $api_data['error'] ) && is_array( $api_data['error'] ) ) {
+				foreach ( $api_data['error'] as $key => $value ) {
 					$message .= $key . ': ' . $value . ' ';
 				}
 			}
@@ -58,16 +96,12 @@ class CRMLIB_Mailerlite {
 				'data'   => $message,
 			);
 		} else {
-			$body = wp_remote_retrieve_body( $result );
-
 			return array(
 				'status' => 'ok',
-				'data'   => json_decode( $body, true ),
+				'data'   => $api_data,
 			);
 		}
 	}
-
-
 	/**
 	 * Logins to a CRM
 	 *

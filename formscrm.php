@@ -1,19 +1,19 @@
 <?php
 /**
  * Plugin Name: FormsCRM
- * Plugin URI:  https://closemarketing.net/formscrm
- * Description: Connects Forms with CRM.
- * Version:     3.10.0
- * Author:      Closemarketing
- * Author URI:  https://close.marketing
+ * Plugin URI:  https://close.technology/wordpress-plugins/formscrm/
+ * Description: Connects Forms with CRM, ERP and Email Marketing.
+ * Version:     3.15.1
+ * Author:      CloseTechnology
+ * Author URI:  https://close.technology
  * Text Domain: formscrm
  * Domain Path: /languages
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  *
  * @package     WordPress
- * @author      Closemarketing
- * @copyright   2021 Closemarketing
+ * @author      CloseTechnology
+ * @copyright   2024 CloseTechnology
  * @license     GPL-2.0+
  *
  * @wordpress-plugin
@@ -23,10 +23,11 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-define( 'FORMSCRM_VERSION', '3.10.0' );
+define( 'FORMSCRM_VERSION', '3.15.1' );
 define( 'FORMSCRM_PLUGIN', __FILE__ );
 define( 'FORMSCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FORMSCRM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'FORMSCRM_CRED_VARIABLES', array( 'url', 'username', 'password', 'apipassword', 'odoodb', 'apisales' ) );
 
 add_action( 'plugins_loaded', 'fcrm_plugin_init' );
 /**
@@ -57,7 +58,7 @@ add_filter(
 		);
 
 		$choices[] = array(
-			'label' => 'MailerLite',
+			'label' => 'MailerLite Classic',
 			'value' => 'mailerlite',
 		);
 
@@ -99,5 +100,6 @@ add_action( 'plugins_loaded', 'formscrm_forms_addon' );
  */
 function formscrm_forms_addon() {
 	require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
+	require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
+	require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-updater.php';
 }
-

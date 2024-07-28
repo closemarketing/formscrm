@@ -1,20 +1,20 @@
 === FormsCRM ===
 Contributors: closemarketing, davidperez, sacrajaimez
-Tags: gravityforms, gravity, form, forms, gravity forms, crm, vtiger, sugarcrm
+Tags: gravityforms, forms-api, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
-Requires at least: 5.0
-Tested up to: 6.1.1
-Stable tag: 3.9.2
-Version: 3.9.2
+Requires at least: 5.5
+Tested up to: 6.6
+Stable tag: 3.15.1
+Version: 3.15.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Connects CRM with your Forms plugin and create new Leads/Entries as the forms are filled automatically.
+Connects your CRM, ERP and Email Marketing with your Forms plugin and create new Leads/Entries as the forms are filled automatically.
 
 == Description ==
 Connects your CRM with the main Form Plugin directly, and send to your CRM when the form is filled automatically.
 
-With this plugin, you don't have to use third party software to send your Leads/data to your CRM. You will have a direct connection between your website and your CRM. It's a connector between Web <> CRM.
+With this plugin, you don't have to use third party software to send your Leads/data to your CRM. You will have a direct connection between your website and your CRM. It's a connector between Web <> CRM/ERP/Email.
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
 - [GravityForms](https://close.marketing/likes/gravityforms/)
@@ -34,17 +34,18 @@ At this time, FormsCRM supports in free version:
 - [Holded](https://close.marketing/likes/holded/)
 - [Clientify](https://close.marketing/likes/clientify/)
 - [AcumbaMail](https://acumbamail.com/)
-- [MailerLite](https://close.marketing/likes/mailerlite/)
+- [MailerLite Classic](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
-- [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/?utm_source=FormsCRM)
-- [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/?utm_source=FormsCRM)
-- [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/?utm_source=FormsCRM)
-- [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/?utm_source=FormsCRM)
-- [SuiteCRM](https://close.technology/en/wordpress-plugins/formscrm-suitecrm/?utm_source=FormsCRM)
-- [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/?utm_source=FormsCRM)
+- [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/)
+- [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/)
+- [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/)
+- [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/)
+- [SuiteCRM](https://close.technology/en/wordpress-plugins/formscrm-suitecrm/)
+- [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/)
+- [WHMCS](https://close.technology/en/wordpress-plugins/formscrm-whmcs/)
 
-You can only use one type of CRM in the web with this version.
+You can use multiple feed connector in GravityForms, WPForms PRO and ContactForm7, and you can use multiple CRM connectors in the same form.
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
@@ -52,6 +53,13 @@ Demo:
 **Instructions for adding Clientify cookie in the forms**
 
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
+
+** Dynamic values in GravityForms **
+We have developed a way to get values from other fields in GravityForms. You can use this in the field mapping in the feed. You can use:
+{id:N} in order to get the value from field N
+{label:N} in order to get the label from field N
+
+We recommend to use this in the field mapping in the feed and hidden field that gets the value.
 
 == Installation ==
 
@@ -62,8 +70,58 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.15.1 =
+*  Added: Support to multiple feeds in GravityForms for Clientify.
+*  Fixed: Sometimes we were getting an error in the feed.
+*  Fixed: MailerLite Classic multiple pagination API. When you have more thatn 100 entries, it will get all entries.
+*  Fixed: Fatal error not authenticating in WooCommerce library.
+
+= 3.15.0 =
+*  Added: New widget in GravityForms Entries to resend the lead to CRM.
+*  Added: New field Disclaimer in Clientify.
+*  Fixed: Prevents possible errors in admin CF7.
+
+= 3.14.0 =
+*  Fixed: Custom fields not send to Opportunities in Clientify.
+*  Fixed: Error Clientify not detecting module.
+*  Added: Internal testing for Clientify.
+
+= 3.13.3 =
+*  Fixed image in settings.
+
+= 3.13.2 =
+*  Removed Odoo part not necessary in CF7.
+
+= 3.13.1 =
+*  Fix not launching autoupdate.
+
+= 3.13.0 =
+*  Added: CF7 now allows you to select the fields defined in the form.
+*  Fix: Clientify changed names of custom fields in API. Now it's importing custom fields correctly.
+
+= 3.12.4 =
+*  Fix: Prevents error in error message GF send.
+
+= 3.12.3 =
+*  Added: CF7 now allows values by default.
+*  Fix: CF7 error after sending a lead.
+
+= 3.12.2 =
+*  Fix: Holded tags where not importing correctly.
+*  Fix: Holded Address fields where not importing correctly.
+
+= 3.12.0 =
+*  Fix: Clientify does not allow blanks in tags.
+*  Fix: Odoo creation contact.
+
+= 3.11.0 =
+*  Module Clientify now supports Deals.
+*  Added: Conditional logic for Feed in Gravity Forms.
+*  Fix: Woocommerce Mailerlite gets activated.
+
 = 3.10.0 =
 *  Added: Support to MailerLite.
+*  Custom CRMs connector by feed in Gravity Forms.
 
 = 3.9.2 =
 *  Fix: better information in Error debug email.
