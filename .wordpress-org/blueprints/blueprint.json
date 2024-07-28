@@ -1,6 +1,6 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
-	"landingPage": "/wp-admin/users.php",
+	"landingPage": "/wp-admin/index.php",
 	"steps": [
 		{
 			"step": "installPlugin",
