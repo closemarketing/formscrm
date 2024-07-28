@@ -100,6 +100,4 @@ add_action( 'plugins_loaded', 'formscrm_forms_addon' );
  */
 function formscrm_forms_addon() {
 	require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
-	require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
-	require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-updater.php';
 }
