@@ -2,8 +2,8 @@
 Contributors: closemarketing, davidperez, sacrajaimez
 Tags: gravityforms, forms-api, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
-Requires at least: 5.0
-Tested up to: 6.5.0
+Requires at least: 5.5
+Tested up to: 6.6
 Stable tag: 3.15.1
 Version: 3.15.1
 License: GPL2
