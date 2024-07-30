@@ -15,3 +15,4 @@ composer.json
 composer.lock
 .wordpress-org
 .phpcs.xml.dist
+action.yml
