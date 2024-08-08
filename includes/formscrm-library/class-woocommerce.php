@@ -205,13 +205,15 @@ class FormsCRM_WooCommerce {
 				'id'   => 'wc_settings_formscrm_section_field',
 			);
 			$wc_fields = $this->get_woocommerce_order_fields();
-			foreach ( $crm_fields as $crm_field ) {
-				$settings_crm[] = array(
-					'name'    => esc_html( $crm_field['label'] ),
-					'type'    => 'select',
-					'options' => $wc_fields,
-					'id'      => 'wc_formscrm[fc_crm_field-' . esc_html( $crm_field['name'] ) . ']',
-				);
+			if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
+				foreach ( $crm_fields as $crm_field ) {
+					$settings_crm[] = array(
+						'name'    => esc_html( $crm_field['label'] ),
+						'type'    => 'select',
+						'options' => $wc_fields,
+						'id'      => 'wc_formscrm[fc_crm_field-' . esc_html( $crm_field['name'] ) . ']',
+					);
+				}
 			}
 			$settings_crm[] = array(
 				'type' => 'sectionend',
