@@ -11,7 +11,7 @@
     "setup:tools": "npm run wp-env run composer install",
     "test": "npm run wp-env run phpunit 'phpunit -c /var/www/html/wp-content/plugins/formscrm/phpunit.xml.dist'",
     "test:e2e": "npx playwright test",
-    "test:wpe2e": "npx playwright test --config test/e2e/playwright.config.ts"
+    "test:wpe2e": "npx playwright test --config tests/e2e/playwright.config.ts"
   },
   "repository": {
     "type": "git",

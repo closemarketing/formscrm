@@ -25,12 +25,10 @@ class TestsCRM extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_clientify() {
-		require_once dirname( dirname( __FILE__ ) ) . '/includes/crm-library/class-crmlib-clientify.php';
-		$clientify_cred = file_get_contents( 'credentials/clientify.json' );
+		require_once FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
+		$clientify_cred = file_get_contents( FORMSCRM_PLUGIN_PATH . 'tests/credentials/clientify.json' );
 
 		$settings = json_decode( $clientify_cred, true );
-
-		echo 'Test clientify';
 
 		$crm_clientify = new CRMLIB_Clientify();
 
@@ -65,11 +63,10 @@ class TestsCRM extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_holded() {
-		require_once dirname( dirname( __FILE__ ) ) . '/includes/crm-library/class-crmlib-holded.php';
+		require_once FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
+		$holded_cred = file_get_contents( FORMSCRM_PLUGIN_PATH . 'credentials/holded.json' );
 
-		$settings['fc_crm_type'] = "Holded";
-		$settings['fc_crm_apipassword'] = FC_CRM_HOLDED_APIKEY; // const FC_CRM_HOLDED_APIKEY;
-		$settings['fc_crm_module'] = "contacts";
+		$settings = json_decode( $holded_cred, true );
 
 		echo 'Test Holded';
 
