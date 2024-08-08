@@ -16,3 +16,5 @@ composer.lock
 .wordpress-org
 .phpcs.xml.dist
 *.yml
+package.json
+node_modules/

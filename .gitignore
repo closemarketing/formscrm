@@ -5,3 +5,4 @@ _test
 /vendor
 .phpunit.result.cache
 /tests/credentials/*
+node_modules/
