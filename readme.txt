@@ -70,6 +70,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.15.2 =
+*  Fixed: Sometimes gives Fatal error in WooCommerce Settings page.
+
 = 3.15.1 =
 *  Added: Support to multiple feeds in GravityForms for Clientify.
 *  Fixed: Sometimes we were getting an error in the feed.

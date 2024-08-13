@@ -208,10 +208,10 @@ class FormsCRM_WooCommerce {
 			if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
 				foreach ( $crm_fields as $crm_field ) {
 					$settings_crm[] = array(
-						'name'    => esc_html( $crm_field['label'] ),
+						'name'    => isset( $crm_field['label'] ) ? esc_html( $crm_field['label'] ) : '',
 						'type'    => 'select',
 						'options' => $wc_fields,
-						'id'      => 'wc_formscrm[fc_crm_field-' . esc_html( $crm_field['name'] ) . ']',
+						'id'      => isset( $crm_field['name'] ) ? 'wc_formscrm[fc_crm_field-' . esc_html( $crm_field['name'] ) . ']' : '',
 					);
 				}
 			}
