@@ -4,8 +4,8 @@ Tags: gravityforms, forms-api, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.6
-Stable tag: 3.15.1
-Version: 3.15.1
+Stable tag: 3.15.2
+Version: 3.15.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,7 @@ At this time, FormsCRM supports in free version:
 - [MailerLite Classic](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
+- [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
 - [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/)
 - [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/)
 - [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/)
@@ -54,7 +55,7 @@ Demo:
 
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
-** Dynamic values in GravityForms **
+**Dynamic values in GravityForms**
 We have developed a way to get values from other fields in GravityForms. You can use this in the field mapping in the feed. You can use:
 {id:N} in order to get the value from field N
 {label:N} in order to get the label from field N
