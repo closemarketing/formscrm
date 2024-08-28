@@ -1,11 +1,11 @@
 === FormsCRM ===
 Contributors: closemarketing, davidperez, sacrajaimez
-Tags: gravityforms, forms-api, crm, vtiger, odoo
+Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.6
-Stable tag: 3.15.2
-Version: 3.15.2
+Stable tag: 3.15.3
+Version: 3.15.3
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
