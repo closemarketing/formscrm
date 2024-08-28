@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.6
-Stable tag: 3.15.3
-Version: 3.15.3
+Stable tag: 3.15.4
+Version: 3.15.4
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.15.4 =
+*  Fixed: Connection WPForms field date was not formatting to YYYY-MM-DD.
+
 = 3.15.3 =
 *  Added: Logs connection and entry created with WPForms in the form entry always.
 

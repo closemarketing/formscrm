@@ -96,13 +96,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			}
 
 			// Setup the custom fields.
-			foreach ( $connection['fields'] as $name => $custom_field ) {
+			foreach ( $connection['fields'] as $conn_field_name => $conn_field ) {
 				// If the custom field isn't map, skip it.
-				if ( empty( $custom_field ) ) {
+				if ( empty( $conn_field ) ) {
 					continue;
 				}
 
-				$custom_field = explode( '.', $custom_field );
+				$custom_field = explode( '.', $conn_field );
 				$id           = $custom_field[0];
 				$key          = ! empty( $custom_field[1] ) ? $custom_field[1] : 'value';
 				$type         = ! empty( $custom_field[2] ) ? $custom_field[2] : 'text';
@@ -111,11 +111,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 				if ( empty( $fields[ $id ] [ $key ] ) ) {
 					continue;
 				}
-
-				// Address type.
-				if ( 'address' === $fields[ $id ]['type'] ) {
-					$type = 'Address';
-				}
+				$type = 'address' === $fields[ $id ]['type'] ? 'Address' : $type;
+				$type = 'date-time' === $fields[ $id ]['type'] || 'date' === $fields[ $id ]['type'] ? 'Date' : $type;
 
 				// Special formatting for different types.
 				switch ( $type ) {
@@ -123,23 +120,23 @@ class WPForms_FormsCRM extends WPForms_Provider {
 					case 'MultiSelectMany':
 						$merge_vars = array_merge(
 							$merge_vars,
-							$this->format_multi_select_many( $fields[ $id ], $name )
+							$this->format_multi_select_many( $fields[ $id ], $conn_field_name )
 						);
 						break;*/
 
 					case 'Date':
 						$merge_vars[] =  array(
-							'name'  => $name,
-							'value' => $this->format_date( $fields[ $id ], $name, $form_data['fields'][ $id ], 'Y-m-d' ),
+							'name'  => $conn_field_name,
+							'value' => $this->format_date( $fields[ $id ], $conn_field_name, $form_data['fields'][ $id ], 'Y-m-d' ),
 						);
 						break;
 
 					case 'Address':
-						if ( str_contains( $name, '|' ) ) {
-							$address_key = explode( '|', $name );
+						if ( str_contains( $conn_field_name, '|' ) ) {
+							$address_key = explode( '|', $conn_field_name );
 							$address_key = $address_key[1];
 						} else {
-							$address_key = $name;
+							$address_key = $conn_field_name;
 						}
 						$equivalence = array(
 							'street'      => 'address1',
@@ -147,14 +144,14 @@ class WPForms_FormsCRM extends WPForms_Provider {
 						);
 						$key = isset( $equivalence[ $address_key ] ) ? $equivalence[ $address_key ] : $address_key;
 						$merge_vars[] = array(
-							'name'  => $name,
+							'name'  => $conn_field_name,
 							'value' => $fields[ $id ][ $key ],
 						);
 						break;
 
 					default:
 						$merge_vars[] = array(
-							'name'  => $name,
+							'name'  => $conn_field_name,
 							'value' => $fields[ $id ][ $key ],
 						);
 						break;
@@ -204,17 +201,12 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return array
 	 */
 	private function format_date( $field, $name, $field_data, $expected_format ) {
-
-		$result = [
-			'Key'   => '[' . $name . ']',
-			'Value' => '',
-		];
-
+		$result_date = $field_data;
 		if (
 			empty( $field_data['format'] ) ||
 			! in_array( $field_data['format'], [ 'date', 'date-time' ], true )
 		) {
-			return $result;
+			return $result_date;
 		}
 
 		// Parse a value with date string according to a specified format.
@@ -229,10 +221,10 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		}
 
 		if ( $date_time ) {
-			$result['Value'] = $date_time->format( $expected_format );
+			$result_date = $date_time->format( $expected_format );
 		}
 
-		return $result;
+		return $result_date;
 	}
 
 	/**
