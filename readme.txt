@@ -71,6 +71,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.15.3 =
+*  Added: Logs connection and entry created with WPForms in the form entry always.
+
 = 3.15.2 =
 *  Fixed: Sometimes gives Fatal error in WooCommerce Settings page.
 

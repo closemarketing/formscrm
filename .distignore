@@ -9,7 +9,7 @@ circle.yml
 composer.json
 composer.lock
 phpunit.xml.dist
-/tests/
+tests/
 .github
 composer.json
 composer.lock

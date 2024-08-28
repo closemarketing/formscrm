@@ -40,38 +40,38 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $fields
-	 * @param array $entry
-	 * @param array $form_data
-	 * @param int $entry_id
+	 * @param array $fields    Form fields.
+	 * @param array $entry     Entry data.
+	 * @param array $form_data Form data.
+	 * @param int   $entry_id  Entry ID.
 	 */
 	public function process_entry( $fields, $entry, $form_data, $entry_id = 0 ) {
-
 		// Only run if this form has a connections for this provider.
 		if ( empty( $form_data['providers'][ $this->slug ] ) ) {
 			return;
 		}
 
 		// Fire for each connection.
-		foreach ( $form_data['providers'][ $this->slug ] as $connection ) :
-
-			// Setup basic data.
+		foreach ( $form_data['providers'][ $this->slug ] as $connection ) {
 			$account_id                = $connection['account_id'];
 			$settings                  = $this->api_connect( $account_id );
 			$settings['fc_crm_module'] = $connection['list_id'];
 			$merge_vars                = array();
-			$error_data                = array(
-				'type'    => array( 'provider', 'conditional_logic' ),
-				'parent'  => $entry_id,
-				'form_id' => $form_data['id'],
-			);
+			$entry_meta                = wpforms()->get( 'entry_meta' );
+			$form_id                   = (int) $form_data['id'];
+			$title                     = '<strong>FormsCRM Log</strong><br/>';
 
 			// Check for credentials.
 			if ( empty( $settings['fc_crm_type'] ) ) {
-				wpforms_log(
-					__( 'No connection details.', 'formscrm' ),
-					$fields,
-					$error_data
+				$entry_meta->add(
+					[
+						'entry_id' => $entry_id,
+						'form_id'  => $form_id,
+						'user_id'  => get_current_user_id(),
+						'type'     => 'note',
+						'data'     => $title . __( 'No connection details.', 'formscrm' ),
+					],
+					'entry_meta'
 				);
 				return;
 			}
@@ -82,17 +82,21 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			}
 	
 			if ( ! $login_result ) {
-				wpforms_log(
-					__( 'Could not connect to CRM.', 'formscrm' ),
-					$fields,
-					$error_data
+				$entry_meta->add(
+					[
+						'entry_id' => $entry_id,
+						'form_id'  => $form_id,
+						'user_id'  => get_current_user_id(),
+						'type'     => 'note',
+						'data'     => $title . __( 'Could not connect to CRM.', 'formscrm' ),
+					],
+					'entry_meta'
 				);
 				return;
 			}
 
 			// Setup the custom fields.
 			foreach ( $connection['fields'] as $name => $custom_field ) {
-
 				// If the custom field isn't map, skip it.
 				if ( empty( $custom_field ) ) {
 					continue;
@@ -157,35 +161,34 @@ class WPForms_FormsCRM extends WPForms_Provider {
 				}
 			}
 			// Submit to API.
+			$message = '';
 			try {
 				$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
+				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 				if ( 'error' === $api_status ) {
-					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
-
-					wpforms_log(
-						'Error ' . $response_result['message'],
-						$fields,
-						$error_data
-					);
+					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars );
+					$message = __( 'Error', 'formscrm' ) . ' ' . $api_message;
 				} else {
-					wpforms_log(
-						__( 'Success creating:', 'formscrm' ) . ' ' . esc_html( $settings['fc_crm_type'] ),
-						$fields,
-						$error_data
-					);
-					formscrm_debug_message( $response_result['id'] );
+					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
 				}
 			} catch ( Exception $e ) {
-				wpforms_log(
-					__( 'Error sending information to CRM.', 'formscrm' ),
-					$e->getMessage(),
-					$error_data
-				);
+				$message = __( 'Error sending information to CRM.', 'formscrm' ) . ' ' . $e->getMessage();
 			}
 
-		endforeach;
+			// Add note final.
+			$entry_meta->add(
+				[
+					'entry_id' => $entry_id,
+					'form_id'  => $form_id,
+					'user_id'  => get_current_user_id(),
+					'type'     => 'note',
+					'data'     => $title . wpautop( $message ),
+				],
+				'entry_meta'
+			);
+		}
 	}
 
 	/**
