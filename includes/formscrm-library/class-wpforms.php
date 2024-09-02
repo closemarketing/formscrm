@@ -152,7 +152,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 					default:
 						$merge_vars[] = array(
 							'name'  => $conn_field_name,
-							'value' => $fields[ $id ][ $key ],
+							'value' => $this->fill_dynamic_value( $fields[ $id ][ $key ], $fields ),
 						);
 						break;
 				}
@@ -186,6 +186,41 @@ class WPForms_FormsCRM extends WPForms_Provider {
 				'entry_meta'
 			);
 		}
+	}
+
+	/**
+	 * Fills dynamic value.
+	 *
+	 * @param string $field_value Field value.
+	 * @param array $field_entries Field entries.
+	 * @return string
+	 */
+	private function fill_dynamic_value( $field_value, $field_entries ) {
+		if ( ! str_contains( $field_value, '{id:' ) ) { 
+			return $field_value;
+		}
+
+		// Generate dynamic value.
+		$matches = [];
+		preg_match_all( '/{([^}]*)}/', $field_value, $matches );
+		if ( empty( $matches[1] ) ) {
+			return $field_value;
+		}
+
+		foreach ( $matches[1] as $match ) {
+			$field_options = explode( ':', $match );
+			if ( ! isset( $field_options[1] ) ) {
+				continue;
+			}
+			$field_id = (int) $field_options[1];
+			if ( ! isset( $field_entries[ $field_id ]['value'] ) ) {
+				continue;
+			}
+			$entry_value = is_array( $field_entries[ $field_id ]['value'] ) ? implode( ' ', $field_entries[ $field_id ]['value'] ) : $field_entries[ $field_id ]['value'];
+			$field_value = str_replace( '{' . $match . '}', $entry_value, $field_value );
+		}
+
+		return $field_value;
 	}
 
 	/**
