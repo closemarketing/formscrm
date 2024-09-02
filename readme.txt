@@ -1,5 +1,5 @@
 === FormsCRM ===
-Contributors: closemarketing, davidperez, sacrajaimez
+Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasquero, manoloramos
 Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
