@@ -18,7 +18,7 @@
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.7",
 		"phpcompatibility/phpcompatibility-wp": "^2",
 		"sirbrillig/phpcs-variable-analysis": "^2",
-		"wp-coding-standards/wpcs": "^2",
+		"wp-coding-standards/wpcs": "^3",
 		"phpcsstandards/phpcsutils": "^1.x-dev",
 		"phpunit/phpunit": "^7",
 		"yoast/phpunit-polyfills": "^1.0"
