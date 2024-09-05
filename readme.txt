@@ -71,6 +71,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.15.6 =
+*  Added: Search contact or lead in Holded by email.
+
 = 3.15.5 =
 *  Added: Dynamic values in WPForms.
 
