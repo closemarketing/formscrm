@@ -21,7 +21,7 @@
 		"wp-coding-standards/wpcs": "^3",
 		"phpcsstandards/phpcsutils": "^1.x-dev",
 		"phpunit/phpunit": "^7",
-		"yoast/phpunit-polyfills": "^1.0"
+		"yoast/phpunit-polyfills": "^2.0"
 	},
 	"autoload": {
 		"classmap": [
