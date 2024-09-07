@@ -7,3 +7,4 @@ _test
 /tests/credentials/*
 node_modules/
 .wp-env.json
+composer.lock
