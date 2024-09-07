@@ -55,7 +55,6 @@ class TestsCRM extends WP_UnitTestCase {
 		$this->assertNotEmpty( $create_entry );
 		$this->assertArrayHasKey( 'id', $create_entry );
 
-		ob_flush();
 	}
 	/**
 	 * Tests for holded
@@ -64,11 +63,9 @@ class TestsCRM extends WP_UnitTestCase {
 	 */
 	public function test_holded() {
 		require_once FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
-		$holded_cred = file_get_contents( FORMSCRM_PLUGIN_PATH . 'credentials/holded.json' );
+		$holded_cred = file_get_contents( FORMSCRM_PLUGIN_PATH . 'tests/credentials/holded.json' );
 
 		$settings = json_decode( $holded_cred, true );
-
-		echo 'Test Holded';
 
 		$crm_holded = new CRMLIB_Holded();
 
@@ -98,7 +95,5 @@ class TestsCRM extends WP_UnitTestCase {
 		$create_entry = $crm_holded->create_entry( $settings, $test_mergevars );
 		$this->assertNotEmpty( $create_entry );
 		$this->assertArrayHasKey( 'id', $create_entry );
-
-		ob_flush();
 	}
 }

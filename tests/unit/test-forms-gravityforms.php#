@@ -1,0 +1,23 @@
+<?php
+/**
+ * Class TestsFORMS
+ *
+ * @package Formscrm
+ */
+
+/**
+ * Tests CRM Connections.
+ */
+class TestsGravityForms extends WP_UnitTestCase {
+	/**
+	 * Tests for gravityforms
+	 *
+	 * @return void
+	 */
+	public function test_gravity() {
+		require_once FORMSCRM_PLUGIN_PATH . 'includes/formscrm-library/class-gravityforms.php';
+
+		GFAddOn::register( 'GFCRM' );
+
+	}
+}

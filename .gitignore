@@ -6,3 +6,4 @@ _test
 .phpunit.result.cache
 /tests/credentials/*
 node_modules/
+.wp-env.json

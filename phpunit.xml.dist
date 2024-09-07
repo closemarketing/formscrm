@@ -8,10 +8,6 @@
 	cacheResultFile="./tests/.phpunit.result.cache"
 	>
 
-	<php>
-		<const name="WP_ENVIRONMENT_TYPE" value="local" />
-	</php>
-
 	<testsuites>
 		<testsuite name="test-web">
 			<directory prefix="test-" suffix=".php">
