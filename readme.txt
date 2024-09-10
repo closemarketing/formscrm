@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.6
-Stable tag: 3.15.6
-Version: 3.15.6
+Stable tag: 3.15.7
+Version: 3.15.7
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.15.7 =
+*  Fixed: Fixed manage contact websites in Clientify.
+*  Fixed: Better management of Clientify API errors.
+
 = 3.15.6 =
 *  Added: Search contact or lead in Holded by email.
 
