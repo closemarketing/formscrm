@@ -41,9 +41,10 @@ class CRMLIB_Clientify {
 		$url           = 'https://api.clientify.net/v1/' . $url;
 
 		while ( $next ) {
-			$result_api = wp_remote_get( $url, $args );
-			$results    = json_decode( wp_remote_retrieve_body( $result_api ), true );
-			$code       = isset( $result_api['response']['code'] ) ? (int) round( $result_api['response']['code'] / 100, 0 ) : 0;
+			$result_api  = wp_remote_get( $url, $args );
+			$results     = json_decode( wp_remote_retrieve_body( $result_api ), true );
+			$code_status = (int) wp_remote_retrieve_response_code( $result_api );
+			$code        = (int) round( $code_status / 100, 0 );
 
 			if ( 2 !== $code ) {
 				$message = implode( ' ', $result_api['response'] ) . ' ';
@@ -219,7 +220,6 @@ class CRMLIB_Clientify {
 		return $fields;
 	}
 
-
 	/**
 	 * Sends Fields addresses
 	 *
@@ -328,6 +328,47 @@ class CRMLIB_Clientify {
 	}
 
 	/**
+	 * Sends Fields addresses
+	 *
+	 * @return array
+	 */
+	private function get_fields_websites() {
+		$fields = array();
+
+		$fields[] = array(
+			'name'     => 'websites|corporate',
+			'label'    => __( 'Corporate Website', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name'     => 'websites|personal',
+			'label'    => __( 'Personal Website', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name'     => 'websites|blog',
+			'label'    => __( 'Blog Website', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name'     => 'websites|other',
+			'label'    => __( 'Other Website', 'formscrm' ),
+			'required' => false,
+		);
+
+		$fields[] = array(
+			'name'     => 'websites|main',
+			'label'    => __( 'Main Website', 'formscrm' ),
+			'required' => false,
+		);
+
+		return $fields;
+	}
+
+	/**
 	 * List fields for given module of a CRM
 	 *
 	 * @param  array  $settings settings from Gravity Forms options.
@@ -378,11 +419,8 @@ class CRMLIB_Clientify {
 				'required' => false,
 			);
 
-			$fields[] = array(
-				'name'     => 'websites|website',
-				'label'    => __( 'Website', 'formscrm' ),
-				'required' => false,
-			);
+			// Website.
+			$fields = array_merge( $fields, $this->get_fields_websites() );
 
 			$fields[] = array(
 				'name'     => 'status',
@@ -540,11 +578,8 @@ class CRMLIB_Clientify {
 				'required' => false,
 			);
 
-			$fields[] = array(
-				'name'     => 'website',
-				'label'    => __( 'Website', 'formscrm' ),
-				'required' => false,
-			);
+			// Website.
+			$fields = array_merge( $fields, $this->get_fields_websites() );
 
 			// Address.
 			$fields = array_merge( $fields, $this->get_fields_addresses() );
@@ -695,6 +730,22 @@ class CRMLIB_Clientify {
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'addresses' ) ) {
 				$address_field                                = explode( '|', $element['name'] );
 				$contact['addresses'][0][ $address_field[1] ] = $element['value'];
+			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'websites' ) ) {
+				$website_field = explode( '|', $element['name'] );
+				$website_type  = 5;
+				if ( 'corporate' === $website_field[1] ) {
+					$website_type = 1;
+				} elseif ( 'personal' === $website_field[1] ) {
+					$website_type = 2;
+				} elseif ( 'blog' === $website_field[1] ) {
+					$website_type = 3;
+				} elseif ( 'other' === $website_field[1] ) {
+					$website_type = 4;
+				}
+				$contact['websites'][] = array(
+					'type'    => $website_type,
+					'website' => $element['value'],
+				);
 			} elseif ( 'tags' === $element['name'] && false !== strpos( $element['value'], ',' ) ) {
 				$contact[ $element['name'] ] = explode( ',', $element['value'] );
 			} elseif ( 'tags' === $element['name'] && false === is_array( $element['value'] ) ) {
