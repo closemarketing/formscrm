@@ -8,6 +8,8 @@
  * @version    1.0
  */
 
+namespace CLOSE\FormsCRM\Forms_Utils;
+
 defined( 'ABSPATH' ) || exit;
 
 require_once 'helpers-functions.php';

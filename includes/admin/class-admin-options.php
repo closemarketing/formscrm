@@ -8,6 +8,8 @@
  * @version    1.0
  */
 
+namespace Close\FormsCRM\Admin;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -21,8 +23,7 @@ defined( 'ABSPATH' ) || exit;
  * @version    0.1
  */
 
-if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
-	class FORMSCRM_Admin {
+	class Admin_Page {
 
 		/**
 		 * Construct of class
@@ -175,7 +176,9 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 			<?php
 		}
 	}
-}
+
+/*
 if ( is_admin() ) {
 	$formscrm_admin = new FORMSCRM_Admin();
 }
+*/

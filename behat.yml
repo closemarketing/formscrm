@@ -1,0 +1,7 @@
+default:
+  suites:
+    default:
+      contexts:
+        - CLOSE\FormsCRM\Behat_Utils\FeatureContext
+      paths:
+        - tests/behat/features
