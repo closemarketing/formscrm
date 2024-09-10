@@ -50,12 +50,14 @@ class TestsCRM extends WP_UnitTestCase {
 			array( 'name' => 'status', 'value' => 'cold-lead '),
 			array( 'name' => 'email', 'value' => 'david+' . $this->generateRandomString( 4 ) . '@close.marketing' ),
 			array( 'name' => 'phone', 'value' => '669904426'),
+			array( 'name' => 'websites|website', 'value' => '669904426'),
 		);
 		$create_entry = $crm_clientify->create_entry( $settings, $test_mergevars );
+
+		var_dump( $create_entry );
+		ob_flush();
 		$this->assertNotEmpty( $create_entry );
 		$this->assertArrayHasKey( 'id', $create_entry );
-
-		ob_flush();
 	}
 	/**
 	 * Tests for holded

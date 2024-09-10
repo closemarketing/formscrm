@@ -55,6 +55,7 @@ $test_mergevars = array(
 	array( 'name' => 'email', 'value' => 'david+' . generateRandomString( 4 ) . '@emailtest.com' ),
 	array( 'name' => 'phone', 'value' => '666666666'),
 	array( 'name' => 'custom_fields|Programa', 'value' => 'prueba programa' ),
+	array( 'name' => 'websites|website', 'value' => '669904426'),
 );
 echo '<pre> Mergevars:';
 print_r($test_mergevars);
