@@ -13,6 +13,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+define( 'MAX_LIMIT_HOLDED_API', 500 );
+
 /**
  * Class for Holded connection.
  */
@@ -98,6 +100,41 @@ class CRMLIB_HOLDED {
 				'data'   => json_decode( $body, true ),
 			);
 		}
+	}
+
+	/**
+	 * Search a contact or lead by email
+	 *
+	 * @param string $module contacts or leads.
+	 * @param string $email  email to search.
+	 * @param string $apikey Pass to access.
+	 * @return string|bool
+	 */
+	public function search_by_email( $module, $email, $apikey ) {
+		$function = 'contacts' === $module ? 'invoicing' : 'crm';
+		$next     = true;
+		$page     = 1;
+ 
+		while ( $next ) {
+			$contacts = $this->get( $module . '?page=' . $page, $apikey, $function );
+			if ( 'error' === $contacts['status'] || empty( $contacts['data'] ) ) {
+				return false;
+			}
+
+			foreach ( $contacts['data'] as $contact ) {
+				if ( isset( $contact['email'] ) && $contact['email'] === $email ) {
+					return $contact['id'];
+				}
+			}
+						 
+			if ( count( $contacts['data'] )  === MAX_LIMIT_HOLDED_API ) {
+				$page++;
+			} else {
+				$next = false;
+			}
+		}
+
+		return false;
 	}
 
 	/**

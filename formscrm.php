@@ -3,7 +3,7 @@
  * Plugin Name: FormsCRM
  * Plugin URI:  https://close.technology/wordpress-plugins/formscrm/
  * Description: Connects Forms with CRM, ERP and Email Marketing.
- * Version:     3.15.1
+ * Version:     3.15.7
  * Author:      CloseTechnology
  * Author URI:  https://close.technology
  * Text Domain: formscrm
@@ -23,7 +23,7 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-define( 'FORMSCRM_VERSION', '3.15.1' );
+define( 'FORMSCRM_VERSION', '3.15.7' );
 define( 'FORMSCRM_PLUGIN', __FILE__ );
 define( 'FORMSCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FORMSCRM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -41,7 +41,7 @@ function fcrm_plugin_init() {
 
 add_filter(
 	'formscrm_choices',
-	function( $choices ) {
+	function ( $choices ) {
 		$choices[] = array(
 			'label' => 'Holded',
 			'value' => 'holded',
@@ -68,7 +68,7 @@ add_filter(
 
 add_filter(
 	'formscrm_dependency_apipassword',
-	function( $choices ) {
+	function ( $choices ) {
 
 		$choices[] = 'clientify';
 		$choices[] = 'acumbamail';
@@ -81,7 +81,7 @@ add_filter(
 
 add_filter(
 	'formscrm_crmlib_path',
-	function( $choices ) {
+	function ( $choices ) {
 
 		$choices['holded']     = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
 		$choices['clientify']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';

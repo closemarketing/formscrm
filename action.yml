@@ -1,0 +1,12 @@
+- uses: wordpress/plugin-check-action@v1
+  with:
+    repo-token: ''
+    build-dir: './'
+    checks: ''
+    exclude-checks: ''
+    categories: 'plugin_repo'
+    exclude-directories: ''
+    ignore-warnings: ''
+    ignore-errors: ''
+    include-experimental: ''
+    wp-version: 'latest'

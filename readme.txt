@@ -1,11 +1,11 @@
 === FormsCRM ===
-Contributors: closemarketing, davidperez, sacrajaimez
-Tags: gravityforms, forms-api, crm, vtiger, odoo
+Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasquero, manoloramos
+Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.6
-Stable tag: 3.15.1
-Version: 3.15.1
+Stable tag: 3.15.7
+Version: 3.15.7
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,7 @@ At this time, FormsCRM supports in free version:
 - [MailerLite Classic](https://close.marketing/likes/mailerlite/)
 
 And you will find, that there are Premium Addons to support:
+- [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
 - [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/)
 - [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/)
 - [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/)
@@ -54,10 +55,10 @@ Demo:
 
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
-** Dynamic values in GravityForms **
-We have developed a way to get values from other fields in GravityForms. You can use this in the field mapping in the feed. You can use:
+**Dynamic values in GravityForms and WPForms**
+We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
 {id:N} in order to get the value from field N
-{label:N} in order to get the label from field N
+{label:N} in order to get the label from field N (only in GravityForms)
 
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
 
@@ -70,6 +71,25 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 3.15.7 =
+*  Fixed: Fixed manage contact websites in Clientify.
+*  Fixed: Better management of Clientify API errors.
+
+= 3.15.6 =
+*  Added: Search contact or lead in Holded by email.
+
+= 3.15.5 =
+*  Added: Dynamic values in WPForms.
+
+= 3.15.4 =
+*  Fixed: Connection WPForms field date was not formatting to YYYY-MM-DD.
+
+= 3.15.3 =
+*  Added: Logs connection and entry created with WPForms in the form entry always.
+
+= 3.15.2 =
+*  Fixed: Sometimes gives Fatal error in WooCommerce Settings page.
+
 = 3.15.1 =
 *  Added: Support to multiple feeds in GravityForms for Clientify.
 *  Fixed: Sometimes we were getting an error in the feed.

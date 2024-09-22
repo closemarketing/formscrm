@@ -1,0 +1,35 @@
+{
+  "name": "formscrm",
+  "version": "1.0.0",
+  "description": "Plugin for connection forms.",
+  "directories": {
+    "test": "tests"
+  },
+  "private": true,
+  "scripts": {
+    "wp-env": "wp-env",
+    "setup:tools": "npm run wp-env run composer install",
+    "test": "npm run wp-env run phpunit 'phpunit -c /var/www/html/wp-content/plugins/formscrm/phpunit.xml.dist'",
+    "test:e2e": "npx playwright test",
+    "test:wpe2e": "npx playwright test --config tests/e2e/playwright.config.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/closemarketing/formscrm.git"
+  },
+  "author": "David Pérez",
+  "license": "GPL-2.0-or-later",
+  "bugs": {
+    "url": "https://github.com/closemarketing/formscrm/issues"
+  },
+  "homepage": "https://github.com/closemarketing/formscrm#readme",
+  "dependencies": {
+    "@wordpress/env": "^10.7.0",
+    "csv-parse": "^5.4.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0",
+    "@types/node": "^22.5.4",
+    "@wordpress/e2e-test-utils-playwright": "^1.7.0"
+  }
+}

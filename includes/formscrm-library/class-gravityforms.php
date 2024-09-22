@@ -305,7 +305,7 @@ class GFCRM extends GFFeedAddOn {
 	 * Get CRM fields
 	 *
 	 * @param [type] $settings
-	 * @return void
+	 * @return array
 	 */
 	private function get_crm_feed_fields( $settings ) {
 		$crm_feed_fields = array();

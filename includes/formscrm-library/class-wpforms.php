@@ -40,38 +40,38 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $fields
-	 * @param array $entry
-	 * @param array $form_data
-	 * @param int $entry_id
+	 * @param array $fields    Form fields.
+	 * @param array $entry     Entry data.
+	 * @param array $form_data Form data.
+	 * @param int   $entry_id  Entry ID.
 	 */
 	public function process_entry( $fields, $entry, $form_data, $entry_id = 0 ) {
-
 		// Only run if this form has a connections for this provider.
 		if ( empty( $form_data['providers'][ $this->slug ] ) ) {
 			return;
 		}
 
 		// Fire for each connection.
-		foreach ( $form_data['providers'][ $this->slug ] as $connection ) :
-
-			// Setup basic data.
+		foreach ( $form_data['providers'][ $this->slug ] as $connection ) {
 			$account_id                = $connection['account_id'];
 			$settings                  = $this->api_connect( $account_id );
 			$settings['fc_crm_module'] = $connection['list_id'];
 			$merge_vars                = array();
-			$error_data                = array(
-				'type'    => array( 'provider', 'conditional_logic' ),
-				'parent'  => $entry_id,
-				'form_id' => $form_data['id'],
-			);
+			$entry_meta                = wpforms()->get( 'entry_meta' );
+			$form_id                   = (int) $form_data['id'];
+			$title                     = '<strong>FormsCRM Log</strong><br/>';
 
 			// Check for credentials.
 			if ( empty( $settings['fc_crm_type'] ) ) {
-				wpforms_log(
-					__( 'No connection details.', 'formscrm' ),
-					$fields,
-					$error_data
+				$entry_meta->add(
+					[
+						'entry_id' => $entry_id,
+						'form_id'  => $form_id,
+						'user_id'  => get_current_user_id(),
+						'type'     => 'note',
+						'data'     => $title . __( 'No connection details.', 'formscrm' ),
+					],
+					'entry_meta'
 				);
 				return;
 			}
@@ -82,23 +82,27 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			}
 	
 			if ( ! $login_result ) {
-				wpforms_log(
-					__( 'Could not connect to CRM.', 'formscrm' ),
-					$fields,
-					$error_data
+				$entry_meta->add(
+					[
+						'entry_id' => $entry_id,
+						'form_id'  => $form_id,
+						'user_id'  => get_current_user_id(),
+						'type'     => 'note',
+						'data'     => $title . __( 'Could not connect to CRM.', 'formscrm' ),
+					],
+					'entry_meta'
 				);
 				return;
 			}
 
 			// Setup the custom fields.
-			foreach ( $connection['fields'] as $name => $custom_field ) {
-
+			foreach ( $connection['fields'] as $conn_field_name => $conn_field ) {
 				// If the custom field isn't map, skip it.
-				if ( empty( $custom_field ) ) {
+				if ( empty( $conn_field ) ) {
 					continue;
 				}
 
-				$custom_field = explode( '.', $custom_field );
+				$custom_field = explode( '.', $conn_field );
 				$id           = $custom_field[0];
 				$key          = ! empty( $custom_field[1] ) ? $custom_field[1] : 'value';
 				$type         = ! empty( $custom_field[2] ) ? $custom_field[2] : 'text';
@@ -107,11 +111,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 				if ( empty( $fields[ $id ] [ $key ] ) ) {
 					continue;
 				}
-
-				// Address type.
-				if ( 'address' === $fields[ $id ]['type'] ) {
-					$type = 'Address';
-				}
+				$type = 'address' === $fields[ $id ]['type'] ? 'Address' : $type;
+				$type = 'date-time' === $fields[ $id ]['type'] || 'date' === $fields[ $id ]['type'] ? 'Date' : $type;
 
 				// Special formatting for different types.
 				switch ( $type ) {
@@ -119,23 +120,23 @@ class WPForms_FormsCRM extends WPForms_Provider {
 					case 'MultiSelectMany':
 						$merge_vars = array_merge(
 							$merge_vars,
-							$this->format_multi_select_many( $fields[ $id ], $name )
+							$this->format_multi_select_many( $fields[ $id ], $conn_field_name )
 						);
 						break;*/
 
 					case 'Date':
 						$merge_vars[] =  array(
-							'name'  => $name,
-							'value' => $this->format_date( $fields[ $id ], $name, $form_data['fields'][ $id ], 'Y-m-d' ),
+							'name'  => $conn_field_name,
+							'value' => $this->format_date( $fields[ $id ], $conn_field_name, $form_data['fields'][ $id ], 'Y-m-d' ),
 						);
 						break;
 
 					case 'Address':
-						if ( str_contains( $name, '|' ) ) {
-							$address_key = explode( '|', $name );
+						if ( str_contains( $conn_field_name, '|' ) ) {
+							$address_key = explode( '|', $conn_field_name );
 							$address_key = $address_key[1];
 						} else {
-							$address_key = $name;
+							$address_key = $conn_field_name;
 						}
 						$equivalence = array(
 							'street'      => 'address1',
@@ -143,49 +144,83 @@ class WPForms_FormsCRM extends WPForms_Provider {
 						);
 						$key = isset( $equivalence[ $address_key ] ) ? $equivalence[ $address_key ] : $address_key;
 						$merge_vars[] = array(
-							'name'  => $name,
+							'name'  => $conn_field_name,
 							'value' => $fields[ $id ][ $key ],
 						);
 						break;
 
 					default:
 						$merge_vars[] = array(
-							'name'  => $name,
-							'value' => $fields[ $id ][ $key ],
+							'name'  => $conn_field_name,
+							'value' => $this->fill_dynamic_value( $fields[ $id ][ $key ], $fields ),
 						);
 						break;
 				}
 			}
 			// Submit to API.
+			$message = '';
 			try {
 				$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
+				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 				if ( 'error' === $api_status ) {
-					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
-
-					wpforms_log(
-						'Error ' . $response_result['message'],
-						$fields,
-						$error_data
-					);
+					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars );
+					$message = __( 'Error', 'formscrm' ) . ' ' . $api_message;
 				} else {
-					wpforms_log(
-						__( 'Success creating:', 'formscrm' ) . ' ' . esc_html( $settings['fc_crm_type'] ),
-						$fields,
-						$error_data
-					);
-					formscrm_debug_message( $response_result['id'] );
+					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
 				}
 			} catch ( Exception $e ) {
-				wpforms_log(
-					__( 'Error sending information to CRM.', 'formscrm' ),
-					$e->getMessage(),
-					$error_data
-				);
+				$message = __( 'Error sending information to CRM.', 'formscrm' ) . ' ' . $e->getMessage();
 			}
 
-		endforeach;
+			// Add note final.
+			$entry_meta->add(
+				[
+					'entry_id' => $entry_id,
+					'form_id'  => $form_id,
+					'user_id'  => get_current_user_id(),
+					'type'     => 'note',
+					'data'     => $title . wpautop( $message ),
+				],
+				'entry_meta'
+			);
+		}
+	}
+
+	/**
+	 * Fills dynamic value.
+	 *
+	 * @param string $field_value Field value.
+	 * @param array $field_entries Field entries.
+	 * @return string
+	 */
+	private function fill_dynamic_value( $field_value, $field_entries ) {
+		if ( ! str_contains( $field_value, '{id:' ) ) { 
+			return $field_value;
+		}
+
+		// Generate dynamic value.
+		$matches = [];
+		preg_match_all( '/{([^}]*)}/', $field_value, $matches );
+		if ( empty( $matches[1] ) ) {
+			return $field_value;
+		}
+
+		foreach ( $matches[1] as $match ) {
+			$field_options = explode( ':', $match );
+			if ( ! isset( $field_options[1] ) ) {
+				continue;
+			}
+			$field_id = (int) $field_options[1];
+			if ( ! isset( $field_entries[ $field_id ]['value'] ) ) {
+				continue;
+			}
+			$entry_value = is_array( $field_entries[ $field_id ]['value'] ) ? implode( ' ', $field_entries[ $field_id ]['value'] ) : $field_entries[ $field_id ]['value'];
+			$field_value = str_replace( '{' . $match . '}', $entry_value, $field_value );
+		}
+
+		return $field_value;
 	}
 
 	/**
@@ -201,17 +236,12 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return array
 	 */
 	private function format_date( $field, $name, $field_data, $expected_format ) {
-
-		$result = [
-			'Key'   => '[' . $name . ']',
-			'Value' => '',
-		];
-
+		$result_date = $field_data;
 		if (
 			empty( $field_data['format'] ) ||
 			! in_array( $field_data['format'], [ 'date', 'date-time' ], true )
 		) {
-			return $result;
+			return $result_date;
 		}
 
 		// Parse a value with date string according to a specified format.
@@ -226,10 +256,10 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		}
 
 		if ( $date_time ) {
-			$result['Value'] = $date_time->format( $expected_format );
+			$result_date = $date_time->format( $expected_format );
 		}
 
-		return $result;
+		return $result_date;
 	}
 
 	/**
