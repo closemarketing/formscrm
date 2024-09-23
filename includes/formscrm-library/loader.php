@@ -15,7 +15,7 @@ require_once 'helpers-library-crm.php';
 
 $load_admin_options = apply_filters( 'formscrm_load_options', true );
 if ( $load_admin_options ) {
-	require_once 'class-admin-options.php';
+	require_once FORMSCRM_PLUGIN_PATH . 'includes/admin/class-admin-options.php';
 }
 require_once 'class-forms-clientify.php';
 
@@ -59,13 +59,13 @@ if ( is_plugin_active( 'woocommerce/woocommerce.php' ) && ! class_exists( 'Forms
 
 // WPForms.
 if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_FormsCRM' ) ) {
-	add_action( 'wpforms_loaded', 'wpforms_formscrm' );
+	add_action( 'wpforms_loaded', 'formscrm_wpforms' );
 	/**
 	 * Load the provider class.
 	 *
 	 * @since 3.7.2
 	 */
-	function wpforms_formscrm() {
+	function formscrm_wpforms() {
 
 		// WPForms Pro is required.
 		if ( ! wpforms()->pro ) {
@@ -77,19 +77,17 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 
 // Elementor.
 if ( is_plugin_active( 'elementor/elementor.php' ) ) {
-	
+	add_action(
+		'elementor_pro/init',
+		function () {
+			// Here its safe to include our action class file.
+			include_once FORMSCRM_PLUGIN_PATH . 'includes/formscrm-library/class-elementor.php';
 
-		//require_once 'class-elementor.php';
-	
-		add_action( 'elementor_pro/init', function() {
-			// Here its safe to include our action class file
-			include_once( dirname(__FILE__).'/class-elementor.php' );
-		
-			// Instantiate the action class
+			// Instantiate the action class.
 			$formscrm_action = new FormsCRM_Elementor_Action_After_Submit();
-		
-			// Register the action with form widget
+
+			// Register the action with form widget.
 			\ElementorPro\Plugin::instance()->modules_manager->get_modules( 'forms' )->add_form_action( $formscrm_action->get_name(), $formscrm_action );
-		});
-	
+		}
+	);
 }

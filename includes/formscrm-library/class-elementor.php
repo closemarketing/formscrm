@@ -82,12 +82,12 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	public function register_settings_section( $widget ) {
 		$widget->start_controls_section(
 			'section_formscrm',
-			[
+			array(
 				'label' => __( 'FormsCRM', 'formscrm' ),
-				'condition' => [
+				'condition' => array(
 					'submit_actions' => $this->get_name(),
-				],
-			]
+				),
+			)
 		);
 
 		$crm_types = array();
@@ -186,10 +186,35 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'label'       => __( 'Odoo DB', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::TEXT,
 				'label_block' => true,
-				'description' => __( '', 'formscrm' ),
+				'description' => __( 'Odoo DB to connect this form.', 'formscrm' ),
 				'condition'   => array(
 					'fc_crm_type' => formscrm_get_dependency_odoodb(),
 				),
+			)
+		);
+
+		$widget->add_control(
+			'delete_content',
+			[
+				'label'       => esc_html__( 'Connect CRM', 'textdomain' ),
+				'type'        => \Elementor\Controls_Manager::BUTTON,
+				'separator'   => 'before',
+				'button_type' => 'info',
+				'text'        => esc_html__( 'Connect', 'textdomain' ),
+				'event'       => 'namespace:editor:delete',
+			]
+		);
+
+		// CRM Type.
+		$widget->add_control(
+			'fc_crm_module',
+			array(
+				'label'       => __( 'CRM Module', 'formscrm' ),
+				'type'        => \Elementor\Controls_Manager::SELECT,
+				'label_block' => true,
+				'separator'   => 'before',
+				'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
+				'options'     => $crm_types,
 			)
 		);
 
@@ -207,6 +232,32 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				$crmlib[ $crmname ] = new $crmclassname();
 			}
 		}
+		$widget->add_control(
+			'formscrm_fields',
+			array(
+				'label' => esc_html__( 'Repeater List', 'textdomain' ),
+				'type' => \Elementor\Controls_Manager::REPEATER,
+				'fields' => array(
+					array(
+						'label'       => __( 'Field from CRM', 'formscrm' ),
+						'type'        => \Elementor\Controls_Manager::SELECT,
+						'label_block' => true,
+						'separator'   => 'before',
+						'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
+						'options'     => $crm_types,
+					),
+					array(
+						'label'       => __( 'CRM Type', 'formscrm' ),
+						'type'        => \Elementor\Controls_Manager::SELECT,
+						'label_block' => true,
+						'separator'   => 'before',
+						'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
+						'options'     => $crm_types,
+					)
+					),
+				'title_field' => '{{{ list_title }}}',
+			)
+		);
 		/*
 
 		$widget->add_control(
