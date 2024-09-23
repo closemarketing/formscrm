@@ -12,10 +12,15 @@
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; 
+	exit;
 }
 
+/**
+ * Action Class
+ */
 class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\Action_Base {
+
+	private $crmlib;
 
 	/**
 	 * Get Name
@@ -26,7 +31,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @return string
 	 */
 	public function get_name() {
-		return 'formscrm integration';
+		return 'formscrm';
 	}
 
 	/**
@@ -201,7 +206,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'separator'   => 'before',
 				'button_type' => 'info',
 				'text'        => esc_html__( 'Connect', 'textdomain' ),
-				'event'       => 'namespace:editor:delete',
+				'event'       => 'formscrm:editor:connectCRM',
 			]
 		);
 
@@ -218,224 +223,52 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			)
 		);
 
-		/**
-		 * ## Fields
-		 * --------------------------- */
+		$settings_form = $widget->get_settings();
+		if ( ! empty( $settings_form['fc_crm_type'] ) ) {
+			$this->include_library( $settings_form['fc_crm_type'] );
+			/**
+			 * ## Module
+			 * --------------------------- */
 
-		foreach ( $crm_types as $key => $value ) {
-			$crmname      = strtolower( $value );
-			$crmclassname = str_replace( ' ', '', $crmname );
-			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
+			$modules = isset( $this->crmlib ) ? $this->crmlib->list_modules( $settings_form['fc_crm_type'] ) : array();
+			if ( ! empty( $modules ) ) {
+				foreach ( $modules as $module ) {
 
-			if ( class_exists( $crmclassname ) ) {
-				$crmlib[ $crmname ] = new $crmclassname();
+				}
 			}
+			/**
+			 * ## Fields
+			 * --------------------------- */
+			/*
+			$widget->add_control(
+				'formscrm_fields',
+				array(
+					'label' => esc_html__( 'Repeater List', 'textdomain' ),
+					'type' => \Elementor\Controls_Manager::REPEATER,
+					'fields' => array(
+						array(
+							'label'       => __( 'Field from CRM', 'formscrm' ),
+							'type'        => \Elementor\Controls_Manager::SELECT,
+							'label_block' => true,
+							'separator'   => 'before',
+							'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
+							'options'     => $crm_types,
+						),
+						array(
+							'label'       => __( 'CRM Type', 'formscrm' ),
+							'type'        => \Elementor\Controls_Manager::SELECT,
+							'label_block' => true,
+							'separator'   => 'before',
+							'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
+							'options'     => $crm_types,
+						),
+					),
+					'title_field' => '{{{ list_title }}}',
+				)
+			);
+			*/
 		}
-		$widget->add_control(
-			'formscrm_fields',
-			array(
-				'label' => esc_html__( 'Repeater List', 'textdomain' ),
-				'type' => \Elementor\Controls_Manager::REPEATER,
-				'fields' => array(
-					array(
-						'label'       => __( 'Field from CRM', 'formscrm' ),
-						'type'        => \Elementor\Controls_Manager::SELECT,
-						'label_block' => true,
-						'separator'   => 'before',
-						'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
-						'options'     => $crm_types,
-					),
-					array(
-						'label'       => __( 'CRM Type', 'formscrm' ),
-						'type'        => \Elementor\Controls_Manager::SELECT,
-						'label_block' => true,
-						'separator'   => 'before',
-						'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
-						'options'     => $crm_types,
-					)
-					),
-				'title_field' => '{{{ list_title }}}',
-			)
-		);
-		/*
-
-		$widget->add_control(
-			'formscrm_double_optin_template',
-			[
-				'label' => __( 'Double Opt-in Template ID', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::NUMBER,
-				'placeholder' => '5',
-				'separator' => 'before',
-				'description' => __( 'Enter your double opt-in template ID - <a href="https://help.formscrm.com/hc/en-us/articles/360019540880-Create-a-double-opt-in-DOI-confirmation-template-for-FormsCRM-form" target="_blank">More info here</a>', 'formscrm' ),
-    			'condition' => array(
-    				'formscrm_double_optin' => 'yes',
-    			),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_double_optin_redirect_url',
-			[
-				'label' => __( 'Double Opt-in Redirect URL', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::TEXT,
-				'placeholder' => 'https://website.com/thank-you',
-				'label_block' => true,
-				'separator' => 'before',
-				'description' => __( 'Enter the url you want to redirect to after the subscriber confirms double opt-in', 'formscrm' ),
-    			'condition' => array(
-    				'formscrm_double_optin' => 'yes',
-    			),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_double_optin_check_if_email_exists',
-			[
-				'label' => __( 'Check if user already exists - Skip Double Opt-in', 'formscrm' ),
-				'description' => __( 'Note: This will skip the notification email. This will still update the users fields', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::SWITCHER,
-				'separator' => 'before',
-    			'condition' => array(
-    				'formscrm_double_optin' => 'yes',
-    			),
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_gdpr_checkbox',
-			[
-				'label' => __( 'GDPR Checkbox', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::SWITCHER,
-				'separator' => 'before'
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_gdpr_checkbox_field',
-			[
-				'label' => __( 'Acceptance Field ID', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::TEXT,
-				'placeholder' => 'acceptancefieldid',
-				'separator' => 'before',
-				'description' => __( 'Enter the acceptance checkbox field id - you can find this under the acceptance field advanced tab - if the acceptance checkbox is not checked then the email and extra information will not be added to the list', 'formscrm' ),
-    			'condition' => array(
-    				'formscrm_gdpr_checkbox' => 'yes',
-    			),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_list',
-			[
-				'label' => __( 'FormsCRM List ID', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::NUMBER,
-				'placeholder' => '5',
-				'separator' => 'before',
-				'description' => __( 'Enter your list number', 'formscrm' ),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_email_field',
-			[
-				'label' => __( 'Email Field ID', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::TEXT,
-				'placeholder' => 'email',
-				'default' => 'email',
-				'separator' => 'before',
-				'description' => __( 'Enter the email field id - you can find this under the email field advanced tab', 'formscrm' ),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_name_attribute_field',
-			[
-				'label' => __( 'Name Field attribute (Optional)', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::TEXT,
-				'placeholder' => 'FIRSTNAME',
-				'separator' => 'before',
-				'description' => __( 'Enter the firstname attribute name - you can find this under contact attributes settings in FormsCRM - If this field is not set it wil default to FIRSTNAME', 'formscrm' ),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_name_field',
-			[
-				'label' => __( 'Name Field ID (Optional)', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::TEXT,
-				'placeholder' => 'name',
-				'description' => __( 'Enter the name field id - you can find this under the name field advanced tab', 'formscrm' ),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_last_name_attribute_field',
-			[
-				'label' => __( 'Lastname Field attribute (Optional)', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::TEXT,
-				'placeholder' => 'LASTNAME',
-				'separator' => 'before',
-				'description' => __( 'Enter the lastname attribute name - you can find this under contact attributes settings in FormsCRM - If this field is not set it wil default to LASTNAME', 'formscrm' ),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'formscrm_last_name_field',
-			[
-				'label' => __( 'Lastname Field ID (Optional)', 'formscrm' ),
-				'type' => \Elementor\Controls_Manager::TEXT,
-				'placeholder' => 'lastname',
-				'description' => __( 'Enter the lastname field id - you can find this under the lastname field advanced tab', 'formscrm' ),
-				'dynamic' => [
-					'active' => true,
-				],
-			]
-		);
-
-		$widget->add_control(
-			'pro_version_note',
-			[
-				'type' => \Elementor\Controls_Manager::RAW_HTML,
-				'raw' => __('Need more attributes? <a href="https://plugins.webtica.be/product/formscrm-pro-integration-for-elementor-forms/?ref=plugin-widget" target="_blank">Check out our Pro version.</a>', 'formscrm'),
-			]
-		);
-
-		$widget->add_control(
-			'need_help_note',
-			[
-				'type' => \Elementor\Controls_Manager::RAW_HTML,
-				'raw' => __('Need help? <a href="https://plugins.webtica.be/support/?ref=plugin-widget" target="_blank">Check out our support page.</a>', 'formscrm'),
-			]
-		);
-		*/
-
 		$widget->end_controls_section();
-
 	}
 
 	/**
