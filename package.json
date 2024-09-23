@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/closemarketing/formscrm#readme",
   "dependencies": {
-    "@wordpress/env": "^10.7.0",
+    "@wordpress/env": "^10.8.0",
     "csv-parse": "^5.4.0"
   },
   "devDependencies": {
