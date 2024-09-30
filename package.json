@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.47.0",
-    "@types/node": "^22.5.4",
+    "@types/node": "^22.7.4",
     "@wordpress/e2e-test-utils-playwright": "^1.7.0"
   }
 }
