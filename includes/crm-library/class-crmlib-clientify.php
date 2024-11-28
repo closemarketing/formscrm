@@ -382,6 +382,15 @@ class CRMLIB_Clientify {
 		$module_slug = sanitize_title( $module );
 
 		$fields = array();
+		
+		if ( 'contacts' === $module_slug ) {
+			$fields[] = array(
+				'name'     => 'country',
+				'label'    => __( '(Others tab) Country', 'formscrm' ),
+				'required' => false,
+			);
+		}
+
 		if ( 'contacts' === $module_slug || 'contacts-deals' === $module_slug ) {
 			$fields[] = array(
 				'name'     => 'owner',
