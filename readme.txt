@@ -35,6 +35,7 @@ At this time, FormsCRM supports in free version:
 - [Clientify](https://close.marketing/likes/clientify/)
 - [AcumbaMail](https://acumbamail.com/)
 - [MailerLite Classic](https://close.marketing/likes/mailerlite/)
+- [Brevo](https://brevo.com/)
 
 And you will find, that there are Premium Addons to support:
 - [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
@@ -71,6 +72,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.0 =
+*  Added Brevo Email Marketing.
+
 = 3.15.7 =
 *  Fixed: Fixed manage contact websites in Clientify.
 *  Fixed: Better management of Clientify API errors.
