@@ -67,8 +67,7 @@ class CRMLIB_Brevo {
 				'data'   => $result_data,
 			);
 		} else {
-			$result = $this->request( $module, $args );
-			return $result;
+			return $this->request( $module, $args );
 		}
 	}
 
@@ -100,7 +99,7 @@ class CRMLIB_Brevo {
 		} else {
 			return array(
 				'status' => 'ok',
-				'data'   => isset( $api_data['id'] ) ? $api_data['id'] : $api_data,
+				'data'   => $api_data,
 			);
 		}
 	}
@@ -233,7 +232,7 @@ class CRMLIB_Brevo {
 	 */
 	public function create_entry( $settings, $merge_vars ) {
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$list_id = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
+		$list_id = isset( $settings['fc_crm_module'] ) ? (int) $settings['fc_crm_module'] : '';
 
 		$subscriber            = array();
 		$subscriber['listIds'] = array( $list_id );
