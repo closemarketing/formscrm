@@ -72,6 +72,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.0 =
+*  Added Brevo Email Marketing.
+
 = 3.15.7 =
 *  Fixed: Fixed manage contact websites in Clientify.
 *  Fixed: Better management of Clientify API errors.
