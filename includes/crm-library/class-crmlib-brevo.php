@@ -276,5 +276,4 @@ class CRMLIB_Brevo {
 
 		return $response_result;
 	}
-
 } //from Class
