@@ -12,45 +12,43 @@ class FluentFormsIntegration extends IntegrationManagerController
     {
         parent::__construct(
             $application,
-            'Mailchimp',
-            'mailchimp',
-            '_fluentform_mailchimp_details',
-            'mailchimp_feeds',
+            'FormsCRM',
+            'formscrm',
+            '_fluentform_formscrm_details',
+            'formscrm_feeds',
             12
         );
 
-        $this->description = __('Fluent Forms Mailchimp module allows you to create Mailchimp newsletter signup forms in WordPress', 'fluentform');
+        $this->description = __('Fluent Forms FormsCRM module allows you to create FormsCRM newsletter signup forms in WordPress', 'fluentform');
 
-        $this->logo = fluentFormMix('img/integrations/mailchimp.png');
+        $this->logo = fluentFormMix('img/integrations/formscrm.png');
         $this->registerAdminHooks();
 
-        add_action('wp_ajax_fluentform_mailchimp_interest_groups', [$this, 'fetchInterestGroups']);
+        add_action('wp_ajax_fluentform_formscrm_interest_groups', [$this, 'fetchInterestGroups']);
 
-        add_filter('fluentform/save_integration_value_mailchimp', [$this, 'sanitizeSettings'], 10, 3);
-
-//        add_filter('fluentform/notifying_async_mailchimp', '__return_false');
+        add_filter('fluentform/save_integration_value_formscrm', [$this, 'sanitizeSettings'], 10, 3);
     }
 
     public function getGlobalFields($fields)
     {
         return [
             'logo'             => $this->logo,
-            'menu_title'       => __('Mailchimp Settings', 'fluentform'),
-            'menu_description' => __('Mailchimp is a marketing platform for small businesses. Send beautiful emails, connect your e-commerce store, advertise, and build your brand. Use Fluent Forms to collect customer information and automatically add it to your Mailchimp campaign list. If you don\'t have a Mailchimp account, you can <a href="https://mailchimp.com/" target="_blank">sign up for one here.</a>', 'fluentform'),
-            'valid_message'    => __('Your Mailchimp API Key is valid', 'fluentform'),
-            'invalid_message'  => __('Your Mailchimp API Key is not valid', 'fluentform'),
+            'menu_title'       => __('FormsCRM Settings', 'fluentform'),
+            'menu_description' => __('FormsCRM is a marketing platform for small businesses. Send beautiful emails, connect your e-commerce store, advertise, and build your brand. Use Fluent Forms to collect customer information and automatically add it to your FormsCRM campaign list. If you don\'t have a FormsCRM account, you can <a href="https://formscrm.com/" target="_blank">sign up for one here.</a>', 'fluentform'),
+            'valid_message'    => __('Your FormsCRM API Key is valid', 'fluentform'),
+            'invalid_message'  => __('Your FormsCRM API Key is not valid', 'fluentform'),
             'save_button_text' => __('Save Settings', 'fluentform'),
             'fields'           => [
                 'apiKey' => [
                     'type'       => 'text',
-                    'label_tips' => __('Enter your Mailchimp API Key, if you do not have <br>Please login to your Mailchimp account and go to<br>Profile -> Extras -> Api Keys', 'fluentform'),
-                    'label'      => __('Mailchimp API Key', 'fluentform'),
+                    'label_tips' => __('Enter your FormsCRM API Key, if you do not have <br>Please login to your FormsCRM account and go to<br>Profile -> Extras -> Api Keys', 'fluentform'),
+                    'label'      => __('FormsCRM API Key', 'fluentform'),
                 ],
             ],
             'hide_on_valid'    => true,
             'discard_settings' => [
-                'section_description' => __('Your Mailchimp API integration is up and running', 'fluentform'),
-                'button_text'         => __('Disconnect Mailchimp', 'fluentform'),
+                'section_description' => __('Your FormsCRM API integration is up and running', 'fluentform'),
+                'button_text'         => __('Disconnect FormsCRM', 'fluentform'),
                 'data'                => [
                     'apiKey' => '',
                 ],
@@ -101,7 +99,7 @@ class FluentFormsIntegration extends IntegrationManagerController
             ], 400);
         }
 
-        // Mailchimp key is verified now, Proceed now
+        // FormsCRM key is verified now, Proceed now
 
         $mailChimpSettings = [
             'apiKey' => sanitize_text_field($mailChimp['apiKey']),
@@ -112,21 +110,21 @@ class FluentFormsIntegration extends IntegrationManagerController
         update_option($this->optionKey, $mailChimpSettings, 'no`');
 
         wp_send_json_success([
-            'message' => __('Your mailchimp api key has been verified and successfully set', 'fluentform'),
+            'message' => __('Your formscrm api key has been verified and successfully set', 'fluentform'),
             'status'  => true,
         ], 200);
     }
 
     public function pushIntegration($integrations, $formId)
     {
-        $integrations['mailchimp'] = [
-            'title'                 => __('Mailchimp Feed', 'fluentform'),
+        $integrations['formscrm'] = [
+            'title'                 => __('FormsCRM Feed', 'fluentform'),
             'logo'                  => $this->logo,
             'is_active'             => $this->isConfigured(),
             'configure_title'       => __('Configuration required!', 'fluentform'),
-            'global_configure_url'  => admin_url('admin.php?page=fluent_forms_settings#general-mailchimp-settings'),
-            'configure_message'     => __('Mailchimp is not configured yet! Please configure your mailchimp api first', 'fluentform'),
-            'configure_button_text' => __('Set Mailchimp API', 'fluentform'),
+            'global_configure_url'  => admin_url('admin.php?page=fluent_forms_settings#general-formscrm-settings'),
+            'configure_message'     => __('FormsCRM is not configured yet! Please configure your formscrm api first', 'fluentform'),
+            'configure_button_text' => __('Set FormsCRM API', 'fluentform'),
         ];
 
         return $integrations;
@@ -171,9 +169,9 @@ class FluentFormsIntegration extends IntegrationManagerController
                 ],
                 [
                     'key'         => 'list_id',
-                    'label'       => __('Mailchimp List', 'fluentform'),
-                    'placeholder' => __('Select Mailchimp List', 'fluentform'),
-                    'tips'        => __('Select the Mailchimp list you would like to add your contacts to.', 'fluentform'),
+                    'label'       => __('FormsCRM List', 'fluentform'),
+                    'placeholder' => __('Select FormsCRM List', 'fluentform'),
+                    'tips'        => __('Select the FormsCRM list you would like to add your contacts to.', 'fluentform'),
                     'component'   => 'list_ajax_options',
                     'options'     => $this->getLists(),
                 ],
@@ -181,9 +179,9 @@ class FluentFormsIntegration extends IntegrationManagerController
                     'key'                => 'merge_fields',
                     'require_list'       => true,
                     'label'              => __('Map Fields', 'fluentform'),
-                    'tips'               => __('Associate your Mailchimp merge tags to the appropriate Fluent Forms fields by selecting the appropriate form field from the list. Also, Mailchimp Date fields supports only MM/DD/YYYY and DD/MM/YYYY format.', 'fluentform'),
+                    'tips'               => __('Associate your FormsCRM merge tags to the appropriate Fluent Forms fields by selecting the appropriate form field from the list. Also, FormsCRM Date fields supports only MM/DD/YYYY and DD/MM/YYYY format.', 'fluentform'),
                     'component'          => 'map_fields',
-                    'field_label_remote' => __('Mailchimp Field', 'fluentform'),
+                    'field_label_remote' => __('FormsCRM Field', 'fluentform'),
                     'field_label_local'  => __('Form Field', 'fluentform'),
                     'primary_fileds'     => [
                         [
@@ -198,19 +196,19 @@ class FluentFormsIntegration extends IntegrationManagerController
                     'key'               => 'interest_group',
                     'require_list'      => true,
                     'label'             => __('Interest Group', 'fluentform'),
-                    'tips'              => __('You can map your mailchimp interest group for this contact', 'fluentform'),
+                    'tips'              => __('You can map your formscrm interest group for this contact', 'fluentform'),
                     'component'         => 'chained_fields',
                     'sub_type'          => 'radio',
                     'category_label'    => __('Select Interest Category', 'fluentform'),
                     'subcategory_label' => __('Select Interest', 'fluentform'),
-                    'remote_url'        => admin_url('admin-ajax.php?action=fluentform_mailchimp_interest_groups'),
-                    'inline_tip'        => __('Select the mailchimp interest category and interest', 'fluentform'),
+                    'remote_url'        => admin_url('admin-ajax.php?action=fluentform_formscrm_interest_groups'),
+                    'inline_tip'        => __('Select the formscrm interest category and interest', 'fluentform'),
                 ],
                 [
                     'key'                => 'tags',
                     'require_list'       => true,
                     'label'              => __('Tags', 'fluentform'),
-                    'tips'               => __('Associate tags to your Mailchimp contacts with a comma separated list (e.g. new lead, FluentForms, web source). Commas within a merge tag value will be created as a single tag.', 'fluentform'),
+                    'tips'               => __('Associate tags to your FormsCRM contacts with a comma separated list (e.g. new lead, FluentForms, web source). Commas within a merge tag value will be created as a single tag.', 'fluentform'),
                     'component'          => 'selection_routing',
                     'simple_component'   => 'value_text',
                     'routing_input_type' => 'text',
@@ -234,7 +232,7 @@ class FluentFormsIntegration extends IntegrationManagerController
                     'key'            => 'doubleOptIn',
                     'require_list'   => true,
                     'label'          => __('Double Opt-in', 'fluentform'),
-                    'tips'           => __('When the double opt-in option is enabled, Mailchimp will send a confirmation email to the user and will only add them to your <br /Mailchimp list upon confirmation.', 'fluentform'),
+                    'tips'           => __('When the double opt-in option is enabled, FormsCRM will send a confirmation email to the user and will only add them to your <br /FormsCRM list upon confirmation.', 'fluentform'),
                     'component'      => 'checkbox-single',
                     'checkbox_label' => __('Enable Double Opt-in', 'fluentform'),
                 ],
@@ -258,7 +256,7 @@ class FluentFormsIntegration extends IntegrationManagerController
                     'require_list' => true,
                     'key'          => 'conditionals',
                     'label'        => __('Conditional Logics', 'fluentform'),
-                    'tips'         => __('Allow mailchimp integration conditionally based on your submission values', 'fluentform'),
+                    'tips'         => __('Allow formscrm integration conditionally based on your submission values', 'fluentform'),
                     'component'    => 'conditional_block',
                 ],
                 [
@@ -270,7 +268,7 @@ class FluentFormsIntegration extends IntegrationManagerController
                 ],
             ],
             'button_require_list' => true,
-            'integration_title'   => __('Mailchimp', 'fluentform'),
+            'integration_title'   => __('FormsCRM', 'fluentform'),
         ];
     }
 
@@ -305,7 +303,7 @@ class FluentFormsIntegration extends IntegrationManagerController
 
     private function getLists()
     {
-        $settings = get_option('_fluentform_mailchimp_details');
+        $settings = get_option('_fluentform_formscrm_details');
         try {
             $MailChimp = new MailChimp($settings['apiKey']);
             $lists = $MailChimp->get('lists', ['count' => 9999]);
@@ -343,7 +341,7 @@ class FluentFormsIntegration extends IntegrationManagerController
 
     public function findMergeFields($listId)
     {
-        $settings = get_option('_fluentform_mailchimp_details');
+        $settings = get_option('_fluentform_formscrm_details');
 
         try {
             $MailChimp = new MailChimp($settings['apiKey']);
@@ -390,7 +388,7 @@ class FluentFormsIntegration extends IntegrationManagerController
 
     private function getInterestCategories($listId)
     {
-        $settings = get_option('_fluentform_mailchimp_details');
+        $settings = get_option('_fluentform_formscrm_details');
         try {
             $MailChimp = new MailChimp($settings['apiKey']);
             $categories = $MailChimp->get('/lists/' . $listId . '/interest-categories', [
@@ -416,7 +414,7 @@ class FluentFormsIntegration extends IntegrationManagerController
 
     private function getInterestSubCategories($listId, $categoryId)
     {
-        $settings = get_option('_fluentform_mailchimp_details');
+        $settings = get_option('_fluentform_formscrm_details');
         try {
             $MailChimp = new MailChimp($settings['apiKey']);
             $categories = $MailChimp->get('/lists/' . $listId . '/interest-categories/' . $categoryId . '/interests', [
@@ -470,10 +468,10 @@ class FluentFormsIntegration extends IntegrationManagerController
         $response = $this->subscribe($feed, $formData, $entry, $form);
 
         if (true == $response && !is_wp_error($response)) {
-            $message = __('Mailchimp feed has been successfully initialed and pushed data', 'fluentform');
+            $message = __('FormsCRM feed has been successfully initialed and pushed data', 'fluentform');
             do_action('fluentform/integration_action_result', $feed, 'success', $message);
         } else {
-            $message = __('Mailchimp feed has been failed to deliver feed', 'fluentform');
+            $message = __('FormsCRM feed has been failed to deliver feed', 'fluentform');
             if (is_wp_error($response)) {
                 $message = $response->get_error_message();
                 if (is_array($message)) {
