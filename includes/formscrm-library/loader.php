@@ -69,3 +69,17 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 		require_once 'class-wpforms.php';
 	}
 }
+
+// FluentForms.
+if ( is_plugin_active( 'fluentform/fluentform.php' ) && ! class_exists( 'FluentFormsIntegration' ) ) {
+	add_action( 'init', 'fluentforms_formscrm' );
+	/**
+	 * Load the provider class.
+	 *
+	 * @since 3.7.2
+	 */
+	function fluentforms_formscrm() {
+		require_once 'class-fluentforms.php';
+		new FormsCRM\Forms\FluentForms\FluentFormsIntegration();
+	}
+}
