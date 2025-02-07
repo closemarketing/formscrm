@@ -63,6 +63,9 @@ We have developed a way to get values from other fields in GravityForms and WPFo
 
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
 
+**Autoassignment in Clientify**
+We have added a new field in Clientify to apply the autoassignment to the contact. You can add a string with the list of usernames separated by comma (,) to apply the autoassignment.
+
 == Installation ==
 
 Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your
@@ -74,6 +77,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 4.0.0 =
 *  Added Brevo Email Marketing.
+*  Added field autoassignment_users in Clientify (String with the list of usernames separated by comma (,) to apply the autoassignment).
 
 = 3.15.7 =
 *  Fixed: Fixed manage contact websites in Clientify.

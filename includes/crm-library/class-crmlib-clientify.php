@@ -634,6 +634,12 @@ class CRMLIB_Clientify {
 				'label'    => __( 'Tags', 'formscrm' ),
 				'required' => false,
 			);
+
+			$fields[] = array(
+				'name'     => 'autoassignment_users',
+				'label'    => __( 'String with the list of usernames separated by comma (,) to apply the autoassignment', 'formscrm' ),
+				'required' => false,
+			);
 		}
 
 		if ( 'contacts-deals' === $module_slug ) {
