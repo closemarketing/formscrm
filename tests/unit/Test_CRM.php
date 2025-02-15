@@ -1,14 +1,15 @@
 <?php
 /**
- * Class TestsCRM
+ * Tests for the CRM functionality.
  *
- * @package Formscrm
+ * @package FormsCRM
  */
 
-/**
- * Tests CRM Connections.
- */
-class TestsCRM extends WP_UnitTestCase {
+namespace FormsCRM\Tests\Unit;
+
+use WP_UnitTestCase;
+
+class Test_CRM extends WP_UnitTestCase {
 
 	private function generateRandomString( $length = 10 ) {
 		$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

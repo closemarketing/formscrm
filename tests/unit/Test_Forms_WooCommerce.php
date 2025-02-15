@@ -1,14 +1,23 @@
 <?php
 /**
- * Class TestsFORMS
+ * Tests for the Forms WooCommerce integration.
  *
- * @package Formscrm
+ * @package FormsCRM
  */
 
-/**
- * Tests CRM Connections.
- */
-class TestsWooCommerce extends WP_UnitTestCase {
+namespace FormsCRM\Tests\Unit;
+
+use WP_UnitTestCase;
+
+class Test_Forms_WooCommerce extends WP_UnitTestCase {
+
+	/**
+	 * Test example method.
+	 */
+	public function test_example() {
+		$this->assertTrue( true );
+	}
+
 	/**
 	 * Tests for woocommerce
 	 *

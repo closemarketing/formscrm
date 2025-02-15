@@ -9,7 +9,7 @@
   "scripts": {
     "wp-env": "wp-env",
     "setup:tools": "npm run wp-env run composer install",
-    "test": "npm run wp-env run phpunit 'phpunit -c /var/www/html/wp-content/plugins/formscrm/phpunit.xml.dist'",
+    "test": "wp-env run tests-cli --env-cwd=wp-content/plugins/formscrm phpunit -c /var/www/html/wp-content/plugins/formscrm/phpunit.xml.dist",
     "test:e2e": "npx playwright test",
     "test:wpe2e": "npx playwright test --config tests/e2e/playwright.config.ts"
   },
@@ -24,12 +24,19 @@
   },
   "homepage": "https://github.com/closemarketing/formscrm#readme",
   "dependencies": {
-    "@wordpress/env": "^5.13.0",
     "csv-parse": "^5.4.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.46.1",
     "@types/node": "^20.4.1",
-    "@wordpress/e2e-test-utils-playwright": "^0.3.0"
+    "@wordpress/e2e-test-utils-playwright": "^0.3.0",
+    "@wordpress/env": "^10.18.0"
+  },
+  "core": "WordPress/WordPress",
+  "plugins": [
+    "./formscrm.php"
+  ],
+  "config": {
+    "WP_DEBUG": true
   }
 }
