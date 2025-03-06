@@ -763,7 +763,7 @@ class CRMLIB_Clientify {
 				$contact[ $element['name'] ] = explode( ',', $element['value'] );
 			} elseif ( 'tags' === $element['name'] && false === is_array( $element['value'] ) ) {
 				$contact[ $element['name'] ] = array( $element['value'] );
-			} elseif ( 'gdpr_accept' === $element['name'] ) {
+			} elseif ( 'gdpr_accept' === $element['name'] || 'disclaimer' === $element['name'] ) {
 				$contact[ $element['name'] ] = empty( $element['value'] ) ? false : true;
 			} else {
 				$contact[ $element['name'] ] = $element['value'];
