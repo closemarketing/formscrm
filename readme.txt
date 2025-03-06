@@ -74,6 +74,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 4.0.0 =
 *  Added Brevo Email Marketing.
+*  Added Product SKUs in Opportunity in Clientify.
 
 = 3.15.7 =
 *  Fixed: Fixed manage contact websites in Clientify.
