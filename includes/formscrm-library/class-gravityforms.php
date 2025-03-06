@@ -398,6 +398,7 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	private function get_actual_feed_value( $value, $feed_settings ) {
+		$feed_value = '';
 		if ( isset( $_POST['_gform_setting_' . $value] ) ) {
 			$feed_value = sanitize_text_field( $_POST['_gform_setting_' . $value] );
 		} elseif ( isset( $feed_settings['meta'][ $value ] ) ) {
