@@ -9,7 +9,7 @@
   "scripts": {
     "wp-env": "wp-env",
     "setup:tools": "npm run wp-env run composer install",
-    "test": "wp-env run tests-cli --env-cwd=wp-content/plugins/formscrm phpunit -c /var/www/html/wp-content/plugins/formscrm/phpunit.xml.dist",
+    "test": "wp-env run tests-cli --env-cwd=wp-content/plugins/formscrm phpunit -c /var/www/html/wp-content/plugins/formscrm/.phpunit.xml.dist",
     "test:e2e": "npx playwright test",
     "test:wpe2e": "npx playwright test --config tests/e2e/playwright.config.ts"
   },
@@ -38,5 +38,8 @@
   ],
   "config": {
     "WP_DEBUG": true
+  },
+  "wp-env": {
+    "port": 8890
   }
 }
