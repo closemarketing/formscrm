@@ -381,7 +381,6 @@ class CRMLIB_Clientify {
 			1 => __( 'Work', 'formscrm' ),
 			2 => __( 'Personal', 'formscrm' ),
 			3 => __( 'Other', 'formscrm' ),
-			4 => __( 'Main', 'formscrm' ),
 		);
 
 		// Emails.
@@ -394,7 +393,6 @@ class CRMLIB_Clientify {
 		});
 
 		$types = array(
-			1 => __( 'Main', 'formscrm' ),
 			2 => __( 'Mobile', 'formscrm' ),
 			3 => __( 'Work', 'formscrm' ),
 			4 => __( 'Home', 'formscrm' ),
@@ -449,7 +447,7 @@ class CRMLIB_Clientify {
 
 			$fields[] = array(
 				'name'     => 'phone',
-				'label'    => __( 'Phone', 'formscrm' ),
+				'label'    => __( 'Phone Main', 'formscrm' ),
 				'required' => false,
 			);
 
@@ -461,7 +459,7 @@ class CRMLIB_Clientify {
 
 			$fields[] = array(
 				'name'     => 'email',
-				'label'    => __( 'Any Email', 'formscrm' ),
+				'label'    => __( 'Email Main', 'formscrm' ),
 				'required' => false,
 			);
 
