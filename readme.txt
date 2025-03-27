@@ -78,6 +78,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 = 4.0.0 =
 *  Added Brevo Email Marketing.
 *  Added field autoassignment_users in Clientify (String with the list of usernames separated by comma (,) to apply the autoassignment).
+*  Added Product SKUs in Opportunity in Clientify.
+*  Added disclaimer field in Clientify.
 
 = 3.15.7 =
 *  Fixed: Fixed manage contact websites in Clientify.
