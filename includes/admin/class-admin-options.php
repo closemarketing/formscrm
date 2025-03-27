@@ -132,7 +132,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				foreach ( $forms_supported as $form ) {
 					echo '<li>';
 					$slug = strtolower( $form['label'] );
-					echo '<img src="' . FORMSCRM_PLUGIN_URL . 'includes/assets/forms-' . $slug . '.svg" width="80" alt="' . esc_html( $form['label'] ) . '"/><br/>';
+					echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/forms-' . $slug . '.svg' ) . '" width="80" alt="' . esc_html( $form['label'] ) . '"/><br/>';
 					echo '</li>';
 				}
 				?>
@@ -145,6 +145,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					array( 'label' => 'Clientify', 'url' => false, ),
 					array( 'label' => 'AcumbaMail', 'url' => false, ),
 					array( 'label' => 'Odoo', 'url' => true, ),
+					array( 'label' => 'Brevo', 'url' => false, ),
 					array( 'label' => 'WHMCS', 'url' => true, ),
 					array( 'label' => 'vTiger', 'url' => true, ),
 					array( 'label' => 'Inmovilla', 'url' => true, ),
@@ -158,9 +159,9 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					$slug = strtolower( $crm['label'] );
 					if ( isset( $crm['url'] ) && $crm['url'] ) {
 						$url = esc_url( $source_shop_url ) . 'wordpress-plugins/formscrm-' . $slug . '/' . esc_attr( $utm_source );
-						echo ' <a href="' . $url . '" target="_blank">';
+						echo ' <a href="' . esc_url( $url ) . '" target="_blank">';
 					}
-					echo '<img src="' . FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $slug . '.svg" width="250" alt="' . esc_html( $crm['label'] ) . '"/><br/>';
+					echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $slug . '.svg' ) . '" width="250" alt="' . esc_html( $crm['label'] ) . '"/><br/>';
 
 					if ( isset( $crm['url'] ) && $crm['url'] ) {
 						echo '</a>';

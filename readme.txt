@@ -35,6 +35,7 @@ At this time, FormsCRM supports in free version:
 - [Clientify](https://close.marketing/likes/clientify/)
 - [AcumbaMail](https://acumbamail.com/)
 - [MailerLite Classic](https://close.marketing/likes/mailerlite/)
+- [Brevo](https://brevo.com/)
 
 And you will find, that there are Premium Addons to support:
 - [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
@@ -62,6 +63,9 @@ We have developed a way to get values from other fields in GravityForms and WPFo
 
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
 
+**Autoassignment in Clientify**
+We have added a new field in Clientify to apply the autoassignment to the contact. You can add a string with the list of usernames separated by comma (,) to apply the autoassignment.
+
 == Installation ==
 
 Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your
@@ -71,6 +75,12 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.0 =
+*  Added Brevo Email Marketing.
+*  Added field autoassignment_users in Clientify (String with the list of usernames separated by comma (,) to apply the autoassignment).
+*  Added Product SKUs in Opportunity in Clientify.
+*  Added disclaimer field in Clientify.
+
 = 3.15.7 =
 *  Fixed: Fixed manage contact websites in Clientify.
 *  Fixed: Better management of Clientify API errors.
