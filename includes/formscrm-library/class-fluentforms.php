@@ -30,28 +30,28 @@ class Bootstrap extends IntegrationManagerController {
 
 	public function getGlobalFields( $fields ) {
 		return [
-				'logo'             => $this->logo,
-				'menu_title'       => __('FormsCRM Settings', 'formscrm'),
-				'menu_description' => __('FormsCRM is a marketing platform for small businesses. Send beautiful emails, connect your e-commerce store, advertise, and build your brand. Use Fluent Forms to collect customer information and automatically add it to your FormsCRM campaign list. If you don\'t have a FormsCRM account, you can <a href="https://formscrm.com/" target="_blank">sign up for one here.</a>', 'formscrm'),
-				'valid_message'    => __('Your FormsCRM API Key is valid', 'formscrm'),
-				'invalid_message'  => __('Your FormsCRM API Key is not valid', 'formscrm'),
-				'save_button_text' => __('Save Settings', 'formscrm'),
-				'fields'           => [
-						'apiKey' => [
-								'type'       => 'text',
-								'label_tips' => __('Enter your FormsCRM API Key, if you do not have <br>Please login to your FormsCRM account and go to<br>Profile -> Extras -> Api Keys', 'formscrm'),
-								'label'      => __('FormsCRM API Key', 'formscrm'),
-						],
-				],
-				'hide_on_valid'    => true,
-				'discard_settings' => [
-						'section_description' => __('Your FormsCRM API integration is up and running', 'formscrm'),
-						'button_text'         => __('Disconnect FormsCRM', 'formscrm'),
-						'data'                => [
-								'apiKey' => '',
-						],
-						'show_verify' => true,
-				],
+			'logo'             => $this->logo,
+			'menu_title'       => __('FormsCRM Settings', 'formscrm'),
+			'menu_description' => __('FormsCRM is a marketing platform for small businesses. Send beautiful emails, connect your e-commerce store, advertise, and build your brand. Use Fluent Forms to collect customer information and automatically add it to your FormsCRM campaign list. If you don\'t have a FormsCRM account, you can <a href="https://formscrm.com/" target="_blank">sign up for one here.</a>', 'formscrm'),
+			'valid_message'    => __('Your FormsCRM API Key is valid', 'formscrm'),
+			'invalid_message'  => __('Your FormsCRM API Key is not valid', 'formscrm'),
+			'save_button_text' => __('Save Settings', 'formscrm'),
+			'fields'           => [
+					'apiKey' => [
+							'type'       => 'text',
+							'label_tips' => __('Enter your FormsCRM API Key, if you do not have <br>Please login to your FormsCRM account and go to<br>Profile -> Extras -> Api Keys', 'formscrm'),
+							'label'      => __('FormsCRM API Key', 'formscrm'),
+					],
+			],
+			'hide_on_valid'    => true,
+			'discard_settings' => [
+					'section_description' => __('Your FormsCRM API integration is up and running', 'formscrm'),
+					'button_text'         => __('Disconnect FormsCRM', 'formscrm'),
+					'data'                => [
+							'apiKey' => '',
+					],
+					'show_verify' => true,
+			],
 		];
 	}
 
