@@ -81,6 +81,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Added Product SKUs in Opportunity in Clientify.
 *  Added disclaimer field in Clientify.
 *  Added in Clientify different types of Emails: work, personal, other and main. Phones: main, mobile, work, home, fax, other.
+*  Added show Login errors from API.
 
 = 3.15.7 =
 *  Fixed: Fixed manage contact websites in Clientify.

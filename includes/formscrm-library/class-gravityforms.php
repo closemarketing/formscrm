@@ -310,8 +310,18 @@ class GFCRM extends GFFeedAddOn {
 	private function get_crm_feed_fields( $settings ) {
 		$crm_feed_fields = array();
 		$feed_settings   = $this->get_current_feed();
+		$login_crm       = $this->login_api_crm();
 
-		if ( false === $this->login_api_crm() ) {
+		if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
+			$crm_feed_fields[] = array(
+				'name'  => 'fc_login_result',
+				'label' => __( 'We could not login to the CRM', 'formscrm' ) . ' ' . $login_crm['message'],
+				'type'  => 'hidden',
+			);
+			return $crm_feed_fields;
+		}
+
+		if ( false === $login_crm ) {
 			$crm_feed_fields[] = array(
 				'name'  => 'fc_login_result',
 				'label' => __( 'We could not login to the CRM', 'formscrm' ),
