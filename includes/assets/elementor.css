@@ -1,0 +1,26 @@
+.elementor-map-table td, .elementor-map-table th {
+	padding: 10px;
+	vertical-align: middle;
+}
+
+.elementor-map-table tr td:first-child, .elementor-map-table tr th:first-child {
+	padding-left: 0px;
+}
+
+.elementor-map-table tr td:last-child, .elementor-map-table tr th:last-child {
+	padding-right: 0px;
+}
+.elementor-map-table tr td select {
+	min-width: 150px;
+}
+
+.elementor-map-table th {
+	border-bottom: 1px solid #f5f5f5;
+}
+.elementor-map-table {
+	display: none;
+}
+
+.elementor-map-table.active {
+	display: table;
+}

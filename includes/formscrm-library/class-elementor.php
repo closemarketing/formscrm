@@ -85,6 +85,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @param \Elementor\Widget_Base $widget
 	 */
 	public function register_settings_section( $widget ) {
+
 		$widget->start_controls_section(
 			'section_formscrm',
 			array(
@@ -199,7 +200,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		);
 
 		$widget->add_control(
-			'delete_content',
+			'connect_crm',
 			[
 				'label'       => esc_html__( 'Connect CRM', 'textdomain' ),
 				'type'        => \Elementor\Controls_Manager::BUTTON,
@@ -207,67 +208,34 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'button_type' => 'info',
 				'text'        => esc_html__( 'Connect', 'textdomain' ),
 				'event'       => 'formscrm:editor:connectCRM',
+				'condition' => array(
+					'fc_crm_type' => formscrm_get_dependency_apipassword(),
+				),
 			]
 		);
 
-		// CRM Type.
+		// new code for custom form
+		// add html block
 		$widget->add_control(
-			'fc_crm_module',
+			'formscrm_html',
 			array(
-				'label'       => __( 'CRM Module', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::SELECT,
-				'label_block' => true,
-				'separator'   => 'before',
-				'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
-				'options'     => $crm_types,
+				'type' => \Elementor\Controls_Manager::RAW_HTML,
+				'raw'  => '<div id="formscrm-popup"></div>',
+				'condition' => array(
+					'fc_crm_type' => formscrm_get_dependency_apipassword(),
+				),
 			)
 		);
 
-		$settings_form = $widget->get_settings();
-		if ( ! empty( $settings_form['fc_crm_type'] ) ) {
-			$this->include_library( $settings_form['fc_crm_type'] );
-			/**
-			 * ## Module
-			 * --------------------------- */
+		// add hidden text field
+		$widget->add_control(
+			'formscrm_settings_hidden',
+			array(
+				'type' => \Elementor\Controls_Manager::HIDDEN,
+				'label' => esc_html__( 'CRM Settings', 'textdomain' ),
+			)
+		);
 
-			$modules = isset( $this->crmlib ) ? $this->crmlib->list_modules( $settings_form['fc_crm_type'] ) : array();
-			if ( ! empty( $modules ) ) {
-				foreach ( $modules as $module ) {
-
-				}
-			}
-			/**
-			 * ## Fields
-			 * --------------------------- */
-			/*
-			$widget->add_control(
-				'formscrm_fields',
-				array(
-					'label' => esc_html__( 'Repeater List', 'textdomain' ),
-					'type' => \Elementor\Controls_Manager::REPEATER,
-					'fields' => array(
-						array(
-							'label'       => __( 'Field from CRM', 'formscrm' ),
-							'type'        => \Elementor\Controls_Manager::SELECT,
-							'label_block' => true,
-							'separator'   => 'before',
-							'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
-							'options'     => $crm_types,
-						),
-						array(
-							'label'       => __( 'CRM Type', 'formscrm' ),
-							'type'        => \Elementor\Controls_Manager::SELECT,
-							'label_block' => true,
-							'separator'   => 'before',
-							'description' => __( 'Choose the CRM or Email Marketing to connect', 'formscrm' ),
-							'options'     => $crm_types,
-						),
-					),
-					'title_field' => '{{{ list_title }}}',
-				)
-			);
-			*/
-		}
 		$widget->end_controls_section();
 	}
 
@@ -309,6 +277,17 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 */
 	public function run( $record, $ajax_handler ) {
 		$settings = $record->get( 'form_settings' );
+
+		// hidden fields
+		$hidden_settings = $settings['formscrm_settings_hidden'];
+		$hidden_settings = json_decode( $hidden_settings, true );
+
+		// Check if CRM is set
+		if ( empty( $settings['fc_crm_type'] ) ) {
+			if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - No CRM selected.'); }
+			return;
+		}
+		// see ajax.php how to get settings
 
 		//Global key
 		$useglobalkey = $settings['formscrm_use_global_api_key'];
@@ -441,7 +420,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 					'body'        => ''
 				)
 			);
-			$response_code = wp_remote_retrieve_response_code( $request );	
+			$response_code = wp_remote_retrieve_response_code( $request );
 			if ($response_code == 200){
 				$emailexists = "yes";
 			} else {
@@ -481,7 +460,9 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		    	],
 		    	'body'        => json_encode(["attributes" => [ $formscrmattributename => $fields[$settings['formscrm_name_field']], $formscrmattributelastname => $fields[$settings['formscrm_last_name_field']] ], "updateEnabled" => true, "listIds" => [(int)$settings['formscrm_list']], "email" => $fields[$settings['formscrm_email_field']]])
 				)
-			);	
+			);
 		}
 	}
+
 }
+

@@ -7,3 +7,5 @@ _test
 /tests/credentials/*
 node_modules/
 .wp-env.json
+
+.idea/
