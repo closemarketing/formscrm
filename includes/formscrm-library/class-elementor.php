@@ -251,14 +251,13 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$raw_fields = $record->get( 'fields' );
 
 		// Normalize the Form Data.
-		$fields = [];
+		$merge_vars = [];
 		foreach ( $raw_fields as $id => $field ) {
-			$fields[ $id ] = $field['value'];
+			$merge_vars[ $id ] = $field['value'];
 		}
 
 		// Create contact in CRM.
 		$this->include_library( $crm_type );
-		$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
 		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
 		if ( 'error' === $response_result['status'] ) {
