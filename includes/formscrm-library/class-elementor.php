@@ -47,36 +47,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	}
 
 	/**
-	 * Include library connector
-	 *
-	 * @param string $crmtype Type of CRM.
-	 * @return void
-	 */
-	private function include_library( $crmtype ) {
-		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
-		}
-
-		if ( isset( $crmtype ) ) {
-			$crmname      = strtolower( $crmtype );
-			$crmclassname = str_replace( ' ', '', $crmname );
-			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
-
-			$array_path = formscrm_get_crmlib_path();
-			if ( isset( $array_path[ $crmname ] ) ) {
-				include_once $array_path[ $crmname ];
-			}
-
-			formscrm_debug_message( $array_path[ $crmname ] );
-
-			if ( class_exists( $crmclassname ) ) {
-				$this->crmlib = new $crmclassname();
-			}
-		}
-	}
-
-	/**
 	 * Register Settings Section
 	 *
 	 * Registers the Action controls
@@ -89,7 +59,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$widget->start_controls_section(
 			'section_formscrm',
 			array(
-				'label' => __( 'FormsCRM', 'formscrm' ),
+				'label'     => __( 'FormsCRM', 'formscrm' ),
 				'condition' => array(
 					'submit_actions' => $this->get_name(),
 				),
@@ -136,7 +106,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'label'       => __( 'Username', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::TEXT,
 				'label_block' => true,
-				'description' => __( '', 'formscrm' ),
+				'description' => __( 'Username for authentication.', 'formscrm' ),
 				'condition'   => array(
 					'fc_crm_type' => formscrm_get_dependency_username(),
 				),
@@ -150,7 +120,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'label'       => __( 'Password', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::TEXT,
 				'label_block' => true,
-				'description' => __( '', 'formscrm' ),
+				'description' => __( 'Password for authentication.', 'formscrm' ),
 				'condition'   => array(
 					'fc_crm_type' => formscrm_get_dependency_password(),
 				),
@@ -164,7 +134,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'label'       => __( 'API Password', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::TEXT,
 				'label_block' => true,
-				'description' => __( '', 'formscrm' ),
+				'description' => __( 'API Password for authentication.', 'formscrm' ),
 				'condition'   => array(
 					'fc_crm_type' => formscrm_get_dependency_apipassword(),
 				),
@@ -178,7 +148,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'label'       => __( 'API Sales', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::TEXT,
 				'label_block' => true,
-				'description' => __( '', 'formscrm' ),
 				'condition'   => array(
 					'fc_crm_type' => formscrm_get_dependency_apisales(),
 				),
@@ -219,20 +188,20 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$widget->add_control(
 			'formscrm_html',
 			array(
-				'type' => \Elementor\Controls_Manager::RAW_HTML,
-				'raw'  => '<div id="formscrm-popup"></div>',
+				'type'      => \Elementor\Controls_Manager::RAW_HTML,
+				'raw'       => '<div id="formscrm-popup"></div>',
 				'condition' => array(
 					'fc_crm_type' => formscrm_get_dependency_apipassword(),
 				),
 			)
 		);
 
-		// add hidden text field
+		// Add hidden text field.
 		$widget->add_control(
 			'formscrm_settings_hidden',
 			array(
 				'type' => \Elementor\Controls_Manager::HIDDEN,
-				'label' => esc_html__( 'CRM Settings', 'textdomain' ),
+				'label' => esc_html__( 'CRM Settings', 'formscrm' ),
 			)
 		);
 
@@ -278,191 +247,26 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	public function run( $record, $ajax_handler ) {
 		$settings = $record->get( 'form_settings' );
 
-		// hidden fields
-		$hidden_settings = $settings['formscrm_settings_hidden'];
-		$hidden_settings = json_decode( $hidden_settings, true );
-
-		// Check if CRM is set
-		if ( empty( $settings['fc_crm_type'] ) ) {
-			if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - No CRM selected.'); }
-			return;
-		}
-		// see ajax.php how to get settings
-
-		//Global key
-		$useglobalkey = $settings['formscrm_use_global_api_key'];
-		if ($useglobalkey == "yes") {
-			$webtica_formscrm_options = get_option( 'webtica_formscrm_option_name' );
-			$globalapikey = $webtica_formscrm_options['global_api_key_webtica_formscrm'];
-			if ( empty( $globalapikey ) ) {
-				if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - FormsCRM Global API Key not set.'); }
-				return;
-			}
-			else {
-				$settings['formscrm_api'] = $globalapikey;
-			}
-		}
-		else {
-			//  Make sure that there is an FormsCRM API key set
-			if ( empty( $settings['formscrm_api'] ) ) {
-				if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - FormsCRM API Key not set.'); }
-				return;
-			}
-		}
-
-		//  Make sure that there is a FormsCRM list ID
-		if ( empty( $settings['formscrm_list'] ) ) {
-			if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - FormsCRM list ID not set.'); }
-			return;
-		}
-
-		//Doubleoptin
-		$doubleoptin = $settings['formscrm_double_optin'];
-		if ($doubleoptin == "yes") {
-			//  Make sure that there is a FormsCRM double optin ID if switch is set
-			if ( empty( $settings['formscrm_double_optin_template'] ) ) {
-				if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - FormsCRM double optin template ID not set.'); }
-				return;
-			}
-			//  Make sure that there is a FormsCRM double optin redirect URL else set default url
-			if ( empty( $settings['formscrm_double_optin_redirect_url'] ) ) {
-				$doubleoptinurl = get_site_url();
-			}
-			else {
-				$doubleoptinurl = $settings['formscrm_double_optin_redirect_url'];
-			}
-		}
-
-		// Make sure that there is a FormsCRM Email field ID
-		if ( empty( $settings['formscrm_email_field'] ) ) {
-			if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - FormsCRM e-mail field ID not set.'); }
-			return;
-		}
-
-		// Get submitted Form data
+		// Get submitted Form data.
 		$raw_fields = $record->get( 'fields' );
 
-		// Normalize the Form Data
+		// Normalize the Form Data.
 		$fields = [];
 		foreach ( $raw_fields as $id => $field ) {
 			$fields[ $id ] = $field['value'];
 		}
 
-		//Check if email field contains the elementor form attribute shortcodes
-		if (strpos($settings['formscrm_email_field'], '[field id=') !== false) {
-			$settings['formscrm_email_field'] = substr($settings['formscrm_email_field'], strpos($settings['formscrm_email_field'], '"') + 1);
-			$settings['formscrm_email_field'] = trim($settings['formscrm_email_field'], '"]');
-		}
-		//Check if first name field contains the elementor form attribute shortcodes
-		if (strpos($settings['formscrm_name_field'], '[field id=') !== false) {
-			$settings['formscrm_name_field'] = substr($settings['formscrm_name_field'], strpos($settings['formscrm_name_field'], '"') + 1);
-			$settings['formscrm_name_field'] = trim($settings['formscrm_name_field'], '"]');
-		}
-		//Check if last name field contains the elementor form attribute shortcodes
-		if (strpos($settings['formscrm_last_name_field'], '[field id=') !== false) {
-			$settings['formscrm_last_name_field'] = substr($settings['formscrm_last_name_field'], strpos($settings['formscrm_last_name_field'], '"') + 1);
-			$settings['formscrm_last_name_field'] = trim($settings['formscrm_last_name_field'], '"]');
-		}
+		// Create contact in CRM.
+		$this->include_library( $crm_type );
+		$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
-		// Make sure that the user has an email
-		if ( empty( $fields[ $settings['formscrm_email_field'] ] ) ) {
-			if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - Client did not enter an e-mail.'); }
-			return;
-		}
+		if ( 'error' === $response_result['status'] ) {
+			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
+			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
 
-		//GDPR Checkbox
-		$gdprcheckbox = $settings['formscrm_gdpr_checkbox'];
-		if ($gdprcheckbox == "yes") {
-			//  Make sure that there is a acceptence field if switch is set
-			if ( empty( $settings['formscrm_gdpr_checkbox_field'] ) ) {
-				if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - Acceptence field ID is not set.'); }
-				return;
-			}
-			// Make sure that checkbox is on
-			$gdprcheckboxchecked = $fields[$settings['formscrm_gdpr_checkbox_field']];
-			if ($gdprcheckboxchecked != "on") {
-				if( WP_DEBUG === true ) { error_log('Elementor forms FormsCRM integration - GDPR Checkbox was not thicked.'); }
-				return;
-			}
-		}
-
-		// FormsCRM attribute names - Firstname
-		if (empty($settings['formscrm_name_attribute_field'])) {
-			$formscrmattributename = "FIRSTNAME";
-		}
-		else {
-			$formscrmattributename = $settings['formscrm_name_attribute_field'];
-		}
-
-		// FormsCRM attribute names - Lastname
-		if (empty($settings['formscrm_last_name_attribute_field'])) {
-			$formscrmattributelastname = "LASTNAME";
-		}
-		else {
-			$formscrmattributelastname = $settings['formscrm_last_name_attribute_field'];
-		}
-
-		//Check if user already exists
-		$emailexistsswitch = $settings['formscrm_double_optin_check_if_email_exists'];
-		if ($emailexistsswitch == "yes") {
-			$requesturl = 'https://api.formscrm.com/v3/contacts/'.urlencode($fields[$settings['formscrm_email_field']]);
-			//Send data to FormsCRM
-			$request = wp_remote_request( $requesturl, array(
-					'method'      => 'GET',
-					'timeout'     => 45,
-					'httpversion' => '1.0',
-					'blocking'    => true,
-					'headers'     => [
-						'accept' => 'application/json',
-						'api-key' => $settings['formscrm_api'],
-						'content-Type' => 'application/json',
-					],
-					'body'        => ''
-				)
-			);
-			$response_code = wp_remote_retrieve_response_code( $request );
-			if ($response_code == 200){
-				$emailexists = "yes";
-			} else {
-				$emailexists = "no";
-			}
-		} else {
-			$emailexists = "no";
-		}
-
-		if ($doubleoptin == "yes" && $emailexists == "no") {
-			//Send data to FormsCRM Double optin
-			wp_remote_post( 'https://api.formscrm.com/v3/contacts/doubleOptinConfirmation', array(
-				'method'      => 'POST',
-			    'timeout'     => 45,
-			    'httpversion' => '1.0',
-			    'blocking'    => false,
-			    'headers'     => [
-		            'accept' => 'application/json',
-		            'api-key' => $settings['formscrm_api'],
-			    	'content-Type' => 'application/json',
-			    ],
-			    'body'        => json_encode(["attributes" => [ $formscrmattributename => $fields[$settings['formscrm_name_field']], $formscrmattributelastname => $fields[$settings['formscrm_last_name_field']] ], "includeListIds" => [(int)$settings['formscrm_list']], "templateId" => (int)$settings['formscrm_double_optin_template'], "redirectionUrl" => $doubleoptinurl, "email" => $fields[$settings['formscrm_email_field']]])
-				)
-			);
-		}
-		else {
-			//Send data to FormsCRM
-			wp_remote_post( 'https://api.formscrm.com/v3/contacts', array(
-				'method'      => 'POST',
-		    	'timeout'     => 45,
-		    	'httpversion' => '1.0',
-		    	'blocking'    => false,
-		    	'headers'     => [
-	            	'accept' => 'application/json',
-	            	'api-key' => $settings['formscrm_api'],
-		    		'content-Type' => 'application/json',
-		    	],
-		    	'body'        => json_encode(["attributes" => [ $formscrmattributename => $fields[$settings['formscrm_name_field']], $formscrmattributelastname => $fields[$settings['formscrm_last_name_field']] ], "updateEnabled" => true, "listIds" => [(int)$settings['formscrm_list']], "email" => $fields[$settings['formscrm_email_field']]])
-				)
-			);
+			formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
 		}
 	}
-
 }
 
