@@ -4,13 +4,13 @@
  *
  * @package    WordPress
  * @author     David Perez <david@close.technology>
- * @copyright  2023 Closemarketing
- * @version    3.10
+ * @copyright  2025 CLOSE
+ * @version    4.0.0
  *
  * DOC: https://developers.elementor.com/docs/form-actions/
  */
 
-// Exit if accessed directly
+// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -19,7 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Action Class
  */
 class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\Action_Base {
-
+	/**
+	 * CRM Library Object
+	 *
+	 * @var object
+	 */
 	private $crmlib;
 
 	/**
@@ -47,15 +51,44 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	}
 
 	/**
+	 * Include library connector
+	 *
+	 * @param string $crmtype Type of CRM.
+	 * @return void
+	 */
+	private function include_library( $crmtype ) {
+		if ( isset( $_POST['fc_crm_type'] ) ) {
+			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
+		}
+
+		if ( isset( $crmtype ) ) {
+			$crmname      = strtolower( $crmtype );
+			$crmclassname = str_replace( ' ', '', $crmname );
+			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+			$crmname      = str_replace( ' ', '_', $crmname );
+
+			$array_path = formscrm_get_crmlib_path();
+			if ( isset( $array_path[ $crmname ] ) ) {
+				include_once $array_path[ $crmname ];
+			}
+
+			formscrm_debug_message( $array_path[ $crmname ] );
+
+			if ( class_exists( $crmclassname ) ) {
+				$this->crmlib = new $crmclassname();
+			}
+		}
+	}
+
+	/**
 	 * Register Settings Section
 	 *
 	 * Registers the Action controls
 	 *
 	 * @access public
-	 * @param \Elementor\Widget_Base $widget
+	 * @param \Elementor\Widget_Base $widget Widget object.
 	 */
 	public function register_settings_section( $widget ) {
-
 		$widget->start_controls_section(
 			'section_formscrm',
 			array(
@@ -183,8 +216,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			]
 		);
 
-		// new code for custom form
-		// add html block
 		$widget->add_control(
 			'formscrm_html',
 			array(
@@ -200,7 +231,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$widget->add_control(
 			'formscrm_settings_hidden',
 			array(
-				'type' => \Elementor\Controls_Manager::HIDDEN,
+				'type'  => \Elementor\Controls_Manager::HIDDEN,
 				'label' => esc_html__( 'CRM Settings', 'formscrm' ),
 			)
 		);
@@ -241,8 +272,8 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * Runs the action after submit
 	 *
 	 * @access public
-	 * @param \ElementorPro\Modules\Forms\Classes\Form_Record $record
-	 * @param \ElementorPro\Modules\Forms\Classes\Ajax_Handler $ajax_handler
+	 * @param \ElementorPro\Modules\Forms\Classes\Form_Record  $record Record object.
+	 * @param \ElementorPro\Modules\Forms\Classes\Ajax_Handler $ajax_handler Ajax handler object.
 	 */
 	public function run( $record, $ajax_handler ) {
 		$settings = $record->get( 'form_settings' );
@@ -268,4 +299,3 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 	}
 }
-
