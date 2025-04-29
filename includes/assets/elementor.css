@@ -1,6 +1,8 @@
 .elementor-map-table td, .elementor-map-table th {
 	padding: 10px;
 	vertical-align: middle;
+	word-wrap: break-word;
+	max-width: 50%;
 }
 
 .elementor-map-table tr td:first-child, .elementor-map-table tr th:first-child {
@@ -23,4 +25,10 @@
 
 .elementor-map-table.active {
 	display: table;
+	max-width: 100%;
+}
+
+
+.elementor-map-table td label {
+    word-break: break-word;
 }

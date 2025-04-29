@@ -89,5 +89,25 @@ jQuery(document).ready(function($) {
 	$(document).on('change', '.elementor-map-column select', function() {
 		saveFieldSettings();
 	});
+
+	elementor.channels.editor.on('section:activated', function (panel) {
+		if( panel !== 'section_formscrm' ) return;
+
+		// form crm panel is active, check if we have credentials and show panel
+
+		let settingsModel = elementor.getPanelView().getCurrentPageView().model;
+		// check fc_crm_type and fc_crm_apipassword
+		let fc_crm_type = settingsModel.getSetting('fc_crm_type');
+		let fc_crm_apipassword = settingsModel.getSetting('fc_crm_apipassword');
+
+		if ( fc_crm_type && fc_crm_apipassword ) {
+			// show panel
+			$('[data-event="formscrm:editor:connectCRM"]').click();
+		}
+	});
+
+	$('body').on('change', '[data-setting="fc_crm_type"]', function() {
+		$('[data-event="formscrm:editor:connectCRM"]').click();
+	});
 });
 
