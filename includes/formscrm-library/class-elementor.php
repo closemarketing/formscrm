@@ -240,33 +240,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	}
 
 	/**
-	 * On Export
-	 *
-	 * Clears form settings on export
-	 * @access Public
-	 * @param array $element
-	 */
-	public function on_export( $element ) {
-		unset(
-			$element['formscrm_api'],
-			$element['formscrm_double_optin'],
-			$element['formscrm_double_optin_template'],
-			$element['formscrm_double_optin_redirect_url'],
-			$element['formscrm_double_optin_check_if_email_exists'],
-			$element['formscrm_gdpr_checkbox'],
-			$element['formscrm_gdpr_checkbox_field'],
-			$element['formscrm_list'],
-			$element['formscrm_email_field'],
-			$element['formscrm_name_attribute_field'],
-			$element['formscrm_name_field'],
-			$element['formscrm_last_name_attribute_field'],
-			$element['formscrm_last_name_field']
-		);
-
-		return $element;
-	}
-
-	/**
 	 * Run
 	 *
 	 * Runs the action after submit
@@ -287,15 +260,36 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			$merge_vars[ $id ] = $field['value'];
 		}
 
+		// unpack hidden settings for the form
+		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
+			$hidden_settings = json_decode( $settings['formscrm_settings_hidden'], true );
+			$settings = array_merge( $settings, $hidden_settings );
+			if ( isset( $settings['fc_crm_type'] ) && ! empty( $hidden_settings[$settings['fc_crm_type']] ) ) {
+				$settings['fc_crm_module'] = $hidden_settings[$settings['fc_crm_type']];
+			}
+		}
+
 		// Create contact in CRM.
-		$this->include_library( $crm_type );
-		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
+		$this->include_library( $settings['fc_crm_type'] );
+		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
 		if ( 'error' === $response_result['status'] ) {
 			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
 
-			formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
 		}
 	}
+
+	// do nothing, but required method
+
+	/**
+	 * On Export
+	 *
+	 * This method is called when the form is exported.
+	 *
+	 * @access public
+	 * @param \ElementorPro\Modules\Forms\Classes\Form_Record $element Form element.
+	 */
+	public function on_export( $element ) {}
 }

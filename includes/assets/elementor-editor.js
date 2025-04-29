@@ -75,8 +75,7 @@ jQuery(document).ready(function($) {
 		// Update a specific field programmatically
 		settingsModel.setSetting('formscrm_settings_hidden', JSON.stringify(settings));
 
-		// Log the updated settings for verification
-		console.log('Updated Settings:', settingsModel.attributes);
+		$('.elementor-control-fc_crm_apipassword').find('input').trigger('input');
 	}
 
 	$(document).on('change', '#fc_crm_module', function() {
