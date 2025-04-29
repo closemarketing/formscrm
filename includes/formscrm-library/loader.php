@@ -12,7 +12,6 @@ defined( 'ABSPATH' ) || exit;
 
 require_once 'helpers-functions.php';
 require_once 'helpers-library-crm.php';
-require_once 'ajax.php';
 
 $load_admin_options = apply_filters( 'formscrm_load_options', true );
 if ( $load_admin_options ) {
@@ -78,6 +77,7 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 
 // Elementor.
 if ( is_plugin_active( 'elementor/elementor.php' ) ) {
+	require_once 'elementor-ajax.php';
 	add_action(
 		'elementor_pro/init',
 		function () {

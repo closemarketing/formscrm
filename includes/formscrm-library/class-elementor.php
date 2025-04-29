@@ -281,8 +281,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 	}
 
-	// do nothing, but required method
-
 	/**
 	 * On Export
 	 *

@@ -62,7 +62,7 @@ function elementor_formscrm_connect_crm() {
 	<div class="elementor-control-type-select elementor-label-block elementor-control-separator-before">
 		<div class="elementor-control-content">
 			<div class="elementor-control-field ">
-				<label for="fc_crm_module" class="elementor-control-title">CRM Module</label>
+				<label for="fc_crm_module" class="elementor-control-title"><?php esc_html_e( 'CRM Module', 'formscrm' ); ?></label>
 				<div class="elementor-control-input-wrapper elementor-control-unit-5">
 					<select id="fc_crm_module"><?php
 					foreach ( $modules as $module ) {
@@ -82,7 +82,8 @@ function elementor_formscrm_connect_crm() {
 						}
 
 						echo '>' . esc_html( $module['label'] ) . '</option>';
-					} ?>
+					}
+					?>
 					</select>
 				</div>
 			</div>
