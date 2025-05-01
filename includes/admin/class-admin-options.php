@@ -124,9 +124,10 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				<?php
 				$forms_supported = array(
 					array( 'label' => 'Gravity' ),
+					array( 'label' => 'Elementor' ),
 					array( 'label' => 'ContactForm7' ),
 					array( 'label' => 'WooCommerce' ),
-					array( 'label' => 'WPForms', ),
+					array( 'label' => 'WPForms' ),
 				);
 
 				foreach ( $forms_supported as $form ) {
