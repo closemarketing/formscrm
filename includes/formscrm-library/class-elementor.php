@@ -204,11 +204,11 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$widget->add_control(
 			'connect_crm',
 			[
-				'label'       => esc_html__( 'Connect CRM', 'textdomain' ),
+				'label'       => esc_html__( 'Connect CRM', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::BUTTON,
 				'separator'   => 'before',
 				'button_type' => 'info',
-				'text'        => esc_html__( 'Connect', 'textdomain' ),
+				'text'        => esc_html__( 'Connect', 'formscrm' ),
 				'event'       => 'formscrm:editor:connectCRM',
 				'condition' => array(
 					'fc_crm_type' => formscrm_get_dependency_apipassword(),

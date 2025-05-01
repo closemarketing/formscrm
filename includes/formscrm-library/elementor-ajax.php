@@ -12,23 +12,27 @@ defined( 'ABSPATH' ) || exit;
 
 add_action( 'wp_ajax_elementor_formscrm_connect_crm', 'elementor_formscrm_connect_crm' );
 
+/**
+ * Ajax function to connect to CRM
+ *
+ * @return void
+ */
 function elementor_formscrm_connect_crm() {
-
-	// nonce
+	// Nonce.
 	if ( ! check_ajax_referer( 'formcrm_nonce', 'nonce', false ) ) {
 		wp_send_json_error( __( 'Security check failed', 'formscrm' ) );
 	}
 
-	// get options
+	// Get options.
 	if ( empty( $_POST['crmSettings'] ) ) {
 		wp_send_json_error( __( 'No settings found', 'formscrm' ) );
 	}
 
-	$hidden_settings = empty( $_POST['hiddenSettings'] ) ? array() : json_decode( stripslashes_deep($_POST['hiddenSettings']), true );
+	$hidden_settings = empty( $_POST['hiddenSettings'] ) ? array() : json_decode( stripslashes_deep( $_POST['hiddenSettings'] ), true ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 	ob_start();
 	// 1. Check connection to CRM
-	$crmtype = $_POST['crmSettings']['fc_crm_type'];
+	$crmtype = isset( $_POST['crmSettings']['fc_crm_type'] ) ? sanitize_text_field( wp_unslash( $_POST['crmSettings']['fc_crm_type'] ) ) : '';
 	$crmlib  = null;
 
 	if ( empty( $crmtype ) ) {
@@ -56,8 +60,8 @@ function elementor_formscrm_connect_crm() {
 	// TODO maybe check connection to crm with login pass and everything we need
 
 	// 2. Show modules dropdown
-	$modules = $crmlib->list_modules( $_POST['crmSettings'] );
-	$settings_module = isset( $hidden_settings[$crmtype] ) ? $hidden_settings[$crmtype] : ''; ?>
+	$modules         = $crmlib->list_modules( $_POST['crmSettings'] );
+	$settings_module = isset( $hidden_settings[ $crmtype ] ) ? $hidden_settings[ $crmtype ] : ''; ?>
 
 	<div class="elementor-control-type-select elementor-label-block elementor-control-separator-before">
 		<div class="elementor-control-content">
@@ -134,24 +138,29 @@ function elementor_formscrm_connect_crm() {
 
 						if ( isset( $crm_field_req ) && $crm_field_req ) {
 							echo ' <span class="required">*</span>';
-						} ?>
+						}
+						?>
 						</label>
 					</td>
 					<td class="elementor-map-column elementor-map-column-value">
-						<select class="wide" name="fc_crm_field-<?php esc_html_e( $crm_field_name ); ?>" >
+						<select class="wide" name="fc_crm_field-<?php esc_html( $crm_field_name ); ?>" >
 							<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option><?php
+
 							foreach ( $_POST['formFields'] as $form_name => $form_label ) {
 								echo '<option value="' . esc_html( $form_name ) . '" ';
 
-								if ( !empty( $hidden_settings[ 'fc_crm_field-' . $crm_field_name ] ) ) selected( $hidden_settings[ 'fc_crm_field-' . $crm_field_name ], $form_name );
+								if ( ! empty( $hidden_settings[ 'fc_crm_field-' . $crm_field_name ] ) ) {
+									selected( $hidden_settings[ 'fc_crm_field-' . $crm_field_name ], $form_name );
+								}
 
 								echo '>' . esc_html( $form_label ) . '</option>';
-							} ?>
+							}
+							?>
 						</select>
 					</td>
-				</tr><?php
-
-				$count_fields++;
+				</tr>
+				<?php
+				++$count_fields;
 			}
 			if ( 0 === $count_fields ) {
 				echo '<tr><td colspan="2">' . esc_html__( 'No fields found, or the connection has not got the right permissions.', 'formscrm' ) . '</td></tr>';
