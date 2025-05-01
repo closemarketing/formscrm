@@ -5,18 +5,18 @@ updates:
       schedule:
           interval: weekly
       open-pull-requests-limit: 10
-      target-branch: "develop"
+      target-branch: "trunk"
 
     - package-ecosystem: npm
       directory: '/'
       schedule:
           interval: weekly
       open-pull-requests-limit: 10
-      target-branch: "develop"
+      target-branch: "trunk"
 
     - package-ecosystem: composer
       directory: '/'
       schedule:
           interval: weekly
       open-pull-requests-limit: 10
-      target-branch: "develop"
+      target-branch: "trunk"

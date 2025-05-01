@@ -84,14 +84,16 @@ class CRMLIB_Clientify {
 	 * @param string $module   URL for module.
 	 * @param string $bodypost Params to send to API.
 	 * @param string $apikey   API Authentication.
+	 * @param string $method   Method to use.
 	 * @return array
 	 */
-	private function post( $module, $bodypost, $apikey ) {
+	private function request( $module, $bodypost, $apikey, $method = 'POST' ) {
 		$args   = array(
 			'headers' => array(
 				'Authorization' => 'Token ' . $apikey,
 				'Content-Type'  => 'application/json',
 			),
+			'method'  => $method,
 			'timeout' => 120,
 			'body'    => wp_json_encode( $bodypost ),
 		);
@@ -369,6 +371,48 @@ class CRMLIB_Clientify {
 	}
 
 	/**
+	 * Sends Fields Phones and Emails
+	 *
+	 * @return array
+	 */
+	private function get_fields_email_phones() {
+		$fields = array();
+		$types = array(
+			1 => __( 'Work', 'formscrm' ),
+			2 => __( 'Personal', 'formscrm' ),
+			3 => __( 'Other', 'formscrm' ),
+		);
+
+		// Emails.
+		array_walk( $types, function( $type, $key ) use ( &$fields ) {
+			$fields[] = array(
+				'name'     => 'emails|' . $key,
+				'label'    => __( 'Email', 'formscrm' ) . ' ' . $type,
+				'required' => false,
+			);
+		});
+
+		$types = array(
+			2 => __( 'Mobile', 'formscrm' ),
+			3 => __( 'Work', 'formscrm' ),
+			4 => __( 'Home', 'formscrm' ),
+			5 => __( 'Fax', 'formscrm' ),
+			6 => __( 'Other', 'formscrm' ),
+		);
+
+		// Phones
+		array_walk( $types, function( $type, $key ) use ( &$fields ) {
+			$fields[] = array(
+				'name'     => 'phones|' . $key,
+				'label'    => __( 'Phone', 'formscrm' ) . ' ' . $type,
+				'required' => false,
+			);
+		});
+
+		return $fields;
+	}
+
+	/**
 	 * List fields for given module of a CRM
 	 *
 	 * @param  array  $settings settings from Gravity Forms options.
@@ -403,7 +447,7 @@ class CRMLIB_Clientify {
 
 			$fields[] = array(
 				'name'     => 'phone',
-				'label'    => __( 'Phone', 'formscrm' ),
+				'label'    => __( 'Phone Main', 'formscrm' ),
 				'required' => false,
 			);
 
@@ -415,9 +459,12 @@ class CRMLIB_Clientify {
 
 			$fields[] = array(
 				'name'     => 'email',
-				'label'    => __( 'Email', 'formscrm' ),
+				'label'    => __( 'Email Main', 'formscrm' ),
 				'required' => false,
 			);
+
+			// Phones and Emails.
+			$fields = array_merge( $fields, $this->get_fields_email_phones() );
 
 			// Website.
 			$fields = array_merge( $fields, $this->get_fields_websites() );
@@ -634,6 +681,12 @@ class CRMLIB_Clientify {
 				'label'    => __( 'Tags', 'formscrm' ),
 				'required' => false,
 			);
+
+			$fields[] = array(
+				'name'     => 'autoassignment_users',
+				'label'    => __( 'String with the list of usernames separated by comma (,) to apply the autoassignment', 'formscrm' ),
+				'required' => false,
+			);
 		}
 
 		if ( 'contacts-deals' === $module_slug ) {
@@ -646,12 +699,18 @@ class CRMLIB_Clientify {
 			$fields[] = array(
 				'name'     => 'deal|amount',
 				'label'    => __( 'Deal Amount', 'formscrm' ),
-				'required' => true,
+				'required' => false,
 			);
 
 			$fields[] = array(
 				'name'     => 'deal|pipeline',
 				'label'    => __( 'Pipeline URL', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
+				'name'     => 'deal|product_skus',
+				'label'    => __( 'Product SKUs in Opportunity (separated by comma)', 'formscrm' ),
 				'required' => false,
 			);
 		}
@@ -700,10 +759,11 @@ class CRMLIB_Clientify {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
-		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
-		$contact = array();
-		$deal    = array();
+		$apikey        = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$module        = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
+		$contact       = array();
+		$deal          = array();
+		$deal_product_skus= '';
 
 		$module = sanitize_title( $module );
 		$module = str_replace( '-deals', '', $module );
@@ -719,14 +779,30 @@ class CRMLIB_Clientify {
 					'value' => $element['value'],
 				);
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal' ) ) {
-				$custom_field             = explode( '|', $element['name'] );
-				$deal[ $custom_field[1] ] = $element['value'];
+				if ( 'deal|product_skus' === $element['name'] ) {
+					$deal_product_skus = $element['value'];
+				} else {
+					$custom_field             = explode( '|', $element['name'] );
+					$deal[ $custom_field[1] ] = $element['value'];
+				}
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
 				$custom_field               = explode( '|', $element['name'] );
 				$contact['custom_fields'][] = array(
 					'field' => $custom_field[1],
 					'value' => $element['value'],
 				);
+			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'emails' ) ) {
+				$email                                = explode( '|', $element['name'] );
+				$contact['emails'][] = [
+					'type'  => (int) $email[1],
+					'email' => $element['value'],
+				];
+			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'phones' ) ) {
+				$phone                                = explode( '|', $element['name'] );
+				$contact['phones'][] = [
+					'type'  => (int) $phone[1],
+					'phone' => $element['value'],
+				];
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'addresses' ) ) {
 				$address_field                                = explode( '|', $element['name'] );
 				$contact['addresses'][0][ $address_field[1] ] = $element['value'];
@@ -750,7 +826,7 @@ class CRMLIB_Clientify {
 				$contact[ $element['name'] ] = explode( ',', $element['value'] );
 			} elseif ( 'tags' === $element['name'] && false === is_array( $element['value'] ) ) {
 				$contact[ $element['name'] ] = array( $element['value'] );
-			} elseif ( 'gdpr_accept' === $element['name'] ) {
+			} elseif ( 'gdpr_accept' === $element['name'] || 'disclaimer' === $element['name'] ) {
 				$contact[ $element['name'] ] = empty( $element['value'] ) ? false : true;
 			} else {
 				$contact[ $element['name'] ] = $element['value'];
@@ -763,8 +839,7 @@ class CRMLIB_Clientify {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
-		$result = $this->post( $module, $contact, $apikey );
-
+		$result = $this->request( $module, $contact, $apikey );
 		if ( 'ok' === $result['status'] ) {
 			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
 			$response_result = array(
@@ -775,6 +850,14 @@ class CRMLIB_Clientify {
 
 			// Crea ahora la oportunidad.
 			if ( ! empty( $deal ) ) {
+				$deal_products = array();
+				if ( ! empty( $deal_product_skus ) ) {
+					$res_products = $this->extract_deal_products( $deal_product_skus, $apikey );
+					if ( ! empty( $res_products['data'] ) ) {
+						$deal_products = $res_products['data'];
+						$deal['amount'] = ! empty( $res_products['total'] ) ? $res_products['total'] : 0;
+					}
+				}
 				if ( 'contacts' === $module ) {
 					$key  = 'contact';
 					$slug = 'contacts';
@@ -782,10 +865,14 @@ class CRMLIB_Clientify {
 					$key  = 'company';
 					$slug = 'companies';
 				}
-				$deal[ $key ] = "https://api.clientify.net/v1/$slug/$contact_id/";
-				$result       = $this->post( 'deals', $deal, $apikey );
+				$deal[ $key ]   = "https://api.clientify.net/v1/$slug/$contact_id/";
+				$deal['amount'] = isset( $deal['amount'] ) ? $deal['amount'] : 0;
+				$result         = $this->request( 'deals', $deal, $apikey );
 				if ( 'ok' === $result['status'] ) {
 					$response_result['id'] = $contact_id . '|' . $result['data']['id'];
+				}
+				if ( ! empty( $deal_products ) ) {
+					$this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
 				}
 			}
 		} else {
@@ -798,5 +885,35 @@ class CRMLIB_Clientify {
 			);
 		}
 		return $response_result;
+	}
+
+	/**
+	 * Extracts deal products from a string of SKUs and get Clientify schema
+	 *
+	 * @param string $deal_product_skus The string of SKUs separated by commas
+	 * @param string $apikey            The API key
+	 * @return array The array of deal products
+	 */
+	private function extract_deal_products( $deal_product_skus, $apikey ) {
+		$skus          = explode( ',', $deal_product_skus );
+		$deal_products = array();
+		$deal_total    = 0;
+		foreach ( $skus as $sku ) {
+			$res_product = $this->get( 'products/?sku=' . $sku, $apikey );
+			if ( 'ok' === $res_product['status'] && isset( $res_product['data']['results'][0]['id'] ) ) {
+				$deal_products[] = array(
+					'product'  => $res_product['data']['results'][0]['id'],
+					'quantity' => 1,
+				);
+				if ( ! empty( $res_product['data']['results'][0]['price'] ) ) {
+					$deal_total += $res_product['data']['results'][0]['price'];
+				}
+			}
+		}
+		return [
+			'status' => 'ok',
+			'data'   => $deal_products,
+			'total'  => $deal_total,
+		];
 	}
 } //from Class

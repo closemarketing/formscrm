@@ -41,8 +41,8 @@ function formscrm_check_url_crm( $url ) {
 //* Sends an email to administrator when it not creates the lead
 function formscrm_debug_email_lead($crm, $error, $data) {
     $to = 'david@closemarketing.es';
-    $subject = 'GravityForms CRM - '.__('Error creating the Lead','gravityformscrm');
-    $body = '<p>'.__('There was an error creating the Lead in the CRM','gravityformscrm').' '.$crm.':</p><p><strong>'.$error.'</strong></p><p>'.__('Lead Data','gravityformscrm').':</p>';
+    $subject = 'GravityForms CRM - '.__('Error creating the Lead','formscrm');
+    $body = '<p>'.__('There was an error creating the Lead in the CRM','formscrm').' '.$crm.':</p><p><strong>'.$error.'</strong></p><p>'.__('Lead Data','formscrm').':</p>';
     foreach($data as $dataitem){
         $body .= '<p><strong>'.$dataitem['name'].': </strong>'.$dataitem['value'].'</p>';
     }
