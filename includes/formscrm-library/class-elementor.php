@@ -258,24 +258,25 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$merge_vars = [];
 		foreach ( $raw_fields as $id => $field ) {
 			$merge_vars[ $id ] = [
-				'name' => $id,
-				'value' => $field['value']
-				];
+				'name'  => $id,
+				'value' => $field['value'],
+			];
 		}
 
-		// unpack hidden settings for the form
+		// Unpack hidden settings for the form.
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
 			$hidden_settings = json_decode( $settings['formscrm_settings_hidden'], true );
-			$settings = array_merge( $settings, $hidden_settings );
-			if ( isset( $settings['fc_crm_type'] ) && ! empty( $hidden_settings[$settings['fc_crm_type']] ) ) {
-				$settings['fc_crm_module'] = $hidden_settings[$settings['fc_crm_type']];
+			$settings        = array_merge( $settings, $hidden_settings );
+
+			if ( isset( $settings['fc_crm_type'] ) && ! empty( $hidden_settings[ $settings['fc_crm_type'] ] ) ) {
+				$settings['fc_crm_module'] = $hidden_settings[ $settings['fc_crm_type'] ];
 			}
 		}
 
 		// Create contact in CRM.
 		$this->include_library( $settings['fc_crm_type'] );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
-		
+
 		if ( 'error' === $response_result['status'] ) {
 			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
