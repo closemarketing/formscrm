@@ -273,6 +273,12 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			}
 		}
 
+		if ( !empty($_POST['visitor_key']) ) {
+			$merge_vars['visitor_key'] = [
+				'name' => 'visitor_key',
+				'value' => sanitize_text_field( $_POST['visitor_key'] )
+			];
+		}
 		// Create contact in CRM.
 		$this->include_library( $settings['fc_crm_type'] );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
