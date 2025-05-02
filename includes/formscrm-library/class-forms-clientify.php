@@ -43,6 +43,11 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 			if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 				add_filter( 'woocommerce_checkout_fields' , array( $this, 'clientify_cookie_checkout_field' ) );
 			}
+
+			// elementor
+			if ( is_plugin_active( 'elementor/elementor.php' ) ) {
+				add_filter( 'elementor_pro/forms/render/item', array( $this, 'add_custom_field_elementor_clientify' ), 10, 3 );
+			}
 		}
 
 		/**
@@ -163,6 +168,35 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 			);
 
 			return $fields;
+		}
+
+		/**
+		 * Adds field for Elementor
+		 *
+		 * @param array $item Item.
+		 * @param array $form Form.
+		 * @return void
+		 */
+		public function add_custom_field_elementor_clientify( $item, $index, $form ) {
+
+			// add only once as there no other hook
+			global $custom_field_elementor_clientify;
+			if ( $custom_field_elementor_clientify ) {
+				return $item;
+			}
+			$settings = $form->get_settings_for_display();
+			
+			if ( empty( $settings['fc_crm_type'] ) ) {
+				return $item;
+			}
+
+			$crm_type = $settings['fc_crm_type'];
+			if ( 'clientify' !== $crm_type ) {
+				return $item;
+			}
+
+			$custom_field_elementor_clientify = true;
+			echo '<input type="hidden" name="visitor_key" class="visitor_key" value="" />';
 		}
 	}
 }
