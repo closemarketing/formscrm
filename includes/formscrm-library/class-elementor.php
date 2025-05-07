@@ -273,10 +273,10 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			}
 		}
 
-		if ( !empty($_POST['visitor_key']) ) {
+		if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore
 			$merge_vars['visitor_key'] = [
-				'name' => 'visitor_key',
-				'value' => sanitize_text_field( $_POST['visitor_key'] )
+				'name'  => 'visitor_key',
+				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) )
 			];
 		}
 		// Create contact in CRM.
