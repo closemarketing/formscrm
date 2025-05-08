@@ -283,12 +283,12 @@ class FORMSCRM_CF7_Settings {
 	public function crm_process_entry( $contact_form ) {
 		$cf7_crm    = get_option( 'cf7_crm_' . $contact_form->id() );
 		$submission = WPCF7_Submission::get_instance();
-		$crm_type   = ! empty( $cf7_crm['fc_crm_type'] ) ? sanitize_title( $cf7_crm['fc_crm_type'] ) : '';
+		$crm_type   = ! empty( $cf7_crm['fc_crm_type'] ) ? sanitize_text_field( $cf7_crm['fc_crm_type'] ) : '';
 
 		// Create contact in CRM.
-		$this->include_library( $cf7_crm['fc_crm_type'] );
+		$this->include_library( $crm_type );
 		$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );			
+		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
 		if ( 'error' === $response_result['status'] ) {
 			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';

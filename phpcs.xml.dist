@@ -6,5 +6,6 @@
 
 	<rule ref="WordPress">
 		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
 	</rule>
 </ruleset>

@@ -4,12 +4,12 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.6
-Stable tag: 3.15.7
-Version: 3.15.7
+Stable tag: 4.0.0
+Version: 4.0.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Connects your CRM, ERP and Email Marketing with your Forms plugin and create new Leads/Entries as the forms are filled automatically.
+Connects your CRM, ERP and Email Marketing with your Forms plugin and create new Leads/Entries as the forms are filled automatically. GDPR compliant.
 
 == Description ==
 Connects your CRM with the main Form Plugin directly, and send to your CRM when the form is filled automatically.
@@ -18,6 +18,7 @@ With this plugin, you don't have to use third party software to send your Leads/
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
 - [GravityForms](https://close.marketing/likes/gravityforms/)
+- [Elementor Forms](https://elementor.com/pages/form-builder/)
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
@@ -76,6 +77,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = 4.0.0 =
+*  Added: New connector for Elementor Forms.
 *  Added Brevo Email Marketing.
 *  Added field autoassignment_users in Clientify (String with the list of usernames separated by comma (,) to apply the autoassignment).
 *  Added Product SKUs in Opportunity in Clientify.
