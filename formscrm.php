@@ -99,12 +99,7 @@ add_filter(
 	}
 );
 
-add_action( 'plugins_loaded', 'formscrm_forms_addon' );
-/**
- * Loads Forms integrations
- *
- * @return void
- */
-function formscrm_forms_addon() {
-	require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
-}
+// Include files.
+require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
+require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-updater.php';
+require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
