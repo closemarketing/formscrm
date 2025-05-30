@@ -10,6 +10,24 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Process post data for Elementor forms
+ *
+ * @param [type] $post_data
+ * @return void
+ */
+function formscrm_elementor_process_post( $post_data ) {
+	// Sanitize the post data.
+	foreach ( $post_data as $key => $value ) {
+		if ( 'fc_crm_url' === $key ) {
+			$post_data[ $key ] = isset( $value['url'] ) ? sanitize_url( $value['url'] ) : $value;
+			continue;
+		}
+		$post_data[ $key ] = sanitize_text_field( $value );
+	}
+	return $post_data;
+}
+
 add_action( 'wp_ajax_elementor_formscrm_connect_crm', 'elementor_formscrm_connect_crm' );
 
 /**
@@ -57,10 +75,10 @@ function elementor_formscrm_connect_crm() {
 
 	$crmlib = new $crmclassname();
 
-	// TODO maybe check connection to crm with login pass and everything we need
+	$post_data = formscrm_elementor_process_post( $_POST['crmSettings'] ?? array() );
 
 	// 2. Show modules dropdown
-	$modules         = $crmlib->list_modules( $_POST['crmSettings'] );
+	$modules         = $crmlib->list_modules( $post_data );
 	$settings_module = isset( $hidden_settings[ $crmtype ] ) ? $hidden_settings[ $crmtype ] : ''; ?>
 
 	<div class="elementor-control-type-select elementor-label-block elementor-control-separator-before">
@@ -107,7 +125,8 @@ function elementor_formscrm_connect_crm() {
 			continue;
 		}
 
-		$crm_fields = $crmlib->list_fields( $_POST['crmSettings'], $value );
+		$post_data  = formscrm_elementor_process_post( $_POST['crmSettings'] ?? array() );
+		$crm_fields = $crmlib->list_fields( $post_data, $value );
 
 		if ( empty( $crm_fields ) || ! is_array( $crm_fields ) ) {
 			continue;
