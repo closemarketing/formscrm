@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 4.0.0
-Version: 4.0.0
+Stable tag: 4.0.1
+Version: 4.0.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.1 =
+*  Fixed: Elementor Forms with URL Odoo not working.
+
 = 4.0.0 =
 *  Added: New connector for Elementor Forms.
 *  Added Brevo Email Marketing.
