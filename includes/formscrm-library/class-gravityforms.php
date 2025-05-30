@@ -576,9 +576,10 @@ class GFCRM extends GFFeedAddOn {
 		} else {
 			$response_message = sprintf(
 				// translators: %1$s CRM name %2$s ID number of entry created.
-				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
+				__( 'Success creating %1$s Entry ID: %2$s. %3$s', 'formscrm' ),
 				esc_html( $settings['fc_crm_type'] ),
-				$response_result['id']
+				$response_result['id'],
+				$response_result['message'] ?? ''
 			);
 			$this->add_note( $entry['id'], $response_message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
