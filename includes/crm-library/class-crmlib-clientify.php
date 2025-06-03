@@ -713,6 +713,12 @@ class CRMLIB_Clientify {
 				'label'    => __( 'Product SKUs in Opportunity (separated by comma)', 'formscrm' ),
 				'required' => false,
 			);
+
+			$fields[] = array(
+				'name'     => 'deal|expected_closed_date_days',
+				'label'    => __( 'Expected Closure Date in Days', 'formscrm' ),
+				'required' => false,
+			);
 		}
 
 		// Get Custom Fields.
@@ -781,6 +787,8 @@ class CRMLIB_Clientify {
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal' ) ) {
 				if ( 'deal|product_skus' === $element['name'] ) {
 					$deal_product_skus = $element['value'];
+				} elseif ( 'deal|expected_closed_date_days' === $element['name'] ) {
+					$deal['expected_closed_date'] = gmdate( 'Y-m-d', strtotime( '+' . (int) $element['value'] . ' days' ) );
 				} else {
 					$custom_field             = explode( '|', $element['name'] );
 					$deal[ $custom_field[1] ] = $element['value'];
