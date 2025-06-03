@@ -76,6 +76,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.2 =
+*  Fixed: Elementor Forms with URL Odoo not sending.
+
 = 4.0.1 =
 *  Fixed: Elementor Forms with URL Odoo not working.
 

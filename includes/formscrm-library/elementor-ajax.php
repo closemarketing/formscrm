@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * @param [type] $post_data
  * @return void
  */
-function formscrm_elementor_process_post( $post_data ) {
+function formscrm_elementor_process_settings( $post_data ) {
 	// Sanitize the post data.
 	foreach ( $post_data as $key => $value ) {
 		if ( 'fc_crm_url' === $key ) {
@@ -75,7 +75,7 @@ function elementor_formscrm_connect_crm() {
 
 	$crmlib = new $crmclassname();
 
-	$post_data = formscrm_elementor_process_post( $_POST['crmSettings'] ?? array() );
+	$post_data = formscrm_elementor_process_settings( $_POST['crmSettings'] ?? array() );
 
 	// 2. Show modules dropdown
 	$modules         = $crmlib->list_modules( $post_data );
@@ -125,7 +125,7 @@ function elementor_formscrm_connect_crm() {
 			continue;
 		}
 
-		$post_data  = formscrm_elementor_process_post( $_POST['crmSettings'] ?? array() );
+		$post_data  = formscrm_elementor_process_settings( $_POST['crmSettings'] ?? array() );
 		$crm_fields = $crmlib->list_fields( $post_data, $value );
 
 		if ( empty( $crm_fields ) || ! is_array( $crm_fields ) ) {
