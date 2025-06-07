@@ -7,8 +7,10 @@
   },
   "private": true,
   "scripts": {
-    "wp-env": "wp-env",
-    "setup:tools": "npm run wp-env run composer install",
+		"wp": "npx @wp-playground/cli server --mount=.:/wordpress/wp-content/plugins/ --blueprint=./blueprint.json",
+    "test": "vitest run --config=tests/integration/vitest.config.ts && npx playwright test --config=tests/end-to-end/playwright.config.ts",
+    "test:integration": "vitest --config=tests/integration/vitest.config.ts",
+    "test:e2e": "npx playwright test --ui --config=tests/end-to-end/playwright.config.ts",
     "test": "wp-env run tests-cli --env-cwd=wp-content/plugins/formscrm phpunit -c /var/www/html/wp-content/plugins/formscrm/.phpunit.xml.dist",
     "test:e2e": "npx playwright test",
     "test:wpe2e": "npx playwright test --config tests/e2e/playwright.config.ts"
@@ -27,10 +29,11 @@
     "csv-parse": "^5.4.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.46.1",
-    "@types/node": "^20.4.1",
-    "@wordpress/e2e-test-utils-playwright": "^0.3.0",
-    "@wordpress/env": "^10.18.0"
+    "@playwright/test": "^1.51.1",
+    "@types/node": "^22.14.1",
+    "@wp-playground/cli": "^1.1.1",
+    "fetch-cookie": "^3.1.0",
+    "vitest": "^3.1.1"
   },
   "core": "WordPress/WordPress",
   "plugins": [
@@ -38,8 +41,5 @@
   ],
   "config": {
     "WP_DEBUG": true
-  },
-  "wp-env": {
-    "port": 8890
   }
 }
