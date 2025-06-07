@@ -1,15 +1,15 @@
-=== FormsCRM ===
-Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasquero, manoloramos
+=== FormsCRM - Connect Forms to CRM directly ===
+Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasquero
 Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
-Tested up to: 6.6
-Stable tag: 3.15.6
-Version: 3.15.6
+Tested up to: 6.8
+Stable tag: 4.0.2
+Version: 4.0.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Connects your CRM, ERP and Email Marketing with your Forms plugin and create new Leads/Entries as the forms are filled automatically.
+Connects your CRM, ERP and Email Marketing with your Forms plugin and create new Leads/Entries as the forms are filled automatically. GDPR compliant.
 
 == Description ==
 Connects your CRM with the main Form Plugin directly, and send to your CRM when the form is filled automatically.
@@ -18,6 +18,7 @@ With this plugin, you don't have to use third party software to send your Leads/
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
 - [GravityForms](https://close.marketing/likes/gravityforms/)
+- [Elementor Forms](https://elementor.com/pages/form-builder/)
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
@@ -35,6 +36,7 @@ At this time, FormsCRM supports in free version:
 - [Clientify](https://close.marketing/likes/clientify/)
 - [AcumbaMail](https://acumbamail.com/)
 - [MailerLite Classic](https://close.marketing/likes/mailerlite/)
+- [Brevo](https://brevo.com/)
 
 And you will find, that there are Premium Addons to support:
 - [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
@@ -51,16 +53,22 @@ You can use multiple feed connector in GravityForms, WPForms PRO and ContactForm
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
 
-**Instructions for adding Clientify cookie in the forms**
-
-Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
-
 **Dynamic values in GravityForms and WPForms**
 We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
 {id:N} in order to get the value from field N
 {label:N} in order to get the label from field N (only in GravityForms)
 
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
+
+== Settings for Clientify ==
+**Instructions for adding Clientify cookie in the forms**
+Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
+
+**Add expected closure date for Deals in Clientify**
+You can add a new field that fits with expected closure date for Deals in Clientify. This field is optional, and you need to add a number of days to the expected closure date. The plugin will calculate the date from today and will add it to the Deal in Clientify.
+
+**Autoassignment in Clientify**
+We have added a new field in Clientify to apply the autoassignment to the contact. You can add a string with the list of usernames separated by comma (,) to apply the autoassignment.
 
 == Installation ==
 
@@ -71,6 +79,25 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.2 =
+*  Added: Expected closure date for Deals in Clientify.
+
+= 4.0.1 =
+*  Fixed: Elementor Forms with URL Odoo not working.
+
+= 4.0.0 =
+*  Added: New connector for Elementor Forms.
+*  Added Brevo Email Marketing.
+*  Added field autoassignment_users in Clientify (String with the list of usernames separated by comma (,) to apply the autoassignment).
+*  Added Product SKUs in Opportunity in Clientify.
+*  Added disclaimer field in Clientify.
+*  Added in Clientify different types of Emails: work, personal, other and main. Phones: main, mobile, work, home, fax, other.
+*  Added show Login errors from API.
+
+= 3.15.7 =
+*  Fixed: Fixed manage contact websites in Clientify.
+*  Fixed: Better management of Clientify API errors.
+
 = 3.15.6 =
 *  Added: Search contact or lead in Holded by email.
 

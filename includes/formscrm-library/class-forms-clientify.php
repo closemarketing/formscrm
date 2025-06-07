@@ -43,6 +43,43 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 			if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 				add_filter( 'woocommerce_checkout_fields' , array( $this, 'clientify_cookie_checkout_field' ) );
 			}
+
+			// elementor
+			if ( is_plugin_active( 'elementor/elementor.php' ) ) {
+
+				// filter form fields before render
+				add_filter( 'elementor/widget/render_content', function( $widget_content, $form ) {
+
+
+					// check if form is type of ElementorPro\Modules\Forms\Widgets\Form
+					if ( ! $form instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
+						return $widget_content;
+					}
+
+					$settings = $form->get_settings_for_display();
+					if ( empty( $settings['fc_crm_type'] ) ) {
+						return $widget_content;
+					}
+					$crm_type = $settings['fc_crm_type'];
+					if ( 'clientify' !== $crm_type ) {
+						return $widget_content;
+					}
+					// check if visitor_key field exists in content
+					if ( false === strpos( $widget_content, 'visitor_key' ) ) {
+						// add visitor_key field before <button only once
+						$pos_button = strpos( $widget_content, '<button' );
+						if ( false !== $pos_button ) {
+
+							global $wp_session;
+							$visitor_key = isset( $wp_session['clientify_visitor_key'] ) ? $wp_session['clientify_visitor_key'] : '';
+
+							$widget_content = preg_replace( '/<button/', '<input type="hidden" name="visitor_key" class="visitor_key" value="' . $visitor_key . '" /><button', $widget_content, 1 );
+						}
+					}
+
+					return $widget_content;
+				}, 10, 2 );
+			}
 		}
 
 		/**
@@ -72,7 +109,7 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 				$is_clientify       = 'no_clientify';
 				$settings           = get_option( 'gravityformsaddon_formscrm_settings' );
 				$crm_type_clientify = isset( $settings['fc_crm_type'] ) && 'clientify' === $settings['fc_crm_type'] ? true : false;
-				
+
 				if ( $crm_type_clientify ) {
 					return true;
 				}
@@ -84,7 +121,7 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 					$is_clientify = 'has_clientify';
 				}
 				set_transient( 'formscrm_query_is_clientify', $is_clientify, HOUR_IN_SECONDS * 3 );
-			}			
+			}
 
 			return 'has_clientify' === $is_clientify ? true : false;
 		}

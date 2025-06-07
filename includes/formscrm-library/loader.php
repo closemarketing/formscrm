@@ -54,13 +54,13 @@ if ( is_plugin_active( 'woocommerce/woocommerce.php' ) && ! class_exists( 'Forms
 
 // WPForms.
 if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_FormsCRM' ) ) {
-	add_action( 'wpforms_loaded', 'wpforms_formscrm' );
+	add_action( 'wpforms_loaded', 'formscrm_wpforms' );
 	/**
 	 * Load the provider class.
 	 *
 	 * @since 3.7.2
 	 */
-	function wpforms_formscrm() {
+	function formscrm_wpforms() {
 
 		// WPForms Pro is required.
 		if ( ! wpforms()->pro ) {
@@ -68,4 +68,44 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 		}
 		require_once 'class-wpforms.php';
 	}
+}
+
+// Elementor.
+if ( is_plugin_active( 'elementor/elementor.php' ) ) {
+	require_once 'elementor-ajax.php';
+	add_action(
+		'elementor_pro/init',
+		function () {
+			// Here its safe to include our action class file.
+			include_once FORMSCRM_PLUGIN_PATH . 'includes/formscrm-library/class-elementor.php';
+
+			// Instantiate the action class.
+			$formscrm_action = new FormsCRM_Elementor_Action_After_Submit();
+
+			// Register the action with form widget.
+			\ElementorPro\Plugin::instance()->modules_manager->get_modules( 'forms' )->add_form_action( $formscrm_action->get_name(), $formscrm_action );
+		}
+	);
+
+	add_action( 'elementor/editor/after_enqueue_scripts', function() {
+		wp_enqueue_script(
+			'formcrm-elementor-editor-script',
+			FORMSCRM_PLUGIN_URL . 'includes/assets/elementor-editor.js',
+			[ 'jquery', 'elementor-editor' ],
+			null,
+			true
+		);
+
+		wp_localize_script( 'formcrm-elementor-editor-script', 'formcrm_elementor', array(
+			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'nonce'   => wp_create_nonce( 'formcrm_nonce' ),
+		) );
+
+		wp_enqueue_style(
+			'formcrm-elementor-editor-style',
+			FORMSCRM_PLUGIN_URL . 'includes/assets/elementor.css',
+			array(),
+			FORMSCRM_VERSION
+		);
+	});
 }

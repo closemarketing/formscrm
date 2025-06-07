@@ -55,6 +55,8 @@ $test_mergevars = array(
 	array( 'name' => 'email', 'value' => 'david+' . generateRandomString( 4 ) . '@emailtest.com' ),
 	array( 'name' => 'phone', 'value' => '666666666'),
 	array( 'name' => 'custom_fields|Programa', 'value' => 'prueba programa' ),
+	array( 'name' => 'websites|corporate', 'value' => 'https://close.marketing'),
+	array( 'name' => 'websites|personal', 'value' => 'https://davidperezgar.com'),
 );
 echo '<pre> Mergevars:';
 print_r($test_mergevars);
@@ -70,6 +72,7 @@ echo '<h2>Create contact and lead from test mergevar</h2>';
 $settings['fc_crm_module'] = "contacts-deals";
 $test_mergevars[] = array( 'name' => 'deal|name', 'value' => 'Nombre oportunidad' );
 $test_mergevars[] = array( 'name' => 'deal|amount', 'value' => rand( 100, 2500 ) );
+$test_mergevars[] = array( 'name' => 'deal|product_skus', 'value' => 'TAQ45,TAQ40' );
 echo '<pre> Mergevars Contact and Lead:';
 print_r($test_mergevars);
 echo '<pre>';

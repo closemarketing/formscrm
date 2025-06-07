@@ -1,29 +1,31 @@
 <?php
 /**
- * MailerLite connect library
+ * Brevo connect library
  *
- * Has functions to login, list fields and create leadº
+ * Has functions to login, list fields and create contact
+ *
+ * Documentation: https://developers.brevo.com/reference/
  *
  * @author    David Perez <david@closemarketing.es>
  * @category  Functions
  * @package   FormsCRM
- * @version   1.0.0
+ * @version   4.0.0
  * @copyright 2021 Closemarketing
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Class for MailerLite connection.
+ * Brevo CRM Library
  */
-class CRMLIB_Mailerlite {
+class CRMLIB_Brevo {
 	/**
-	 * Mailer Lite Connector API
+	 * Brevo Connector API
 	 *
 	 * @param string $method Method to connect: GET, POST..
 	 * @param string $module URL endpoint.
 	 * @param string $apikey API Key credential.
-	 * @param array  $data   Body data.
+	 * @param array  $query  Body data.
 	 * @return array
 	 */
 	private function api( $method, $module, $apikey, $query = array() ) {
@@ -33,8 +35,9 @@ class CRMLIB_Mailerlite {
 		$args = array(
 			'method'  => $method,
 			'headers' => array(
-				'X-MailerLite-ApiKey' => $apikey,
-				'Content-Type'        => 'application/json',
+				'api-key'      => $apikey,
+				'Accept'       => 'application/json',
+				'Content-Type' => 'application/json',
 			),
 		);
 		if ( ! empty( $query ) ) {
@@ -42,12 +45,14 @@ class CRMLIB_Mailerlite {
 		}
 
 		if ( 'GET' === $method ) {
-			$limit  = 100; // default limit.
-			$offset = 0;
+			$limit        = 100; // default limit.
+			$offset       = 0;
 			$result_data  = array();
 			$repeat_query = false;
+
+			// . '?limit=' . $limit . '&offset=' . $offset
 			do {
-				$result = $this->request( $module . '?limit=' . $limit . '&offset=' . $offset, $args );
+				$result = $this->request( $module, $args );
 
 				if ( 'ok' === $result['status'] && ! empty( $result['data'] ) && is_array( $result['data'] ) ) {
 					$offset      += count( $result['data'] );
@@ -56,39 +61,35 @@ class CRMLIB_Mailerlite {
 				} else {
 					return $result;
 				}
-
 			} while ( $repeat_query );
 			return array(
 				'status' => 'ok',
 				'data'   => $result_data,
 			);
 		} else {
-			$result = $this->request( $module, $args );
-			return $result;
+			return $this->request( $module, $args );
 		}
-
 	}
 
 	/**
-	 * Request to MailerLite API
+	 * Request to Brevo API
 	 *
 	 * @param string $module URL endpoint with parameters.
 	 * @param array  $args  Body data.
 	 * @return array
 	 */
 	private function request( $module, $args ) {
-		$url         = 'https://api.mailerlite.com/api/v2/' . $module;
+		$url         = 'https://api.brevo.com/v3/' . $module;
 		$result      = wp_remote_request( $url, $args );
 		$result_code = wp_remote_retrieve_response_code( $result );
 		$body        = wp_remote_retrieve_body( $result );
 		$api_data    = json_decode( $body, true );
+		$result_code = intval( $result_code / 100 );
 
-		if ( is_wp_error( $result ) || 200 !== $result_code ) {
-			$message = 'Error: ' . $result->get_error_message() . ' ';
-			if ( ! empty( $api_data['error'] ) && is_array( $api_data['error'] ) ) {
-				foreach ( $api_data['error'] as $key => $value ) {
-					$message .= $key . ': ' . $value . ' ';
-				}
+		if ( is_wp_error( $result ) || 2 !== $result_code ) {
+			$message = 'Error: ';
+			foreach ( $api_data as $key => $value ) {
+				$message .= $key . ': ' . $value . ' ';
 			}
 			formscrm_error_admin_message( 'ERROR', $message );
 			return array(
@@ -111,21 +112,19 @@ class CRMLIB_Mailerlite {
 	public function login( $settings ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		try {
-			$results = $this->api( 'GET', 'groups', $apikey );
+			$results = $this->api( 'GET', 'contacts/lists', $apikey );
 
-			if ( !empty( $results ) && 'ok' === $results['status'] ) {
+			if ( 'ok' === $results['status'] ) {
 				return true;
 			}
 
 			return false;
-
 		} catch ( \Exception $e ) {
 
 			// Log that authentication test failed.
 			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() );
 
 			return false;
-
 		}
 	}
 
@@ -144,24 +143,22 @@ class CRMLIB_Mailerlite {
 		}
 
 		// Initialize choices array.
-		$choices = array();
-
-		$result_groups = $this->api( 'GET', 'groups', $apikey );
+		$choices      = array();
+		$result_lists = $this->api( 'GET', 'contacts/lists', $apikey );
 
 		// If no lists were found, return.
-		if ( 'error' === $result_groups['status'] || empty( $result_groups['data'] ) ) {
+		if ( 'error' === $result_lists['status'] || empty( $result_lists['data']['lists'] ) ) {
 			return array();
 		}
 
 		// Loop through array.
-		foreach ( $result_groups['data'] as $group ) {
+		foreach ( $result_lists['data']['lists'] as $list ) {
 
 			// Add list as choice.
 			$choices[] = array(
-				'label' => esc_html( $group['name'] ),
-				'value' => esc_attr( $group['id'] ),
+				'label' => esc_html( $list['name'] ),
+				'value' => (int) $list['id'],
 			);
-
 		}
 
 		return $choices;
@@ -170,7 +167,7 @@ class CRMLIB_Mailerlite {
 	/**
 	 * List fields for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
+	 * @param  array  $settings settings from Gravity Forms options.
 	 * @param  string $module settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
@@ -182,8 +179,7 @@ class CRMLIB_Mailerlite {
 		$field_map = array();
 
 		try {
-			$custom_fields = $this->api( 'GET', 'fields', $apikey );
-
+			$custom_fields = $this->api( 'GET', 'contacts/attributes', $apikey );
 		} catch ( \Exception $e ) {
 
 			// Log that we could not retrieve custom fields.
@@ -192,15 +188,37 @@ class CRMLIB_Mailerlite {
 			return $field_map;
 		}
 
+		$field_map[] = array(
+			'label' => 'Email',
+			'name'  => 'email',
+		);
+
+		$field_map[] = array(
+			'label' => 'EXT_ID',
+			'name'  => 'ext_id',
+		);
+
+		if ( 'error' === $custom_fields['status'] || empty( $custom_fields['data']['attributes'] ) ) {
+			return $field_map;
+		}
+
 		// Loop through custom fields.
-		foreach ( $custom_fields['data'] as $custom_field ) {
+		foreach ( $custom_fields['data']['attributes'] as $custom_field ) {
+			if ( isset( $custom_field['category'] ) && 'global' === $custom_field['category'] ) {
+				continue;
+			}
+
+			if ( 'EXT_ID' === $custom_field['name'] ) {
+				continue;
+			}
+
+			$field_name = isset( $custom_field['name'] ) ? $custom_field['name'] : '';
 
 			// Add custom field to field map.
 			$field_map[] = array(
-				'name'  => $custom_field['key'],
-				'label' => $custom_field['title'],
+				'label' => $field_name,
+				'name'  => $field_name,
 			);
-
 		}
 		return $field_map;
 	}
@@ -214,21 +232,22 @@ class CRMLIB_Mailerlite {
 	 */
 	public function create_entry( $settings, $merge_vars ) {
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$list_id = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
+		$list_id = isset( $settings['fc_crm_module'] ) ? (int) $settings['fc_crm_module'] : '';
 
-		$subscriber = array();
-
+		$subscriber            = array();
+		$subscriber['listIds'] = array( $list_id );
 		foreach ( $merge_vars as $element ) {
-			if ( 'email' === $element['name'] ) {
+			if ( false === strpos( $element['name'], '|' ) ) {
 				$subscriber[ $element['name'] ] = $element['value'];
 			} else {
-				$subscriber['fields'][ $element['name'] ] = $element['value'];
+				$key                              = str_replace( 'attributes|', '', $element['name'] );
+				$subscriber['attributes'][ $key ] = $element['value'];
 			}
 		}
 
 		try {
 			// Subscribe user.
-			$result = $this->api( 'POST', 'groups/' . $list_id . '/subscribers', $apikey, $subscriber );
+			$result = $this->api( 'POST', 'contacts', $apikey, $subscriber );
 
 			if ( 'ok' === $result['status'] ) {
 				$response_result = array(
@@ -257,5 +276,4 @@ class CRMLIB_Mailerlite {
 
 		return $response_result;
 	}
-
 } //from Class
