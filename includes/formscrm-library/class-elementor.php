@@ -254,15 +254,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		// Get submitted Form data.
 		$raw_fields = $record->get( 'fields' );
 
-		// Normalize the Form Data.
-		$merge_vars = [];
-		foreach ( $raw_fields as $id => $field ) {
-			$merge_vars[ $id ] = [
-				'name'  => $id,
-				'value' => $field['value'],
-			];
-		}
-
 		// Unpack hidden settings for the form.
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
 			$hidden_settings = json_decode( $settings['formscrm_settings_hidden'], true );
@@ -271,6 +262,20 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			if ( isset( $settings['fc_crm_type'] ) && ! empty( $hidden_settings[ $settings['fc_crm_type'] ] ) ) {
 				$settings['fc_crm_module'] = $hidden_settings[ $settings['fc_crm_type'] ];
 			}
+		}
+
+		// Normalize the Form Data.
+		$merge_vars = [];
+		foreach ( $raw_fields as $id => $field ) {
+			$key = array_search( $id, $hidden_settings, true );
+			if ( false === $key ) {
+				continue;
+			}
+			$field_id     = str_replace( 'fc_crm_field-', '', $key );
+			$merge_vars[] = [
+				'name'  => $field_id,
+				'value' => $field['value'] ?? '',
+			];
 		}
 
 		if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore

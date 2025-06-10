@@ -17,13 +17,12 @@ defined( 'ABSPATH' ) || exit;
  * @return void
  */
 function formscrm_elementor_process_settings( $post_data ) {
-	// Sanitize the post data.
-	foreach ( $post_data as $key => $value ) {
-		if ( 'fc_crm_url' === $key ) {
-			$post_data[ $key ] = isset( $value['url'] ) ? sanitize_url( $value['url'] ) : $value;
-			continue;
-		}
-		$post_data[ $key ] = sanitize_text_field( $value );
+	if ( isset( $post_data['fc_crm_url'] ) && is_array( $post_data['fc_crm_url'] ) ) {
+		// If the URL is an array, we assume it has a 'url' key.
+		$post_data['fc_crm_url'] = isset( $post_data['fc_crm_url']['url'] ) ? sanitize_text_field( $post_data['fc_crm_url']['url'] ) : '';
+	} elseif ( isset( $post_data['fc_crm_url'] ) ) {
+		// If it's not an array, sanitize it directly.
+		$post_data['fc_crm_url'] = sanitize_text_field( $post_data['fc_crm_url'] );
 	}
 	return $post_data;
 }
@@ -111,8 +110,8 @@ function elementor_formscrm_connect_crm() {
 			</div>
 			<div class="elementor-control-field-description"></div>
 		</div>
-	</div><?php
-
+	</div>
+	<?php
 	// 3. Show settings for each module
 	foreach ( $modules as $module ) {
 		$value = '';
@@ -132,7 +131,7 @@ function elementor_formscrm_connect_crm() {
 			continue;
 		} ?>
 
-		<table class="elementor-map-table" cellspacing="0" cellpadding="0" data-module="<?php echo $value; ?>"><tbody>
+		<table class="elementor-map-table" cellspacing="0" cellpadding="0" data-module="<?php echo esc_html( $value ); ?>"><tbody>
 			<tr class="elementor-map-row">
 				<th class="elementor-map-column elementor-map-column-heading elementor-map-column-key"><?php esc_html_e( 'Field CRM', 'formscrm' ); ?></th>
 				<th class="elementor-map-column elementor-map-column-heading elementor-map-column-value"><?php esc_html_e( 'Select Form Field', 'formscrm' ); ?></th>
@@ -147,12 +146,13 @@ function elementor_formscrm_connect_crm() {
 
 				$crm_field_name  = sanitize_text_field( $crm_field['name'] );
 				$crm_field_label = isset( $crm_field['label'] ) ? sanitize_text_field( $crm_field['label'] ) : '';
-				$crm_field_req   = isset( $crm_field['req'] ) ? (bool) $crm_field['req'] : false; ?>
+				$crm_field_req   = isset( $crm_field['req'] ) ? (bool) $crm_field['req'] : false;
+				?>
 
 				<tr class="elementor-map-row">
 					<td class="elementor-map-column elementor-map-column-key">
-						<label for="wpelementor-crm-field-<?php echo esc_html( $crm_field_name ); ?>"><?php
-
+						<label for="wpelementor-crm-field-<?php echo esc_html( $crm_field_name ); ?>">
+						<?php
 						echo esc_html( $crm_field_label );
 
 						if ( isset( $crm_field_req ) && $crm_field_req ) {
@@ -162,9 +162,9 @@ function elementor_formscrm_connect_crm() {
 						</label>
 					</td>
 					<td class="elementor-map-column elementor-map-column-value">
-						<select class="wide" name="fc_crm_field-<?php esc_html( $crm_field_name ); ?>" >
-							<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option><?php
-
+						<select class="wide" name="fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>" >
+							<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
+							<?php
 							foreach ( $_POST['formFields'] as $form_name => $form_label ) {
 								echo '<option value="' . esc_html( $form_name ) . '" ';
 
