@@ -72,10 +72,12 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				include_once $array_path[ $crmname ];
 			}
 
-			formscrm_debug_message( $array_path[ $crmname ] );
-
 			if ( class_exists( $crmclassname ) ) {
 				$this->crmlib = new $crmclassname();
+			} else {
+				// If the class does not exist, we throw an error.
+				formscrm_debug_message( 'Class ' . $crmclassname . ' not found in ' . $array_path[ $crmname ] );
+				wp_send_json_error( __( 'CRM library not found', 'formscrm' ) );
 			}
 		}
 	}
