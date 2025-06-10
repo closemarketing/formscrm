@@ -78,6 +78,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 4.0.2 =
 *  Fixed: Elementor Forms with URL Odoo not sending.
+*  Fixed: Warnings messages in load_plugin_textdomain.
 
 = 4.0.1 =
 *  Fixed: Elementor Forms with URL Odoo not working.
