@@ -291,12 +291,31 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$this->include_library( $settings['fc_crm_type'] );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
+		$response_message = '';
 		if ( 'error' === $response_result['status'] ) {
-			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
-			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
+			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
+			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
+			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
-			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query );
+
+			$response_message = sprintf(
+				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.
+				__( 'Error creating %1$s Error: %2$s URL: %3$s QUERY: %4$s', 'formscrm' ),
+				esc_html( $settings['fc_crm_type'] ),
+				$message,
+				$url,
+				$query
+			);
+		} else {
+			$response_message = sprintf(
+				// translators: %1$s CRM name %2$s ID number of entry created.
+				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
+				esc_html( $settings['fc_crm_type'] ),
+				$response_result['id']
+			);
 		}
+		$ajax_handler->add_response_data( 'formscrm_log', $response_message );
 	}
 
 	/**
