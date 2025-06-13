@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use ElementorPro\Modules\Forms\Submissions\Database\Query;
+
 /**
  * Action Class
  */
@@ -262,7 +264,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			$settings        = array_merge( $settings, $hidden_settings );
 
 			if ( isset( $settings['fc_crm_type'] ) && ! empty( $hidden_settings[ $settings['fc_crm_type'] ] ) ) {
-				$settings['fc_crm_module'] = $hidden_settings[ $settings['fc_crm_type'] ];
+				$settings['fc_crm_module'] = $hidden_settings[ $settings['fc_crm_type'] ] ?? '';
 			}
 		}
 
@@ -307,6 +309,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				$url,
 				$query
 			);
+			$ajax_handler->messages['admin_error'][] = $response_message;
 		} else {
 			$response_message = sprintf(
 				// translators: %1$s CRM name %2$s ID number of entry created.
@@ -314,8 +317,8 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				esc_html( $settings['fc_crm_type'] ),
 				$response_result['id']
 			);
+			$ajax_handler->messages['success'][] = $response_message;
 		}
-		$ajax_handler->add_response_data( 'formscrm_log', $response_message );
 	}
 
 	/**
