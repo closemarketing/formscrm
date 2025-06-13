@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use ElementorPro\Modules\Forms\Submissions\Database\Query;
+
 /**
  * Action Class
  */
@@ -72,10 +74,12 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				include_once $array_path[ $crmname ];
 			}
 
-			formscrm_debug_message( $array_path[ $crmname ] );
-
 			if ( class_exists( $crmclassname ) ) {
 				$this->crmlib = new $crmclassname();
+			} else {
+				// If the class does not exist, we throw an error.
+				formscrm_debug_message( 'Class ' . $crmclassname . ' not found in ' . $array_path[ $crmname ] );
+				wp_send_json_error( __( 'CRM library not found', 'formscrm' ) );
 			}
 		}
 	}
@@ -254,40 +258,66 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		// Get submitted Form data.
 		$raw_fields = $record->get( 'fields' );
 
-		// Normalize the Form Data.
-		$merge_vars = [];
-		foreach ( $raw_fields as $id => $field ) {
-			$merge_vars[ $id ] = [
-				'name'  => $id,
-				'value' => $field['value'],
-			];
-		}
-
 		// Unpack hidden settings for the form.
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
 			$hidden_settings = json_decode( $settings['formscrm_settings_hidden'], true );
 			$settings        = array_merge( $settings, $hidden_settings );
 
 			if ( isset( $settings['fc_crm_type'] ) && ! empty( $hidden_settings[ $settings['fc_crm_type'] ] ) ) {
-				$settings['fc_crm_module'] = $hidden_settings[ $settings['fc_crm_type'] ];
+				$settings['fc_crm_module'] = $hidden_settings[ $settings['fc_crm_type'] ] ?? '';
 			}
+		}
+
+		// Normalize the Form Data.
+		$merge_vars = [];
+		foreach ( $raw_fields as $id => $field ) {
+			$key = array_search( $id, $hidden_settings, true );
+			if ( false === $key ) {
+				continue;
+			}
+			$field_id     = str_replace( 'fc_crm_field-', '', $key );
+			$merge_vars[] = [
+				'name'  => $field_id,
+				'value' => $field['value'] ?? '',
+			];
 		}
 
 		if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore
 			$merge_vars['visitor_key'] = [
 				'name'  => 'visitor_key',
-				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) )
+				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),
 			];
 		}
 		// Create contact in CRM.
+		$settings = formscrm_elementor_process_settings( $settings );
 		$this->include_library( $settings['fc_crm_type'] );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
+		$response_message = '';
 		if ( 'error' === $response_result['status'] ) {
-			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
-			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
+			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
+			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
+			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
-			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query );
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query );
+
+			$response_message = sprintf(
+				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.
+				__( 'Error creating %1$s Error: %2$s URL: %3$s QUERY: %4$s', 'formscrm' ),
+				esc_html( $settings['fc_crm_type'] ),
+				$message,
+				$url,
+				$query
+			);
+			$ajax_handler->messages['admin_error'][] = $response_message;
+		} else {
+			$response_message = sprintf(
+				// translators: %1$s CRM name %2$s ID number of entry created.
+				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
+				esc_html( $settings['fc_crm_type'] ),
+				$response_result['id']
+			);
+			$ajax_handler->messages['success'][] = $response_message;
 		}
 	}
 

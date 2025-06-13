@@ -81,6 +81,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 4.0.2 =
 *  Added: Expected closure date for Deals in Clientify.
+*  Fixed: Elementor Forms Fields and values not sending.
+*  Fixed: Warnings messages in load_plugin_textdomain.
 
 = 4.0.1 =
 *  Fixed: Elementor Forms with URL Odoo not working.
