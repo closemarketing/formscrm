@@ -532,7 +532,13 @@ class CRMLIB_Clientify {
 
 			$fields[] = array(
 				'name'     => 'tags',
-				'label'    => __( 'Array of strings with the tags of the contact (value separated by comma)', 'formscrm' ),
+				'label'    => __( 'String with the list of tags of the contact separated by comma (,)', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
+				'name'     => 'autoassignment_users',
+				'label'    => __( 'String with the list of usernames separated by comma (,) to apply the autoassignment', 'formscrm' ),
 				'required' => false,
 			);
 
