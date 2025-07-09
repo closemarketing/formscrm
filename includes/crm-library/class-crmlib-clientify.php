@@ -715,6 +715,12 @@ class CRMLIB_Clientify {
 			);
 
 			$fields[] = array(
+				'name'     => 'deal|pipeline_name',
+				'label'    => __( 'Pipeline Name', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
 				'name'     => 'deal|product_skus',
 				'label'    => __( 'Product SKUs in Opportunity (separated by comma)', 'formscrm' ),
 				'required' => false,
@@ -771,11 +777,11 @@ class CRMLIB_Clientify {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
-		$apikey        = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module        = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
-		$contact       = array();
-		$deal          = array();
-		$deal_product_skus= '';
+		$apikey            = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$module            = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
+		$contact           = array();
+		$deal              = array();
+		$deal_product_skus = '';
 
 		$module = sanitize_title( $module );
 		$module = str_replace( '-deals', '', $module );
@@ -795,6 +801,11 @@ class CRMLIB_Clientify {
 					$deal_product_skus = $element['value'];
 				} elseif ( 'deal|expected_closed_date_days' === $element['name'] ) {
 					$deal['expected_closed_date'] = gmdate( 'Y-m-d', strtotime( '+' . (int) $element['value'] . ' days' ) );
+				} elseif ( 'deal|pipeline_name' === $element['name'] ) {
+					$pipeline_url = $this->get_pipeline_url( $element['value'], $apikey );
+					if ( ! empty( $pipeline_url ) ) {
+						$deal['pipeline'] = $pipeline_url;
+					}
 				} else {
 					$custom_field             = explode( '|', $element['name'] );
 					$deal[ $custom_field[1] ] = $element['value'];
@@ -904,8 +915,8 @@ class CRMLIB_Clientify {
 	/**
 	 * Extracts deal products from a string of SKUs and get Clientify schema
 	 *
-	 * @param string $deal_product_skus The string of SKUs separated by commas
-	 * @param string $apikey            The API key
+	 * @param string $deal_product_skus The string of SKUs separated by commas.
+	 * @param string $apikey            The API key.
 	 * @return array The array of deal products
 	 */
 	private function extract_deal_products( $deal_product_skus, $apikey ) {
@@ -929,5 +940,29 @@ class CRMLIB_Clientify {
 			'data'   => $deal_products,
 			'total'  => $deal_total,
 		];
+	}
+
+	/**
+	 * Gets the URL of a pipeline by its name.
+	 *
+	 * @param string $pipeline_name The name of the pipeline.
+	 * @param string $apikey        The API key.
+	 * @return string|false The URL of the pipeline or false if not found.
+	 */
+	private function get_pipeline_url( $pipeline_name, $apikey ) {
+		$result        = $this->get( 'deals/pipelines/', $apikey );
+		$pipeline_slug = sanitize_title( $pipeline_name );
+		if ( 'ok' === $result['status'] && isset( $result['data']['results'] ) ) {
+			foreach ( $result['data']['results'] as $pipeline ) {
+				if ( sanitize_title( $pipeline['name'] ) === $pipeline_slug ) {
+					$pipeline_url = isset( $pipeline['url'] ) ? sanitize_url( $pipeline['url'] ) : false;
+					if ( ! empty( $pipeline_url ) ) {
+						$pipeline_url = str_replace( 'deals/pipelines', 'deals-pipelines', $pipeline_url );
+						return $pipeline_url;
+					}
+				}
+			}
+		}
+		return false;
 	}
 } //from Class
