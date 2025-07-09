@@ -64,11 +64,14 @@ We recommend to use this in the field mapping in the feed and hidden field that 
 **Instructions for adding Clientify cookie in the forms**
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
+**Add Pipeline name in Opportunities**
+You can add a new field that fits with the Pipeline name in Opportunities in Clientify. You will need to use the same name as the Pipeline in Clientify.
+
 **Add expected closure date for Deals in Clientify**
 You can add a new field that fits with expected closure date for Deals in Clientify. This field is optional, and you need to add a number of days to the expected closure date. The plugin will calculate the date from today and will add it to the Deal in Clientify.
 
 **Autoassignment in Clientify**
-We have added a new field in Clientify to apply the autoassignment to the contact. You can add a string with the list of usernames separated by comma (,) to apply the autoassignment.
+Field that applies the autoassignment to the contact. You can add a string with the list of usernames (property emails) separated by comma (,) to apply the autoassignment.
 
 == Installation ==
 
@@ -80,6 +83,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = 4.0.3 =
+*  Enhaced: Add Pipeline name to improve Clientify pipeline implementation in Forms.
 *  Fixed: Autoassigment in Clientify not added in contacts module.
 *  Updated developer dependencies.
 
