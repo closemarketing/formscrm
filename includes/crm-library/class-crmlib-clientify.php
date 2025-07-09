@@ -709,13 +709,7 @@ class CRMLIB_Clientify {
 			);
 
 			$fields[] = array(
-				'name'     => 'deal|pipeline',
-				'label'    => __( 'Pipeline URL', 'formscrm' ),
-				'required' => false,
-			);
-
-			$fields[] = array(
-				'name'     => 'deal|pipeline_name',
+				'name'     => 'deal|pipeline_desc',
 				'label'    => __( 'Pipeline Name', 'formscrm' ),
 				'required' => false,
 			);
@@ -807,8 +801,8 @@ class CRMLIB_Clientify {
 						$deal['pipeline'] = $pipeline_url;
 					}
 				} else {
-					$custom_field             = explode( '|', $element['name'] );
-					$deal[ $custom_field[1] ] = $element['value'];
+					$deal_field             = explode( '|', $element['name'] );
+					$deal[ $deal_field[1] ] = $element['value'];
 				}
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
 				$custom_field               = explode( '|', $element['name'] );
@@ -940,29 +934,5 @@ class CRMLIB_Clientify {
 			'data'   => $deal_products,
 			'total'  => $deal_total,
 		];
-	}
-
-	/**
-	 * Gets the URL of a pipeline by its name.
-	 *
-	 * @param string $pipeline_name The name of the pipeline.
-	 * @param string $apikey        The API key.
-	 * @return string|false The URL of the pipeline or false if not found.
-	 */
-	private function get_pipeline_url( $pipeline_name, $apikey ) {
-		$result        = $this->get( 'deals/pipelines/', $apikey );
-		$pipeline_slug = sanitize_title( $pipeline_name );
-		if ( 'ok' === $result['status'] && isset( $result['data']['results'] ) ) {
-			foreach ( $result['data']['results'] as $pipeline ) {
-				if ( sanitize_title( $pipeline['name'] ) === $pipeline_slug ) {
-					$pipeline_url = isset( $pipeline['url'] ) ? sanitize_url( $pipeline['url'] ) : false;
-					if ( ! empty( $pipeline_url ) ) {
-						$pipeline_url = str_replace( 'deals/pipelines', 'deals-pipelines', $pipeline_url );
-						return $pipeline_url;
-					}
-				}
-			}
-		}
-		return false;
 	}
 } //from Class
