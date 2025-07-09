@@ -79,6 +79,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.3 =
+*  Fixed: Autoassigment in Clientify not added in contacts module.
+
 = 4.0.2 =
 *  Added: Expected closure date for Deals in Clientify.
 *  Fixed: Elementor Forms Fields and values not sending.
