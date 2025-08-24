@@ -721,6 +721,12 @@ class CRMLIB_Clientify {
 			);
 
 			$fields[] = array(
+				'name'     => 'deal|tags',
+				'label'    => __( 'Deal tags (separated by comma)', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
 				'name'     => 'deal|expected_closed_date_days',
 				'label'    => __( 'Expected Closure Date in Days', 'formscrm' ),
 				'required' => false,
@@ -776,6 +782,7 @@ class CRMLIB_Clientify {
 		$contact           = array();
 		$deal              = array();
 		$deal_product_skus = '';
+		$deal_tags         = '';
 
 		$module = sanitize_title( $module );
 		$module = str_replace( '-deals', '', $module );
@@ -793,6 +800,8 @@ class CRMLIB_Clientify {
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal' ) ) {
 				if ( 'deal|product_skus' === $element['name'] ) {
 					$deal_product_skus = $element['value'];
+				} elseif ( 'deal|tags' === $element['name'] ) {
+					$deal_tags = $element['value'];
 				} elseif ( 'deal|expected_closed_date_days' === $element['name'] ) {
 					$deal['expected_closed_date'] = gmdate( 'Y-m-d', strtotime( '+' . (int) $element['value'] . ' days' ) );
 				} elseif ( 'deal|pipeline_name' === $element['name'] ) {
@@ -890,6 +899,21 @@ class CRMLIB_Clientify {
 				if ( 'ok' === $result['status'] ) {
 					$response_result['id'] = $contact_id . '|' . $result['data']['id'];
 				}
+
+				// Add tags to deal.
+				if ( ! empty( $deal_tags ) ) {
+					$deal_tags_raw = explode( ',', $deal_tags );
+					if ( ! empty( $deal_tags_raw ) ) {
+						foreach ( $deal_tags_raw as $deal_tag ) {
+							$deal_tags_api[] = array(
+								'name' => $deal_tag,
+							);
+							$this->request( 'deals/' . $result['data']['id'] . '/tags/', $deal_tags_api, $apikey, 'PUT' );
+						}
+					}
+				}
+
+				// Add products to deal.
 				if ( ! empty( $deal_products ) ) {
 					$this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
 				}
