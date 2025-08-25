@@ -905,17 +905,19 @@ class CRMLIB_Clientify {
 					$deal_tags_raw = explode( ',', $deal_tags );
 					if ( ! empty( $deal_tags_raw ) ) {
 						foreach ( $deal_tags_raw as $deal_tag ) {
-							$deal_tags_api[] = array(
-								'name' => $deal_tag,
-							);
-							$this->request( 'deals/' . $result['data']['id'] . '/tags/', $deal_tags_api, $apikey, 'PUT' );
+							$deal_tags_api['name'] = sanitize_text_field( $deal_tag );
+							$result                = $this->request( 'deals/' . $result['data']['id'] . '/tags/', $deal_tags_api, $apikey );
+
+							$response_result['message'] .= ' ' . $result['message'];
 						}
 					}
 				}
 
 				// Add products to deal.
 				if ( ! empty( $deal_products ) ) {
-					$this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
+					$result = $this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
+
+					$response_result['message'] .= ' ' . $result['message'];
 				}
 			}
 		} else {
