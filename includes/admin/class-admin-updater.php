@@ -286,19 +286,19 @@ class FormsCRM_Updater {
 			if ( ! empty( $plugin_data[ 'auto-update-forced' ] ) ) {
 				if ( $plugin_data[ 'auto-update-forced' ] ) {
 					// Forced on.
-					$text = __( 'Auto-updates enabled' );
+					$text = __( 'Auto-updates enabled', 'formscrm' );
 				} else {
-					$text = __( 'Auto-updates disabled' );
+					$text = __( 'Auto-updates disabled', 'formscrm' );
 				}
 
 				$action     = 'unavailable';
 				$time_class = ' hidden';
 			} elseif ( in_array( $plugin_file, $auto_updates, true ) ) {
-				$text       = __( 'Disable auto-updates' );
+				$text       = __( 'Disable auto-updates', 'formscrm' );
 				$action     = 'disable';
 				$time_class = '';
 			} else {
-				$text       = __( 'Enable auto-updates' );
+				$text       = __( 'Enable auto-updates', 'formscrm' );
 				$action     = 'enable';
 				$time_class = ' hidden';
 			}
