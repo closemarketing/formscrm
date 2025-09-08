@@ -253,7 +253,7 @@ class FormsCRM_WooCommerce {
 			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
 		}
 
-		if ( isset( $crmtype ) ) {
+		if ( ! empty( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );
 			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
