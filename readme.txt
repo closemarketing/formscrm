@@ -73,6 +73,9 @@ You can add a new field that fits with expected closure date for Deals in Client
 **Autoassignment in Clientify**
 Field that applies the autoassignment to the contact. You can add a string with the list of usernames (property emails) separated by comma (,) to apply the autoassignment.
 
+**Webhook in GravityForms**
+You can add a new field that fits with the Webhook in GravityForms. This field is optional, and you need to add the webhook url. The plugin will send the form data received from CRM to the webhook url.
+
 == Installation ==
 
 Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your
@@ -84,7 +87,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = 4.0.4 =
-*  Added: Webhook to send form data received from CRM.
+*  Added: Webhook to send form data received from CRM in GravityForms.
 *  Added: Automatic tests for robust testing and quality code.
 
 = 4.0.3 =
