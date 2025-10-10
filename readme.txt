@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 4.0.2
-Version: 4.0.2
+Stable tag: 4.0.3
+Version: 4.0.3
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,11 +64,14 @@ We recommend to use this in the field mapping in the feed and hidden field that 
 **Instructions for adding Clientify cookie in the forms**
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
+**Add Pipeline name in Opportunities**
+You can add a new field that fits with the Pipeline name in Opportunities in Clientify. You will need to use the same name as the Pipeline in Clientify.
+
 **Add expected closure date for Deals in Clientify**
 You can add a new field that fits with expected closure date for Deals in Clientify. This field is optional, and you need to add a number of days to the expected closure date. The plugin will calculate the date from today and will add it to the Deal in Clientify.
 
 **Autoassignment in Clientify**
-We have added a new field in Clientify to apply the autoassignment to the contact. You can add a string with the list of usernames separated by comma (,) to apply the autoassignment.
+Field that applies the autoassignment to the contact. You can add a string with the list of usernames (property emails) separated by comma (,) to apply the autoassignment.
 
 == Installation ==
 
@@ -79,8 +82,15 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.3 =
+*  Enhaced: Add Pipeline name to improve Clientify pipeline implementation in Forms.
+*  Fixed: Autoassigment in Clientify not added in contacts module.
+*  Updated developer dependencies.
+
 = 4.0.2 =
 *  Added: Expected closure date for Deals in Clientify.
+*  Fixed: Elementor Forms Fields and values not sending.
+*  Fixed: Warnings messages in load_plugin_textdomain.
 
 = 4.0.1 =
 *  Fixed: Elementor Forms with URL Odoo not working.

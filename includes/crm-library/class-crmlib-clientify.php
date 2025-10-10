@@ -532,7 +532,13 @@ class CRMLIB_Clientify {
 
 			$fields[] = array(
 				'name'     => 'tags',
-				'label'    => __( 'Array of strings with the tags of the contact (value separated by comma)', 'formscrm' ),
+				'label'    => __( 'String with the list of tags of the contact separated by comma (,)', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
+				'name'     => 'autoassignment_users',
+				'label'    => __( 'String with the list of usernames separated by comma (,) to apply the autoassignment', 'formscrm' ),
 				'required' => false,
 			);
 
@@ -703,8 +709,8 @@ class CRMLIB_Clientify {
 			);
 
 			$fields[] = array(
-				'name'     => 'deal|pipeline',
-				'label'    => __( 'Pipeline URL', 'formscrm' ),
+				'name'     => 'deal|pipeline_desc',
+				'label'    => __( 'Pipeline Name', 'formscrm' ),
 				'required' => false,
 			);
 
@@ -765,11 +771,11 @@ class CRMLIB_Clientify {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
-		$apikey        = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module        = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
-		$contact       = array();
-		$deal          = array();
-		$deal_product_skus= '';
+		$apikey            = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$module            = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
+		$contact           = array();
+		$deal              = array();
+		$deal_product_skus = '';
 
 		$module = sanitize_title( $module );
 		$module = str_replace( '-deals', '', $module );
@@ -789,9 +795,14 @@ class CRMLIB_Clientify {
 					$deal_product_skus = $element['value'];
 				} elseif ( 'deal|expected_closed_date_days' === $element['name'] ) {
 					$deal['expected_closed_date'] = gmdate( 'Y-m-d', strtotime( '+' . (int) $element['value'] . ' days' ) );
+				} elseif ( 'deal|pipeline_name' === $element['name'] ) {
+					$pipeline_url = $this->get_pipeline_url( $element['value'], $apikey );
+					if ( ! empty( $pipeline_url ) ) {
+						$deal['pipeline'] = $pipeline_url;
+					}
 				} else {
-					$custom_field             = explode( '|', $element['name'] );
-					$deal[ $custom_field[1] ] = $element['value'];
+					$deal_field             = explode( '|', $element['name'] );
+					$deal[ $deal_field[1] ] = $element['value'];
 				}
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
 				$custom_field               = explode( '|', $element['name'] );
@@ -898,8 +909,8 @@ class CRMLIB_Clientify {
 	/**
 	 * Extracts deal products from a string of SKUs and get Clientify schema
 	 *
-	 * @param string $deal_product_skus The string of SKUs separated by commas
-	 * @param string $apikey            The API key
+	 * @param string $deal_product_skus The string of SKUs separated by commas.
+	 * @param string $apikey            The API key.
 	 * @return array The array of deal products
 	 */
 	private function extract_deal_products( $deal_product_skus, $apikey ) {
