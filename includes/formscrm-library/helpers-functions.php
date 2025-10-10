@@ -132,28 +132,32 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 	 * Sends webhook
 	 *
 	 * @param string $settings Settings.
-	 * @param array  $data    Data.
+	 * @param array  $response Response from CRM.
 	 * @return void
 	 */
-	function formscrm_send_webhook( $settings, $data ) {
+	function formscrm_send_webhook( $settings, $response ) {
 		$webhook_url = isset( $settings['fc_crm_webhook'] ) ? $settings['fc_crm_webhook'] : '';
-		if ( empty( $webhook ) ) {
+		if ( empty( $webhook_url ) ) {
 			return;
 		}
-		$module   = isset( $data['module'] ) ? $data['module'] : '';
-		$ids      = isset( $data['id'] ) ? $data['id'] : '';
+		$module   = isset( $response['module'] ) ? $response['module'] : '';
+		$ids      = isset( $response['id'] ) ? $response['id'] : '';
 		$ids      = explode( '|', $ids );
 		$entry_id = end( $ids );
 
-		$body = array(
+		$body     = array(
 			'hook' => array(
-				'event' => $module . '.saved',
+				'event'  => $module . '.saved',
 				'target' => $webhook_url,
 			),
 			'data' => array(
 				'id' => $entry_id,
 			),
 		);
-		wp_remote_post( $webhook_url, array( 'body' => $data ) );
+		$response = wp_remote_post( $webhook_url, array( 'body' => wp_json_encode( $body ) ) );
+		return array(
+			'response' => $response,
+			'request'  => $body,
+		);
 	}
 }
