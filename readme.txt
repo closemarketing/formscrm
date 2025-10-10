@@ -82,6 +82,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 4.0.4 =
+*  Added: Webhook to send form data received from CRM.
+
 = 4.0.3 =
 *  Enhaced: Add Pipeline name to improve Clientify pipeline implementation in Forms.
 *  Fixed: Autoassigment in Clientify not added in contacts module.

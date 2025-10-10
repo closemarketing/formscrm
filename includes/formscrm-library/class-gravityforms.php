@@ -278,16 +278,16 @@ class GFCRM extends GFFeedAddOn {
 								'type'     => 'select',
 								'class'    => 'medium',
 								'onchange' => 'jQuery(this).parents("form").submit();',
-								'choices'  => 
-								array_merge(
+								'choices'  => array_merge(
 									array(
+										// translators: %s is the name of the CRM as defined in settings.
 										array(
 											'label' => sprintf(
 												__( 'Use default CRM defined in Settings: %s', 'formscrm' ),
 												ucfirst( $settings_crm )
 											),
 											'value' => 'no',
-										),	
+										),
 									),
 									formscrm_get_choices()
 								),
@@ -295,6 +295,17 @@ class GFCRM extends GFFeedAddOn {
 						),
 						$this->get_crm_fields( false, $settings ),
 						$this->get_crm_feed_fields( $settings ),
+						array(
+							array(
+								'name'        => 'fc_crm_webhook',
+								'label'       => __( 'FormsCRM webhook', 'formscrm' ),
+								'type'        => 'text',
+								'class'       => 'medium',
+								'input_type'  => 'url',
+								'placeholder' => __( 'https://your-webhook-url.com', 'formscrm' ),
+								'tooltip'     => '<h6>' . __( 'FormsCRM webhook', 'formscrm' ) . '</h6>' . __( 'Enter a URL to send a webhook form data received from CRM.', 'formscrm' ),
+							),
+						)
 					),
 				),
 			),
@@ -575,13 +586,15 @@ class GFCRM extends GFFeedAddOn {
 			$this->add_note( $entry['id'], $response_message, 'error' );
 		} else {
 			$response_message = sprintf(
-				// translators: %1$s CRM name %2$s ID number of entry created.
-				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
+				// translators: %1$s CRM name %2$s CRM type %3$s ID number of entry created.
+				__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
+				isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
 				esc_html( $settings['fc_crm_type'] ),
 				$response_result['id']
 			);
 			$this->add_note( $entry['id'], $response_message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
+			formscrm_send_webhook( $settings, $response_result );
 			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );
 		}
 	}

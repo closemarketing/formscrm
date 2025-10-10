@@ -126,3 +126,34 @@ if ( ! function_exists( 'formscrm_check_url_crm' ) ) {
 		return $url;
 	}
 }
+
+if ( ! function_exists( 'formscrm_send_webhook' ) ) {
+	/**
+	 * Sends webhook
+	 *
+	 * @param string $settings Settings.
+	 * @param array  $data    Data.
+	 * @return void
+	 */
+	function formscrm_send_webhook( $settings, $data ) {
+		$webhook_url = isset( $settings['fc_crm_webhook'] ) ? $settings['fc_crm_webhook'] : '';
+		if ( empty( $webhook ) ) {
+			return;
+		}
+		$module   = isset( $data['module'] ) ? $data['module'] : '';
+		$ids      = isset( $data['id'] ) ? $data['id'] : '';
+		$ids      = explode( '|', $ids );
+		$entry_id = end( $ids );
+
+		$body = array(
+			'hook' => array(
+				'event' => $module . '.saved',
+				'target' => $webhook_url,
+			),
+			'data' => array(
+				'id' => $entry_id,
+			),
+		);
+		wp_remote_post( $webhook_url, array( 'body' => $data ) );
+	}
+}
