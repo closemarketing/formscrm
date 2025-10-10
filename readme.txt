@@ -82,7 +82,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
 = 4.0.4 =
+*  Added: Webhook to send form data received from CRM.
 *  Added: Automatic tests for robust testing and quality code.
 
 = 4.0.3 =

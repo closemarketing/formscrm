@@ -776,6 +776,7 @@ class CRMLIB_Clientify {
 		$contact           = array();
 		$deal              = array();
 		$deal_product_skus = '';
+		$last_module       = 'contact';
 
 		$module = sanitize_title( $module );
 		$module = str_replace( '-deals', '', $module );
@@ -893,6 +894,7 @@ class CRMLIB_Clientify {
 				if ( ! empty( $deal_products ) ) {
 					$this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
 				}
+				$last_module = 'deal';
 			}
 		} else {
 			$message         = isset( $result['data'] ) ? $result['data'] : '';
@@ -903,6 +905,8 @@ class CRMLIB_Clientify {
 				'query'   => isset( $result['query'] ) ? $result['query'] : '',
 			);
 		}
+
+		$response_result['module'] = $last_module;
 		return $response_result;
 	}
 
