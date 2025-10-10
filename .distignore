@@ -11,8 +11,6 @@ composer.lock
 phpunit.xml.dist
 tests/
 .github
-composer.json
-composer.lock
 .wordpress-org
 .phpcs.xml.dist
 *.yml
@@ -21,4 +19,6 @@ node_modules/
 package.json
 package-lock.json
 vendor/
-phpcs.xml.dist
+.wp-env-sample.json
+.phpunit.result.cache
+bin/

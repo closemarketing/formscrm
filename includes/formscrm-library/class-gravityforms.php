@@ -283,6 +283,7 @@ class GFCRM extends GFFeedAddOn {
 										// translators: %s is the name of the CRM as defined in settings.
 										array(
 											'label' => sprintf(
+												// translators: %s is the name of the CRM as defined in settings.
 												__( 'Use default CRM defined in Settings: %s', 'formscrm' ),
 												ucfirst( $settings_crm )
 											),

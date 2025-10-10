@@ -59,6 +59,7 @@ class FormsCRM_GravityForms_Widget {
 				GFCRM::get_instance()->process_feed( $feed, $entry, $form );
 				$html .= '<li>';
 				$html .= sprintf(
+					// translators: %s is the name of the feed.
 					__( 'Feed: %s', 'formscrm' ),
 					isset( $feed['meta']['feedName'] ) ? $feed['meta']['feedName'] : $feed['id'],
 				);
@@ -76,6 +77,7 @@ class FormsCRM_GravityForms_Widget {
 				}
 				$html .= '<li>';
 				$html .= sprintf(
+					// translators: %s is the name of the feed.
 					__( 'Feed: %s', 'formscrm' ),
 					isset( $feed['meta']['feedName'] ) ? $feed['meta']['feedName'] : $feed['id'],
 				);

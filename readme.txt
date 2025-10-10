@@ -85,6 +85,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 = 4.0.4 =
 *  Added: Webhook to send form data received from CRM.
+*  Added: Automatic tests for robust testing and quality code.
 
 = 4.0.3 =
 *  Enhaced: Add Pipeline name to improve Clientify pipeline implementation in Forms.
