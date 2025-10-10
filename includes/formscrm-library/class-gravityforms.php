@@ -168,23 +168,54 @@ class GFCRM extends GFFeedAddOn {
 	 * @return array
 	 */
 	public function plugin_settings_fields() {
+		$fields = array();
+		$fields = $this->get_crm_fields( true, array(), 'settings' );
+
+		// Expert Mode.
+		$expert_mode = formscrm_get_dependency_expert_mode();
+		if ( $expert_mode ) {
+			$fields = array_merge(
+				$fields,
+				array(
+					array(
+						'label'   => __( 'Mode', 'formscrm' ),
+						'type'    => 'checkbox',
+						'name'    => 'fc_crm_mode_expert',
+						'tooltip' => __( 'Enable this option to show all fields of the CRM.', 'formscrm' ),
+						'choices' => array(
+							array(
+								'label' => __( 'Enable Expert Mode', 'formscrm' ),
+								'name'  => 'fc_crm_mode_expert',
+							),
+						),
+					),
+				),
+			);
+		}
+
 		return array(
 			array(
 				'title'       => __( 'CRM Account Information', 'formscrm' ),
 				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'formscrm' ),
-				'fields'      => $this->get_crm_fields( true, array(), 'settings'),
+				'fields'      => $fields,
 			),
 		);
 	}
 
+	/**
+	 * Settings API Key
+	 *
+	 * @param array $field Field.
+	 * @param bool  $echo Echo.
+	 * @return string
+	 */
 	public function settings_api_key( $field, $echo = true ) {
 
 		$field['type'] = 'text';
-
 		$api_key_field = $this->settings_text( $field, false );
 
-		//switch type="text" to type="password" so the key is not visible
-		$api_key_field = str_replace('type="text"', 'type="password"', $api_key_field);
+		// Switch type="text" to type="password" so the key is not visible.
+		$api_key_field = str_replace( 'type="text"', 'type="password"', $api_key_field );
 
 		$caption = '<small>' . sprintf( esc_html__( 'Find a Password or API key depending of CRM.', 'formscrm' ) ) . '</small>';
 

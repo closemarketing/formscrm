@@ -48,7 +48,7 @@ And you will find, that there are Premium Addons to support:
 - [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/)
 - [WHMCS](https://close.technology/en/wordpress-plugins/formscrm-whmcs/)
 
-You can use multiple feed connector in GravityForms, WPForms PRO and ContactForm7, and you can use multiple CRM connectors in the same form.
+You can use multiple feed connector in GravityForms, WPForms PRO, Elementor Forms and ContactForm7, and you can use multiple CRM connectors in the same form.
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
@@ -82,6 +82,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.4 =
+*  Added: Expert Mode.
+
 = 4.0.3 =
 *  Enhaced: Add Pipeline name to improve Clientify pipeline implementation in Forms.
 *  Fixed: Autoassigment in Clientify not added in contacts module.

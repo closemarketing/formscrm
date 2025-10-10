@@ -599,6 +599,14 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			esc_html__( 'CRM Odoo DB', 'formscrm' )
 		);
 
+		// Expert Mode.
+		if ( formscrm_get_dependency_expert_mode() ) {
+			printf(
+				'<input type="checkbox" name="fc_crm_mode_expert" class="fc_crm_mode_expert" value="on" /><label for="fc_crm_mode_expert">%s</label>',
+				esc_html__( 'Enable Expert Mode', 'formscrm' )
+			);
+		}
+
 		$js_dependency = '';
 		foreach ( formscrm_get_choices() as $crm ) {
 			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_html( $crm['value'] ) . "') {";

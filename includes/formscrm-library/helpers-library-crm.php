@@ -39,6 +39,20 @@ if ( ! function_exists( 'formscrm_get_crmlib_path' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_get_dependency_expert_mode' ) ) {
+	/**
+	 * Returns dependecies Expert Mode for forms depending of CRM.
+	 *
+	 * @return array
+	 */
+	function formscrm_get_dependency_expert_mode() {
+		return apply_filters(
+			'formscrm_dependency_expert_mode',
+			false
+		);
+	}
+}
+
 if ( ! function_exists( 'formscrm_get_dependency_url' ) ) {
 	/**
 	 * Returns dependecies URL for forms depending of CRM.
