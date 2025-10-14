@@ -32,7 +32,7 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 	}
 
 	public function test_webhook_post() {
-		$settings['fc_crm_webhook'] = 'https://webhook.site/3376c75e-517e-4833-be8b-c80517e71d88';
+		$settings['fc_crm_webhook'] = 'https://webhook.com/test';
 		$response_api = array(
 			'status' => 'ok',
 			'message' => 'success',
