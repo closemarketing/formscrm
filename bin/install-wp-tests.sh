@@ -189,6 +189,18 @@ install_db() {
 	fi
 }
 
+install_plugins() {
+	local PLUGIN_DIR="$WP_CORE_DIR/wp-content/plugins"
+	mkdir -p "$PLUGIN_DIR"
+WOOCOMMERCE_URL="https://downloads.wordpress.org/plugin/contact-form-7.zip"
+	download "$WOOCOMMERCE_URL" "$TMPDIR/contact-form-7.zip"
+	unzip -q "$TMPDIR/contact-form-7.zip" -d "$TMPDIR/"
+	rm -rf "$PLUGIN_DIR/contact-form-7"
+	mv "$TMPDIR/contact-form-7" "$PLUGIN_DIR/contact-form-7"
+	echo "Contact Form 7 plugin installed successfully."
+}
+
 install_wp
+install_plugins
 install_test_suite
 install_db
