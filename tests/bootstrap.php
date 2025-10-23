@@ -40,6 +40,7 @@ require_once "{$_tests_dir}/includes/functions.php";
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
+	require_once WP_CORE_DIR . '/wp-content/plugins/contact-form-7/wp-contact-form-7.php';
 	require dirname( dirname( __FILE__ ) ) . '/formscrm.php';
 }
 

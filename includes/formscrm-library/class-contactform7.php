@@ -305,21 +305,26 @@ class FORMSCRM_CF7_Settings {
 	 * @param array $submitted_data Submitted data.
 	 * @return array
 	 */
-	private function get_merge_vars( $cf7_crm, $submitted_data ) {
+	public function get_merge_vars( $cf7_crm, $submitted_data ) {
 		$merge_vars = array();
 		foreach ( $cf7_crm as $key => $value ) {
-			if ( false !== strpos( $key, 'fc_crm_field' ) ) {
-				$crm_key = str_replace( 'fc_crm_field-', '', $key );
-
-				if ( ! empty( $submitted_data[ $value ] ) ) {
-					$value = $submitted_data[ $value ];
-				}
-
-				$merge_vars[] = array(
-					'name'  => $crm_key,
-					'value' => $value,
-				);
+			if ( false === strpos( $key, 'fc_crm_field' ) ) {
+				continue;
 			}
+			$crm_key = str_replace( 'fc_crm_field-', '', $key );
+
+			if ( ! empty( $submitted_data[ $value ] ) ) {
+				$value = $submitted_data[ $value ];
+			}
+
+			if ( is_array( $value ) ) {
+				$value = implode( ',', $value );
+			}
+
+			$merge_vars[] = array(
+				'name'  => $crm_key,
+				'value' => $value,
+			);
 		}
 
 		return $merge_vars;
