@@ -205,6 +205,15 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			)
 		);
 
+		// Expert Mode.
+		$widget->add_control(
+			'fc_crm_mode_expert',
+			array(
+				'label' => __( 'Expert Mode', 'formscrm' ),
+				'type'  => \Elementor\Controls_Manager::SWITCHER,
+			)
+		);
+
 		$widget->add_control(
 			'connect_crm',
 			[
