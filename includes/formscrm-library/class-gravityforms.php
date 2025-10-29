@@ -172,26 +172,23 @@ class GFCRM extends GFFeedAddOn {
 		$fields = $this->get_crm_fields( true, array(), 'settings' );
 
 		// Expert Mode.
-		$expert_mode = formscrm_get_dependency_expert_mode();
-		if ( $expert_mode ) {
-			$fields = array_merge(
-				$fields,
+		$fields = array_merge(
+			$fields,
+			array(
 				array(
-					array(
-						'label'   => __( 'Mode', 'formscrm' ),
-						'type'    => 'checkbox',
-						'name'    => 'fc_crm_mode_expert',
-						'tooltip' => __( 'Enable this option to show all fields of the CRM.', 'formscrm' ),
-						'choices' => array(
-							array(
-								'label' => __( 'Enable Expert Mode', 'formscrm' ),
-								'name'  => 'fc_crm_mode_expert',
-							),
+					'label'   => __( 'Mode', 'formscrm' ),
+					'type'    => 'checkbox',
+					'name'    => 'fc_crm_mode_expert',
+					'tooltip' => __( 'Enable this option to show all fields of the CRM.', 'formscrm' ),
+					'choices' => array(
+						array(
+							'label' => __( 'Enable Expert Mode', 'formscrm' ),
+							'name'  => 'fc_crm_mode_expert',
 						),
 					),
 				),
-			);
-		}
+			),
+		);
 
 		return array(
 			array(

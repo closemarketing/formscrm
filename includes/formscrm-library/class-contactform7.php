@@ -176,13 +176,10 @@ class FORMSCRM_CF7_Settings {
 							?>
 						</select>
 					</p>
-					<?php if ( formscrm_get_dependency_expert_mode() ) { ?>
 					<p>
 						<label for="wpcf7-crm-fc_crm_mode_expert"><?php esc_html_e( 'Expert Mode', 'formscrm' ); ?></label><br />
 						<input type="checkbox" id="wpcf7-crm-fc_crm_mode_expert" name="wpcf7-crm[fc_crm_mode_expert]" class="medium" value="on" <?php checked( $cf7_crm['fc_crm_mode_expert'], 'on' ); ?> /><?php esc_html_e( 'Enable this option to show all fields of the CRM.', 'formscrm' ); ?>
 					</p>
-					<?php } ?>
-
 				<?php } ?>
 			</div>
 			<?php

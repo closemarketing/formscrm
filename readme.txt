@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 4.0.4
-Version: 4.0.4
+Stable tag: 4.0.5
+Version: 4.0.5
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,9 @@ Demo:
 We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
 {id:N} in order to get the value from field N
 {label:N} in order to get the label from field N (only in GravityForms)
+
+**Expert Mode**
+You can enable Expert Mode in the form feed. This mode will show all fields of the CRM in the form mapping. This is useful if you want to connect all fields of the CRM to the form. Now currently works for Odoo.
 
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
 
