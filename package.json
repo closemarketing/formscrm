@@ -7,10 +7,10 @@
   },
   "private": true,
   "scripts": {
-    "wp-env": "wp-env",
-    "setup:tools": "npm run wp-env run composer install",
-    "test": "npm run wp-env run phpunit 'phpunit -c /var/www/html/wp-content/plugins/formscrm/phpunit.xml.dist'",
-    "test:e2e": "npx playwright test",
+		"wp": "npx @wp-playground/cli server --mount=.:/wordpress/wp-content/plugins/ --blueprint=./blueprint.json",
+    "test": "vitest run --config=tests/integration/vitest.config.ts && npx playwright test --config=tests/end-to-end/playwright.config.ts",
+    "test:integration": "vitest --config=tests/integration/vitest.config.ts",
+    "test:e2e": "npx playwright test --ui --config=tests/end-to-end/playwright.config.ts",
     "test:wpe2e": "npx playwright test --config tests/e2e/playwright.config.ts"
   },
   "repository": {
@@ -24,12 +24,20 @@
   },
   "homepage": "https://github.com/closemarketing/formscrm#readme",
   "dependencies": {
-    "@wordpress/env": "^10.13.0",
-    "csv-parse": "^5.6.0"
+    "csv-parse": "^5.4.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
-    "@types/node": "^22.10.1",
-    "@wordpress/e2e-test-utils-playwright": "^1.13.0"
+    "@playwright/test": "^1.51.1",
+    "@types/node": "^22.14.1",
+    "@wp-playground/cli": "^1.1.1",
+    "fetch-cookie": "^3.1.0",
+    "vitest": "^3.1.1"
+  },
+  "core": "WordPress/WordPress",
+  "plugins": [
+    "./formscrm.php"
+  ],
+  "config": {
+    "WP_DEBUG": true
   }
 }
