@@ -290,6 +290,9 @@ class FORMSCRM_CF7_Settings {
 
 		// Create contact in CRM.
 		$this->include_library( $crm_type );
+		if ( empty( $this->crmlib ) ) {
+			return;
+		}
 		$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
 		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
@@ -309,6 +312,9 @@ class FORMSCRM_CF7_Settings {
 	 * @return array
 	 */
 	public function get_merge_vars( $cf7_crm, $submitted_data ) {
+		if ( empty( $cf7_crm ) || ! is_array( $cf7_crm ) ) {
+			return array();
+		}
 		$merge_vars = array();
 		foreach ( $cf7_crm as $key => $value ) {
 			if ( false === strpos( $key, 'fc_crm_field' ) ) {
