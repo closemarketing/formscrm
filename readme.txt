@@ -91,6 +91,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 = 4.0.5 =
 *  Fixed: CF7 custom fields with select fields not sending.
 *  Added: Expert Mode.
+*  Fixed: Fatal errors in CF7.
 
 = 4.0.4 =
 *  Added: Webhook to send form data received from CRM in GravityForms.
