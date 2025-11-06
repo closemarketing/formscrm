@@ -166,10 +166,11 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 				if ( 'error' === $api_status ) {
 					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars );
-					$message = __( 'Error', 'formscrm' ) . ' ' . $api_message;
+					$message = __( 'Error', 'formscrm' );
 				} else {
 					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
 				}
+				$message .= ' ' . $api_message;
 			} catch ( Exception $e ) {
 				$message = __( 'Error sending information to CRM.', 'formscrm' ) . ' ' . $e->getMessage();
 			}

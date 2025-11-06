@@ -619,7 +619,8 @@ class GFCRM extends GFFeedAddOn {
 				__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
 				isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
 				esc_html( $settings['fc_crm_type'] ),
-				$response_result['id']
+				$response_result['id'],
+				$response_result['message'] ?? ''
 			);
 			$this->add_note( $entry['id'], $response_message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
