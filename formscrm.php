@@ -1,14 +1,14 @@
 <?php
 /**
  * Plugin Name: FormsCRM
- * Plugin URI:  https://close.technology/wordpress-plugins/formscrm/
+ * Plugin URI : https://close.technology/wordpress-plugins/formscrm/
  * Description: Connects Forms with CRM, ERP and Email Marketing.
- * Version:     4.0.3
- * Author:      CloseTechnology
- * Author URI:  https://close.technology
+ * Version: 4.0.5
+ * Author: CloseTechnology
+ * Author URI: https://close.technology
  * Text Domain: formscrm
  * Domain Path: /languages
- * License:     GPL-2.0+
+ * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  *
  * @package     WordPress
@@ -23,7 +23,7 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-define( 'FORMSCRM_VERSION', '4.0.3' );
+define( 'FORMSCRM_VERSION', '4.0.5' );
 define( 'FORMSCRM_PLUGIN', __FILE__ );
 define( 'FORMSCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FORMSCRM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );

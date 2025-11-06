@@ -783,6 +783,7 @@ class CRMLIB_Clientify {
 		$deal              = array();
 		$deal_product_skus = '';
 		$deal_tags         = '';
+		$last_module       = 'contact';
 
 		$module = sanitize_title( $module );
 		$module = str_replace( '-deals', '', $module );
@@ -941,6 +942,7 @@ class CRMLIB_Clientify {
 
 					$response_result['message'] .= ' ' . $result['message'] . '.';
 				}
+				$last_module = 'deal';
 			}
 		} else {
 			$message         = isset( $result['data'] ) ? $result['data'] : '';
@@ -951,6 +953,8 @@ class CRMLIB_Clientify {
 				'query'   => isset( $result['query'] ) ? $result['query'] : '',
 			);
 		}
+
+		$response_result['module'] = $last_module;
 		return $response_result;
 	}
 

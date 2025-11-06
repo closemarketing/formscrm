@@ -176,7 +176,10 @@ class FORMSCRM_CF7_Settings {
 							?>
 						</select>
 					</p>
-
+					<p>
+						<label for="wpcf7-crm-fc_crm_mode_expert"><?php esc_html_e( 'Expert Mode', 'formscrm' ); ?></label><br />
+						<input type="checkbox" id="wpcf7-crm-fc_crm_mode_expert" name="wpcf7-crm[fc_crm_mode_expert]" class="medium" value="on" <?php checked( $cf7_crm['fc_crm_mode_expert'], 'on' ); ?> /><?php esc_html_e( 'Enable this option to show all fields of the CRM.', 'formscrm' ); ?>
+					</p>
 				<?php } ?>
 			</div>
 			<?php
@@ -287,6 +290,9 @@ class FORMSCRM_CF7_Settings {
 
 		// Create contact in CRM.
 		$this->include_library( $crm_type );
+		if ( empty( $this->crmlib ) ) {
+			return;
+		}
 		$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
 		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
@@ -305,21 +311,29 @@ class FORMSCRM_CF7_Settings {
 	 * @param array $submitted_data Submitted data.
 	 * @return array
 	 */
-	private function get_merge_vars( $cf7_crm, $submitted_data ) {
+	public function get_merge_vars( $cf7_crm, $submitted_data ) {
+		if ( empty( $cf7_crm ) || ! is_array( $cf7_crm ) ) {
+			return array();
+		}
 		$merge_vars = array();
 		foreach ( $cf7_crm as $key => $value ) {
-			if ( false !== strpos( $key, 'fc_crm_field' ) ) {
-				$crm_key = str_replace( 'fc_crm_field-', '', $key );
-
-				if ( ! empty( $submitted_data[ $value ] ) ) {
-					$value = $submitted_data[ $value ];
-				}
-
-				$merge_vars[] = array(
-					'name'  => $crm_key,
-					'value' => $value,
-				);
+			if ( false === strpos( $key, 'fc_crm_field' ) ) {
+				continue;
 			}
+			$crm_key = str_replace( 'fc_crm_field-', '', $key );
+
+			if ( ! empty( $submitted_data[ $value ] ) ) {
+				$value = $submitted_data[ $value ];
+			}
+
+			if ( is_array( $value ) ) {
+				$value = implode( ',', $value );
+			}
+
+			$merge_vars[] = array(
+				'name'  => $crm_key,
+				'value' => $value,
+			);
 		}
 
 		return $merge_vars;

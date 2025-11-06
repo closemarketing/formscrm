@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 4.0.3
-Version: 4.0.3
+Stable tag: 4.0.5
+Version: 4.0.5
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,7 +48,7 @@ And you will find, that there are Premium Addons to support:
 - [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/)
 - [WHMCS](https://close.technology/en/wordpress-plugins/formscrm-whmcs/)
 
-You can use multiple feed connector in GravityForms, WPForms PRO and ContactForm7, and you can use multiple CRM connectors in the same form.
+You can use multiple feed connector in GravityForms, WPForms PRO, Elementor Forms and ContactForm7, and you can use multiple CRM connectors in the same form.
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
@@ -57,6 +57,9 @@ Demo:
 We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
 {id:N} in order to get the value from field N
 {label:N} in order to get the label from field N (only in GravityForms)
+
+**Expert Mode**
+You can enable Expert Mode in the form feed. This mode will show all fields of the CRM in the form mapping. This is useful if you want to connect all fields of the CRM to the form. Now currently works for Odoo.
 
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
 
@@ -73,6 +76,9 @@ You can add a new field that fits with expected closure date for Deals in Client
 **Autoassignment in Clientify**
 Field that applies the autoassignment to the contact. You can add a string with the list of usernames (property emails) separated by comma (,) to apply the autoassignment.
 
+**Webhook in GravityForms**
+You can add a new field that fits with the Webhook in GravityForms. This field is optional, and you need to add the webhook url. The plugin will send the form data received from CRM to the webhook url.
+
 == Installation ==
 
 Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your
@@ -82,6 +88,15 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.5 =
+*  Fixed: CF7 custom fields with select fields not sending.
+*  Added: Expert Mode.
+*  Fixed: Fatal errors in CF7.
+
+= 4.0.4 =
+*  Added: Webhook to send form data received from CRM in GravityForms.
+*  Added: Automatic tests for robust testing and quality code.
+
 = 4.0.3 =
 *  Enhaced: Add Pipeline name to improve Clientify pipeline implementation in Forms.
 *  Fixed: Autoassigment in Clientify not added in contacts module.
