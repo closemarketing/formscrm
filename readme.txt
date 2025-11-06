@@ -88,6 +88,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.6 =
+*  Added: Support Deals tags in Clientify.
+
 = 4.0.5 =
 *  Fixed: CF7 custom fields with select fields not sending.
 *  Added: Expert Mode.
