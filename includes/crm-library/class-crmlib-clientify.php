@@ -882,7 +882,7 @@ class CRMLIB_Clientify {
 				if ( ! empty( $deal_product_skus ) ) {
 					$res_products = $this->extract_deal_products( $deal_product_skus, $apikey );
 					if ( ! empty( $res_products['data'] ) ) {
-						$deal_products = $res_products['data'];
+						$deal_products  = $res_products['data'];
 						$deal['amount'] = ! empty( $res_products['total'] ) ? $res_products['total'] : 0;
 					}
 				}
@@ -897,18 +897,40 @@ class CRMLIB_Clientify {
 				$deal['amount'] = isset( $deal['amount'] ) ? $deal['amount'] : 0;
 				$result         = $this->request( 'deals', $deal, $apikey );
 				if ( 'ok' === $result['status'] ) {
-					$response_result['id'] = $contact_id . '|' . $result['data']['id'];
+					$response_result['id'] = sprintf(
+						/* translators: %1$s: Contact ID, %2$s: Deal ID */
+						__( 'Contact %1$s | Deal %2$s', 'formscrm' ),
+						$contact_id,
+						$result['data']['id']
+					);
 				}
 
 				// Add tags to deal.
 				if ( ! empty( $deal_tags ) ) {
 					$deal_tags_raw = explode( ',', $deal_tags );
 					if ( ! empty( $deal_tags_raw ) ) {
+						$deal_id = $result['data']['id'];
 						foreach ( $deal_tags_raw as $deal_tag ) {
-							$deal_tags_api['name'] = sanitize_text_field( $deal_tag );
-							$result                = $this->request( 'deals/' . $result['data']['id'] . '/tags/', $deal_tags_api, $apikey );
+							$deal_tags_api = array(
+								'name' => sanitize_text_field( $deal_tag ),
+							);
 
-							$response_result['message'] .= ' ' . $result['message'];
+							$result_tag = $this->request( 'deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
+
+							if ( 'ok' !== $result_tag['status'] ) {
+								$result_deal_tag = sprintf(
+									/* translators: %s: Tag name */
+									__( 'Tag %s not added to deal', 'formscrm' ),
+									$deal_tag,
+								);
+							} else {
+								$result_deal_tag = sprintf(
+									/* translators: %s: Tag name */
+									__( 'Tag %s added to deal', 'formscrm' ),
+									$deal_tag,
+								);
+							}
+							$response_result['message'] .= ' ' . $result_deal_tag;
 						}
 					}
 				}
@@ -917,7 +939,7 @@ class CRMLIB_Clientify {
 				if ( ! empty( $deal_products ) ) {
 					$result = $this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
 
-					$response_result['message'] .= ' ' . $result['message'];
+					$response_result['message'] .= ' ' . $result['message'] . '.';
 				}
 			}
 		} else {
