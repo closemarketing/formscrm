@@ -877,7 +877,7 @@ class CRMLIB_Clientify {
 				'id'      => $contact_id,
 			);
 
-			// Crea ahora la oportunidad.
+			// Add deal to Clientify Contact.
 			if ( ! empty( $deal ) ) {
 				$deal_products = array();
 				if ( ! empty( $deal_product_skus ) ) {
