@@ -38,6 +38,31 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_str_contains' ) ) {
+	/**
+	 * Polyfill for str_contains to support PHP < 8.
+	 *
+	 * @param mixed  $haystack Text to search in.
+	 * @param string $needle   Text to search for.
+	 *
+	 * @return bool
+	 */
+	function formscrm_str_contains( $haystack, $needle ) {
+		$haystack = (string) $haystack;
+		$needle   = (string) $needle;
+
+		if ( function_exists( 'str_contains' ) ) {
+			return str_contains( $haystack, $needle );
+		}
+
+		if ( '' === $needle ) {
+			return true;
+		}
+
+		return false !== strpos( $haystack, $needle );
+	}
+}
+
 if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	/**
 	 * Debug message in log
