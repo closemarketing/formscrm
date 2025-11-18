@@ -43,10 +43,10 @@ class ClientifyTests extends WP_UnitTestCase {
 				$response_file = 'clientify-';
 
 				// Login.
-				if ( str_contains( $url, 'settings/my-account/' ) ) {
+				if ( false !== strpos( $url, 'settings/my-account/' ) ) {
 					$response_file .= 'login.json';
 				}
-				if ( str_contains( $url, 'custom-fields/' ) ) {
+				if ( false !== strpos( $url, 'custom-fields/' ) ) {
 					$response_file .= 'custom-fields.json';
 				}
 

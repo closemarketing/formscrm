@@ -132,7 +132,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 						break;
 
 					case 'Address':
-						if ( str_contains( $conn_field_name, '|' ) ) {
+						if ( false !== strpos( (string) $conn_field_name, '|' ) ) {
 							$address_key = explode( '|', $conn_field_name );
 							$address_key = $address_key[1];
 						} else {
@@ -197,7 +197,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return string
 	 */
 	private function fill_dynamic_value( $field_value, $field_entries ) {
-		if ( ! str_contains( $field_value, '{id:' ) ) { 
+		if ( false === strpos( (string) $field_value, '{id:' ) ) { 
 			return $field_value;
 		}
 
