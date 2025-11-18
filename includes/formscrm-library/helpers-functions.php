@@ -161,7 +161,7 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 	 *
 	 * @param string $settings Settings.
 	 * @param array  $response Response from CRM.
-	 * @return void
+	 * @return array
 	 */
 	function formscrm_send_webhook( $settings, $response ) {
 		$webhook_url = isset( $settings['fc_crm_webhook'] ) ? $settings['fc_crm_webhook'] : '';

@@ -39,15 +39,17 @@ class ClientifyTests extends WP_UnitTestCase {
 		add_filter(
 			'pre_http_request',
 			function( $pre, $r, $url ) {
-				$body_query    = ! empty( $r['body'] ) ? json_decode( $r['body'], true ) : array();
-				$response_file = 'clientify-';
+				$response_file = 'clientify-' . strtolower( $r['method'] ) . '-';
 
 				// Login.
-				if ( str_contains( $url, 'settings/my-account/' ) ) {
+				if ( false !== strpos( $url, 'settings/my-account/' ) ) {
 					$response_file .= 'login.json';
-				}
-				if ( str_contains( $url, 'custom-fields/' ) ) {
+				} elseif ( false !== strpos( $url, 'custom-fields/' ) ) {
 					$response_file .= 'custom-fields.json';
+				} elseif ( false !== strpos( $url, '/contacts' ) ) {
+					$response_file .= 'contacts.json';
+				} elseif ( 'https://webhook.com/test' === $url ) {
+					$response_file .= 'webhook.json';
 				}
 
 				$response_file = UNIT_TESTS_DATA_PLUGIN_DIR . $response_file;
@@ -96,5 +98,31 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertTrue( in_array( 'websites|personal', $fields ) );
 		$this->assertTrue( in_array( 'custom_fields|verified', $fields ) );
 		$this->assertTrue( in_array( 'custom_fields|social_lead_1', $fields ) );
+	}
+
+	public function test_create_contact_without_errors() {
+		$merge_vars = array(
+			array( 'name' => 'first_name', 'value' => 'David' ),
+			array( 'name' => 'last_name', 'value' => 'Close' ),
+			array( 'name' => 'email', 'value' => 'david@close.marketing' ),
+			array( 'name' => 'phone', 'value' => '1234567890' ),
+			array( 'name' => 'custom_fields|interes_categoria', 'value' => '2.000' ),
+			array( 'name' => 'custom_fields|interes2', 'value' => 'De 3 a 6 meses' ),
+			array( 'name' => 'custom_fields|info_chat', 'value' => 'Autónomo' ),
+		);
+		$contact = $this->crm_clientify->create_entry( $this->settings, $merge_vars );
+		$this->assertTrue( $contact['status'] === 'ok' );
+		$this->assertIsInt( $contact['id'] );
+		$this->assertEquals( 'contact', $contact['module'] );
+
+		// Webhook.
+		$this->settings['fc_crm_webhook'] = 'https://webhook.com/test';
+		$res_webhook = formscrm_send_webhook( $this->settings, $contact );
+		$this->assertTrue( $res_webhook['response']['response']['message'] === 'OK' );
+		$request_hook = $res_webhook['request']['hook'];
+		$this->assertEquals( 'contact.saved', $request_hook['event'] );
+		$this->assertEquals( 'https://webhook.com/test', $request_hook['target'] );
+		$request_data = $res_webhook['request']['data'];
+		$this->assertEquals( $contact['id'], $request_data['id'] );
 	}
 }
