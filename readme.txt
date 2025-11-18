@@ -90,6 +90,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
+*  Fixed: PHP 7.4 compatibility issues.
 
 = 4.0.5 =
 *  Fixed: CF7 custom fields with select fields not sending.
