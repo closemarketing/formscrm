@@ -696,16 +696,17 @@ class GFCRM extends GFFeedAddOn {
 	 * @return string
 	 */
 	private function fill_dynamic_value( $field_value, $entry, $form ) {
-		if ( formscrm_str_contains( $field_value, '{id:' ) || formscrm_str_contains( $field_value, '{label:' ) ) { 
+		$field_value = (string) $field_value;
+		if ( false !== strpos( $field_value, '{id:' ) || false !== strpos( $field_value, '{label:' ) ) { 
 			$dynamic_value = $field_value;
 			preg_match_all( '#\{(.*?)\}#', $field_value, $matches );
 			if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
 				foreach ( $matches[1] as $field ) {
-					$mode = formscrm_str_contains( $field, 'id:' ) ? 'id' : 'label';
+					$mode = false !== strpos( (string) $field, 'id:' ) ? 'id' : 'label';
 					if ( 'id' === $mode ) {
 						$field_id = (int) str_replace( 'id:', '', $field );
 						$value    = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
-						if ( formscrm_str_contains( $value, '[' ) ) {
+						if ( false !== strpos( (string) $value, '[' ) ) {
 							// is array.
 							$clean_note_file = str_replace( '[', '', $value );
 							$clean_note_file = str_replace( ']', '', $clean_note_file );
