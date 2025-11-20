@@ -90,6 +90,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
+*  Fixed: Format of webhook url in GravityForms.
 *  Fixed: PHP 7.4 compatibility issues.
 
 = 4.0.5 =

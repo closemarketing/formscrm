@@ -172,6 +172,7 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 		$ids      = isset( $response['id'] ) ? $response['id'] : '';
 		$ids      = explode( '|', $ids );
 		$entry_id = end( $ids );
+		$entry_id = str_replace( 'Deal ', '', $entry_id );
 
 		$body     = array(
 			'hook' => array(
@@ -182,7 +183,15 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 				'id' => $entry_id,
 			),
 		);
-		$response = wp_remote_post( $webhook_url, array( 'body' => wp_json_encode( $body ) ) );
+		$response = wp_remote_post(
+			$webhook_url,
+			array(
+				'headers' => array(
+					'Content-Type' => 'application/json',
+				),
+				'body'    => wp_json_encode( $body ),
+			)
+		);
 		return array(
 			'response' => $response,
 			'request'  => $body,
