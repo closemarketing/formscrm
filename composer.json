@@ -23,7 +23,9 @@
 		"yoast/phpunit-polyfills": "^3.0",
 		"phpstan/phpstan": "^2.0",
 		"szepeviktor/phpstan-wordpress": "^2.0",
-		"phpstan/extension-installer": "^1.4"
+		"phpstan/extension-installer": "^1.4",
+		"php-stubs/wordpress-stubs": "^6.8",
+		"php-stubs/woocommerce-stubs": "^10.3"
 	},
 	"autoload": {
 		"classmap": [
@@ -31,6 +33,8 @@
 		]
 	},
 	"scripts": {
-    "phpstan": "phpstan analyse --memory-limit=2048M"
-  }
+		"format": "phpcbf --standard=.phpcs.xml.dist",
+		"lint": "phpcs --standard=.phpcs.xml.dist",
+		"phpstan": "phpstan analyse --memory-limit=2048M"
+	}
 }

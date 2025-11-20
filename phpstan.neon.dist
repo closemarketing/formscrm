@@ -1,4 +1,10 @@
 parameters:
-  level: 1
-  paths:
-    - includes/
+    level: 1
+    paths:
+        - includes
+    bootstrapFiles:
+        - tests/phpstan-bootstrap.php
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+    excludePaths:
+        - vendor/
+        - node_modules

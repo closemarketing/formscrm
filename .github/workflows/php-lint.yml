@@ -1,0 +1,64 @@
+name: PHP Code Linting
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+      - 'releases/*'
+    # Only run if PHP-related files changed.
+    paths:
+      - '.github/workflows/php-lint.yml'
+      - '**.php'
+      - 'phpcs.xml.dist'
+      - 'composer.json'
+      - 'composer.lock'
+  pull_request:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+      - 'releases/*'
+      - 'feature/**'
+    # Only run if PHP-related files changed.
+    paths:
+      - '.github/workflows/php-lint.yml'
+      - '**.php'
+      - 'phpcs.xml.dist'
+      - 'composer.json'
+      - 'composer.lock'
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/develop' }}
+jobs:
+  php-lint:
+    name: PHP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Validate Composer configuration
+        run: composer validate
+
+      - name: Install PHP dependencies
+        uses: ramsey/composer-install@a2636af0004d1c0499ffca16ac0b4cc94df70565
+        with:
+          composer-options: '--prefer-dist'
+
+      - name: PHP Lint
+        run: composer lint
+
+      - name: PHP PHPStan
+        run: composer phpstan
+
