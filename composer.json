@@ -20,7 +20,7 @@
 		"wp-coding-standards/wpcs": "^3",
 		"phpcsstandards/phpcsutils": "^1.x-dev",
 		"phpunit/phpunit": "^9.5",
-		"yoast/phpunit-polyfills": "^1.0",
+		"yoast/phpunit-polyfills": "^4.0",
 		"wp-phpunit/wp-phpunit": "^6.3"
 	},
 	"autoload-dev": {
