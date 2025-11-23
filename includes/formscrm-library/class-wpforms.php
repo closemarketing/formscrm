@@ -80,7 +80,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			if ( isset( $this->crmlib ) ) {
 				$login_result = $this->crmlib->login( $settings );
 			}
-	
+
 			if ( ! $login_result ) {
 				$entry_meta->add(
 					[
@@ -166,10 +166,11 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 				if ( 'error' === $api_status ) {
 					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars );
-					$message = __( 'Error', 'formscrm' ) . ' ' . $api_message;
+					$message = __( 'Error', 'formscrm' );
 				} else {
 					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
 				}
+				$message .= ' ' . $api_message;
 			} catch ( Exception $e ) {
 				$message = __( 'Error sending information to CRM.', 'formscrm' ) . ' ' . $e->getMessage();
 			}
@@ -340,11 +341,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed id or WP_Error object.
 	 */
 	public function api_auth( $data = array(), $form_id = '' ) {
-		error_log( 'api_auth run' );
 		$this->include_library( $data['fc_crm_type'] );
-		$login_result = '';
+		$login_result = false;
 		if ( isset( $this->crmlib ) ) {
 			$login_result = $this->crmlib->login( $data );
+		}
+		if ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
+			return $this->error( esc_html__( 'We could not login to the CRM', 'formscrm' ) . ' ' . esc_html( $login_result['message'] ) );
 		}
 
 		if ( isset( $login_result ) && false === $login_result ) {
@@ -392,13 +395,12 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $connection_id
-	 * @param string $account_id
+	 * @param string $connection_id Connection ID.
+	 * @param string $account_id Account ID.
 	 *
 	 * @return mixed array or WP_Error object.
 	 */
 	public function api_lists( $connection_id = '', $account_id = '' ) {
-		
 		$settings = $this->api_connect( $account_id );
 		try {
 			if ( empty( $settings['fc_crm_type'] ) ) {
@@ -450,9 +452,9 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $connection_id
-	 * @param string $account_id
-	 * @param string $module
+	 * @param string $connection_id Connection ID.
+	 * @param string $account_id Account ID.
+	 * @param string $module Module from CRM.
 	 *
 	 * @return mixed array or WP_Error object.
 	 */
@@ -474,7 +476,6 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		try {
 			// Get Custom Fields for the List from the API.
 			$fields = $this->crmlib->list_fields( $settings, $module );
-			// name, label, required
 
 			$fields_wpforms = array();
 			foreach ( $fields as $field ) {
@@ -525,8 +526,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $connection_id
-	 * @param array $connection
+	 * @param string $connection_id Connection ID.
+	 * @param array  $connection Connection data.
 	 *
 	 * @return string
 	 */
@@ -547,7 +548,6 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @since 1.0.0
 	 */
 	public function integrations_tab_new_form() {
-
 		$select_page  = '';
 		$options_crm  = formscrm_get_choices();
 		$option_saved = '';
@@ -598,6 +598,11 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		printf(
 			'<input type="text" name="fc_crm_odoodb" class="fc_crm_odoodb" placeholder="%s">',
 			esc_html__( 'CRM Odoo DB', 'formscrm' )
+		);
+
+		printf(
+			'<input type="checkbox" name="fc_crm_mode_expert" class="fc_crm_mode_expert" value="on" /><label for="fc_crm_mode_expert">%s</label>',
+			esc_html__( 'Enable Expert Mode', 'formscrm' )
 		);
 
 		$js_dependency = '';

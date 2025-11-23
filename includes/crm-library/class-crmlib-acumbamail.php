@@ -124,12 +124,14 @@ class CRMLIB_AcumbaMail {
 	public function list_modules( $settings ) {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$get_result = $this->post( $apikey, 'getLists' );
+		$modules = [];
 
-		if ( ! empty( $get_result['data'] ) ) {
+		if ( ! empty( $get_result['data'] ) && is_array( $get_result['data'] ) ) {
 			$modules[] = array(
 				'name'  => 'dinamic',
 				'label' => __( 'Dynamic list in field (use admin_label for fields)', 'formscrm' ),
 			);
+
 			foreach ( $get_result['data'] as $key => $list ) {
 				$modules[] = array(
 					'name'  => $key,

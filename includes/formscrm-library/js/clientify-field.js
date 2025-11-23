@@ -27,6 +27,15 @@ if ( wpformsHiddenInput !== 'undefined' ) {
     }
 }
 
+// Elementor Forms.
+let elementorHiddenInput = document.querySelectorAll( '.elementor-form input.visitor_key' );
+if ( elementorHiddenInput !== 'undefined' ) {
+    let vkcookie = forms_clientify_getCookie('vk');
+    for (let i = 0; i < elementorHiddenInput.length; i++) {
+      elementorHiddenInput[i].setAttribute('value',vkcookie);
+    }
+}
+
 // WooCommerce
 let woocommerceHiddenInput = document.querySelectorAll( '.woocommerce-billing-fields__field-wrapper .clientify_cookie input' );
 if ( woocommerceHiddenInput !== 'undefined' ) {

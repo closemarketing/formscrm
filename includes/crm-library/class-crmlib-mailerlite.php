@@ -56,7 +56,7 @@ class CRMLIB_Mailerlite {
 				} else {
 					return $result;
 				}
-	
+
 			} while ( $repeat_query );
 			return array(
 				'status' => 'ok',
@@ -113,7 +113,7 @@ class CRMLIB_Mailerlite {
 		try {
 			$results = $this->api( 'GET', 'groups', $apikey );
 
-			if ( 'ok' === $results['status'] ) {
+			if ( !empty( $results ) && 'ok' === $results['status'] ) {
 				return true;
 			}
 

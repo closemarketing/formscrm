@@ -5,13 +5,12 @@
 	"license": "GPL-2.0-or-later",
 	"config": {
 		"platform": {
-			"php": "7.4"
+			"php": "8.1"
 		},
 		"allow-plugins": {
-			"dealerdirect/phpcodesniffer-composer-installer": true
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"phpstan/extension-installer": true
 		}
-	},
-	"require": {
 	},
 	"require-dev": {
 		"squizlabs/php_codesniffer": "^3",
@@ -20,12 +19,18 @@
 		"sirbrillig/phpcs-variable-analysis": "^2",
 		"wp-coding-standards/wpcs": "^3",
 		"phpcsstandards/phpcsutils": "^1.x-dev",
-		"phpunit/phpunit": "^7",
-		"yoast/phpunit-polyfills": "^3.0"
+		"phpunit/phpunit": "^9.5",
+		"yoast/phpunit-polyfills": "^4.0",
+		"wp-phpunit/wp-phpunit": "^6.3"
 	},
-	"autoload": {
+	"autoload-dev": {
 		"classmap": [
 			"./vendor/wp-coding-standards/wpcs/"
 		]
+	},
+	"scripts": {
+		"test": "phpunit",
+		"test-debug": "XDEBUG_MODE=debug XDEBUG_TRIGGER=1 phpunit",
+		"test-install": "bash bin/install-wp-tests.sh wordpress_test root 'root' 127.0.0.1 latest"
 	}
 }

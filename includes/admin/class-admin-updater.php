@@ -55,7 +55,20 @@ class FormsCRM_Updater {
 	private $wc_am_settings_title              = '';
 	private $wc_am_software_version            = '';
 
-	public function __construct( $file, $product_id, $software_version, $plugin_or_theme, $api_url, $software_title = '', $text_domain = '' ) {
+    /**
+     * Constructor method for initializing the class.
+     *
+     * @param string     $file             The file path of the plugin or theme.
+     * @param string|int $product_id       The product ID used for API requests. Can be a string (pre 2.0) or an integer (>= 2.0).
+     * @param string     $software_version The version of the software.
+     * @param string     $plugin_or_theme  Specifies whether it is a plugin or theme.
+     * @param string     $api_url          The URL for the API endpoint.
+     * @param string     $software_title   (Optional) The title of the software.
+     * @param string     $text_domain      (Optional) The text domain for translation and localization.
+     *
+     * @return void
+     */
+    public function __construct( $file, $product_id, $software_version, $plugin_or_theme, $api_url, $software_title = '', $text_domain = '' ) {
 		$this->no_product_id   = empty( $product_id );
 		$this->plugin_or_theme = esc_attr( strtolower( $plugin_or_theme ) );
 
@@ -119,8 +132,10 @@ class FormsCRM_Updater {
 			$this->wc_am_activation_tab_key          = $this->data_key . '_dashboard';
 			$this->wc_am_deactivation_tab_key        = $this->data_key . '_deactivation';
 			$this->wc_am_auto_update_key             = $this->data_key . '_auto_update';
-			$this->wc_am_settings_menu_title         = $this->software_title . esc_html__( ' Activation', 'formscrm' );
-			$this->wc_am_settings_title              = $this->software_title . esc_html__( ' License Activation', 'formscrm' );
+            /* translators: %s: software title */
+			$this->wc_am_settings_menu_title         = sprintf( esc_html__( '%s Activation', 'formscrm' ), $this->software_title );
+            /* translators: %s: software title */
+            $this->wc_am_settings_title              = sprintf( esc_html__( '%s License Activation', 'formscrm' ), $this->software_title );
 			$this->wc_am_menu_tab_activation_title   = esc_html__( 'License Activation', 'formscrm' );
 			$this->wc_am_menu_tab_deactivation_title = esc_html__( 'License Deactivation', 'formscrm' );
 
@@ -271,19 +286,19 @@ class FormsCRM_Updater {
 			if ( ! empty( $plugin_data[ 'auto-update-forced' ] ) ) {
 				if ( $plugin_data[ 'auto-update-forced' ] ) {
 					// Forced on.
-					$text = __( 'Auto-updates enabled' );
+					$text = __( 'Auto-updates enabled', 'formscrm' );
 				} else {
-					$text = __( 'Auto-updates disabled' );
+					$text = __( 'Auto-updates disabled', 'formscrm' );
 				}
 
 				$action     = 'unavailable';
 				$time_class = ' hidden';
 			} elseif ( in_array( $plugin_file, $auto_updates, true ) ) {
-				$text       = __( 'Disable auto-updates' );
+				$text       = __( 'Disable auto-updates', 'formscrm' );
 				$action     = 'disable';
 				$time_class = '';
 			} else {
-				$text       = __( 'Enable auto-updates' );
+				$text       = __( 'Enable auto-updates', 'formscrm' );
 				$action     = 'enable';
 				$time_class = ' hidden';
 			}

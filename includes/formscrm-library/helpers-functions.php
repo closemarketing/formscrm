@@ -10,6 +10,34 @@
  * @version  1.0.0
  */
 
+if ( ! function_exists( 'formscrm_get_api_class' ) ) {
+	/**
+	 * Include library connector
+	 *
+	 * @param string $crmtype Type of CRM.
+	 * @return object|void
+	 */
+	function formscrm_get_api_class( $crm_type ) {
+		if ( isset( $crm_type ) ) {
+			$crmname      = strtolower( $crm_type );
+			$crmclassname = str_replace( ' ', '', $crmname );
+			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+			$crmname      = str_replace( ' ', '_', $crmname );
+
+			$array_path = formscrm_get_crmlib_path();
+
+			if ( isset( $array_path[ $crmname ] ) ) {
+				include_once $array_path[ $crmname ];
+				formscrm_debug_message( $array_path[ $crmname ] );
+			}
+
+			if ( class_exists( $crmclassname ) ) {
+				return new $crmclassname();
+			}
+		}
+	}
+}
+
 if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	/**
 	 * Debug message in log
@@ -124,5 +152,49 @@ if ( ! function_exists( 'formscrm_check_url_crm' ) ) {
 		}
 
 		return $url;
+	}
+}
+
+if ( ! function_exists( 'formscrm_send_webhook' ) ) {
+	/**
+	 * Sends webhook
+	 *
+	 * @param string $settings Settings.
+	 * @param array  $response Response from CRM.
+	 * @return void
+	 */
+	function formscrm_send_webhook( $settings, $response ) {
+		$webhook_url = isset( $settings['fc_crm_webhook'] ) ? $settings['fc_crm_webhook'] : '';
+		if ( empty( $webhook_url ) ) {
+			return;
+		}
+		$module   = isset( $response['module'] ) ? $response['module'] : '';
+		$ids      = isset( $response['id'] ) ? $response['id'] : '';
+		$ids      = explode( '|', $ids );
+		$entry_id = end( $ids );
+		$entry_id = str_replace( 'Deal ', '', $entry_id );
+
+		$body     = array(
+			'hook' => array(
+				'event'  => $module . '.saved',
+				'target' => $webhook_url,
+			),
+			'data' => array(
+				'id' => $entry_id,
+			),
+		);
+		$response = wp_remote_post(
+			$webhook_url,
+			array(
+				'headers' => array(
+					'Content-Type' => 'application/json',
+				),
+				'body'    => wp_json_encode( $body ),
+			)
+		);
+		return array(
+			'response' => $response,
+			'request'  => $body,
+		);
 	}
 }

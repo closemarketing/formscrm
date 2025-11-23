@@ -1,15 +1,15 @@
-=== FormsCRM ===
-Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasquero, manoloramos
+=== FormsCRM - Connect Forms to CRM directly ===
+Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasquero
 Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
-Tested up to: 6.6
-Stable tag: 3.15.7
-Version: 3.15.7
+Tested up to: 6.9
+Stable tag: 4.0.6
+Version: 4.0.6
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Connects your CRM, ERP and Email Marketing with your Forms plugin and create new Leads/Entries as the forms are filled automatically.
+Connects your CRM, ERP and Email Marketing with your Forms plugin and create new Leads/Entries as the forms are filled automatically. GDPR compliant.
 
 == Description ==
 Connects your CRM with the main Form Plugin directly, and send to your CRM when the form is filled automatically.
@@ -18,6 +18,7 @@ With this plugin, you don't have to use third party software to send your Leads/
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
 - [GravityForms](https://close.marketing/likes/gravityforms/)
+- [Elementor Forms](https://elementor.com/pages/form-builder/)
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
@@ -47,21 +48,36 @@ And you will find, that there are Premium Addons to support:
 - [FacturaDirecta](https://close.technology/en/wordpress-plugins/formscrm-facturadirecta/)
 - [WHMCS](https://close.technology/en/wordpress-plugins/formscrm-whmcs/)
 
-You can use multiple feed connector in GravityForms, WPForms PRO and ContactForm7, and you can use multiple CRM connectors in the same form.
+You can use multiple feed connector in GravityForms, WPForms PRO, Elementor Forms and ContactForm7, and you can use multiple CRM connectors in the same form.
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
-
-**Instructions for adding Clientify cookie in the forms**
-
-Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
 **Dynamic values in GravityForms and WPForms**
 We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
 {id:N} in order to get the value from field N
 {label:N} in order to get the label from field N (only in GravityForms)
 
+**Expert Mode**
+You can enable Expert Mode in the form feed. This mode will show all fields of the CRM in the form mapping. This is useful if you want to connect all fields of the CRM to the form. Now currently works for Odoo.
+
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
+
+== Settings for Clientify ==
+**Instructions for adding Clientify cookie in the forms**
+Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
+
+**Add Pipeline name in Opportunities**
+You can add a new field that fits with the Pipeline name in Opportunities in Clientify. You will need to use the same name as the Pipeline in Clientify.
+
+**Add expected closure date for Deals in Clientify**
+You can add a new field that fits with expected closure date for Deals in Clientify. This field is optional, and you need to add a number of days to the expected closure date. The plugin will calculate the date from today and will add it to the Deal in Clientify.
+
+**Autoassignment in Clientify**
+Field that applies the autoassignment to the contact. You can add a string with the list of usernames (property emails) separated by comma (,) to apply the autoassignment.
+
+**Webhook in GravityForms**
+You can add a new field that fits with the Webhook in GravityForms. This field is optional, and you need to add the webhook url. The plugin will send the form data received from CRM to the webhook url.
 
 == Installation ==
 
@@ -72,8 +88,41 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.0.6 =
+*  Added: Support Deals tags in Clientify.
+*  Fixed: Format of webhook url in GravityForms.
+*  Fixed: PHP 7.4 compatibility issues.
+
+= 4.0.5 =
+*  Fixed: CF7 custom fields with select fields not sending.
+*  Added: Expert Mode.
+*  Fixed: Fatal errors in CF7.
+
+= 4.0.4 =
+*  Added: Webhook to send form data received from CRM in GravityForms.
+*  Added: Automatic tests for robust testing and quality code.
+
+= 4.0.3 =
+*  Enhaced: Add Pipeline name to improve Clientify pipeline implementation in Forms.
+*  Fixed: Autoassigment in Clientify not added in contacts module.
+*  Updated developer dependencies.
+
+= 4.0.2 =
+*  Added: Expected closure date for Deals in Clientify.
+*  Fixed: Elementor Forms Fields and values not sending.
+*  Fixed: Warnings messages in load_plugin_textdomain.
+
+= 4.0.1 =
+*  Fixed: Elementor Forms with URL Odoo not working.
+
 = 4.0.0 =
+*  Added: New connector for Elementor Forms.
 *  Added Brevo Email Marketing.
+*  Added field autoassignment_users in Clientify (String with the list of usernames separated by comma (,) to apply the autoassignment).
+*  Added Product SKUs in Opportunity in Clientify.
+*  Added disclaimer field in Clientify.
+*  Added in Clientify different types of Emails: work, personal, other and main. Phones: main, mobile, work, home, fax, other.
+*  Added show Login errors from API.
 
 = 3.15.7 =
 *  Fixed: Fixed manage contact websites in Clientify.

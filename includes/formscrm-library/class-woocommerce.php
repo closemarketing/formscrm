@@ -19,7 +19,6 @@ defined( 'ABSPATH' ) || exit;
  * @version    1.0
  */
 class FormsCRM_WooCommerce {
-
 	/**
 	 * CRM LIB external
 	 *
@@ -194,9 +193,21 @@ class FormsCRM_WooCommerce {
 			'type' => 'sectionend',
 			'id'   => 'wc_settings_formscrm_section_end',
 		);
+		if ( ! empty( $this->crmlib ) && ! empty( $wc_formscrm ) ) {
+			$login_crm = $this->crmlib->login( $wc_formscrm );
+			if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
+				echo '<div class="notice notice-error"><p>' . esc_html__( 'We could not login to the CRM', 'formscrm' ) . ' ' . esc_html( $login_crm['message'] ) . '</p></div>';
+				return $settings_crm;
+			}
+
+			if ( false === $login_crm ) {
+				echo '<div class="notice notice-error"><p>' . esc_html__( 'We could not login to the CRM', 'formscrm' ) . '</p></div>';
+				return $settings_crm;
+			}
+		}
 
 		// Settings Fields.
-		if ( isset( $wc_formscrm['fc_crm_module'] ) && $wc_formscrm['fc_crm_module'] ) {
+		if ( isset( $wc_formscrm['fc_crm_module'] ) && $wc_formscrm['fc_crm_module'] && ! empty( $this->crmlib ) ) {
 			$crm_fields     = $this->crmlib->list_fields( $wc_formscrm, $wc_formscrm['fc_crm_module'] );
 			$settings_crm[] = array(
 				'name' => __( 'Field Settings', 'formscrm' ),

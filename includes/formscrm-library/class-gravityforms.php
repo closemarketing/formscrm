@@ -168,23 +168,51 @@ class GFCRM extends GFFeedAddOn {
 	 * @return array
 	 */
 	public function plugin_settings_fields() {
+		$fields = array();
+		$fields = $this->get_crm_fields( true, array(), 'settings' );
+
+		// Expert Mode.
+		$fields = array_merge(
+			$fields,
+			array(
+				array(
+					'label'   => __( 'Mode', 'formscrm' ),
+					'type'    => 'checkbox',
+					'name'    => 'fc_crm_mode_expert',
+					'tooltip' => __( 'Enable this option to show all fields of the CRM.', 'formscrm' ),
+					'choices' => array(
+						array(
+							'label' => __( 'Enable Expert Mode', 'formscrm' ),
+							'name'  => 'fc_crm_mode_expert',
+						),
+					),
+				),
+			),
+		);
+
 		return array(
 			array(
 				'title'       => __( 'CRM Account Information', 'formscrm' ),
 				'description' => __( 'Use this connector with CRM software. Use Gravity Forms to collect customer information and automatically add them to your CRM Leads.', 'formscrm' ),
-				'fields'      => $this->get_crm_fields( true, array(), 'settings'),
+				'fields'      => $fields,
 			),
 		);
 	}
 
+	/**
+	 * Settings API Key
+	 *
+	 * @param array $field Field.
+	 * @param bool  $echo Echo.
+	 * @return string
+	 */
 	public function settings_api_key( $field, $echo = true ) {
 
 		$field['type'] = 'text';
-
 		$api_key_field = $this->settings_text( $field, false );
 
-		//switch type="text" to type="password" so the key is not visible
-		$api_key_field = str_replace('type="text"', 'type="password"', $api_key_field);
+		// Switch type="text" to type="password" so the key is not visible.
+		$api_key_field = str_replace( 'type="text"', 'type="password"', $api_key_field );
 
 		$caption = '<small>' . sprintf( esc_html__( 'Find a Password or API key depending of CRM.', 'formscrm' ) ) . '</small>';
 
@@ -278,16 +306,17 @@ class GFCRM extends GFFeedAddOn {
 								'type'     => 'select',
 								'class'    => 'medium',
 								'onchange' => 'jQuery(this).parents("form").submit();',
-								'choices'  => 
-								array_merge(
+								'choices'  => array_merge(
 									array(
+										// translators: %s is the name of the CRM as defined in settings.
 										array(
 											'label' => sprintf(
+												// translators: %s is the name of the CRM as defined in settings.
 												__( 'Use default CRM defined in Settings: %s', 'formscrm' ),
 												ucfirst( $settings_crm )
 											),
 											'value' => 'no',
-										),	
+										),
 									),
 									formscrm_get_choices()
 								),
@@ -295,6 +324,17 @@ class GFCRM extends GFFeedAddOn {
 						),
 						$this->get_crm_fields( false, $settings ),
 						$this->get_crm_feed_fields( $settings ),
+						array(
+							array(
+								'name'        => 'fc_crm_webhook',
+								'label'       => __( 'FormsCRM webhook', 'formscrm' ),
+								'type'        => 'text',
+								'class'       => 'medium',
+								'input_type'  => 'url',
+								'placeholder' => __( 'https://your-webhook-url.com', 'formscrm' ),
+								'tooltip'     => '<h6>' . __( 'FormsCRM webhook', 'formscrm' ) . '</h6>' . __( 'Enter a URL to send a webhook form data received from CRM.', 'formscrm' ),
+							),
+						)
 					),
 				),
 			),
@@ -310,8 +350,18 @@ class GFCRM extends GFFeedAddOn {
 	private function get_crm_feed_fields( $settings ) {
 		$crm_feed_fields = array();
 		$feed_settings   = $this->get_current_feed();
+		$login_crm       = $this->login_api_crm();
 
-		if ( false === $this->login_api_crm() ) {
+		if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
+			$crm_feed_fields[] = array(
+				'name'  => 'fc_login_result',
+				'label' => __( 'We could not login to the CRM', 'formscrm' ) . ' ' . $login_crm['message'],
+				'type'  => 'hidden',
+			);
+			return $crm_feed_fields;
+		}
+
+		if ( false === $login_crm ) {
 			$crm_feed_fields[] = array(
 				'name'  => 'fc_login_result',
 				'label' => __( 'We could not login to the CRM', 'formscrm' ),
@@ -398,6 +448,7 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	private function get_actual_feed_value( $value, $feed_settings ) {
+		$feed_value = '';
 		if ( isset( $_POST['_gform_setting_' . $value] ) ) {
 			$feed_value = sanitize_text_field( $_POST['_gform_setting_' . $value] );
 		} elseif ( isset( $feed_settings['meta'][ $value ] ) ) {
@@ -564,13 +615,16 @@ class GFCRM extends GFFeedAddOn {
 			$this->add_note( $entry['id'], $response_message, 'error' );
 		} else {
 			$response_message = sprintf(
-				// translators: %1$s CRM name %2$s ID number of entry created.
-				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
+				// translators: %1$s CRM name %2$s CRM type %3$s ID number of entry created.
+				__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
+				isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
 				esc_html( $settings['fc_crm_type'] ),
-				$response_result['id']
+				$response_result['id'],
+				$response_result['message'] ?? ''
 			);
 			$this->add_note( $entry['id'], $response_message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
+			formscrm_send_webhook( $settings, $response_result );
 			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );
 		}
 	}
