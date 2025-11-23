@@ -70,6 +70,11 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 	}
 }
 
+// Ninja Forms.
+if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) && ! class_exists( 'FormsCRM_NinjaForms_Action' ) ) {
+	require_once 'class-ninjaforms.php';
+}
+
 // Elementor.
 if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 	require_once 'elementor-ajax.php';

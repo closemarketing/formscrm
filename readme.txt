@@ -17,11 +17,12 @@ Connects your CRM with the main Form Plugin directly, and send to your CRM when 
 With this plugin, you don't have to use third party software to send your Leads/data to your CRM. You will have a direct connection between your website and your CRM. It's a connector between Web <> CRM/ERP/Email.
 
 This plugin will connect different Forms plugins to CRM. We support at this time these forms plugins:
-- [GravityForms](https://close.marketing/likes/gravityforms/)
-- [Elementor Forms](https://elementor.com/pages/form-builder/)
-- [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
-- [WooCommerce](https://wordpress.org/plugins/woocommerce/)
-- [WPForms PRO](https://close.marketing/likes/wpforms/)
+  - [GravityForms](https://close.marketing/likes/gravityforms/)
+  - [Elementor Forms](https://elementor.com/pages/form-builder/)
+  - [Ninja Forms](https://wordpress.org/plugins/ninja-forms/)
+  - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
+  - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
+  - [WPForms PRO](https://close.marketing/likes/wpforms/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -88,6 +89,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.1.0 =
+*  Added: Native Ninja Forms action to capture submissions and send them to FormsCRM.
+
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
 *  Fixed: Format of webhook url in GravityForms.

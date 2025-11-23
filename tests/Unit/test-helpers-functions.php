@@ -61,4 +61,17 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 		$this->assertEquals( $response_api['module'] . '.saved', $response['request']['hook']['event'] );
 	}
 
+	public function test_parse_field_mapping() {
+		$raw_mapping = "email = {field:email}\n# comment line\nfirst_name={field:first_name}\ninvalid\n";
+
+		$result = formscrm_parse_field_mapping( $raw_mapping );
+
+		$this->assertEquals(
+			array(
+				'email'      => '{field:email}',
+				'first_name' => '{field:first_name}',
+			),
+			$result
+		);
+	}
 }
