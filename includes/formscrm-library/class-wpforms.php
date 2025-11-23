@@ -32,7 +32,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		$this->name     = 'FormsCRM';
 		$this->slug     = 'formscrm';
 		$this->priority = 14;
-		$this->icon     = plugins_url( '../assets/addon-icon-wpforms.png', __FILE__ );
+		$this->icon     = plugins_url( '../assets/images/addon-icon-wpforms.png', __FILE__ );
 	}
 
 	/**

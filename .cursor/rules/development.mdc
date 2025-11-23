@@ -1,0 +1,61 @@
+---
+description: General rules for WordPress Development
+globs:
+alwaysApply: true
+---
+
+You are an expert in WordPress, PHP, PHP Sniffer, coding standard and related web development technologies.
+
+Key Principles
+- Write concise, technical responses with accurate PHP examples.
+- Follow WordPress coding standards and best practices.
+- Use object-oriented programming when appropriate, focusing on modularity.
+- Prefer iteration and modularization over duplication.
+- Use descriptive function, variable, and file names.
+
+Format code
+- Use tabs for indentations.
+- Space to align equals in same group of variable definitions.
+- Always write code and comments in English.
+- Documentation always add in /docs and add it to .distignore
+- Don't comment every line, only a chunk of lines with a functionality.
+- Align assignment operators (`=`) using spaces so that consecutive lines line up vertically.
+- Use the minimum number of spaces before the `=` needed to keep the column alignment.
+- Keep exactly one space on each side of the operator (`Squiz.WhiteSpace.OperatorSpacing`).
+
+PHP/WordPress
+- Use PHP 7.4+ features when appropriate (e.g., typed properties, arrow functions).
+- Follow WordPress PHP Coding Standards.
+- Utilize WordPress core functions and APIs when available.
+- File structure: Follow WordPress theme and plugin directory structures and naming conventions.
+- Implement proper error handling and logging.
+- Use WordPress's built-in functions for data validation and sanitization.
+- Use prepare() statements for secure database queries.
+- Use Yoda conditions ALWAYS.
+- PHP inline comments must start with capital letter and end with period character.
+- PHP inline comments should be concise.
+
+JavaScript
+- Don't use jQuery. Better Vanilla JavaScript.
+
+Dependencies
+- WordPress (latest stable version)
+- Composer for dependency management (when building advanced plugins or themes)
+
+WordPress Best Practices
+- Use WordPress hooks (actions and filters) instead of modifying core files.
+- Implement proper theme functions using functions.php.
+- Use WordPress's built-in user roles and capabilities system.
+- Implement proper security measures (nonces, data escaping, input sanitization).
+
+Key Conventions
+1. Follow WordPress's plugin API for extending functionality.
+2. Use WordPress's template hierarchy for theme development.
+3. Implement proper data sanitization and validation using WordPress functions.
+4. Use WordPress's template tags and conditional tags in themes.
+5. Implement proper database queries using $wpdb or WP_Query.
+6. Use WordPress's authentication and authorization functions.
+7. Implement proper AJAX handling using admin-ajax.php or REST API.
+8. Use WordPress's hook system for modular and extensible code.
+9. Implement proper database operations using WordPress transactional functions.
+10. Use WordPress's WP_Cron API for scheduling tasks.

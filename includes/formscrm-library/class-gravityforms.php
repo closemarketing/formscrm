@@ -485,7 +485,7 @@ class GFCRM extends GFFeedAddOn {
 	 */
 	public function get_menu_icon() {
 
-		return file_get_contents( FORMSCRM_PLUGIN_PATH . 'includes/assets/icon.svg' );
+		return file_get_contents( FORMSCRM_PLUGIN_PATH . 'includes/assets/images/icon.svg' );
 
 	}
 

@@ -42,7 +42,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		public function enqueue_admin_scripts() {
 			wp_enqueue_style(
 				'formscrm-admin',
-				FORMSCRM_PLUGIN_URL . 'includes/assets/admin.css',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/styles/admin.css',
 				array(),
 				FORMSCRM_VERSION
 			);
@@ -133,7 +133,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				foreach ( $forms_supported as $form ) {
 					echo '<li>';
 					$slug = strtolower( $form['label'] );
-					echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/forms-' . $slug . '.svg' ) . '" width="80" alt="' . esc_html( $form['label'] ) . '"/><br/>';
+					echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/images/forms-' . $slug . '.svg' ) . '" width="80" alt="' . esc_html( $form['label'] ) . '"/><br/>';
 					echo '</li>';
 				}
 				?>
@@ -162,7 +162,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 						$url = esc_url( $source_shop_url ) . 'wordpress-plugins/formscrm-' . $slug . '/' . esc_attr( $utm_source );
 						echo ' <a href="' . esc_url( $url ) . '" target="_blank">';
 					}
-					echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $slug . '.svg' ) . '" width="250" alt="' . esc_html( $crm['label'] ) . '"/><br/>';
+					echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/images/formscrm-' . $slug . '.svg' ) . '" width="250" alt="' . esc_html( $crm['label'] ) . '"/><br/>';
 
 					if ( isset( $crm['url'] ) && $crm['url'] ) {
 						echo '</a>';
