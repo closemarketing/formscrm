@@ -148,6 +148,7 @@ class FORMSCRM_FluentForms_Settings {
 					'apisales'    => formscrm_get_dependency_apisales(),
 					'odoodb'      => formscrm_get_dependency_odoodb(),
 				),
+				'choices'     => formscrm_get_choices(),
 			)
 		);
 	}
@@ -173,7 +174,7 @@ class FORMSCRM_FluentForms_Settings {
 	public function get_global_fields( $fields ) {
 		$global_settings = get_option( 'formscrm_fluentforms_global_settings', array() );
 		$crm_type        = isset( $global_settings['fc_crm_type'] ) ? $global_settings['fc_crm_type'] : '';
-		
+
 		$crm_choices = formscrm_get_choices();
 		$crm_options = array();
 		foreach ( $crm_choices as $choice ) {
