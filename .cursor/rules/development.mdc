@@ -59,3 +59,7 @@ Key Conventions
 8. Use WordPress's hook system for modular and extensible code.
 9. Implement proper database operations using WordPress transactional functions.
 10. Use WordPress's WP_Cron API for scheduling tasks.
+
+Documentation
+- FluentForms Integration: https://fluentforms.com/docs/integrationmanager-class/
+- GravityForms: https://docs.gravityforms.com/gfaddon/

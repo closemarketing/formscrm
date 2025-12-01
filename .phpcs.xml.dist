@@ -43,4 +43,16 @@
 			<property name="blank_line_check" value="true"/>
 		</properties>
 	</rule>
+
+	<!-- Allow short array syntax -->
+	<rule ref="Generic.Arrays.DisallowShortArraySyntax">
+		<severity>0</severity>
+	</rule>
+	<rule ref="PHPCSExtra.Universal.Arrays.DisallowShortArraySyntax">
+		<severity>0</severity>
+	</rule>
+	<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+	<exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
+	<exclude name="PHPCSExtra.Universal.Arrays.DisallowShortArraySyntax"/>
+	<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
 </ruleset>

@@ -47,7 +47,7 @@ class FORMSCRM_FluentForms_Settings {
 		// add_action( 'wp_ajax_formscrm_get_fields_by_crm_type', array( $this, 'ajax_get_fields_by_crm_type' ) );
 		
 		// Enqueue JavaScript for global settings.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_global_settings_scripts' ) );
+		//add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_global_settings_scripts' ) );
 
 		// Form-specific settings.
 		add_filter( 'fluentform_form_settings_menu', array( $this, 'add_form_settings_menu' ), 10, 1 );
@@ -138,8 +138,8 @@ class FORMSCRM_FluentForms_Settings {
 			'formscrm-fluentforms-admin',
 			'formscrmAjax',
 			array(
-				'ajaxurl'     => admin_url( 'admin-ajax.php' ),
-				'nonce'       => wp_create_nonce( 'formscrm_ajax_nonce' ),
+				'ajaxurl'      => admin_url( 'admin-ajax.php' ),
+				'nonce'        => wp_create_nonce( 'formscrm_ajax_nonce' ),
 				'dependencies' => array(
 					'url'         => formscrm_get_dependency_url(),
 					'username'    => formscrm_get_dependency_username(),
@@ -148,7 +148,15 @@ class FORMSCRM_FluentForms_Settings {
 					'apisales'    => formscrm_get_dependency_apisales(),
 					'odoodb'      => formscrm_get_dependency_odoodb(),
 				),
-				'choices'     => formscrm_get_choices(),
+				'toggles'      => array(
+					'url'         => 'fc_crm_url_toggle',
+					'username'    => 'fc_crm_username_toggle',
+					'password'    => 'fc_crm_password_toggle',
+					'apipassword' => 'fc_crm_apipassword_toggle',
+					'apisales'    => 'fc_crm_apisales_toggle',
+					'odoodb'      => 'fc_crm_odoodb_toggle',
+				),
+				'choices'      => formscrm_get_choices(),
 			)
 		);
 	}
@@ -184,14 +192,22 @@ class FORMSCRM_FluentForms_Settings {
 		// Base fields array - always include CRM type.
 		$fields_config = array(
 			'fc_crm_type' => array(
-				'type'        => 'select',
-				'label'       => __( 'CRM Type', 'formscrm' ),
-				'options'     => $crm_options,
-				'label_tips'  => __( 'Select your CRM type to see relevant credential fields.', 'formscrm' ),
+				'type'       => 'select',
+				'label'      => __( 'CRM Type', 'formscrm' ),
+				'options'    => $crm_options,
+				'label_tips' => __( 'Select your CRM type to see relevant credential fields.', 'formscrm' ),
 			),
 		);
 
-		// Add all credential fields with dependencies - FluentForms will show/hide them automatically.
+		// Get dependency arrays for each field type.
+		$dependency_url        = formscrm_get_dependency_url();
+		$dependency_username    = formscrm_get_dependency_username();
+		$dependency_password    = formscrm_get_dependency_password();
+		$dependency_apipassword = formscrm_get_dependency_apipassword();
+		$dependency_apisales   = formscrm_get_dependency_apisales();
+		$dependency_odoodb      = formscrm_get_dependency_odoodb();
+
+		// Add all credential fields with direct dependencies on fc_crm_type select.
 		$fields_config['fc_crm_url'] = array(
 			'type'        => 'text',
 			'label'       => __( 'CRM URL', 'formscrm' ),
@@ -200,22 +216,22 @@ class FORMSCRM_FluentForms_Settings {
 			'dependency'  => array(
 				array(
 					'depends_on' => 'fc_crm_type',
-					'operator'   => 'in_array',
-					'value'      => formscrm_get_dependency_url(),
+					'operator'   => 'in',
+					'value'      => [ 'odoo', 'vtiger' ],
 				),
 			),
 		);
 
 		$fields_config['fc_crm_username'] = array(
-			'type'        => 'text',
+			'type'        => 'text', 
 			'label'       => __( 'Username', 'formscrm' ),
 			'label_tips'  => __( 'Enter your CRM username', 'formscrm' ),
 			'placeholder' => __( 'Username', 'formscrm' ),
 			'dependency'  => array(
 				array(
 					'depends_on' => 'fc_crm_type',
-					'operator'   => 'in_array',
-					'value'      => formscrm_get_dependency_username(),
+					'operator'   => 'in',
+					'value'      => $dependency_username,
 				),
 			),
 		);
@@ -228,8 +244,8 @@ class FORMSCRM_FluentForms_Settings {
 			'dependency'  => array(
 				array(
 					'depends_on' => 'fc_crm_type',
-					'operator'   => 'in_array',
-					'value'      => formscrm_get_dependency_password(),
+					'operator'   => 'in',
+					'value'      => $dependency_password,
 				),
 			),
 		);
@@ -242,8 +258,8 @@ class FORMSCRM_FluentForms_Settings {
 			'dependency'  => array(
 				array(
 					'depends_on' => 'fc_crm_type',
-					'operator'   => 'in_array',
-					'value'      => formscrm_get_dependency_apipassword(),
+					'operator'   => 'in',
+					'value'      => $dependency_apipassword,
 				),
 			),
 		);
@@ -256,8 +272,8 @@ class FORMSCRM_FluentForms_Settings {
 			'dependency'  => array(
 				array(
 					'depends_on' => 'fc_crm_type',
-					'operator'   => 'in_array',
-					'value'      => formscrm_get_dependency_apisales(),
+					'operator'   => 'in',
+					'value'      => $dependency_apisales,
 				),
 			),
 		);
@@ -270,8 +286,8 @@ class FORMSCRM_FluentForms_Settings {
 			'dependency'  => array(
 				array(
 					'depends_on' => 'fc_crm_type',
-					'operator'   => 'in_array',
-					'value'      => formscrm_get_dependency_odoodb(),
+					'operator'   => 'in',
+					'value'      => $dependency_odoodb,
 				),
 			),
 		);

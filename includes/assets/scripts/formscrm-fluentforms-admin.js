@@ -6,9 +6,11 @@
 (function () {
 	'use strict';
 
-	var previousCrmType = null;
-	var isSaving = false;
-	var watcherSetup = false;
+var previousCrmType = null;
+var isSaving = false;
+var watcherSetup = false;
+var vueComponentInstance = null;
+var vueInstanceType = null;
 
 	/**
 	 * Trigger save action
@@ -101,6 +103,8 @@
 		if (vueInstance) {
 			// Try Vue 2 $watch.
 			if (vueInstance.$watch && vueInstance.$data && vueInstance.$data.settings) {
+				vueComponentInstance = vueInstance;
+				vueInstanceType = 'vue2';
 				previousCrmType = vueInstance.$data.settings.fc_crm_type || null;
 
 				vueInstance.$watch('settings.fc_crm_type', function (newVal, oldVal) {
@@ -120,6 +124,8 @@
 
 			// Try Vue 3 watch.
 			if (typeof Vue !== 'undefined' && Vue.watch && vueInstance.settings) {
+				vueComponentInstance = vueInstance;
+				vueInstanceType = 'vue3';
 				previousCrmType = vueInstance.settings.fc_crm_type || null;
 
 				Vue.watch(function () {
@@ -152,37 +158,51 @@
 			return null;
 		}
 
-		// Try 1: Check for hidden input with name (standard HTML)
+		// Try 1: Get from Vue instance settings (most reliable)
+		var vueInfo = getVueSettingsInfo();
+		if (vueInfo && vueInfo.settings && vueInfo.settings.fc_crm_type) {
+			return vueInfo.settings.fc_crm_type;
+		}
+
+		// Try 2: Check for hidden input with name (standard HTML)
 		var hiddenInput = container.querySelector('input[name="fc_crm_type"]');
 		if (hiddenInput && hiddenInput.value) {
 			return hiddenInput.value.trim();
 		}
 
-		// Try 2: Check for Select element (standard HTML)
+		// Try 3: Check for Select element (standard HTML)
 		var select = container.querySelector('select[name="fc_crm_type"]');
 		if (select && select.value) {
 			return select.value.trim();
 		}
 
-		// Try 3: Check for ElementUI input (visible text)
-		// We prioritize the one that is NOT empty and NOT 'Select'
+		// Try 4: Check for ElementUI input (visible text) - look for the one with label "CRM Type"
 		var inputs = container.querySelectorAll('input.el-input__inner');
+		var choices = (window.formscrmAjax && window.formscrmAjax.choices) || [];
+		
 		for (var i = 0; i < inputs.length; i++) {
-			var value = inputs[i].value;
-			if (value && value !== 'Select' && value.trim() !== '') {
-				// Verify if this input looks like the CRM selector (e.g. by checking siblings or parent)
-				// For now, we assume the first valid value in the container is the CRM type if it matches a choice
-				var choices = (window.formscrmAjax && window.formscrmAjax.choices) || [];
-				var isMatch = false;
-				for (var j = 0; j < choices.length; j++) {
-					if (choices[j].label === value || choices[j].value === value) {
-						isMatch = true;
-						break;
+			var input = inputs[i];
+			var value = input.value;
+			
+			// Check if this input is the CRM type selector by looking for nearby label
+			var parent = input.closest('.el-form-item') || input.closest('.ff-field-wrapper');
+			if (parent) {
+				var label = parent.querySelector('label');
+				if (label && (label.textContent.indexOf('CRM Type') !== -1 || label.textContent.indexOf('CRM') !== -1)) {
+					// This is likely the CRM type selector
+					if (value && value !== 'Select' && value.trim() !== '') {
+						// Try to match with choices
+						for (var j = 0; j < choices.length; j++) {
+							if (choices[j].label === value) {
+								return choices[j].value; // Return the value, not the label
+							}
+							if (choices[j].value === value) {
+								return value.trim();
+							}
+						}
+						// If no match found but value exists, return it
+						return value.trim();
 					}
-				}
-
-				if (isMatch) {
-					return value.trim();
 				}
 			}
 		}
@@ -226,6 +246,68 @@
 	 */
 	function getDependencies() {
 		return (window.formscrmAjax && window.formscrmAjax.dependencies) || {};
+	}
+
+	/**
+	 * Get mapping for toggle keys (used by FluentForms dependencies).
+	 */
+	function getToggleMap() {
+		return (window.formscrmAjax && window.formscrmAjax.toggles) || {};
+	}
+
+	/**
+	 * Returns Vue instance + settings info if available.
+	 */
+	function getVueSettingsInfo() {
+		if (!vueComponentInstance) {
+			return null;
+		}
+
+		if ('vue2' === vueInstanceType && vueComponentInstance.$data && vueComponentInstance.$data.settings) {
+			return {
+				instance: vueComponentInstance,
+				settings: vueComponentInstance.$data.settings,
+				type: 'vue2'
+			};
+		}
+
+		if ('vue3' === vueInstanceType && vueComponentInstance.settings) {
+			return {
+				instance: vueComponentInstance,
+				settings: vueComponentInstance.settings,
+				type: 'vue3'
+			};
+		}
+
+		return null;
+	}
+
+	/**
+	 * Apply toggle values so FluentForms dependency engine can react.
+	 */
+	function applyVueToggles(visibilityMap) {
+		var toggleMap = getToggleMap();
+		var vueInfo = getVueSettingsInfo();
+
+		if (!toggleMap || !vueInfo) {
+			return;
+		}
+
+		Object.keys(toggleMap).forEach(function (fieldType) {
+			var toggleKey = toggleMap[fieldType];
+			if (!toggleKey) {
+				return;
+			}
+
+			var isVisible = !!visibilityMap[fieldType];
+			var value = isVisible ? 'show' : 'hide';
+
+			if ('vue2' === vueInfo.type && typeof vueInfo.instance.$set === 'function') {
+				vueInfo.instance.$set(vueInfo.settings, toggleKey, value);
+			} else {
+				vueInfo.settings[toggleKey] = value;
+			}
+		});
 	}
 
 	/**
@@ -273,12 +355,14 @@
 		}
 
 		var dependencies = getDependencies();
+		var visibilityMap = {};
+
 		Object.keys(dependencies).forEach(function (fieldType) {
-			var wrapper = findFieldWrapper(container, fieldType);
-			if (wrapper) {
-				wrapper.style.display = 'none';
-			}
+			visibilityMap[fieldType] = false;
 		});
+
+		applyVueToggles(visibilityMap);
+		applyDomVisibility(container, visibilityMap);
 	}
 
 	/**
@@ -292,22 +376,11 @@
 
 		var dependencies = getDependencies();
 		var choices = (window.formscrmAjax && window.formscrmAjax.choices) || [];
-
-		// Always reset visibility before applying CRM-specific logic.
-		Object.keys(dependencies).forEach(function (fieldType) {
-			var wrapper = findFieldWrapper(container, fieldType);
-			if (wrapper) {
-				wrapper.style.display = 'none';
-			}
-		});
-
-		if (!crmType) {
-			return;
-		}
+		var visibilityMap = {};
 
 		// Map label to value if needed.
 		var crmValue = crmType;
-		if (choices.length > 0) {
+		if (choices.length > 0 && crmType) {
 			for (var i = 0; i < choices.length; i++) {
 				if (choices[i].label === crmType || choices[i].value === crmType) {
 					crmValue = choices[i].value;
@@ -316,17 +389,33 @@
 			}
 		}
 
-		// Show/hide fields based on dependencies.
 		Object.keys(dependencies).forEach(function (fieldType) {
-			var wrapper = findFieldWrapper(container, fieldType);
+			var allowed = dependencies[fieldType] || [];
+			visibilityMap[fieldType] = crmValue && allowed.indexOf(crmValue) !== -1;
+		});
 
-			// Show/hide based on dependency.
-			if (wrapper && dependencies[fieldType] && Array.isArray(dependencies[fieldType])) {
-				if (dependencies[fieldType].indexOf(crmValue) !== -1) {
-					wrapper.style.display = '';
-				} else {
-					wrapper.style.display = 'none';
-				}
+		applyVueToggles(visibilityMap);
+		applyDomVisibility(container, visibilityMap);
+	}
+
+	/**
+	 * Apply DOM visibility as a defensive fallback.
+	 */
+	function applyDomVisibility(container, visibilityMap) {
+		if (!container) {
+			return;
+		}
+
+		Object.keys(visibilityMap).forEach(function (fieldType) {
+			var wrapper = findFieldWrapper(container, fieldType);
+			if (!wrapper) {
+				return;
+			}
+
+			if (visibilityMap[fieldType]) {
+				wrapper.style.display = '';
+			} else {
+				wrapper.style.display = 'none';
 			}
 		});
 	}
@@ -376,14 +465,29 @@
 		document.addEventListener('click', function (e) {
 			var item = e.target.closest('.el-select-dropdown__item');
 			if (item) {
+				// Get the value from the clicked item
+				var itemValue = item.getAttribute('data-value') || item.textContent.trim();
+				var choices = (window.formscrmAjax && window.formscrmAjax.choices) || [];
+				
+				// Try to match with choices to get the actual value
+				for (var i = 0; i < choices.length; i++) {
+					if (choices[i].label === itemValue || choices[i].value === itemValue) {
+						itemValue = choices[i].value;
+						break;
+					}
+				}
+				
 				setTimeout(function () {
-					var currentValue = getCurrentCrmType();
+					var currentValue = getCurrentCrmType() || itemValue;
 					if (currentValue && currentValue !== previousCrmType) {
 						previousCrmType = currentValue;
 						toggleFieldsByCrmType(currentValue);
-						triggerSave();
+						// Small delay before save to ensure Vue has updated
+						setTimeout(function () {
+							triggerSave();
+						}, 300);
 					}
-				}, 500); // Increased delay slightly to ensure Vue updates.
+				}, 200); // Reduced delay since we have the value from click
 			}
 		}, true);
 
@@ -397,6 +501,57 @@
 				}
 			}
 		});
+
+		// Watch for Element UI input readonly changes (MutationObserver for value changes)
+		var inputObserver = new MutationObserver(function (mutations) {
+			var currentValue = getCurrentCrmType();
+			if (currentValue && currentValue !== previousCrmType) {
+				previousCrmType = currentValue;
+				toggleFieldsByCrmType(currentValue);
+				triggerSave();
+			}
+		});
+
+		// Observe all readonly inputs in the container
+		function observeReadonlyInputs() {
+			var container = document.querySelector(containerSelector);
+			if (!container) {
+				return;
+			}
+			
+			var readonlyInputs = container.querySelectorAll('input.el-input__inner[readonly]');
+			readonlyInputs.forEach(function (input) {
+				// Observe value attribute changes
+				inputObserver.observe(input, {
+					attributes: true,
+					attributeFilter: ['value'],
+					subtree: true
+				});
+				// Also observe parent for changes
+				var parent = input.closest('.el-form-item') || input.closest('.ff-field-wrapper');
+				if (parent) {
+					inputObserver.observe(parent, {
+						childList: true,
+						subtree: true
+					});
+				}
+			});
+		}
+
+		// Initial observation
+		setTimeout(observeReadonlyInputs, 1000);
+		
+		// Re-observe when container changes
+		var containerObserver = new MutationObserver(function () {
+			observeReadonlyInputs();
+		});
+		var container = document.querySelector(containerSelector);
+		if (container) {
+			containerObserver.observe(container, {
+				childList: true,
+				subtree: true
+			});
+		}
 	}
 
 	// Start when DOM is ready.
