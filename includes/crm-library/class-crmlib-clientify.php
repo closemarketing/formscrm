@@ -466,11 +466,11 @@ class CRMLIB_Clientify {
 				'required' => false,
 			);
 
-		$fields[] = array(
+			$fields[] = array(
 			'name'     => 'email',
 			'label'    => __( 'Email Main', 'formscrm' ),
 			'required' => false,
-		);
+			);
 
 			$fields[] = array(
 				'name'     => 'country',
