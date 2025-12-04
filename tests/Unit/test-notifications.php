@@ -1,19 +1,19 @@
 <?php
 /**
- * Class NotificationsTest
+ * Class SlackNotificationsTest
  * 
- * Tests for error notification functions (Email and Slack)
+ * Tests for Slack error notifications
  * 
- * Command: composer test --filter NotificationsTest
- * Debug: composer test-debug --filter NotificationsTest
+ * Command: composer test --filter SlackNotificationsTest
+ * Debug: composer test-debug --filter SlackNotificationsTest
  *
  * @package Formscrm
  */
 
 /**
- * Test case for notification functions.
+ * Test case for Slack notification functions.
  */
-class NotificationsTest extends WP_UnitTestCase {
+class SlackNotificationsTest extends WP_UnitTestCase {
 
 	/**
 	 * Set up test environment.
@@ -42,7 +42,6 @@ class NotificationsTest extends WP_UnitTestCase {
 		);
 
 		// Reset options before each test.
-		delete_option( 'formscrm_error_notification_email' );
 		delete_option( 'formscrm_slack_webhook_url' );
 	}
 
@@ -53,11 +52,7 @@ class NotificationsTest extends WP_UnitTestCase {
 		parent::tearDown();
 
 		// Clean up options.
-		delete_option( 'formscrm_error_notification_email' );
 		delete_option( 'formscrm_slack_webhook_url' );
-
-		// Reset email test vars.
-		reset_phpmailer_instance();
 	}
 
 	/**
@@ -72,173 +67,6 @@ class NotificationsTest extends WP_UnitTestCase {
 	 */
 	public function test_send_slack_notification_function_exists() {
 		$this->assertTrue( function_exists( 'formscrm_send_slack_notification' ) );
-	}
-
-	/**
-	 * Test email notification uses custom email when configured.
-	 */
-	public function test_email_uses_custom_email_when_configured() {
-		$custom_email = 'custom@example.com';
-		update_option( 'formscrm_error_notification_email', $custom_email );
-
-		$crm   = 'Holded';
-		$error = 'Test error';
-		$data  = array(
-			array( 'name' => 'Email', 'value' => 'test@example.com' ),
-		);
-
-		formscrm_debug_email_lead( $crm, $error, $data );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertStringContainsString( $custom_email, $mailer->get_recipient( 'to' )->address );
-	}
-
-	/**
-	 * Test email notification uses admin email when no custom email configured.
-	 */
-	public function test_email_uses_admin_email_when_no_custom_email() {
-		$admin_email = get_option( 'admin_email' );
-
-		$crm   = 'Holded';
-		$error = 'Test error';
-		$data  = array(
-			array( 'name' => 'Email', 'value' => 'test@example.com' ),
-		);
-
-		formscrm_debug_email_lead( $crm, $error, $data );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( $admin_email, $mailer->get_recipient( 'to' )->address );
-	}
-
-	/**
-	 * Test email subject includes site name.
-	 */
-	public function test_email_subject_includes_site_name() {
-		$site_name = get_bloginfo( 'name' );
-
-		$crm   = 'Holded';
-		$error = 'Test error';
-		$data  = array(
-			array( 'name' => 'Email', 'value' => 'test@example.com' ),
-		);
-
-		formscrm_debug_email_lead( $crm, $error, $data );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertStringContainsString( $site_name, $mailer->get_sent()->subject );
-		$this->assertStringContainsString( 'FormsCRM', $mailer->get_sent()->subject );
-	}
-
-	/**
-	 * Test email body contains CRM name.
-	 */
-	public function test_email_body_contains_crm_name() {
-		$crm   = 'Holded';
-		$error = 'Test error message';
-		$data  = array(
-			array( 'name' => 'Email', 'value' => 'test@example.com' ),
-		);
-
-		formscrm_debug_email_lead( $crm, $error, $data );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		$body   = $mailer->get_sent()->body;
-
-		$this->assertStringContainsString( $crm, $body );
-		$this->assertStringContainsString( $error, $body );
-	}
-
-	/**
-	 * Test email body contains form information when provided.
-	 */
-	public function test_email_body_contains_form_information() {
-		$crm       = 'Holded';
-		$error     = 'Test error';
-		$data      = array(
-			array( 'name' => 'Name', 'value' => 'John Doe' ),
-		);
-		$form_info = array(
-			'form_type' => 'Gravity Forms',
-			'form_id'   => '42',
-			'form_name' => 'Contact Form',
-			'entry_id'  => '12345',
-		);
-
-		formscrm_debug_email_lead( $crm, $error, $data, '', '', $form_info );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		$body   = $mailer->get_sent()->body;
-
-		$this->assertStringContainsString( 'Gravity Forms', $body );
-		$this->assertStringContainsString( '42', $body );
-		$this->assertStringContainsString( 'Contact Form', $body );
-		$this->assertStringContainsString( '12345', $body );
-	}
-
-	/**
-	 * Test email body contains site information.
-	 */
-	public function test_email_body_contains_site_information() {
-		$site_name = get_bloginfo( 'name' );
-		$site_url  = get_site_url();
-
-		$crm   = 'Holded';
-		$error = 'Test error';
-		$data  = array(
-			array( 'name' => 'Email', 'value' => 'test@example.com' ),
-		);
-
-		formscrm_debug_email_lead( $crm, $error, $data );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		$body   = $mailer->get_sent()->body;
-
-		$this->assertStringContainsString( $site_name, $body );
-		$this->assertStringContainsString( $site_url, $body );
-	}
-
-	/**
-	 * Test email body contains lead data.
-	 */
-	public function test_email_body_contains_lead_data() {
-		$crm   = 'Holded';
-		$error = 'Test error';
-		$data  = array(
-			array( 'name' => 'Name', 'value' => 'John Doe' ),
-			array( 'name' => 'Email', 'value' => 'john@example.com' ),
-			array( 'name' => 'Phone', 'value' => '+34 600 123 456' ),
-		);
-
-		formscrm_debug_email_lead( $crm, $error, $data );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		$body   = $mailer->get_sent()->body;
-
-		$this->assertStringContainsString( 'John Doe', $body );
-		$this->assertStringContainsString( 'john@example.com', $body );
-		$this->assertStringContainsString( '+34 600 123 456', $body );
-	}
-
-	/**
-	 * Test email body contains technical details when provided.
-	 */
-	public function test_email_body_contains_technical_details() {
-		$crm   = 'Holded';
-		$error = 'Test error';
-		$data  = array(
-			array( 'name' => 'Email', 'value' => 'test@example.com' ),
-		);
-		$url   = 'https://api.holded.com/api/contacts/v1';
-		$json  = '{"name":"Test","email":"test@example.com"}';
-
-		formscrm_debug_email_lead( $crm, $error, $data, $url, $json );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		$body   = $mailer->get_sent()->body;
-
-		$this->assertStringContainsString( $url, $body );
-		$this->assertStringContainsString( $json, $body );
 	}
 
 	/**
@@ -533,41 +361,4 @@ class NotificationsTest extends WP_UnitTestCase {
 
 		$this->assertEquals( 'danger', $body['attachments'][0]['color'] );
 	}
-
-	/**
-	 * Test integration: Email is sent and Slack is notified when both configured.
-	 */
-	public function test_integration_both_email_and_slack_sent() {
-		$custom_email = 'errors@example.com';
-		$webhook_url  = 'https://hooks.slack.com/services/TEST/WEBHOOK/URL';
-
-		update_option( 'formscrm_error_notification_email', $custom_email );
-		update_option( 'formscrm_slack_webhook_url', $webhook_url );
-
-		$crm       = 'Holded';
-		$error     = 'Integration test error';
-		$data      = array(
-			array( 'name' => 'Name', 'value' => 'Integration Test' ),
-			array( 'name' => 'Email', 'value' => 'test@example.com' ),
-		);
-		$form_info = array(
-			'form_type' => 'Gravity Forms',
-			'form_id'   => '1',
-			'form_name' => 'Contact Form',
-		);
-
-		// Call the main error function which should trigger both.
-		formscrm_debug_email_lead( $crm, $error, $data, '', '', $form_info );
-
-		// Check email was sent.
-		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertStringContainsString( $custom_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertStringContainsString( $error, $mailer->get_sent()->body );
-
-		// Slack is called by the email function, so it should have been triggered.
-		// We can't easily verify the HTTP call here without more complex mocking,
-		// but the previous tests verify Slack works independently.
-		$this->assertTrue( true );
-	}
 }
-
