@@ -86,30 +86,54 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 			<div class="wrap">
 				<?php
 				settings_errors();
-				$active_tab = isset( $_GET['tab'] ) ? strval( $_GET['tab'] ) : 'settings';
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'settings';
 
-				$formscrm_tabs = apply_filters(
-					'formscrm_settings_tabs',
+			$formscrm_tabs = apply_filters(
+				'formscrm_settings_tabs',
+				array(
 					array(
-						array(
-							'tab'    => 'settings',
-							'label'  => esc_html__( 'Settings', 'formscrm' ),
-							'action' => 'formscrm_settings',
-						),
-					)
-				);
-				echo '<h2 class="nav-tab-wrapper">';
-				foreach ( $formscrm_tabs as $tab ) {
-					echo '<a href="?page=formscrm&tab=' . esc_html( $tab['tab'] ) . '" class="nav-tab ';
-					echo $tab['tab'] === $active_tab ? 'nav-tab-active' : '';
-					echo '">' . esc_html( $tab['label'] ) . '</a>';
+						'tab'    => 'settings',
+						'label'  => esc_html__( 'Settings', 'formscrm' ),
+						'action' => 'formscrm_settings',
+					),
+				)
+			);
+
+			// Ensure tabs is an array.
+			if ( ! is_array( $formscrm_tabs ) ) {
+				$formscrm_tabs = array();
+			}
+
+			echo '<h2 class="nav-tab-wrapper">';
+			foreach ( $formscrm_tabs as $tab ) {
+				if ( ! is_array( $tab ) || ! isset( $tab['tab'] ) ) {
+					continue;
 				}
-				echo '</h2>';
-				foreach ( $formscrm_tabs as $tab ) {
-					if ( $tab['tab'] === $active_tab ) {
-						do_action( $tab['action'] );
-					}
+				echo '<a href="?page=formscrm&tab=' . esc_attr( $tab['tab'] ) . '" class="nav-tab ';
+				echo $tab['tab'] === $active_tab ? 'nav-tab-active' : '';
+				echo '">' . esc_html( $tab['label'] ?? '' ) . '</a>';
+			}
+			// Allow addons to add their own tabs via separate action.
+			do_action( 'formscrm_settings_tabs_html', $active_tab );
+			echo '</h2>';
+
+			// Handle standard tabs with actions.
+			$tab_handled = false;
+			foreach ( $formscrm_tabs as $tab ) {
+				if ( ! is_array( $tab ) || ! isset( $tab['tab'] ) ) {
+					continue;
 				}
+				if ( $tab['tab'] === $active_tab && isset( $tab['action'] ) ) {
+					do_action( $tab['action'] );
+					$tab_handled = true;
+				}
+			}
+
+			// If not handled by standard tabs, check for addon content (like license content).
+			if ( ! $tab_handled ) {
+				do_action( 'formscrm_settings_content', $active_tab );
+			}
 				?>
 			</div>
 			<?php
