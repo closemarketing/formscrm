@@ -37,24 +37,19 @@ concurrency:
 
 jobs:
   php-lint:
-    name: PHP Linting (PHP ${{ matrix.php-version }})
+    name: PHP Linting
     runs-on: ubuntu-latest
     timeout-minutes: 10
     continue-on-error: true  # Informativo, no bloquear CI
-    
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: ['8.1', '8.0', '7.4']
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup PHP ${{ matrix.php-version }}
+      - name: Setup PHP 8.1
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-version }}
+          php-version: '8.1'
           tools: composer:v2
           coverage: none
 

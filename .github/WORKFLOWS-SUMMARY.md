@@ -9,10 +9,8 @@ graph TD
     A[git push origin trunk] --> B[PHP Code Linting]
     A --> C[PHPUnit Tests]
     
-    B --> B1[PHP 7.4: composer lint]
-    B --> B2[PHP 8.0: composer lint]
-    B --> B3[PHP 8.1: composer lint]
-    B --> B4[PHPStan Analysis]
+    B --> B1[PHP 8.1: composer lint]
+    B --> B2[PHPStan Analysis]
     
     C --> C1[PHP 7.4: composer test]
     C --> C2[PHP 8.0: composer test]
@@ -20,7 +18,7 @@ graph TD
     C --> C4[PHP 8.1 + Coverage]
 ```
 
-**Total: 8 jobs en paralelo** (5-15 minutos)
+**Total: 6 jobs en paralelo** (5-12 minutos)
 
 ### 📝 **Cuando Haces PULL REQUEST**
 
@@ -30,8 +28,8 @@ graph TD
     A --> C[PHPUnit Tests]
     A --> D[Unit Tests antiguo]
     
-    B --> B1[Linting en 3 versiones PHP]
-    B --> B2[PHPStan]
+    B --> B1[Linting PHP 8.1]
+    B --> B2[PHPStan PHP 8.1]
     
     C --> C1[Tests en 3 versiones PHP]
     C --> C2[Coverage Report]
@@ -39,7 +37,7 @@ graph TD
     D --> D1[Tests en 4 versiones PHP]
 ```
 
-**Total: 9-10 jobs en paralelo**
+**Total: 8 jobs en paralelo**
 
 ### 🏷️ **Cuando Creas un TAG**
 
@@ -92,14 +90,12 @@ OK (19 tests, 65 assertions)
 ### 2. `php-lint.yml` - **Linting & Análisis** ⚠️
 
 **Se ejecuta:** Push + PR a ramas principales  
-**Duración:** 5-7 minutos  
-**Jobs:** 4  
+**Duración:** 3-5 minutos  
+**Jobs:** 2  
 **Estado:** Informativo (no bloquea CI)
 
 | Job | PHP | Qué hace |
 |-----|-----|----------|
-| PHP Linting | 7.4 | PHPCS WordPress Coding Standards |
-| PHP Linting | 8.0 | PHPCS WordPress Coding Standards |
 | PHP Linting | 8.1 | PHPCS WordPress Coding Standards |
 | PHPStan | 8.1 | Análisis estático nivel 0 (informativo) |
 
@@ -109,6 +105,8 @@ composer validate   # Validar composer.json
 composer lint       # WordPress Coding Standards (220 errores arreglados!)
 composer phpstan    # Análisis estático (informativo)
 ```
+
+**Nota:** Linting solo se ejecuta una vez porque no depende de la versión de PHP.
 
 ### 3. `php-test.yml` - **Tests Antiguos** (ya existía)
 
