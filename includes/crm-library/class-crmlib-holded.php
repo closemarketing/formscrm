@@ -18,8 +18,7 @@ define( 'MAX_LIMIT_HOLDED_API', 500 ); // phpcs:ignore WordPress.NamingConventio
 /**
  * Class for Holded connection.
  */
-class CRMLIB_HOLDED {
- // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_HOLDED { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Gets information from Holded CRM
 	 *

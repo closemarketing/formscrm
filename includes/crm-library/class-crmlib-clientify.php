@@ -11,11 +11,11 @@
  */
 
 /**
- * Class for Holded connection.
+ * Class for Clientify connection.
  */
-class CRMLIB_Clientify {
+class CRMLIB_Clientify { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
-	 * Gets information from Holded CRM
+	 * Gets information from Clientify CRM
 	 *
 	 * @param string $url URL for module.
 	 * @param string $apikey API Authentication.
@@ -403,7 +403,7 @@ class CRMLIB_Clientify {
 			6 => __( 'Other', 'formscrm' ),
 		);
 
-		// Phones
+		// Phones.
 		array_walk(
 			$types,
 			function ( $type, $key ) use ( &$fields ) {

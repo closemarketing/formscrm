@@ -219,8 +219,8 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			'icon_emoji'  => ':warning:',
 			'attachments' => array(
 				array(
-					/* translators: %1$s: CRM name, %2$s: error message */
 					'fallback'    => sprintf(
+						/* translators: %1$s: CRM name, %2$s: error message */
 						__( 'FormsCRM Error: %1$s - %2$s', 'formscrm' ),
 						$crm,
 						$error

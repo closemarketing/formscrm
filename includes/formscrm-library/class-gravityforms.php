@@ -17,6 +17,7 @@ global $formscrm_api;
  * Class for Addon GravityForms
  */
 class GFCRM extends GFFeedAddOn {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName -- Legacy class name for Gravity Forms integration.
 
 	protected $_version                  = FORMSCRM_VERSION;
 	protected $_min_gravityforms_version = '1.9.0';
@@ -45,7 +46,7 @@ class GFCRM extends GFFeedAddOn {
 	private $crmlib;
 
 	public static function get_instance() {
-		if ( self::$_instance == null ) {
+		if ( null === self::$_instance ) {
 			self::$_instance = new GFCRM();
 		}
 
@@ -281,7 +282,7 @@ class GFCRM extends GFFeedAddOn {
 
 		$this->include_library( $settings['fc_crm_type'] );
 
-		$settings['fc_crm_module']      = isset( $_POST['_gform_setting_fc_crm_module'] ) ? sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] ) : '';
+		$settings['fc_crm_module']      = isset( $_POST['_gform_setting_fc_crm_module'] ) ? sanitize_text_field( wp_unslash( $_POST['_gform_setting_fc_crm_module'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
 		$settings['fc_crm_custom_type'] = $custom_crm;
 
 		return apply_filters(
@@ -428,8 +429,8 @@ class GFCRM extends GFFeedAddOn {
 		}
 		$settings['fc_crm_type'] = $custom_crm;
 		foreach ( FORMSCRM_CRED_VARIABLES as $variable ) {
-			if ( isset( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) ) {
-				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] );
+			if ( isset( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( wp_unslash( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) );
 			} elseif ( isset( $feed['meta'][ 'fc_crm_custom_' . $variable ] ) ) {
 				$settings[ 'fc_crm_' . $variable ] = $feed['meta'][ 'fc_crm_custom_' . $variable ];
 			} elseif ( isset( $settings[ 'fc_crm_custom_' . $variable ] ) ) {
@@ -449,8 +450,8 @@ class GFCRM extends GFFeedAddOn {
 	 */
 	private function get_actual_feed_value( $value, $feed_settings ) {
 		$feed_value = '';
-		if ( isset( $_POST[ '_gform_setting_' . $value ] ) ) {
-			$feed_value = sanitize_text_field( $_POST[ '_gform_setting_' . $value ] );
+		if ( isset( $_POST[ '_gform_setting_' . $value ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+			$feed_value = sanitize_text_field( wp_unslash( $_POST[ '_gform_setting_' . $value ] ) );
 		} elseif ( isset( $feed_settings['meta'][ $value ] ) ) {
 			$feed_value = $feed_settings['meta'][ $value ];
 		}
@@ -466,8 +467,8 @@ class GFCRM extends GFFeedAddOn {
 		if ( empty( $feed_settings ) ) {
 			$feed_settings = $this->get_current_feed();
 		}
-		if ( isset( $_POST['_gform_setting_fc_crm_custom_type'] ) ) {
-			$custom_crm = sanitize_text_field( $_POST['_gform_setting_fc_crm_custom_type'] );
+		if ( isset( $_POST['_gform_setting_fc_crm_custom_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+			$custom_crm = sanitize_text_field( wp_unslash( $_POST['_gform_setting_fc_crm_custom_type'] ) );
 		} elseif ( ! empty( $feed_settings['meta']['fc_crm_custom_type'] ) ) {
 			$custom_crm = $feed_settings['meta']['fc_crm_custom_type'];
 		} else {
@@ -544,7 +545,7 @@ class GFCRM extends GFFeedAddOn {
 						'name'  => $field->adminLabel,
 						'value' => $entry[ $field->id ],
 					);
-				} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
+				} elseif ( $field && 'checkbox' === RGFormsModel::get_input_type( $field ) ) {
 					$value = array();
 					foreach ( $field['inputs'] as $input ) {
 						$index   = (string) $input['id'];
@@ -643,7 +644,7 @@ class GFCRM extends GFFeedAddOn {
 				'name'  => $var_key,
 				'value' => $product_name,
 			);
-		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
+		} elseif ( $field && 'checkbox' === RGFormsModel::get_input_type( $field ) ) {
 			$value = '';
 			foreach ( $field['inputs'] as $input ) {
 				$index   = (string) $input['id'];
@@ -658,7 +659,7 @@ class GFCRM extends GFFeedAddOn {
 				'name'  => $var_key,
 				'value' => $value,
 			);
-		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'multiselect' ) {
+		} elseif ( $field && 'multiselect' === RGFormsModel::get_input_type( $field ) ) {
 			$value = apply_filters( 'formscrm_field_value_multiselect', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 			$value = str_replace( ',', '|', $value );
 
@@ -666,13 +667,13 @@ class GFCRM extends GFFeedAddOn {
 				'name'  => $var_key,
 				'value' => $value,
 			);
-		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'textarea' ) {
+		} elseif ( $field && 'textarea' === RGFormsModel::get_input_type( $field ) ) {
 			$value = apply_filters( 'formscrm_field_value_textarea', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 			return array(
 				'name'  => $var_key,
 				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
 			);
-		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'name' && false === strpos( $field_id, '.' ) ) {
+		} elseif ( $field && 'name' === RGFormsModel::get_input_type( $field ) && false === strpos( $field_id, '.' ) ) {
 			$value = rgar( $entry, $field_id . '.3' ) . ' ' . rgar( $entry, $field_id . '.6' );
 			return array(
 				'name'  => $var_key,

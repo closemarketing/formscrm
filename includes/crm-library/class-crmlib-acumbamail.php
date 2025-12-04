@@ -14,8 +14,7 @@
 /**
  * Class for AcumbaMail connection.
  */
-class CRMLIB_AcumbaMail {
- // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_AcumbaMail { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Posts information from AcumbaMail CRM
 	 *

@@ -28,6 +28,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 	 * Handles admin settings page for FormsCRM plugin.
 	 */
 	class FORMSCRM_Admin {
+ // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 
 		/**
 		 * Construct of class
@@ -140,7 +141,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 						continue;
 					}
 					if ( $tab['tab'] === $active_tab && isset( $tab['action'] ) ) {
-						do_action( $tab['action'] );
+						do_action( $tab['action'] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Dynamic action name from tab configuration.
 						$tab_handled = true;
 					}
 				}

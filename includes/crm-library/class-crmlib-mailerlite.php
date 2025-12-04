@@ -16,8 +16,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class for MailerLite connection.
  */
-class CRMLIB_Mailerlite {
- // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_Mailerlite { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Mailer Lite Connector API
 	 *

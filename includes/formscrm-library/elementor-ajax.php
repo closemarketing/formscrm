@@ -13,8 +13,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Process post data for Elementor forms
  *
- * @param [type] $post_data
- * @return void
+ * @param array $post_data Post data from form.
+ * @return array Processed settings data.
  */
 function formscrm_elementor_process_settings( $post_data ) {
 	if ( isset( $post_data['fc_crm_url'] ) && is_array( $post_data['fc_crm_url'] ) ) {
@@ -34,7 +34,7 @@ add_action( 'wp_ajax_elementor_formscrm_connect_crm', 'elementor_formscrm_connec
  *
  * @return void
  */
-function elementor_formscrm_connect_crm() {
+function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Legacy function name for Elementor integration.
 	// Nonce.
 	if ( ! check_ajax_referer( 'formcrm_nonce', 'nonce', false ) ) {
 		wp_send_json_error( __( 'Security check failed', 'formscrm' ) );
@@ -74,7 +74,8 @@ function elementor_formscrm_connect_crm() {
 
 	$crmlib = new $crmclassname();
 
-	$post_data = formscrm_elementor_process_settings( $_POST['crmSettings'] ?? array() );
+	$crm_settings_raw = isset( $_POST['crmSettings'] ) ? wp_unslash( $_POST['crmSettings'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in formscrm_elementor_process_settings().
+	$post_data        = formscrm_elementor_process_settings( $crm_settings_raw );
 
 	// 2. Show modules dropdown
 	$modules         = $crmlib->list_modules( $post_data );
@@ -125,8 +126,9 @@ function elementor_formscrm_connect_crm() {
 			continue;
 		}
 
-		$post_data  = formscrm_elementor_process_settings( $_POST['crmSettings'] ?? array() );
-		$crm_fields = $crmlib->list_fields( $post_data, $value );
+		$crm_settings_raw = isset( $_POST['crmSettings'] ) ? wp_unslash( $_POST['crmSettings'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in formscrm_elementor_process_settings().
+		$post_data        = formscrm_elementor_process_settings( $crm_settings_raw );
+		$crm_fields       = $crmlib->list_fields( $post_data, $value );
 
 		if ( empty( $crm_fields ) || ! is_array( $crm_fields ) ) {
 			continue;
@@ -168,7 +170,8 @@ function elementor_formscrm_connect_crm() {
 						<select class="wide" name="fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>" >
 							<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 							<?php
-							foreach ( $_POST['formFields'] as $form_name => $form_label ) {
+							$form_fields = isset( $_POST['formFields'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['formFields'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+							foreach ( $form_fields as $form_name => $form_label ) {
 								echo '<option value="' . esc_html( $form_name ) . '" ';
 
 								if ( ! empty( $hidden_settings[ 'fc_crm_field-' . $crm_field_name ] ) ) {

@@ -18,8 +18,7 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 	 *
 	 * @since 3.5
 	 */
-	class Forms_Clientify {
- // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+	class Forms_Clientify { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 
 		/**
 		 * Construct of Class

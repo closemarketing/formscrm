@@ -1,10 +1,21 @@
 <?php
 /**
+ * FormsCRM integration for WPForms.
+ *
+ * @package   WordPress
+ * @author    David Perez <david@closemarketing.es>
+ * @copyright 2021 Closemarketing
+ * @version   3.7.2
+ * @since     1.0.0
+ */
+
+/**
  * FormsCRM integration.
  *
  * @since 1.0.0
  */
 class WPForms_FormsCRM extends WPForms_Provider {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName -- WPForms provider integration class.
 	private $crmlib;
 
 	/**
@@ -116,13 +127,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 				// Special formatting for different types.
 				switch ( $type ) {
-					/*
-					case 'MultiSelectMany':
-						$merge_vars = array_merge(
-							$merge_vars,
-							$this->format_multi_select_many( $fields[ $id ], $conn_field_name )
-						);
-						break;*/
+					// Commented out for future use - MultiSelectMany handling.
+					// case 'MultiSelectMany':
+					// $merge_vars = array_merge(
+					// $merge_vars,
+					// $this->format_multi_select_many( $fields[ $id ], $conn_field_name )
+					// );
+					// break;
 
 					case 'Date':
 						$merge_vars[] = array(
@@ -311,8 +322,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['_gform_setting_fc_crm_type'] );
+		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WPForms.
+			$crmtype = sanitize_text_field( wp_unslash( $_POST['_gform_setting_fc_crm_type'] ) );
 		}
 
 		if ( isset( $crmtype ) ) {
@@ -553,7 +564,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		$option_saved = '';
 		foreach ( $options_crm as $option_crm ) {
 			$select_page .= '<option value="' . $option_crm['value'] . '"';
-			if ( $option_saved == $option_crm['value'] ) {
+			if ( $option_saved === $option_crm['value'] ) {
 				$select_page .= ' selected';
 			}
 			$select_page .= '>' . $option_crm['label'] . '</option>';
@@ -561,7 +572,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		printf(
 			'<select id="fc_crm_type" name="fc_crm_type">%s</select>',
-			$select_page
+			wp_kses_post( $select_page )
 		);
 
 		// CRM URL.
@@ -610,42 +621,42 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_html( $crm['value'] ) . "') {";
 
 			// URL dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_url() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_url(), true ) ) {
 				$js_dependency .= '$(".fc_crm_url").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_url").hide();';
 			}
 
 			// Username dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_username() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_username(), true ) ) {
 				$js_dependency .= '$(".fc_crm_username").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_username").hide();';
 			}
 
 			// Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_password() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_password(), true ) ) {
 				$js_dependency .= '$(".fc_crm_password").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_password").hide();';
 			}
 
 			// API Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apipassword() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_apipassword(), true ) ) {
 				$js_dependency .= '$(".fc_crm_apipassword").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_apipassword").hide();';
 			}
 
 			// API Sales dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apisales() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_apisales(), true ) ) {
 				$js_dependency .= '$(".fc_crm_apisales").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_apisales").hide();';
 			}
 
-			// API Sales dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_odoodb() ) ) {
+			// API Odoo DB dependency.
+			if ( in_array( $crm['value'], formscrm_get_dependency_odoodb(), true ) ) {
 				$js_dependency .= '$(".fc_crm_odoodb").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_odoodb").hide();';
@@ -654,6 +665,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			$js_dependency .= '}';
 		}
 
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- JavaScript code generated from sanitized values.
 		printf(
 			'<script>
 				jQuery( function($) {
@@ -662,6 +674,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 				});
 			</script>'
 		);
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 

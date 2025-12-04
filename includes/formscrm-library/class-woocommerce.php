@@ -19,6 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * @version    1.0
  */
 class FormsCRM_WooCommerce {
+ // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 	/**
 	 * CRM LIB external
 	 *
@@ -249,8 +250,8 @@ class FormsCRM_WooCommerce {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
+		if ( isset( $_POST['fc_crm_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce.
+			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
 		}
 
 		if ( isset( $crmtype ) ) {
@@ -291,7 +292,7 @@ class FormsCRM_WooCommerce {
 			if ( 'error' === $response_result['status'] ) {
 				formscrm_debug_email_lead( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
 			} else {
-				error_log( $response_result['id'] );
+				error_log( $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
 			}
 		}
 	}
@@ -319,10 +320,10 @@ class FormsCRM_WooCommerce {
 			}
 		}
 
-		if ( isset( $_POST['clientify_vk'] ) ) {
+		if ( isset( $_POST['clientify_vk'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce checkout.
 			$merge_vars[] = array(
 				'name'  => 'clientify_vk',
-				'value' => sanitize_text_field( $_POST['clientify_vk'] ),
+				'value' => sanitize_text_field( wp_unslash( $_POST['clientify_vk'] ) ),
 			);
 		}
 

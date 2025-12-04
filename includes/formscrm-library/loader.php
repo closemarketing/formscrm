@@ -24,8 +24,7 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 	/**
 	 * Bootstrap class for Gravity Forms integration.
 	 */
-	class FC_CRM_Bootstrap {
- // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name for Gravity Forms integration.
+	class FC_CRM_Bootstrap { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName, Universal.Files.SeparateFunctionsFromOO.Mixed -- Legacy class name for Gravity Forms integration.
 
 		/**
 		 * Loads the Gravity Forms Feed Add-On.
@@ -49,8 +48,8 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 	 *
 	 * @return object The CRM instance.
 	 */
-	function gf_crm() { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Legacy function name for Gravity Forms compatibility.
-		return FCCRM::get_instance();
+	function gf_crm() { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound, Universal.Files.SeparateFunctionsFromOO.Mixed -- Legacy function name for Gravity Forms compatibility.
+		return GFCRM::get_instance();
 	}
 
 	require_once 'class-gravityforms-widget.php';
@@ -74,7 +73,7 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 	 *
 	 * @since 3.7.2
 	 */
-	function formscrm_wpforms() {
+	function formscrm_wpforms() { // phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed -- Loading function for WPForms integration.
 
 		// WPForms Pro is required.
 		if ( ! wpforms()->pro ) {

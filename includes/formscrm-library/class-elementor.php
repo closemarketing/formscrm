@@ -21,6 +21,7 @@ use ElementorPro\Modules\Forms\Submissions\Database\Query;
  * Action Class
  */
 class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\Action_Base {
+ // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 	/**
 	 * CRM Library Object
 	 *
@@ -59,8 +60,8 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
+		if ( isset( $_POST['fc_crm_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
+			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
 		}
 
 		if ( isset( $crmtype ) ) {
@@ -291,7 +292,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			);
 		}
 
-		if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore
+		if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
 			$merge_vars['visitor_key'] = array(
 				'name'  => 'visitor_key',
 				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),
