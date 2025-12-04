@@ -288,11 +288,18 @@ class FormsCRM_WooCommerce {
 
 			$response_result = $this->crmlib->create_entry( $wc_formscrm, $merge_vars );
 
-			if ( 'error' === $response_result['status'] ) {
-				formscrm_debug_email_lead( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars );
-			} else {
-				error_log( $response_result['id'] );
-			}
+		if ( 'error' === $response_result['status'] ) {
+			$form_info = array(
+				'form_type' => 'WooCommerce',
+				'form_id'   => 'checkout',
+				'form_name' => 'WooCommerce Checkout',
+				'entry_id'  => $order_id,
+			);
+
+			formscrm_debug_email_lead( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
+		} else {
+			error_log( $response_result['id'] );
+		}
 		}
 	}
 
