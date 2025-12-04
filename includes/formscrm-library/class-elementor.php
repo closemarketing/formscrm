@@ -60,7 +60,8 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['fc_crm_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
+		if ( isset( $_POST['fc_crm_type'] ) ) {
 			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
 		}
 
@@ -292,7 +293,8 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			);
 		}
 
-		if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
+		if ( ! empty( $_POST['visitor_key'] ) ) {
 			$merge_vars['visitor_key'] = array(
 				'name'  => 'visitor_key',
 				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),

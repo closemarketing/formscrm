@@ -61,7 +61,8 @@ class FORMSCRM_CF7_Settings {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['fc_crm_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Contact Form 7.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Contact Form 7.
+		if ( isset( $_POST['fc_crm_type'] ) ) {
 			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
 		}
 

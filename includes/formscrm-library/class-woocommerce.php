@@ -250,7 +250,8 @@ class FormsCRM_WooCommerce {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['fc_crm_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce.
+		if ( isset( $_POST['fc_crm_type'] ) ) {
 			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
 		}
 
@@ -320,7 +321,8 @@ class FormsCRM_WooCommerce {
 			}
 		}
 
-		if ( isset( $_POST['clientify_vk'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce checkout.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce checkout.
+		if ( isset( $_POST['clientify_vk'] ) ) {
 			$merge_vars[] = array(
 				'name'  => 'clientify_vk',
 				'value' => sanitize_text_field( wp_unslash( $_POST['clientify_vk'] ) ),

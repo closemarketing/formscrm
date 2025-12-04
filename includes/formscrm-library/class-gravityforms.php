@@ -19,32 +19,117 @@ global $formscrm_api;
 class GFCRM extends GFFeedAddOn {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName -- Legacy class name for Gravity Forms integration.
 
-	protected $_version                  = FORMSCRM_VERSION;
+	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore, Squiz.Commenting.VariableComment -- Properties inherited from GFFeedAddOn parent class.
+	/**
+	 * Plugin version.
+	 *
+	 * @var string
+	 */
+	protected $_version = FORMSCRM_VERSION;
+	/**
+	 * Minimum Gravity Forms version.
+	 *
+	 * @var string
+	 */
 	protected $_min_gravityforms_version = '1.9.0';
-	protected $_slug                     = 'formscrm';
-	protected $_path                     = 'formscrm/crm.php';
-	protected $_full_path                = __FILE__;
-	protected $_url                      = 'https://www.formscrm.com';
-	protected $_title                    = 'CRM Add-On';
-	protected $_short_title              = 'FormsCRM';
-	public $_async_feed_processing       = true;
+	/**
+	 * Plugin slug.
+	 *
+	 * @var string
+	 */
+	protected $_slug = 'formscrm';
+	/**
+	 * Plugin path.
+	 *
+	 * @var string
+	 */
+	protected $_path = 'formscrm/crm.php';
+	/**
+	 * Full path to main plugin file.
+	 *
+	 * @var string
+	 */
+	protected $_full_path = __FILE__;
+	/**
+	 * Plugin URL.
+	 *
+	 * @var string
+	 */
+	protected $_url = 'https://www.formscrm.com';
+	/**
+	 * Plugin title.
+	 *
+	 * @var string
+	 */
+	protected $_title = 'CRM Add-On';
+	/**
+	 * Short plugin title.
+	 *
+	 * @var string
+	 */
+	protected $_short_title = 'FormsCRM';
+	/**
+	 * Enable async feed processing.
+	 *
+	 * @var bool
+	 */
+	public $_async_feed_processing = true;
 
-	// Members plugin integration.
+	/**
+	 * Members plugin integration capabilities.
+	 *
+	 * @var array
+	 */
 	protected $_capabilities = array(
 		'formscrm',
 		'formscrm_uninstall',
 	);
 
-	// Permissions.
+	/**
+	 * Permissions for settings page.
+	 *
+	 * @var string
+	 */
 	protected $_capabilities_settings_page = 'formscrm';
+	/**
+	 * Permissions for form settings.
+	 *
+	 * @var string
+	 */
 	protected $_capabilities_form_settings = 'formscrm';
-	protected $_capabilities_uninstall     = 'formscrm_uninstall';
-	protected $_enable_rg_autoupgrade      = true;
+	/**
+	 * Permissions for uninstall.
+	 *
+	 * @var string
+	 */
+	protected $_capabilities_uninstall = 'formscrm_uninstall';
+	/**
+	 * Enable Rocketgenius autoupgrade.
+	 *
+	 * @var bool
+	 */
+	protected $_enable_rg_autoupgrade = true;
+	// phpcs:enable PSR2.Classes.PropertyDeclaration.Underscore, Squiz.Commenting.VariableComment
 
-	private static $_instance = null;
+	/**
+	 * Singleton instance.
+	 *
+	 * @var GFCRM
+	 */
+	private static $_instance = null; // phpcs:ignore PSR2.Classes.PropertyDeclaration.Underscore
 
+	/**
+	 * CRM library instance.
+	 *
+	 * @var object
+	 */
 	private $crmlib;
 
+	/**
+	 * Get singleton instance.
+	 *
+	 * @return GFCRM
+	 */
 	public static function get_instance() {
 		if ( null === self::$_instance ) {
 			self::$_instance = new GFCRM();
@@ -52,8 +137,9 @@ class GFCRM extends GFFeedAddOn {
 
 		return self::$_instance;
 	}
+
 	/**
-	 * Init function of library
+	 * Init function of library.
 	 *
 	 * @return void
 	 */
@@ -61,12 +147,25 @@ class GFCRM extends GFFeedAddOn {
 		parent::init();
 	}
 
+	/**
+	 * Init admin functions.
+	 *
+	 * @return void
+	 */
 	public function init_admin() {
 		parent::init_admin();
 
 		$this->ensure_upgrade();
 	}
 
+	/**
+	 * Get CRM fields configuration.
+	 *
+	 * @param bool   $select_crm_type Whether to select CRM type.
+	 * @param array  $settings        Feed settings.
+	 * @param string $page           Current page context.
+	 * @return array
+	 */
 	private function get_crm_fields( $select_crm_type = true, $settings = array(), $page = 'feed' ) {
 		$custom_crm = isset( $settings['fc_crm_custom_type'] ) ? $settings['fc_crm_custom_type'] : 'no';
 		$field_name = 'no' !== $custom_crm ? 'fc_crm_custom_type' : 'fc_crm_type';
@@ -343,10 +442,10 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
-	 * Get CRM fields
+	 * Get CRM fields configuration for feed.
 	 *
-	 * @param [type] $settings
-	 * @return array
+	 * @param array $settings Feed settings array.
+	 * @return array CRM field configuration.
 	 */
 	private function get_crm_feed_fields( $settings ) {
 		$crm_feed_fields = array();

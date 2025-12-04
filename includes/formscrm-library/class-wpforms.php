@@ -14,14 +14,18 @@
  *
  * @since 1.0.0
  */
-class WPForms_FormsCRM extends WPForms_Provider {
- // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName -- WPForms provider integration class.
+class WPForms_FormsCRM extends WPForms_Provider { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName -- WPForms provider integration class.
+	/**
+	 * CRM library instance.
+	 *
+	 * @var object
+	 */
 	private $crmlib;
 
 	/**
-	 * Connection fields
+	 * Connection fields.
 	 *
-	 * @return array
+	 * @var array
 	 */
 	private $connection_fields = array(
 		'fc_crm_url',
@@ -127,13 +131,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 				// Special formatting for different types.
 				switch ( $type ) {
-					// Commented out for future use - MultiSelectMany handling.
-					// case 'MultiSelectMany':
-					// $merge_vars = array_merge(
-					// $merge_vars,
-					// $this->format_multi_select_many( $fields[ $id ], $conn_field_name )
-					// );
-					// break;
+				// Commented out for future use - MultiSelectMany handling.
+				// case 'MultiSelectMany':.
+				// 	$merge_vars = array_merge(
+				// 		$merge_vars,
+				// 		$this->format_multi_select_many( $fields[ $id ], $conn_field_name )
+				// 	);
+				// 	break;
 
 					case 'Date':
 						$merge_vars[] = array(
@@ -322,7 +326,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WPForms.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WPForms.
+		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) {
 			$crmtype = sanitize_text_field( wp_unslash( $_POST['_gform_setting_fc_crm_type'] ) );
 		}
 
@@ -346,8 +351,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	/**
 	 * Authenticate with the API.
 	 *
-	 * @param array  $data
-	 * @param string $form_id
+	 * @param array  $data    Connection data with credentials.
+	 * @param string $form_id Form ID for authentication.
 	 *
 	 * @return mixed id or WP_Error object.
 	 */
@@ -388,7 +393,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $account_id
+	 * @param string $account_id Account ID for API connection.
 	 *
 	 * @return mixed array or WP_Error object.
 	 */
@@ -446,9 +451,9 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $connection_id
-	 * @param string $account_id
-	 * @param string $list_id
+	 * @param string $connection_id Connection identifier.
+	 * @param string $account_id    Account identifier.
+	 * @param string $list_id       List identifier.
 	 *
 	 * @return mixed array or error object.
 	 */
