@@ -13,20 +13,21 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MAX_LIMIT_HOLDED_API', 500 );
+define( 'MAX_LIMIT_HOLDED_API', 500 ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- Legacy constant, changing would break compatibility.
 
 /**
  * Class for Holded connection.
  */
-class CRMLIB_HOLDED {
+class CRMLIB_HOLDED { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Gets information from Holded CRM
 	 *
-	 * @param string $url URL for module.
-	 * @param string $apikey Pass to access.
+	 * @param string $url      URL for module.
+	 * @param string $apikey   Pass to access.
+	 * @param string $function Holded API function type (invoicing, purchases, etc).
 	 * @return array
 	 */
-	public function get( $url, $apikey, $function = 'invoicing' ) {
+	public function get( $url, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.
 		$args   = array(
 			'headers' => array(
 				'key' => $apikey,
@@ -62,12 +63,13 @@ class CRMLIB_HOLDED {
 	/**
 	 * Posts information from Holded CRM
 	 *
-	 * @param string $url URL for module.
+	 * @param string $url      URL for module.
 	 * @param string $bodypost JSON to pass.
-	 * @param string $apikey Pass to access.
+	 * @param string $apikey   Pass to access.
+	 * @param string $function Holded API function type (invoicing, purchases, etc).
 	 * @return array
 	 */
-	public function post( $url, $bodypost, $apikey, $function = 'invoicing' ) {
+	public function post( $url, $bodypost, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.
 		$args   = array(
 			'headers' => array(
 				'key' => $apikey,
@@ -160,7 +162,7 @@ class CRMLIB_HOLDED {
 	 * @param  array $settings settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_modules( $settings ) {
+	public function list_modules( $settings ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Required by interface.
 		$modules = array(
 			array(
 				'name'  => 'contacts',
@@ -174,8 +176,9 @@ class CRMLIB_HOLDED {
 	/**
 	 * List fields for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return array           returns an array of mudules
+	 * @param  array  $settings settings from Gravity Forms options.
+	 * @param  string $module   The CRM module name.
+	 * @return array            returns an array of mudules
 	 */
 	public function list_fields( $settings, $module ) {
 		$module = ! empty( $module ) ? $module : 'contacts';
