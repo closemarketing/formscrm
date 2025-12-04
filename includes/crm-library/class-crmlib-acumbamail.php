@@ -14,7 +14,7 @@
 /**
  * Class for AcumbaMail connection.
  */
-class CRMLIB_AcumbaMail {
+class CRMLIB_AcumbaMail { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Posts information from AcumbaMail CRM
 	 *
@@ -47,8 +47,8 @@ class CRMLIB_AcumbaMail {
 				'body'        => $fields,
 			)
 		);
-		error_log( '$fields' . print_r( $fields, true ) );
-		error_log( '$response' . print_r( $response, true ) );
+		error_log( '$fields' . print_r( $fields, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
+		error_log( '$response' . print_r( $response, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
 
 		$code = intval( wp_remote_retrieve_response_code( $response ) / 100 );
 		if ( is_wp_error( $response ) ) {
@@ -199,11 +199,11 @@ class CRMLIB_AcumbaMail {
 			$lists_to_subscribe = $subscriber['list_id'];
 			unset( $subscriber['list_id'] );
 			foreach ( $lists_to_subscribe as $list ) {
-				if ( empty( $list ) ) {
-					continue;
-				}
-				error_log( '$subscriber:' . print_r( $list, true ) . ' ' . print_r( $subscriber, true ) );
-				$result = $this->post(
+			if ( empty( $list ) ) {
+				continue;
+			}
+			error_log( '$subscriber:' . print_r( $list, true ) . ' ' . print_r( $subscriber, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
+			$result = $this->post(
 					$apikey,
 					'addSubscriber',
 					array(

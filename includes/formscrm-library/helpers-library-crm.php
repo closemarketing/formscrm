@@ -179,9 +179,9 @@ if ( ! function_exists( 'formscrm_visitorkey_session' ) ) {
 	 * @return void
 	 */
 	function formscrm_visitorkey_session() {
-		global $wp_session;
+		global $wp_session; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- External session library variable.
 
-		$visitor_key = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
+		$visitor_key = isset( $_COOKIE['vk'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['vk'] ) ) : '';
 		if ( $visitor_key && ! isset( $wp_session['clientify_visitor_key'] ) ) {
 			$wp_session['clientify_visitor_key'] = $visitor_key;
 		}
