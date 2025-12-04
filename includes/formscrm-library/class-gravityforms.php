@@ -597,8 +597,8 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function process_feed( $feed, $entry, $form ) {
-		$settings  = $this->get_api_settings_custom( $feed );
-		$feed_type = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
+		$settings     = $this->get_api_settings_custom( $feed );
+		$feed_type    = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$this->crmlib = formscrm_get_api_class( $feed_type );
 
 		$merge_vars         = array();

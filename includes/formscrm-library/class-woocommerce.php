@@ -173,7 +173,7 @@ class FormsCRM_WooCommerce {
 			}
 
 			// Module.
-			$this->crmlib = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
+			$this->crmlib   = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
 			$options_module = array();
 			if ( ! empty( $this->crmlib ) && method_exists( $this->crmlib, 'list_modules' ) ) {
 				foreach ( $this->crmlib->list_modules( $wc_formscrm ) as $module ) {
