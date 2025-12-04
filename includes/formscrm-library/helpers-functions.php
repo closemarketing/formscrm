@@ -106,15 +106,6 @@ if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
 	 * @return void
 	 */
 	function formscrm_debug_email_lead( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
-		$to      = get_option( 'admin_email' );
-		$subject = 'FormsCRM - ' . __( 'Error creating the Lead', 'formscrm' );
-		$body    = '<p>' . __( 'There was an error creating the Lead in the CRM', 'formscrm' ) . ' ' . $crm . ':</p><p><strong>' . $error . '</strong></p><p>' . __( 'Lead Data', 'formscrm' ) . ':</p>';
-		foreach ( $data as $dataitem ) {
-			$body .= '<p><strong>' . $dataitem['name'] . ': </strong>' . $dataitem['value'] . '</p>';
-	 * @param array  $form_info  Form information (form_id, form_name, form_type).
-	 * @return void
-	 */
-	function formscrm_debug_email_lead( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
 		// Get custom email or fallback to admin email.
 		$custom_email = get_option( 'formscrm_error_notification_email', '' );
 		$to           = ! empty( $custom_email ) ? $custom_email : get_option( 'admin_email' );
