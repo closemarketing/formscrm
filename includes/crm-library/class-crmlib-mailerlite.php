@@ -16,7 +16,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class for MailerLite connection.
  */
-class CRMLIB_Mailerlite { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_Mailerlite {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Mailer Lite Connector API
 	 *
@@ -118,10 +119,10 @@ class CRMLIB_Mailerlite { // phpcs:ignore WordPress.NamingConventions.PrefixAllG
 			return false;
 		} catch ( \Exception $e ) {
 
-		// Log that authentication test failed.
-		error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			// Log that authentication test failed.
+			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 
-		return false;
+			return false;
 		}
 	}
 
@@ -180,10 +181,10 @@ class CRMLIB_Mailerlite { // phpcs:ignore WordPress.NamingConventions.PrefixAllG
 			$custom_fields = $this->api( 'GET', 'fields', $apikey );
 		} catch ( \Exception $e ) {
 
-		// Log that we could not retrieve custom fields.
-		error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			// Log that we could not retrieve custom fields.
+			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 
-		return $field_map;
+			return $field_map;
 		}
 
 		// Loop through custom fields.

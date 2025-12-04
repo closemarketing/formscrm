@@ -97,10 +97,10 @@ class FormsCRM_GravityForms_Widget {
 			$html .= sprintf(
 				'<input type="submit" value="%s" class="button" onclick="jQuery(\'#action\').val(\'%s\');" />',
 				__( 'Resend Entry', 'formscrm' ),
-			$action
-		);
+				$action
+			);
+		}
+		echo wp_kses_post( $html );
 	}
-	echo wp_kses_post( $html );
-}
 }
 new FormsCRM_GravityForms_Widget();

@@ -24,7 +24,8 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 	/**
 	 * Bootstrap class for Gravity Forms integration.
 	 */
-	class FC_CRM_Bootstrap { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name for Gravity Forms integration.
+	class FC_CRM_Bootstrap {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name for Gravity Forms integration.
 
 		/**
 		 * Loads the Gravity Forms Feed Add-On.
