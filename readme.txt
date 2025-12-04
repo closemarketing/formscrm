@@ -63,6 +63,24 @@ You can enable Expert Mode in the form feed. This mode will show all fields of t
 
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
 
+== Error Notifications ==
+**Custom Email for Error Reports**
+You can configure a custom email address to receive error notifications when a form submission fails to send to your CRM. This is useful when you want different team members to receive error alerts without using the admin email.
+
+To configure:
+1. Go to Settings > FormsCRM
+2. Enter one or multiple email addresses (comma-separated) in the "Error Notification Email" field
+3. Save changes
+
+**Enhanced Error Email Information**
+When an error occurs, you'll receive a detailed email notification that includes:
+- **Site Information**: Site name, URL, and timestamp of the error
+- **Form Information**: Form type (Gravity Forms, WPForms, Elementor, etc.), Form ID, Form name, and Entry ID
+- **Error Details**: CRM name, complete error message, and all form data in a formatted table
+- **Technical Details**: API URL and JSON request for debugging purposes
+
+The email is professionally formatted with color-coded sections for easy reading and quick troubleshooting.
+
 == Settings for Clientify ==
 **Instructions for adding Clientify cookie in the forms**
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
@@ -88,6 +106,14 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= n.e.x.t =
+*  Added: Custom email option for error notifications - Configure specific emails to receive error reports.
+*  Enhanced: Error email notifications now include site information (name, URL, timestamp).
+*  Enhanced: Error emails now show detailed form information (type, ID, name, entry ID).
+*  Enhanced: Professional HTML email template with color-coded sections for better readability.
+*  Enhanced: Complete technical details in error emails (API URL and JSON request) for easier debugging.
+*  Improved: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
+
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
 *  Fixed: Format of webhook url in GravityForms.
