@@ -118,6 +118,141 @@ if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		wp_mail( $to, $subject, $body, $headers );
+
+		// Send to Slack if configured.
+		formscrm_send_slack_notification( $crm, $error, $data, $url, $json, $form_info );
+	}
+}
+
+if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
+	/**
+	 * Sends error notification to Slack
+	 *
+	 * @param string $crm        CRM name.
+	 * @param string $error      Error message.
+	 * @param array  $data       Lead data.
+	 * @param string $url        API URL.
+	 * @param string $json       JSON request.
+	 * @param array  $form_info  Form information.
+	 * @return bool|WP_Error True on success, WP_Error on failure.
+	 */
+	function formscrm_send_slack_notification( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
+		$webhook_url = get_option( 'formscrm_slack_webhook_url', '' );
+
+		// If no webhook URL is configured, skip.
+		if ( empty( $webhook_url ) ) {
+			return false;
+		}
+
+		// Build the Slack message.
+		$site_name = get_bloginfo( 'name' );
+		$site_url  = get_site_url();
+		$timestamp = current_time( 'Y-m-d H:i:s' );
+
+		// Build compact message text.
+		$message_text = '';
+
+		// Site information - one line.
+		$message_text .= '*' . __( 'Site:', 'formscrm' ) . '* ' . $site_name . ' (' . $site_url . ')' . "\n";
+
+		// Form information - one line.
+		if ( ! empty( $form_info ) ) {
+			$message_text .= '*' . __( 'Form:', 'formscrm' ) . '* ';
+			$form_parts = array();
+			
+			if ( isset( $form_info['form_type'] ) ) {
+				$form_parts[] = $form_info['form_type'];
+			}
+			if ( isset( $form_info['form_name'] ) ) {
+				$form_parts[] = $form_info['form_name'];
+			}
+			if ( isset( $form_info['form_id'] ) ) {
+				$form_parts[] = 'ID: ' . $form_info['form_id'];
+			}
+			if ( isset( $form_info['entry_id'] ) ) {
+				$form_parts[] = 'Entry: ' . $form_info['entry_id'];
+			}
+			
+			$message_text .= implode( ' | ', $form_parts ) . "\n";
+		}
+
+		// Error information - one line.
+		$message_text .= '*' . __( 'CRM:', 'formscrm' ) . '* ' . $crm . "\n";
+		$message_text .= '*' . __( 'Error:', 'formscrm' ) . '* ' . $error . "\n";
+
+		// Lead data preview - compact format (first 3 fields).
+		if ( ! empty( $data ) && is_array( $data ) ) {
+			$lead_preview = array_slice( $data, 0, 3 );
+			$lead_parts   = array();
+			
+			foreach ( $lead_preview as $item ) {
+				if ( isset( $item['name'] ) && isset( $item['value'] ) ) {
+					$lead_parts[] = $item['name'] . ': ' . $item['value'];
+				}
+			}
+			
+			if ( ! empty( $lead_parts ) ) {
+				$message_text .= '*' . __( 'Lead:', 'formscrm' ) . '* ' . implode( ' | ', $lead_parts );
+				
+				if ( count( $data ) > 3 ) {
+					$message_text .= sprintf( __( ' ... (+%d more)', 'formscrm' ), count( $data ) - 3 );
+				}
+				
+				$message_text .= "\n";
+			}
+		}
+
+		// API URL - one line.
+		if ( $url ) {
+			$message_text .= '*' . __( 'API:', 'formscrm' ) . '* `' . $url . '`' . "\n";
+		}
+
+		// Build the Slack payload.
+		$payload = array(
+			'username'    => 'FormsCRM',
+			'icon_emoji'  => ':warning:',
+			'attachments' => array(
+				array(
+					'fallback'    => sprintf(
+						__( 'FormsCRM Error: %s - %s', 'formscrm' ),
+						$crm,
+						$error
+					),
+					'color'       => 'danger',
+					'title'       => __( '⚠️ FormsCRM Error Report', 'formscrm' ),
+					'text'        => $message_text,
+					'footer'      => 'FormsCRM',
+					'footer_icon' => 'https://close.technology/wp-content/uploads/2023/12/close-technology-logo.png',
+					'ts'          => strtotime( $timestamp ),
+					'mrkdwn_in'   => array( 'text' ),
+				),
+			),
+		);
+
+		// Send to Slack.
+		$response = wp_remote_post(
+			$webhook_url,
+			array(
+				'body'    => wp_json_encode( $payload ),
+				'headers' => array(
+					'Content-Type' => 'application/json',
+				),
+				'timeout' => 15,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			error_log( 'FORMSCRM Slack Error: ' . $response->get_error_message() );
+			return $response;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $response_code ) {
+			error_log( 'FORMSCRM Slack Error: HTTP ' . $response_code );
+			return new WP_Error( 'slack_error', 'Slack returned HTTP ' . $response_code );
+		}
+
+		return true;
 	}
 }
 
