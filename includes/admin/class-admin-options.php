@@ -22,6 +22,11 @@ defined( 'ABSPATH' ) || exit;
  */
 
 if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
+	/**
+	 * Class FORMSCRM_Admin
+	 *
+	 * Handles admin settings page for FormsCRM plugin.
+	 */
 	class FORMSCRM_Admin {
 
 		/**
@@ -149,6 +154,13 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 			<?php
 		}
 
+		/**
+		 * Renders the settings page.
+		 *
+		 * Displays the FormsCRM settings form with Slack integration options.
+		 *
+		 * @return void
+		 */
 		public function settings_page() {
 			$source_shop_url   = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://close.technology/en/';
 			$utm_source        = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
@@ -174,95 +186,95 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				</td>
 			</tr>
 			</table>
-				<?php submit_button(); ?>
+					<?php submit_button(); ?>
 		</form>
 
 		<hr style="margin: 30px 0;">
 
 		<h3><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></h3>
 			<ul class="formscrm-list-forms">
-					<?php
-					$forms_supported = array(
-						array( 'label' => 'Gravity' ),
-						array( 'label' => 'Elementor' ),
-						array( 'label' => 'ContactForm7' ),
-						array( 'label' => 'WooCommerce' ),
-						array( 'label' => 'WPForms' ),
-					);
+						<?php
+						$forms_supported = array(
+							array( 'label' => 'Gravity' ),
+							array( 'label' => 'Elementor' ),
+							array( 'label' => 'ContactForm7' ),
+							array( 'label' => 'WooCommerce' ),
+							array( 'label' => 'WPForms' ),
+						);
 
-					foreach ( $forms_supported as $form ) {
-						echo '<li>';
-						$slug = strtolower( $form['label'] );
-						echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/forms-' . $slug . '.svg' ) . '" width="80" alt="' . esc_html( $form['label'] ) . '"/><br/>';
-						echo '</li>';
-					}
-					?>
+						foreach ( $forms_supported as $form ) {
+							echo '<li>';
+							$slug = strtolower( $form['label'] );
+							echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/forms-' . $slug . '.svg' ) . '" width="80" alt="' . esc_html( $form['label'] ) . '"/><br/>';
+							echo '</li>';
+						}
+						?>
 			</ul>
 			<h3><strong><?php esc_html_e( 'CRM/ERP/Email Marketing supported:', 'formscrm' ); ?></strong></h3>
 			<ul class="formscrm-list-crm">
-				<?php
-				$crms_supported = array(
-					array(
-						'label' => 'Holded',
-						'url'   => false,
-					),
-					array(
-						'label' => 'Clientify',
-						'url'   => false,
-					),
-					array(
-						'label' => 'AcumbaMail',
-						'url'   => false,
-					),
-					array(
-						'label' => 'Odoo',
-						'url'   => true,
-					),
-					array(
-						'label' => 'Brevo',
-						'url'   => false,
-					),
-					array(
-						'label' => 'WHMCS',
-						'url'   => true,
-					),
-					array(
-						'label' => 'vTiger',
-						'url'   => true,
-					),
-					array(
-						'label' => 'Inmovilla',
-						'url'   => true,
-					),
-					array(
-						'label' => 'Pipedrive',
-						'url'   => true,
-					),
-					array(
-						'label' => 'SuiteCRM',
-						'url'   => true,
-					),
-					array(
-						'label' => 'FacturaDirecta',
-						'url'   => true,
-					),
-				);
+					<?php
+					$crms_supported = array(
+						array(
+							'label' => 'Holded',
+							'url'   => false,
+						),
+						array(
+							'label' => 'Clientify',
+							'url'   => false,
+						),
+						array(
+							'label' => 'AcumbaMail',
+							'url'   => false,
+						),
+						array(
+							'label' => 'Odoo',
+							'url'   => true,
+						),
+						array(
+							'label' => 'Brevo',
+							'url'   => false,
+						),
+						array(
+							'label' => 'WHMCS',
+							'url'   => true,
+						),
+						array(
+							'label' => 'vTiger',
+							'url'   => true,
+						),
+						array(
+							'label' => 'Inmovilla',
+							'url'   => true,
+						),
+						array(
+							'label' => 'Pipedrive',
+							'url'   => true,
+						),
+						array(
+							'label' => 'SuiteCRM',
+							'url'   => true,
+						),
+						array(
+							'label' => 'FacturaDirecta',
+							'url'   => true,
+						),
+					);
 
-				foreach ( $crms_supported as $crm ) {
-					echo '<li class="item">';
-					$slug = strtolower( $crm['label'] );
-					if ( isset( $crm['url'] ) && $crm['url'] ) {
-						$url = esc_url( $source_shop_url ) . 'wordpress-plugins/formscrm-' . $slug . '/' . esc_attr( $utm_source );
-						echo ' <a href="' . esc_url( $url ) . '" target="_blank">';
-					}
-					echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $slug . '.svg' ) . '" width="250" alt="' . esc_html( $crm['label'] ) . '"/><br/>';
+					foreach ( $crms_supported as $crm ) {
+						echo '<li class="item">';
+						$slug = strtolower( $crm['label'] );
+						if ( isset( $crm['url'] ) && $crm['url'] ) {
+							$url = esc_url( $source_shop_url ) . 'wordpress-plugins/formscrm-' . $slug . '/' . esc_attr( $utm_source );
+							echo ' <a href="' . esc_url( $url ) . '" target="_blank">';
+						}
+						echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $slug . '.svg' ) . '" width="250" alt="' . esc_html( $crm['label'] ) . '"/><br/>';
 
-					if ( isset( $crm['url'] ) && $crm['url'] ) {
-						echo '</a>';
+						if ( isset( $crm['url'] ) && $crm['url'] ) {
+							echo '</a>';
+						}
+						echo '</li>';
 					}
-					echo '</li>';
-				}
-				?>
+					?>
 			</ul>
 			<br/>
 			<a class="button button-primary" href="<?php echo esc_url( $source_shop_url ); ?>formscrm/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>

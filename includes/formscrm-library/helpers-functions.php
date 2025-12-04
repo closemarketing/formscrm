@@ -14,7 +14,7 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 	/**
 	 * Include library connector
 	 *
-	 * @param string $crmtype Type of CRM.
+	 * @param string $crm_type Type of CRM.
 	 * @return object|void
 	 */
 	function formscrm_get_api_class( $crm_type ) {
@@ -50,7 +50,7 @@ if ( ! function_exists( 'formscrm_debug_message' ) ) {
 			if ( is_array( $message ) ) {
 				$message = print_r( $message, true ); //phpcs:ignore
 			}
-			error_log( 'FORMSCRM: ' . esc_html__( 'Message Debug Mode', 'formscrm' ) . ' ' . esc_html( $message ) );
+			error_log( 'FORMSCRM: ' . esc_html__( 'Message Debug Mode', 'formscrm' ) . ' ' . esc_html( $message ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 }
@@ -63,8 +63,10 @@ if ( ! function_exists( 'formscrm_get_module' ) ) {
 	 * @return string
 	 */
 	function formscrm_get_module( $default_module ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- This function is called in GravityForms context where nonce is already verified.
 		if ( isset( $_POST['_gform_setting_fc_crm_module'] ) ) {
-			$module = sanitize_text_field( $_POST['_gform_setting_fc_crm_module'] );
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$module = sanitize_text_field( wp_unslash( $_POST['_gform_setting_fc_crm_module'] ) );
 		} elseif ( isset( $settings['fc_crm_module'] ) ) {
 			$module = $settings['fc_crm_module'];
 		} else {
@@ -85,7 +87,7 @@ if ( ! function_exists( 'formscrm_error_admin_message' ) ) {
 	 */
 	function formscrm_error_admin_message( $code, $message ) {
 		if ( true === WP_DEBUG ) {
-			error_log( 'FORMSCRM: API ERROR ' . esc_html( $code ) . ': ' . esc_html( $message ) );
+			error_log( 'FORMSCRM: API ERROR ' . esc_html( $code ) . ': ' . esc_html( $message ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 }
@@ -198,6 +200,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 				$message_text .= '*' . __( 'Lead:', 'formscrm' ) . '* ' . implode( ' | ', $lead_parts );
 
 				if ( count( $data ) > 3 ) {
+					/* translators: %d: number of additional fields not shown */
 					$message_text .= sprintf( __( ' ... (+%d more)', 'formscrm' ), count( $data ) - 3 );
 				}
 
@@ -216,6 +219,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			'icon_emoji'  => ':warning:',
 			'attachments' => array(
 				array(
+					/* translators: %1$s: CRM name, %2$s: error message */
 					'fallback'    => sprintf(
 						__( 'FormsCRM Error: %1$s - %2$s', 'formscrm' ),
 						$crm,
@@ -245,13 +249,13 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			error_log( 'FORMSCRM Slack Error: ' . $response->get_error_message() );
+			error_log( 'FORMSCRM Slack Error: ' . $response->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return $response;
 		}
 
 		$response_code = wp_remote_retrieve_response_code( $response );
 		if ( 200 !== $response_code ) {
-			error_log( 'FORMSCRM Slack Error: HTTP ' . $response_code );
+			error_log( 'FORMSCRM Slack Error: HTTP ' . $response_code ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return new WP_Error( 'slack_error', 'Slack returned HTTP ' . $response_code );
 		}
 
@@ -266,9 +270,9 @@ if ( ! function_exists( 'formscrm_testserver' ) ) {
 	 * @return void
 	 */
 	function formscrm_testserver() {
-		// test curl.
+		// Test curl.
 		if ( ! function_exists( 'curl_version' ) && true === WP_DEBUG ) {
-			error_log( 'FORMSCRM: ' . __( 'curl is not Installed in your server. It is needed to work with CRM Libraries.', 'formscrm' ) );
+			error_log( 'FORMSCRM: ' . __( 'curl is not Installed in your server. It is needed to work with CRM Libraries.', 'formscrm' ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 }
