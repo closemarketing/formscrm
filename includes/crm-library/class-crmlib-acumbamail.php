@@ -225,7 +225,14 @@ class CRMLIB_AcumbaMail {
 				)
 			);
 		}
-		if ( 'ok' === $result['status'] ) {
+
+		// Initialize default error response in case $result is not set.
+		$response_result = array(
+			'status'  => 'error',
+			'message' => 'Unknown error',
+		);
+
+		if ( isset( $result ) && 'ok' === $result['status'] ) {
 			$response_result = array(
 				'status'  => 'ok',
 				'message' => 'success',

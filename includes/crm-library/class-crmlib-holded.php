@@ -187,6 +187,9 @@ class CRMLIB_HOLDED {
 	public function list_fields( $settings, $module ) {
 		$module = ! empty( $module ) ? $module : 'contacts';
 
+		// Initialize fields array.
+		$fields = array();
+
 		if ( 'contacts' === $module ) {
 			// lead fields.
 			$fields = array(

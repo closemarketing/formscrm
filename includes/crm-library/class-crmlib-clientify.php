@@ -897,6 +897,10 @@ class CRMLIB_Clientify {
 						$deal['amount'] = ! empty( $res_products['total'] ) ? $res_products['total'] : 0;
 					}
 				}
+				// Set default values for key and slug.
+				$key  = 'contact';
+				$slug = 'contacts';
+
 				if ( 'contacts' === $module ) {
 					$key  = 'contact';
 					$slug = 'contacts';
@@ -947,7 +951,7 @@ class CRMLIB_Clientify {
 				}
 
 				// Add products to deal.
-				if ( ! empty( $deal_products ) ) {
+				if ( ! empty( $deal_products ) && isset( $res_products['data'] ) ) {
 					$result = $this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
 
 					$response_result['message'] .= ' ' . $result['message'] . '.';
