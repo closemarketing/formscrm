@@ -196,11 +196,11 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		<hr style="margin: 30px 0;">
 
 	<h3><strong><?php esc_html_e( 'Forms supported:', 'formscrm' ); ?></strong></h3>
-		<?php
-		$source_shop_url = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://close.technology/en/';
-		$utm_source      = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
-		$error_notification_email = get_option( 'formscrm_error_notification_email', '' );
-		?>
+			<?php
+			$source_shop_url          = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://close.technology/en/';
+			$utm_source               = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
+			$error_notification_email = get_option( 'formscrm_error_notification_email', '' );
+			?>
 			<form method="post" action="options.php">
 				<?php settings_fields( 'formscrm_settings' ); ?>
 				<table class="form-table">
