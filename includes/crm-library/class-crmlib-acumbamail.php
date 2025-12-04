@@ -9,6 +9,8 @@
  * @category Functions
  * @package  Gravityforms CRM
  * @version  1.0.0
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 /**
@@ -47,8 +49,8 @@ class CRMLIB_AcumbaMail {
 				'body'        => $fields,
 			)
 		);
-		error_log( '$fields' . print_r( $fields, true ) );
-		error_log( '$response' . print_r( $response, true ) );
+		error_log( '$fields' . print_r( $fields, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
+		error_log( '$response' . print_r( $response, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
 
 		$code = intval( wp_remote_retrieve_response_code( $response ) / 100 );
 		if ( is_wp_error( $response ) ) {
@@ -124,7 +126,7 @@ class CRMLIB_AcumbaMail {
 	public function list_modules( $settings ) {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$get_result = $this->post( $apikey, 'getLists' );
-		$modules = [];
+		$modules    = array();
 
 		if ( ! empty( $get_result['data'] ) && is_array( $get_result['data'] ) ) {
 			$modules[] = array(
@@ -150,7 +152,7 @@ class CRMLIB_AcumbaMail {
 	 */
 	public function list_fields( $settings ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = formscrm_get_module();
+		$module = formscrm_get_module( 'contact', $settings );
 
 		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 
@@ -202,7 +204,7 @@ class CRMLIB_AcumbaMail {
 				if ( empty( $list ) ) {
 					continue;
 				}
-				error_log( '$subscriber:' .print_r( $list, true ) .' ' . print_r( $subscriber, true ) );
+				error_log( '$subscriber:' . print_r( $list, true ) . ' ' . print_r( $subscriber, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
 				$result = $this->post(
 					$apikey,
 					'addSubscriber',
@@ -223,7 +225,14 @@ class CRMLIB_AcumbaMail {
 				)
 			);
 		}
-		if ( 'ok' === $result['status'] ) {
+
+		// Initialize default error response in case $result is not set.
+		$response_result = array(
+			'status'  => 'error',
+			'message' => 'Unknown error',
+		);
+
+		if ( isset( $result ) && 'ok' === $result['status'] ) {
 			$response_result = array(
 				'status'  => 'ok',
 				'message' => 'success',

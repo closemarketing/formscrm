@@ -63,6 +63,30 @@ You can enable Expert Mode in the form feed. This mode will show all fields of t
 
 We recommend to use this in the field mapping in the feed and hidden field that gets the value.
 
+== Slack Error Notifications ==
+
+Receive instant error notifications in your Slack workspace! When a form submission fails to send to your CRM, you'll get real-time alerts directly in your Slack channel.
+
+**How to Configure Slack Notifications:**
+
+1. Create an Incoming Webhook in Slack (https://api.slack.com/messaging/webhooks)
+2. Go to **Settings > FormsCRM** in WordPress
+3. Paste your webhook URL in the "Slack Webhook URL" field
+4. Choose the Slack channel where you want to receive notifications
+5. Save changes
+
+**What Information is Included:**
+
+When an error occurs, the Slack notification includes:
+- **Site Information**: Site name and URL in a single line
+- **Form Details**: Form type (Gravity Forms, WPForms, Elementor, etc.), Form ID, Form name, and Entry ID
+- **Error Details**: CRM name and complete error message
+- **Lead Data Preview**: First 3 fields from the form submission (+ indicator if more fields exist)
+- **Technical Details**: API endpoint URL for debugging
+
+**Message Format:**
+
+All Slack notifications use a compact, easy-to-read format with information presented in single lines. Messages are color-coded in red (danger) to stand out in your channel and ensure immediate attention to critical errors.
 == Error Notifications ==
 **Custom Email for Error Reports**
 You can configure a custom email address to receive error notifications when a form submission fails to send to your CRM. This is useful when you want different team members to receive error alerts without using the admin email.
@@ -107,6 +131,12 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = n.e.x.t =
+*	 Added: Slack integration for real-time error notifications via Incoming Webhook.
+*	 Enhanced: Slack notifications include comprehensive information (site, form, CRM, error, lead preview).
+*	 Enhanced: Slack messages use a compact, single-line format for quick scanning.
+*	 Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now include form context in error reports.
+*	 Added: 10 comprehensive unit tests for Slack notification functions.
+*  Added: Test utility for manually testing Slack notifications (tests/test-slack.php).
 *  Added: Custom email option for error notifications - Configure specific emails to receive error reports.
 *  Enhanced: Error email notifications now include site information (name, URL, timestamp).
 *  Enhanced: Error emails now show detailed form information (type, ID, name, entry ID).

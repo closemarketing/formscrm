@@ -8,6 +8,8 @@
  * @version    4.0.0
  *
  * DOC: https://developers.elementor.com/docs/form-actions/
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 // Exit if accessed directly.
@@ -21,6 +23,7 @@ use ElementorPro\Modules\Forms\Submissions\Database\Query;
  * Action Class
  */
 class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\Action_Base {
+ // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 	/**
 	 * CRM Library Object
 	 *
@@ -59,9 +62,11 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
 		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
+			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
@@ -216,17 +221,17 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 
 		$widget->add_control(
 			'connect_crm',
-			[
+			array(
 				'label'       => esc_html__( 'Connect CRM', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::BUTTON,
 				'separator'   => 'before',
 				'button_type' => 'info',
 				'text'        => esc_html__( 'Connect', 'formscrm' ),
 				'event'       => 'formscrm:editor:connectCRM',
-				'condition' => array(
+				'condition'   => array(
 					'fc_crm_type' => formscrm_get_dependency_apipassword(),
 				),
-			]
+			)
 		);
 
 		$widget->add_control(
@@ -278,25 +283,27 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 
 		// Normalize the Form Data.
-		$merge_vars = [];
+		$merge_vars = array();
 		foreach ( $raw_fields as $id => $field ) {
 			$key = array_search( $id, $hidden_settings, true );
 			if ( false === $key ) {
 				continue;
 			}
 			$field_id     = str_replace( 'fc_crm_field-', '', $key );
-			$merge_vars[] = [
+			$merge_vars[] = array(
 				'name'  => $field_id,
 				'value' => $field['value'] ?? '',
-			];
+			);
 		}
 
-		if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore
-			$merge_vars['visitor_key'] = [
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
+		if ( ! empty( $_POST['visitor_key'] ) ) {
+			$merge_vars['visitor_key'] = array(
 				'name'  => 'visitor_key',
 				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),
-			];
+			);
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		// Create contact in CRM.
 		$settings = formscrm_elementor_process_settings( $settings );
 		$this->include_library( $settings['fc_crm_type'] );

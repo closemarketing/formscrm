@@ -11,6 +11,8 @@
  * @package   FormsCRM
  * @version   4.0.0
  * @copyright 2021 Closemarketing
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -19,6 +21,7 @@ defined( 'ABSPATH' ) || exit;
  * Brevo CRM Library
  */
 class CRMLIB_Brevo {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Brevo Connector API
 	 *
@@ -122,7 +125,7 @@ class CRMLIB_Brevo {
 		} catch ( \Exception $e ) {
 
 			// Log that authentication test failed.
-			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() );
+			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for API errors.
 
 			return false;
 		}
@@ -183,7 +186,7 @@ class CRMLIB_Brevo {
 		} catch ( \Exception $e ) {
 
 			// Log that we could not retrieve custom fields.
-			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() );
+			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for API errors.
 
 			return $field_map;
 		}
@@ -265,12 +268,11 @@ class CRMLIB_Brevo {
 				);
 			}
 		} catch ( \Exception $e ) {
-			$message         = isset( $result['data'] ) ? $result['data'] : '';
 			$response_result = array(
 				'status'  => 'error',
-				'message' => $message,
-				'url'     => isset( $result['url'] ) ? $result['url'] : '',
-				'query'   => isset( $result['query'] ) ? $result['query'] : '',
+				'message' => $e->getMessage(),
+				'url'     => '',
+				'query'   => '',
 			);
 		}
 

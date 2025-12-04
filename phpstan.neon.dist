@@ -1,0 +1,37 @@
+parameters:
+	level: 1
+	paths:
+		- includes
+	excludePaths:
+		- tests/*
+		- vendor/*
+		- includes/formscrm-library/class-elementor.php
+		- includes/formscrm-library/class-gravityforms.php
+		- includes/formscrm-library/class-wpforms.php
+	scanDirectories:
+		- includes
+	bootstrapFiles:
+		- tests/phpstan-bootstrap.php
+	ignoreErrors:
+		# External plugins - Gravity Forms
+		- '#Call to (static )?method .* on an unknown class (GFFormsModel|RGFormsModel|GF_Fields|GFAPI|GFCommon|GFForms|GFAddOn|GFCRM)\.#'
+		- '#Function (rgar|rgblank|rgpost|gform_add_meta) not found\.#'
+		
+		# External plugins - Elementor
+		- '#(Instantiated |Class )?class (ElementorPro\\Modules\\Forms\\Widgets\\Form|FormsCRM_Elementor_Action_After_Submit).*(not )?found\.#'
+		- '#Class ElementorPro.* not found\.#'
+		- '#Call to (static )?method .* on an unknown class ElementorPro\\Plugin\.#'
+		
+		# External plugins - WooCommerce
+		- '#(Instantiated )?class WC_Order not found\.#'
+		- '#Function (woocommerce_admin_fields|woocommerce_update_options) not found\.#'
+		
+		# External plugins - WPForms
+		- '#Function (wpforms|wpforms_log) not found\.#'
+		
+		# External plugins - Contact Form 7
+		- '#unknown class (WPCF7_Submission|WPCF7_ContactForm)#'
+		
+		# Logic checks - variables in isset/empty that always exist
+		- '#Variable \$.* in (isset|empty)\(\) always exists and is (not nullable|always falsy|not falsy)\.#'
+

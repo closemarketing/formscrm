@@ -6,6 +6,8 @@
  * @author    David Perez <david@closemarketing.es>
  * @copyright 2021 Closemarketing
  * @version   3.3
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -19,6 +21,7 @@ defined( 'ABSPATH' ) || exit;
  * @version    1.0
  */
 class FormsCRM_WooCommerce {
+ // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 	/**
 	 * CRM LIB external
 	 *
@@ -103,7 +106,7 @@ class FormsCRM_WooCommerce {
 		$options_crm  = array();
 		$wc_formscrm  = get_option( 'wc_formscrm' );
 
-		$options_crm[] = __(' None', 'formscrm' );
+		$options_crm[] = __( ' None', 'formscrm' );
 		foreach ( formscrm_get_choices() as $choice ) {
 			$options_crm[ $choice['value'] ] = $choice['label'];
 		}
@@ -215,7 +218,7 @@ class FormsCRM_WooCommerce {
 				'desc' => '',
 				'id'   => 'wc_settings_formscrm_section_field',
 			);
-			$wc_fields = $this->get_woocommerce_order_fields();
+			$wc_fields      = $this->get_woocommerce_order_fields();
 			if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
 				foreach ( $crm_fields as $crm_field ) {
 					$settings_crm[] = array(
@@ -249,10 +252,6 @@ class FormsCRM_WooCommerce {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
-		}
-
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );
@@ -288,18 +287,18 @@ class FormsCRM_WooCommerce {
 
 			$response_result = $this->crmlib->create_entry( $wc_formscrm, $merge_vars );
 
-		if ( 'error' === $response_result['status'] ) {
-			$form_info = array(
-				'form_type' => 'WooCommerce',
-				'form_id'   => 'checkout',
-				'form_name' => 'WooCommerce Checkout',
-				'entry_id'  => $order_id,
-			);
+			if ( 'error' === $response_result['status'] ) {
+				$form_info = array(
+					'form_type' => 'WooCommerce',
+					'form_id'   => 'checkout',
+					'form_name' => 'WooCommerce Checkout',
+					'entry_id'  => $order_id,
+				);
 
-			formscrm_debug_email_lead( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
-		} else {
-			error_log( $response_result['id'] );
-		}
+				formscrm_debug_email_lead( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
+			} else {
+				error_log( $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
+			}
 		}
 	}
 
@@ -326,12 +325,14 @@ class FormsCRM_WooCommerce {
 			}
 		}
 
-		if ( isset( $_POST['clientify_vk' ] ) ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce checkout.
+		if ( isset( $_POST['clientify_vk'] ) ) {
 			$merge_vars[] = array(
 				'name'  => 'clientify_vk',
-				'value' => sanitize_text_field( $_POST['clientify_vk' ] ),
+				'value' => sanitize_text_field( wp_unslash( $_POST['clientify_vk'] ) ),
 			);
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return $merge_vars;
 	}

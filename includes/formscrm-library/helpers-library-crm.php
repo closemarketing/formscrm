@@ -19,8 +19,7 @@ if ( ! function_exists( 'formscrm_get_choices' ) ) {
 	function formscrm_get_choices() {
 		return apply_filters(
 			'formscrm_choices',
-			array(
-			)
+			array()
 		);
 	}
 }
@@ -180,11 +179,11 @@ if ( ! function_exists( 'formscrm_visitorkey_session' ) ) {
 	 * @return void
 	 */
 	function formscrm_visitorkey_session() {
-		global $wp_session;
+		global $wp_session; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- External session library variable.
 
-		$visitor_key = isset( $_COOKIE['vk'] ) ? sanitize_text_field( $_COOKIE['vk'] ) : '';
-		if ( $visitor_key && ! isset( $wp_session['clientify_visitor_key'] ) ) {
-			$wp_session['clientify_visitor_key'] = $visitor_key;
+		$visitor_key = isset( $_COOKIE['vk'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['vk'] ) ) : '';
+		if ( $visitor_key && ! isset( $wp_session['clientify_visitor_key'] ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- External session library variable.
+			$wp_session['clientify_visitor_key'] = $visitor_key; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- External session library variable.
 		}
 	}
 }

@@ -1,16 +1,34 @@
 <?php
 /**
+ * FormsCRM integration for WPForms.
+ *
+ * @package   WordPress
+ * @author    David Perez <david@closemarketing.es>
+ * @copyright 2021 Closemarketing
+ * @version   3.7.2
+ * @since     1.0.0
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+ */
+
+/**
  * FormsCRM integration.
  *
  * @since 1.0.0
  */
 class WPForms_FormsCRM extends WPForms_Provider {
+	/**
+	 * CRM library instance.
+	 *
+	 * @var object
+	 */
 	private $crmlib;
 
 	/**
-	 * Connection fields
+	 * Connection fields.
 	 *
-	 * @return array
+	 * @var array
 	 */
 	private $connection_fields = array(
 		'fc_crm_url',
@@ -64,13 +82,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			// Check for credentials.
 			if ( empty( $settings['fc_crm_type'] ) ) {
 				$entry_meta->add(
-					[
+					array(
 						'entry_id' => $entry_id,
 						'form_id'  => $form_id,
 						'user_id'  => get_current_user_id(),
 						'type'     => 'note',
 						'data'     => $title . __( 'No connection details.', 'formscrm' ),
-					],
+					),
 					'entry_meta'
 				);
 				return;
@@ -83,13 +101,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 			if ( ! $login_result ) {
 				$entry_meta->add(
-					[
+					array(
 						'entry_id' => $entry_id,
 						'form_id'  => $form_id,
 						'user_id'  => get_current_user_id(),
 						'type'     => 'note',
 						'data'     => $title . __( 'Could not connect to CRM.', 'formscrm' ),
-					],
+					),
 					'entry_meta'
 				);
 				return;
@@ -116,16 +134,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 				// Special formatting for different types.
 				switch ( $type ) {
-					/*
-					case 'MultiSelectMany':
-						$merge_vars = array_merge(
-							$merge_vars,
-							$this->format_multi_select_many( $fields[ $id ], $conn_field_name )
-						);
-						break;*/
-
 					case 'Date':
-						$merge_vars[] =  array(
+						$merge_vars[] = array(
 							'name'  => $conn_field_name,
 							'value' => $this->format_date( $fields[ $id ], $conn_field_name, $form_data['fields'][ $id ], 'Y-m-d' ),
 						);
@@ -138,11 +148,11 @@ class WPForms_FormsCRM extends WPForms_Provider {
 						} else {
 							$address_key = $conn_field_name;
 						}
-						$equivalence = array(
+						$equivalence  = array(
 							'street'      => 'address1',
 							'postal_code' => 'postal',
 						);
-						$key = isset( $equivalence[ $address_key ] ) ? $equivalence[ $address_key ] : $address_key;
+						$key          = isset( $equivalence[ $address_key ] ) ? $equivalence[ $address_key ] : $address_key;
 						$merge_vars[] = array(
 							'name'  => $conn_field_name,
 							'value' => $fields[ $id ][ $key ],
@@ -164,18 +174,18 @@ class WPForms_FormsCRM extends WPForms_Provider {
 				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
-			if ( 'error' === $api_status ) {
-				$form_info = array(
-					'form_type' => 'WPForms',
-					'form_id'   => $form_id,
-					'form_name' => isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '',
-					'entry_id'  => $entry_id,
-				);
-				formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
-				$message = __( 'Error', 'formscrm' );
-			} else {
-				$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
-			}
+				if ( 'error' === $api_status ) {
+					$form_info = array(
+						'form_type' => 'WPForms',
+						'form_id'   => $form_id,
+						'form_name' => isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '',
+						'entry_id'  => $entry_id,
+					);
+					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
+					$message = __( 'Error', 'formscrm' );
+				} else {
+					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
+				}
 				$message .= ' ' . $api_message;
 			} catch ( Exception $e ) {
 				$message = __( 'Error sending information to CRM.', 'formscrm' ) . ' ' . $e->getMessage();
@@ -183,13 +193,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 			// Add note final.
 			$entry_meta->add(
-				[
+				array(
 					'entry_id' => $entry_id,
 					'form_id'  => $form_id,
 					'user_id'  => get_current_user_id(),
 					'type'     => 'note',
 					'data'     => $title . wpautop( $message ),
-				],
+				),
 				'entry_meta'
 			);
 		}
@@ -199,16 +209,16 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * Fills dynamic value.
 	 *
 	 * @param string $field_value Field value.
-	 * @param array $field_entries Field entries.
+	 * @param array  $field_entries Field entries.
 	 * @return string
 	 */
 	private function fill_dynamic_value( $field_value, $field_entries ) {
-		if ( ! str_contains( $field_value, '{id:' ) ) { 
+		if ( ! str_contains( $field_value, '{id:' ) ) {
 			return $field_value;
 		}
 
 		// Generate dynamic value.
-		$matches = [];
+		$matches = array();
 		preg_match_all( '/{([^}]*)}/', $field_value, $matches );
 		if ( empty( $matches[1] ) ) {
 			return $field_value;
@@ -246,7 +256,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		$result_date = $field_data;
 		if (
 			empty( $field_data['format'] ) ||
-			! in_array( $field_data['format'], [ 'date', 'date-time' ], true )
+			! in_array( $field_data['format'], array( 'date', 'date-time' ), true )
 		) {
 			return $result_date;
 		}
@@ -283,23 +293,23 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		// Firstly, check if submitted field value is empty.
 		if ( empty( $field['value'] ) ) {
-			return [
-				[
+			return array(
+				array(
 					'Key'   => '[' . $name . ']',
 					'Value' => '',
-				],
-			];
+				),
+			);
 		}
 
 		// "Multiple" field types, like `Checkbox`, use "\n" for delimiter.
 		$values = explode( "\n", $field['value'] );
 
 		return array_map(
-			static function( $option ) use ( $name ) {
-				return [
+			static function ( $option ) use ( $name ) {
+				return array(
 					'Key'   => '[' . $name . ']',
 					'Value' => $option,
-				];
+				);
 			},
 			$values
 		);
@@ -317,10 +327,6 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['_gform_setting_fc_crm_type'] );
-		}
-
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );
@@ -341,8 +347,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	/**
 	 * Authenticate with the API.
 	 *
-	 * @param array $data
-	 * @param string $form_id
+	 * @param array  $data    Connection data with credentials.
+	 * @param string $form_id Form ID for authentication.
 	 *
 	 * @return mixed id or WP_Error object.
 	 */
@@ -383,7 +389,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $account_id
+	 * @param string $account_id Account ID for API connection.
 	 *
 	 * @return mixed array or WP_Error object.
 	 */
@@ -441,9 +447,9 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $connection_id
-	 * @param string $account_id
-	 * @param string $list_id
+	 * @param string $connection_id Connection identifier.
+	 * @param string $account_id    Account identifier.
+	 * @param string $list_id       List identifier.
 	 *
 	 * @return mixed array or error object.
 	 */
@@ -559,7 +565,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		$option_saved = '';
 		foreach ( $options_crm as $option_crm ) {
 			$select_page .= '<option value="' . $option_crm['value'] . '"';
-			if ( $option_saved == $option_crm['value'] ) {
+			if ( $option_saved === $option_crm['value'] ) {
 				$select_page .= ' selected';
 			}
 			$select_page .= '>' . $option_crm['label'] . '</option>';
@@ -567,7 +573,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		printf(
 			'<select id="fc_crm_type" name="fc_crm_type">%s</select>',
-			$select_page
+			wp_kses_post( $select_page )
 		);
 
 		// CRM URL.
@@ -616,42 +622,42 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_html( $crm['value'] ) . "') {";
 
 			// URL dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_url() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_url(), true ) ) {
 				$js_dependency .= '$(".fc_crm_url").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_url").hide();';
 			}
 
 			// Username dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_username() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_username(), true ) ) {
 				$js_dependency .= '$(".fc_crm_username").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_username").hide();';
 			}
 
 			// Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_password() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_password(), true ) ) {
 				$js_dependency .= '$(".fc_crm_password").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_password").hide();';
 			}
 
 			// API Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apipassword() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_apipassword(), true ) ) {
 				$js_dependency .= '$(".fc_crm_apipassword").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_apipassword").hide();';
 			}
 
 			// API Sales dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apisales() ) ) {
+			if ( in_array( $crm['value'], formscrm_get_dependency_apisales(), true ) ) {
 				$js_dependency .= '$(".fc_crm_apisales").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_apisales").hide();';
 			}
 
-			// API Sales dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_odoodb() ) ) {
+			// API Odoo DB dependency.
+			if ( in_array( $crm['value'], formscrm_get_dependency_odoodb(), true ) ) {
 				$js_dependency .= '$(".fc_crm_odoodb").show();';
 			} else {
 				$js_dependency .= '$(".fc_crm_odoodb").hide();';
@@ -660,15 +666,17 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			$js_dependency .= '}';
 		}
 
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- JavaScript code generated from sanitized values.
 		printf(
-			"<script>
+			'<script>
 				jQuery( function($) {
-					" . $js_dependency . "
-					$('#fc_crm_type').change(function () { " . $js_dependency . " });
+					' . $js_dependency . "
+					$('#fc_crm_type').change(function () { " . $js_dependency . ' });
 				});
-			</script>"
+			</script>'
 		);
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 
-new WPForms_FormsCRM;
+new WPForms_FormsCRM();

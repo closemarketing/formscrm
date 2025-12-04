@@ -6,6 +6,11 @@
  * @author     David Perez <david@closemarketing.es>
  * @copyright  2020 Closemarketing
  * @version    1.0
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+ * phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,8 +26,16 @@ if ( ! function_exists( 'is_plugin_active' ) ) {
 
 if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) && ! class_exists( 'FC_CRM_Bootstrap' ) ) {
 	add_action( 'gform_loaded', array( 'FC_CRM_Bootstrap', 'load' ), 5 );
+	/**
+	 * Bootstrap class for Gravity Forms integration.
+	 */
 	class FC_CRM_Bootstrap {
 
+		/**
+		 * Loads the Gravity Forms Feed Add-On.
+		 *
+		 * @return void
+		 */
 		public static function load() {
 
 			if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
@@ -35,8 +48,13 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 		}
 	}
 
-	function gf_crm() {
-		return FCCRM::get_instance();
+	/**
+	 * Returns the Gravity Forms CRM instance.
+	 *
+	 * @return object The CRM instance.
+	 */
+	function gf_crm() { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound, Universal.Files.SeparateFunctionsFromOO.Mixed -- Legacy function name for Gravity Forms compatibility.
+		return GFCRM::get_instance();
 	}
 
 	require_once 'class-gravityforms-widget.php';
@@ -60,7 +78,7 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 	 *
 	 * @since 3.7.2
 	 */
-	function formscrm_wpforms() {
+	function formscrm_wpforms() { // phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed -- Loading function for WPForms integration.
 
 		// WPForms Pro is required.
 		if ( ! wpforms()->pro ) {
@@ -87,25 +105,32 @@ if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 		}
 	);
 
-	add_action( 'elementor/editor/after_enqueue_scripts', function() {
-		wp_enqueue_script(
-			'formcrm-elementor-editor-script',
-			FORMSCRM_PLUGIN_URL . 'includes/assets/elementor-editor.js',
-			[ 'jquery', 'elementor-editor' ],
-			null,
-			true
-		);
+	add_action(
+		'elementor/editor/after_enqueue_scripts',
+		function () {
+			wp_enqueue_script(
+				'formcrm-elementor-editor-script',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/elementor-editor.js',
+				array( 'jquery', 'elementor-editor' ),
+				FORMSCRM_VERSION,
+				true
+			);
 
-		wp_localize_script( 'formcrm-elementor-editor-script', 'formcrm_elementor', array(
-			'ajaxurl' => admin_url( 'admin-ajax.php' ),
-			'nonce'   => wp_create_nonce( 'formcrm_nonce' ),
-		) );
+			wp_localize_script(
+				'formcrm-elementor-editor-script',
+				'formcrm_elementor',
+				array(
+					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'formcrm_nonce' ),
+				)
+			);
 
-		wp_enqueue_style(
-			'formcrm-elementor-editor-style',
-			FORMSCRM_PLUGIN_URL . 'includes/assets/elementor.css',
-			array(),
-			FORMSCRM_VERSION
-		);
-	});
+			wp_enqueue_style(
+				'formcrm-elementor-editor-style',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/elementor.css',
+				array(),
+				FORMSCRM_VERSION
+			);
+		}
+	);
 }

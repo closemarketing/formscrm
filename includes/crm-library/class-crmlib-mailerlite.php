@@ -9,6 +9,8 @@
  * @package   FormsCRM
  * @version   1.0.0
  * @copyright 2021 Closemarketing
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -17,13 +19,14 @@ defined( 'ABSPATH' ) || exit;
  * Class for MailerLite connection.
  */
 class CRMLIB_Mailerlite {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Mailer Lite Connector API
 	 *
 	 * @param string $method Method to connect: GET, POST..
 	 * @param string $module URL endpoint.
 	 * @param string $apikey API Key credential.
-	 * @param array  $data   Body data.
+	 * @param array  $query  Body data.
 	 * @return array
 	 */
 	private function api( $method, $module, $apikey, $query = array() ) {
@@ -42,8 +45,8 @@ class CRMLIB_Mailerlite {
 		}
 
 		if ( 'GET' === $method ) {
-			$limit  = 100; // default limit.
-			$offset = 0;
+			$limit        = 100; // default limit.
+			$offset       = 0;
 			$result_data  = array();
 			$repeat_query = false;
 			do {
@@ -56,7 +59,6 @@ class CRMLIB_Mailerlite {
 				} else {
 					return $result;
 				}
-
 			} while ( $repeat_query );
 			return array(
 				'status' => 'ok',
@@ -66,7 +68,6 @@ class CRMLIB_Mailerlite {
 			$result = $this->request( $module, $args );
 			return $result;
 		}
-
 	}
 
 	/**
@@ -113,19 +114,17 @@ class CRMLIB_Mailerlite {
 		try {
 			$results = $this->api( 'GET', 'groups', $apikey );
 
-			if ( !empty( $results ) && 'ok' === $results['status'] ) {
+			if ( ! empty( $results ) && 'ok' === $results['status'] ) {
 				return true;
 			}
 
 			return false;
-
 		} catch ( \Exception $e ) {
 
 			// Log that authentication test failed.
-			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() );
+			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 
 			return false;
-
 		}
 	}
 
@@ -161,7 +160,6 @@ class CRMLIB_Mailerlite {
 				'label' => esc_html( $group['name'] ),
 				'value' => esc_attr( $group['id'] ),
 			);
-
 		}
 
 		return $choices;
@@ -170,7 +168,7 @@ class CRMLIB_Mailerlite {
 	/**
 	 * List fields for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
+	 * @param  array  $settings settings from Gravity Forms options.
 	 * @param  string $module settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
@@ -183,11 +181,10 @@ class CRMLIB_Mailerlite {
 
 		try {
 			$custom_fields = $this->api( 'GET', 'fields', $apikey );
-
 		} catch ( \Exception $e ) {
 
 			// Log that we could not retrieve custom fields.
-			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() );
+			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 
 			return $field_map;
 		}
@@ -200,7 +197,6 @@ class CRMLIB_Mailerlite {
 				'name'  => $custom_field['key'],
 				'label' => $custom_field['title'],
 			);
-
 		}
 		return $field_map;
 	}
@@ -246,16 +242,14 @@ class CRMLIB_Mailerlite {
 				);
 			}
 		} catch ( \Exception $e ) {
-			$message         = isset( $result['data'] ) ? $result['data'] : '';
 			$response_result = array(
 				'status'  => 'error',
-				'message' => $message,
-				'url'     => isset( $result['url'] ) ? $result['url'] : '',
-				'query'   => isset( $result['query'] ) ? $result['query'] : '',
+				'message' => $e->getMessage(),
+				'url'     => '',
+				'query'   => '',
 			);
 		}
 
 		return $response_result;
 	}
-
 } //from Class

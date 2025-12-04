@@ -6,6 +6,8 @@
  * @author    David Perez <david@closemarketing.es>
  * @copyright 2021 Closemarketing
  * @version   3.3
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -19,6 +21,7 @@ defined( 'ABSPATH' ) || exit;
 	 * @version    1.0
 	 */
 class FORMSCRM_CF7_Settings {
+ // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 
 	/**
 	 * CRM LIB external
@@ -49,7 +52,7 @@ class FORMSCRM_CF7_Settings {
 				'callback' => array( $this, 'settings_add_crm' ),
 			),
 		);
-		$panels = array_merge( $panels, $new_page );
+		$panels   = array_merge( $panels, $new_page );
 		return $panels;
 	}
 
@@ -60,10 +63,6 @@ class FORMSCRM_CF7_Settings {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( $_POST['fc_crm_type'] );
-		}
-
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );
@@ -202,7 +201,7 @@ class FORMSCRM_CF7_Settings {
 				$form_fields = ! empty( $cf7_form ) ? $cf7_form->scan_form_tags() : array();
 
 				if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
-				?>
+					?>
 				<table class="cf7-map-table" cellspacing="0" cellpadding="0">
 					<tbody>
 						<tr class="cf7-map-row">
@@ -246,7 +245,7 @@ class FORMSCRM_CF7_Settings {
 									</td>
 							</tr>
 							<?php
-							$count_fields++;
+							++$count_fields;
 						}
 						if ( 0 === $count_fields ) {
 							echo '<tr><td colspan="2">' . esc_html__( 'No fields found, or the connection has not got the right permissions.', 'formscrm' ) . '</td></tr>';
@@ -254,7 +253,7 @@ class FORMSCRM_CF7_Settings {
 						?>
 					</tbody>
 				</table>
-				<?php
+					<?php
 				} else {
 					echo '<p>' . esc_html__( 'No fields found. Reconnect your CRM.', 'formscrm' ) . '</p>';
 				}
@@ -271,10 +270,12 @@ class FORMSCRM_CF7_Settings {
 	 * @return void
 	 */
 	public function crm_save_options( $args ) {
-
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput -- Nonce verification and sanitization handled by Contact Form 7.
 		if ( isset( $_POST['wpcf7-crm'] ) && is_array( $_POST['wpcf7-crm'] ) ) {
-			update_option( 'cf7_crm_' . $args->id(), array_filter( $_POST['wpcf7-crm'] ) );
+			$crm_data = array_map( 'sanitize_text_field', wp_unslash( $_POST['wpcf7-crm'] ) );
+			update_option( 'cf7_crm_' . $args->id(), array_filter( $crm_data ) );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput
 	}
 
 	/**

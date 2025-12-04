@@ -1,0 +1,110 @@
+name: PHP Code Linting
+
+on:
+  push:
+    branches:
+      - trunk
+      - main
+      - master
+      - 'release/**'
+    paths:
+      - '**.php'
+      - 'phpcs.xml.dist'
+      - 'composer.json'
+      - 'composer.lock'
+      - '.github/workflows/php-lint.yml'
+  pull_request:
+    branches:
+      - trunk
+      - main
+      - master
+      - 'release/**'
+      - 'feature/**'
+    paths:
+      - '**.php'
+      - 'phpcs.xml.dist'
+      - 'composer.json'
+      - 'composer.lock'
+      - '.github/workflows/php-lint.yml'
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/trunk' && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
+
+jobs:
+  php-lint:
+    name: PHP Linting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true  # Informativo, no bloquear CI
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.1
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run PHP CodeSniffer
+        run: composer lint
+
+  phpstan:
+    name: PHPStan Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true  # No fallar CI si PHPStan encuentra errores
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.1
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run PHPStan
+        continue-on-error: true  # Informativo, no bloquear
+        run: composer phpstan
+

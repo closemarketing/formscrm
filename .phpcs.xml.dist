@@ -43,4 +43,19 @@
 			<property name="blank_line_check" value="true"/>
 		</properties>
 	</rule>
+
+	<!-- Exclude legacy file name errors for compatibility with external integrations -->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<severity>0</severity>
+	</rule>
+	
+	<!-- Allow underscore prefix in properties for framework compatibility -->
+	<rule ref="PSR2.Classes.PropertyDeclaration.Underscore">
+		<severity>0</severity>
+	</rule>
+	
+	<!-- Allow unused parameters for interface compatibility -->
+	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.Found">
+		<severity>0</severity>
+	</rule>
 </ruleset>

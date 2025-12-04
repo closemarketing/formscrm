@@ -6,6 +6,8 @@
  * @author     David Perez <david@close.technology>
  * @copyright  2023 Closemarketing
  * @version    1.0
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -16,6 +18,7 @@ defined( 'ABSPATH' ) || exit;
  * @since 3.14
  */
 class FormsCRM_GravityForms_Widget {
+ // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 	/**
 	 * Construct of Class
 	 */
@@ -23,12 +26,20 @@ class FormsCRM_GravityForms_Widget {
 		add_filter( 'gform_entry_detail_meta_boxes', array( $this, 'widget_resend_entries' ), 10, 3 );
 	}
 
+	/**
+	 * Adds a meta box to the entry detail page to resend entries to CRM.
+	 *
+	 * @param array $meta_boxes The meta boxes currently displayed.
+	 * @param array $entry      The entry being displayed.
+	 * @param array $form       The form object.
+	 * @return array Updated meta boxes array.
+	 */
 	public function widget_resend_entries( $meta_boxes, $entry, $form ) {
 		$meta_boxes['formscrm'] = array(
-				'title'         => esc_html__( 'Resend Entry to CRM', 'formscrm' ),
-				'callback'      => array( $this, 'resend_metabox' ),
-				'context'       => 'side',
-				'callback_args' => array( $entry, $form ),
+			'title'         => esc_html__( 'Resend Entry to CRM', 'formscrm' ),
+			'callback'      => array( $this, 'resend_metabox' ),
+			'context'       => 'side',
+			'callback_args' => array( $entry, $form ),
 		);
 
 		return $meta_boxes;
@@ -38,7 +49,7 @@ class FormsCRM_GravityForms_Widget {
 	 *
 	 * @param array $args An array containing the form and entry objects.
 	 */
-	function resend_metabox( $args ) {
+	public function resend_metabox( $args ) {
 		$html    = '';
 		$action  = 'formscrm_process_feeds';
 		$form    = ! empty( $args['form'] ) ? $args['form'] : array();
@@ -47,7 +58,7 @@ class FormsCRM_GravityForms_Widget {
 
 		$feeds = GFCRM::get_instance()->get_feeds( null, $form_id, 'formscrm', true );
 
-		if ( rgpost( 'action' ) == $action ) {
+		if ( rgpost( 'action' ) === $action ) {
 			check_admin_referer( 'gforms_save_entry', 'gforms_save_entry' );
 			$html .= '<p><strong>' . esc_html__( 'Feeds processed:', 'formscrm' ) . '</strong></p>';
 			$html .= '<ul>';
@@ -92,7 +103,7 @@ class FormsCRM_GravityForms_Widget {
 				$action
 			);
 		}
-		echo $html;
+		echo wp_kses_post( $html );
 	}
 }
 new FormsCRM_GravityForms_Widget();
