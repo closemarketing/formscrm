@@ -165,6 +165,52 @@ class GFCRM extends GFFeedAddOn {
 		parent::init_admin();
 
 		$this->ensure_upgrade();
+		
+		// Display saved messages after redirect.
+		add_action( 'admin_notices', array( $this, 'display_connection_test_messages' ) );
+	}
+	
+	/**
+	 * Override parent method to validate API connection when saving plugin settings.
+	 *
+	 * @param array $settings Plugin settings to be saved.
+	 * @return void
+	 */
+	public function update_plugin_settings( $settings ) {
+		// Validate API connection and store messages in transient.
+		$this->validate_api_connection_on_save( $settings );
+		
+		// Call parent method to actually save the settings.
+		parent::update_plugin_settings( $settings );
+	}
+	
+	/**
+	 * Display connection test messages after page redirect.
+	 *
+	 * @return void
+	 */
+	public function display_connection_test_messages() {
+		// Only show on FormsCRM settings page.
+		if ( ! $this->is_plugin_settings( $this->_slug ) ) {
+			return;
+		}
+		
+		// Get messages from transient.
+		$messages = get_transient( 'formscrm_connection_messages' );
+		
+		if ( ! empty( $messages ) ) {
+			foreach ( $messages as $message ) {
+				$class = isset( $message['type'] ) && 'error' === $message['type'] ? 'error' : 'updated';
+				printf(
+					'<div class="%s notice is-dismissible"><p>%s</p></div>',
+					esc_attr( $class ),
+					wp_kses_post( $message['text'] )
+				);
+			}
+			
+			// Delete transient after displaying.
+			delete_transient( 'formscrm_connection_messages' );
+		}
 	}
 
 	/**
@@ -333,6 +379,90 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Validates API connection when saving plugin settings.
+	 *
+	 * @param array $settings Plugin settings to save.
+	 * @return array Updated settings.
+	 */
+	public function validate_api_connection_on_save( $settings ) {
+		$messages = array();
+		
+		// Check if CRM type is set.
+		if ( empty( $settings['fc_crm_type'] ) ) {
+			// No CRM selected, don't test.
+			return $settings;
+		}
+
+		// Test API connection.
+		$test_result = $this->test_connection( $settings );
+
+		if ( is_array( $test_result ) && isset( $test_result['status'] ) ) {
+			if ( 'ok' === $test_result['status'] || true === $test_result['status'] ) {
+				// Connection successful.
+				$messages[] = array(
+					'type' => 'success',
+					'text' => '✅ ' . __( 'API connection test passed! Your credentials are correct.', 'formscrm' ),
+				);
+			} elseif ( 'error' === $test_result['status'] || false === $test_result['status'] ) {
+				// Connection failed.
+				$error_message = '❌ ' . __( 'API connection test failed.', 'formscrm' );
+				if ( isset( $test_result['data'] ) && ! empty( $test_result['data'] ) ) {
+					$error_message .= ' ' . __( 'Error:', 'formscrm' ) . ' ' . $test_result['data'];
+				} elseif ( isset( $test_result['message'] ) && ! empty( $test_result['message'] ) ) {
+					$error_message .= ' ' . __( 'Error:', 'formscrm' ) . ' ' . $test_result['message'];
+				}
+				$messages[] = array(
+					'type' => 'error',
+					'text' => $error_message,
+				);
+			}
+		} elseif ( false === $test_result ) {
+			// Connection test returned false.
+			$messages[] = array(
+				'type' => 'error',
+				'text' => '❌ ' . __( 'Could not verify API connection. Please check your credentials.', 'formscrm' ),
+			);
+		}
+
+		// Store messages in transient to display after redirect.
+		if ( ! empty( $messages ) ) {
+			set_transient( 'formscrm_connection_messages', $messages, 30 );
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Test API connection with provided settings.
+	 *
+	 * @param array $settings Settings to test.
+	 * @return mixed Connection test result.
+	 */
+	private function test_connection( $settings ) {
+		if ( empty( $settings['fc_crm_type'] ) ) {
+			return false;
+		}
+
+		// Include the CRM library.
+		$this->include_library( $settings['fc_crm_type'] );
+
+		if ( ! isset( $this->crmlib ) ) {
+			return false;
+		}
+
+		// Test the login.
+		try {
+			$login_result = $this->crmlib->login( $settings );
+			return $login_result;
+		} catch ( Exception $e ) {
+			return array(
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+			);
+		}
+	}
+
+	/**
 	 * Forms Settings
 	 *
 	 * @param array  $form Form.
@@ -462,9 +592,15 @@ class GFCRM extends GFFeedAddOn {
 		$login_crm       = $this->login_api_crm();
 
 		if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
+			$error_message = __( 'We could not login to the CRM', 'formscrm' );
+			if ( isset( $login_crm['message'] ) ) {
+				$error_message .= ' ' . $login_crm['message'];
+			} elseif ( isset( $login_crm['data'] ) ) {
+				$error_message .= ' ' . $login_crm['data'];
+			}
 			$crm_feed_fields[] = array(
 				'name'  => 'fc_login_result',
-				'label' => __( 'We could not login to the CRM', 'formscrm' ) . ' ' . $login_crm['message'],
+				'label' => $error_message,
 				'type'  => 'hidden',
 			);
 			return $crm_feed_fields;

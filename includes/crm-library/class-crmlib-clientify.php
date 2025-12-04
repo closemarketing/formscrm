@@ -137,12 +137,30 @@ class CRMLIB_Clientify {
 	 */
 	public function login( $settings ) {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		
+		if ( empty( $apikey ) ) {
+			return array(
+				'status' => 'error',
+				'data'   => __( 'API Key is required', 'formscrm' ),
+			);
+		}
+
 		$get_result = $this->get( 'settings/my-account/', $apikey );
 
-		if ( $apikey && isset( $get_result['data']['count'] ) && $get_result['data']['count'] > 0 ) {
-			return true;
+		if ( isset( $get_result['status'] ) && 'error' === $get_result['status'] ) {
+			return $get_result;
+		}
+
+		if ( isset( $get_result['data']['count'] ) && $get_result['data']['count'] > 0 ) {
+			return array(
+				'status' => 'ok',
+				'data'   => __( 'Successfully connected to Clientify', 'formscrm' ),
+			);
 		} else {
-			return false;
+			return array(
+				'status' => 'error',
+				'data'   => __( 'Could not authenticate with Clientify. Please check your API key.', 'formscrm' ),
+			);
 		}
 	}
 

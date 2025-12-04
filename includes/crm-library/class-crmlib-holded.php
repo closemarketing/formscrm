@@ -150,13 +150,31 @@ class CRMLIB_HOLDED {
 	 * @return false or id     returns false if cannot login and string if gets token
 	 */
 	public function login( $settings ) {
-		$apikey       = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		
+		if ( empty( $apikey ) ) {
+			return array(
+				'status' => 'error',
+				'data'   => __( 'API Key is required', 'formscrm' ),
+			);
+		}
+
 		$login_result = $this->get( 'contacts', $apikey );
 
-		if ( $apikey && 'error' !== $login_result['status'] ) {
-			return true;
+		if ( isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
+			return $login_result;
+		}
+
+		if ( isset( $login_result['status'] ) && 'ok' === $login_result['status'] ) {
+			return array(
+				'status' => 'ok',
+				'data'   => __( 'Successfully connected to Holded', 'formscrm' ),
+			);
 		} else {
-			return false;
+			return array(
+				'status' => 'error',
+				'data'   => __( 'Could not authenticate with Holded. Please check your API key.', 'formscrm' ),
+			);
 		}
 	}
 

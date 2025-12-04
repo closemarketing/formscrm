@@ -107,13 +107,31 @@ class CRMLIB_AcumbaMail {
 	 * @return false or id     returns false if cannot login and string if gets token
 	 */
 	public function login( $settings ) {
-		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		
+		if ( empty( $apikey ) ) {
+			return array(
+				'status' => 'error',
+				'data'   => __( 'API Key is required', 'formscrm' ),
+			);
+		}
+
 		$get_result = $this->post( $apikey, 'getLists' );
 
-		if ( $apikey && ! empty( $get_result['data'] ) ) {
-			return true;
+		if ( isset( $get_result['status'] ) && 'error' === $get_result['status'] ) {
+			return $get_result;
+		}
+
+		if ( ! empty( $get_result['data'] ) ) {
+			return array(
+				'status' => 'ok',
+				'data'   => __( 'Successfully connected to AcumbaMail', 'formscrm' ),
+			);
 		} else {
-			return false;
+			return array(
+				'status' => 'error',
+				'data'   => __( 'Could not authenticate with AcumbaMail. Please check your API key.', 'formscrm' ),
+			);
 		}
 	}
 

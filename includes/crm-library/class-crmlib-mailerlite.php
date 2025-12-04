@@ -111,20 +111,37 @@ class CRMLIB_Mailerlite {
 	 */
 	public function login( $settings ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		
+		if ( empty( $apikey ) ) {
+			return array(
+				'status' => 'error',
+				'data'   => __( 'API Key is required', 'formscrm' ),
+			);
+		}
+
 		try {
 			$results = $this->api( 'GET', 'groups', $apikey );
 
 			if ( ! empty( $results ) && 'ok' === $results['status'] ) {
-				return true;
+				return array(
+					'status' => 'ok',
+					'data'   => __( 'Successfully connected to MailerLite', 'formscrm' ),
+				);
 			}
 
-			return false;
+			return array(
+				'status' => 'error',
+				'data'   => __( 'Could not authenticate with MailerLite. Please check your API key.', 'formscrm' ),
+			);
 		} catch ( \Exception $e ) {
 
 			// Log that authentication test failed.
 			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 
-			return false;
+			return array(
+				'status' => 'error',
+				'data'   => $e->getMessage(),
+			);
 		}
 	}
 
