@@ -100,7 +100,7 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 						}
 						echo '<option value="' . esc_html( $value ) . '" ';
 
-						if ( isset( $value ) ) {
+						if ( $value ) {
 							selected( $settings_module, $value );
 						}
 
@@ -160,7 +160,7 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 						<?php
 						echo esc_html( $crm_field_label );
 
-						if ( isset( $crm_field_req ) && $crm_field_req ) {
+						if ( $crm_field_req ) {
 							echo ' <span class="required">*</span>';
 						}
 						?>

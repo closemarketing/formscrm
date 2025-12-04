@@ -1,0 +1,177 @@
+ ------ ----------------------------------------------------------------------- 
+  Line   formscrm-library/class-contactform7.php                                
+ ------ ----------------------------------------------------------------------- 
+  :194   Call to static method get_instance() on an unknown class               
+         WPCF7_ContactForm.                                                     
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols    
+  :220   Variable $crm_field_req in isset() always exists and is not nullable.  
+  :283   Call to static method get_instance() on an unknown class               
+         WPCF7_Submission.                                                      
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols    
+ ------ ----------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   formscrm-library/class-elementor.php                                 
+ ------ --------------------------------------------------------------------- 
+  :23    Class FormsCRM_Elementor_Action_After_Submit extends unknown class   
+         ElementorPro\Modules\Forms\Classes\Action_Base.                      
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :84    Access to constant SELECT on an unknown class                        
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :97    Access to constant URL on an unknown class                           
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :112   Access to constant TEXT on an unknown class                          
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :126   Access to constant TEXT on an unknown class                          
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :140   Access to constant TEXT on an unknown class                          
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :154   Access to constant TEXT on an unknown class                          
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :167   Access to constant TEXT on an unknown class                          
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :181   Access to constant SWITCHER on an unknown class                      
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :189   Access to constant BUTTON on an unknown class                        
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :203   Access to constant RAW_HTML on an unknown class                      
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :215   Access to constant HIDDEN on an unknown class                        
+         Elementor\Controls_Manager.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :251   Variable $hidden_settings might not be defined.                      
+ ------ --------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   formscrm-library/class-forms-clientify.php                           
+ ------ --------------------------------------------------------------------- 
+  :58    Class ElementorPro\Modules\Forms\Widgets\Form not found.             
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+ ------ --------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   formscrm-library/class-gravityforms.php                                
+ ------ ----------------------------------------------------------------------- 
+  :13    Call to an undefined static method                                     
+         GFForms::include_feed_addon_framework().                               
+  :19    Class GFCRM extends unknown class GFFeedAddOn.                         
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols    
+  :144   GFCRM::init_admin() calls parent::init_admin() but GFCRM does not      
+         extend any class.                                                      
+  :299   Call to an undefined method GFCRM::settings_text().                    
+  :322   Call to an undefined static method GFCommon::json_encode().            
+  :324   GFCRM::feed_edit_page() calls parent::feed_edit_page() but GFCRM does  
+         not extend any class.                                                  
+  :334   Variable $crm_type in isset() always exists and is not nullable.       
+  :439   Call to an undefined method GFCRM::get_current_feed().                 
+  :509   Call to an undefined method GFCRM::get_current_feed().                 
+  :512   Call to an undefined method GFCRM::get_plugin_settings().              
+  :559   Call to an undefined method GFCRM::get_current_feed().                 
+  :595   Call to an undefined method GFCRM::get_feeds().                        
+  :599   Call to an undefined method GFCRM::upgrade().                          
+  :602   Method GFCRM::ensure_upgrade() should return bool but return           
+         statement is missing.                                                  
+  :630   Call to an undefined method GFCRM::get_field_map_fields().             
+  :650   Call to an undefined static method RGFormsModel::get_input_type().     
+  :724   Call to an undefined method GFCRM::add_note().                         
+  :734   Call to an undefined method GFCRM::add_note().                         
+  :737   Function gform_add_meta invoked with 4 parameters, 3 required.         
+  :751   Call to an undefined static method RGFormsModel::get_field().          
+  :752   Call to an undefined static method GFCommon::is_product_field().       
+  :759   Call to an undefined static method RGFormsModel::get_input_type().     
+  :774   Call to an undefined static method RGFormsModel::get_input_type().     
+  :782   Call to an undefined static method RGFormsModel::get_input_type().     
+  :788   Call to an undefined static method RGFormsModel::get_input_type().     
+  :839   Call to an undefined static method RGFormsModel::get_field().          
+  :840   Call to an undefined static method RGFormsModel::get_input_type().     
+ ------ ----------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   formscrm-library/class-woocommerce.php                               
+ ------ --------------------------------------------------------------------- 
+  :93    Function woocommerce_admin_fields not found.                         
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :242   Function woocommerce_update_options not found.                       
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :277   Instantiated class WC_Order not found.                               
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+ ------ --------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------- 
+  Line   formscrm-library/class-wpforms.php                                        
+ ------ -------------------------------------------------------------------------- 
+  :17    Class FormsCRM_WPForms extends unknown class WPForms_Provider.            
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols       
+  :46    Access to an undefined property FormsCRM_WPForms::$version.               
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :47    Access to an undefined property FormsCRM_WPForms::$name.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :48    Access to an undefined property FormsCRM_WPForms::$slug.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :49    Access to an undefined property FormsCRM_WPForms::$priority.              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :50    Access to an undefined property FormsCRM_WPForms::$icon.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :65    Access to an undefined property FormsCRM_WPForms::$slug.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :70    Access to an undefined property FormsCRM_WPForms::$slug.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :75    Function wpforms not found.                                               
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols       
+  :327   Variable $crmtype in isset() always exists and is not nullable.           
+  :359   Call to an undefined method FormsCRM_WPForms::error().                    
+  :363   Call to an undefined method FormsCRM_WPForms::error().                    
+  :368   Access to an undefined property FormsCRM_WPForms::$slug.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :376   Access to an undefined property FormsCRM_WPForms::$slug.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :395   Access to an undefined property FormsCRM_WPForms::$slug.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :396   Access to an undefined property FormsCRM_WPForms::$slug.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :398   Call to an undefined method FormsCRM_WPForms::error().                    
+  :416   Call to an undefined method FormsCRM_WPForms::error().                    
+  :430   Function wpforms_log not found.                                           
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols       
+  :438   Call to an undefined method FormsCRM_WPForms::error().                    
+  :473   Call to an undefined method FormsCRM_WPForms::error().                    
+  :482   Call to an undefined method FormsCRM_WPForms::error().                    
+  :500   Function wpforms_log not found.                                           
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols       
+  :508   Call to an undefined method FormsCRM_WPForms::error().                    
+ ------ -------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   formscrm-library/loader.php                                          
+ ------ --------------------------------------------------------------------- 
+  :42    Call to an undefined static method GFAddOn::register().              
+  :79    Function wpforms not found.                                          
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  :99    Call to static method instance() on an unknown class                 
+         ElementorPro\Plugin.                                                 
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols  
+ ------ --------------------------------------------------------------------- 
+
+ [ERROR] Found 74 errors                                                        
+

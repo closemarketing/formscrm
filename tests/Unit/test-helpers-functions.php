@@ -31,6 +31,14 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 		10, 3 );
 	}
 
+	public function test_check_url_crm() {
+		$url = 'https://example.com';
+		$this->assertEquals( 'https://example.com/', formscrm_check_url_crm( $url ) );
+
+		$url = 'https://example.com/';
+		$this->assertEquals( 'https://example.com/', formscrm_check_url_crm( $url ) );
+	}
+
 	public function test_webhook_post() {
 		$settings['fc_crm_webhook'] = 'https://webhook.com/test';
 		$response_api = array(

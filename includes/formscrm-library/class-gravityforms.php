@@ -8,15 +8,6 @@
  * @author     David Perez <david@closemarketing.net>
  * @copyright  2019 Closemarketing
  * @version    1.0
- *
- * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
- * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
- * phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
- * phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
- * phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
- * phpcs:disable WordPress.PHP.StrictInArray.MissingTrueStrict
- * phpcs:disable Universal.NamingConventions.NoReservedKeywordParameterNames.echoFound
- * phpcs:disable WordPress.CodeAnalysis.EscapedNotTranslated.Found
  */
 
 GFForms::include_feed_addon_framework();
@@ -26,9 +17,6 @@ global $formscrm_api;
  * Class for Addon GravityForms
  */
 class GFCRM extends GFFeedAddOn {
- // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName -- Legacy class name for Gravity Forms integration.
-
-	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore, Squiz.Commenting.VariableComment -- Properties inherited from GFFeedAddOn parent class.
 	/**
 	 * Plugin version.
 	 *
@@ -145,15 +133,6 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		return self::$_instance;
-	}
-
-	/**
-	 * Init function of library.
-	 *
-	 * @return void
-	 */
-	public function init() {
-		parent::init();
 	}
 
 	/**
@@ -311,12 +290,11 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Settings API Key
 	 *
-	 * @param array $field Field.
-	 * @param bool  $echo Echo.
+	 * @param array $field   Field.
+	 * @param bool  $display Display.
 	 * @return string
 	 */
-	public function settings_api_key( $field, $echo = true ) {
-
+	public function settings_api_key( $field, $display = true ) {
 		$field['type'] = 'text';
 		$api_key_field = $this->settings_text( $field, false );
 
@@ -325,7 +303,7 @@ class GFCRM extends GFFeedAddOn {
 
 		$caption = '<small>' . sprintf( esc_html__( 'Find a Password or API key depending of CRM.', 'formscrm' ) ) . '</small>';
 
-		if ( $echo ) {
+		if ( $display ) {
 			echo esc_html( $api_key_field ) . '</br>' . esc_html( $caption );
 		}
 
@@ -347,32 +325,6 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
-	 * Include library connector
-	 *
-	 * @param string $crm_type Type of CRM.
-	 * @return void
-	 */
-	private function include_library( $crm_type ) {
-		if ( isset( $crm_type ) ) {
-			$crmname      = strtolower( $crm_type );
-			$crmclassname = str_replace( ' ', '', $crmname );
-			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
-
-			$array_path = formscrm_get_crmlib_path();
-
-			if ( isset( $array_path[ $crmname ] ) ) {
-				include_once $array_path[ $crmname ];
-				formscrm_debug_message( $array_path[ $crmname ] );
-			}
-
-			if ( class_exists( $crmclassname ) ) {
-				$this->crmlib = new $crmclassname();
-			}
-		}
-	}
-
-	/**
 	 * Get Settings fields
 	 *
 	 * @return array
@@ -388,7 +340,7 @@ class GFCRM extends GFFeedAddOn {
 			$settings['fc_crm_type'] = $custom_crm;
 		}
 
-		$this->include_library( $settings['fc_crm_type'] );
+		$this->crmlib = formscrm_get_api_class( $settings['fc_crm_type'] );
 
 		$settings['fc_crm_module']      = isset( $_POST['_gform_setting_fc_crm_module'] ) ? sanitize_text_field( wp_unslash( $_POST['_gform_setting_fc_crm_module'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
 		$settings['fc_crm_custom_type'] = $custom_crm;
@@ -600,14 +552,13 @@ class GFCRM extends GFFeedAddOn {
 	 * @return string
 	 */
 	public function get_menu_icon() {
-
-		return file_get_contents( FORMSCRM_PLUGIN_PATH . 'includes/assets/icon.svg' );
+		return file_get_contents( FORMSCRM_PLUGIN_PATH . 'includes/assets/icon.svg' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 	}
 
 	/**
 	 * Ensure database upgrade
 	 *
-	 * @return bool False if already upgraded.
+	 * @return bool False if already upgraded, true if upgrade performed.
 	 */
 	public function ensure_upgrade() {
 
@@ -623,6 +574,7 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		update_option( 'fc_crm_upgrade', 1 );
+		return true;
 	}
 
 	/**
@@ -647,7 +599,7 @@ class GFCRM extends GFFeedAddOn {
 	public function process_feed( $feed, $entry, $form ) {
 		$settings  = $this->get_api_settings_custom( $feed );
 		$feed_type = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
-		$this->include_library( $feed_type );
+		$this->crmlib = formscrm_get_api_class( $feed_type );
 
 		$merge_vars         = array();
 		$field_maps         = $this->get_field_map_fields( $feed, 'listFields' );
@@ -734,7 +686,7 @@ class GFCRM extends GFFeedAddOn {
 				'entry_id'  => isset( $entry['id'] ) ? $entry['id'] : '',
 			);
 
-			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );
+			formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );
 
 			$response_message = sprintf(
 				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.
@@ -862,13 +814,13 @@ class GFCRM extends GFFeedAddOn {
 						$field_obj  = RGFormsModel::get_field( $form, $field_id );
 						$field_type = RGFormsModel::get_input_type( $field_obj );
 						if ( 'radio' === $field_type || 'select' === $field_type ) {
-							$value = array_search( $entry[ $field_id ], array_column( $field_obj['choices'], 'value', 'text' ) );
+							$value = array_search( $entry[ $field_id ], array_column( $field_obj['choices'], 'value', 'text' ), true );
 						} elseif ( 'checkbox' === $field_type ) {
 							$search_values = array();
 							$count_choices = count( $field_obj['choices'] );
 							for ( $i = 1; $i <= $count_choices; $i++ ) {
 								if ( ! empty( $entry[ $field_id . '.' . $i ] ) ) {
-									$search_values[] = array_search( $field_id . '.' . $i, array_column( $field_obj['inputs'], 'id', 'label' ) );
+									$search_values[] = array_search( $field_id . '.' . $i, array_column( $field_obj['inputs'], 'id', 'label' ), true );
 								}
 							}
 							$value = implode( ', ', $search_values );
@@ -946,7 +898,7 @@ class GFCRM extends GFFeedAddOn {
 		$settings = $this->get_api_settings_custom();
 
 		if ( isset( $settings['fc_crm_type'] ) ) {
-			$this->include_library( $settings['fc_crm_type'] );
+			$this->crmlib = formscrm_get_api_class( $settings['fc_crm_type'] );
 		}
 
 		if ( isset( $this->crmlib ) ) {

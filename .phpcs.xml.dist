@@ -30,12 +30,21 @@
 	<rule ref="WordPress"/>
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
-			<property name="prefixes" type="array" value="formscrm"/>
+			<property name="prefixes" type="array">
+				<element value="formscrm"/>
+				<element value="FormsCRM"/>
+				<element value="CRMLIB"/>
+				<element value="GFCRM"/>
+				<element value="fcrm"/>
+				<element value="FCRM"/>
+			</property>
 		</properties>
 	</rule>
 	<rule ref="WordPress.WP.I18n">
 		<properties>
-			<property name="text_domain" type="array" value="formscrm"/>
+			<property name="text_domain" type="array">
+				<element value="formscrm"/>
+			</property>
 		</properties>
 	</rule>
 	<rule ref="WordPress.WhiteSpace.ControlStructureSpacing">
@@ -56,6 +65,14 @@
 	
 	<!-- Allow unused parameters for interface compatibility -->
 	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.Found">
+		<severity>0</severity>
+	</rule>
+	
+	<!-- Allow camelCase property names for external library compatibility -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
 		<severity>0</severity>
 	</rule>
 </ruleset>
