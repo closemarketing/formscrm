@@ -232,16 +232,21 @@ class CRMLIB_HOLDED {
 					'label'    => __( 'Phone', 'formscrm' ),
 					'required' => false,
 				),
-				array(
-					'name'     => 'mobile',
-					'label'    => __( 'Mobile', 'formscrm' ),
-					'required' => false,
-				),
-				array(
-					'name'     => 'billAddress|address',
-					'label'    => __( 'Billing Address', 'formscrm' ),
-					'required' => false,
-				),
+			array(
+				'name'     => 'mobile',
+				'label'    => __( 'Mobile', 'formscrm' ),
+				'required' => false,
+			),
+			array(
+				'name'     => 'country',
+				'label'    => __( 'Country', 'formscrm' ),
+				'required' => false,
+			),
+			array(
+				'name'     => 'billAddress|address',
+				'label'    => __( 'Billing Address', 'formscrm' ),
+				'required' => false,
+			),
 				array(
 					'name'     => 'billAddress|city',
 					'label'    => __( 'Billing City', 'formscrm' ),
