@@ -377,20 +377,23 @@ class CRMLIB_Clientify {
 	 */
 	private function get_fields_email_phones() {
 		$fields = array();
-		$types = array(
+		$types  = array(
 			1 => __( 'Work', 'formscrm' ),
 			2 => __( 'Personal', 'formscrm' ),
 			3 => __( 'Other', 'formscrm' ),
 		);
 
 		// Emails.
-		array_walk( $types, function( $type, $key ) use ( &$fields ) {
-			$fields[] = array(
-				'name'     => 'emails|' . $key,
-				'label'    => __( 'Email', 'formscrm' ) . ' ' . $type,
-				'required' => false,
-			);
-		});
+		array_walk(
+			$types,
+			function ( $type, $key ) use ( &$fields ) {
+				$fields[] = array(
+					'name'     => 'emails|' . $key,
+					'label'    => __( 'Email', 'formscrm' ) . ' ' . $type,
+					'required' => false,
+				);
+			}
+		);
 
 		$types = array(
 			2 => __( 'Mobile', 'formscrm' ),
@@ -401,13 +404,16 @@ class CRMLIB_Clientify {
 		);
 
 		// Phones
-		array_walk( $types, function( $type, $key ) use ( &$fields ) {
-			$fields[] = array(
-				'name'     => 'phones|' . $key,
-				'label'    => __( 'Phone', 'formscrm' ) . ' ' . $type,
-				'required' => false,
-			);
-		});
+		array_walk(
+			$types,
+			function ( $type, $key ) use ( &$fields ) {
+				$fields[] = array(
+					'name'     => 'phones|' . $key,
+					'label'    => __( 'Phone', 'formscrm' ) . ' ' . $type,
+					'required' => false,
+				);
+			}
+		);
 
 		return $fields;
 	}
@@ -821,17 +827,17 @@ class CRMLIB_Clientify {
 					'value' => $element['value'],
 				);
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'emails' ) ) {
-				$email                                = explode( '|', $element['name'] );
-				$contact['emails'][] = [
+				$email               = explode( '|', $element['name'] );
+				$contact['emails'][] = array(
 					'type'  => (int) $email[1],
 					'email' => $element['value'],
-				];
+				);
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'phones' ) ) {
-				$phone                                = explode( '|', $element['name'] );
-				$contact['phones'][] = [
+				$phone               = explode( '|', $element['name'] );
+				$contact['phones'][] = array(
 					'type'  => (int) $phone[1],
 					'phone' => $element['value'],
-				];
+				);
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'addresses' ) ) {
 				$address_field                                = explode( '|', $element['name'] );
 				$contact['addresses'][0][ $address_field[1] ] = $element['value'];
@@ -981,10 +987,10 @@ class CRMLIB_Clientify {
 				}
 			}
 		}
-		return [
+		return array(
 			'status' => 'ok',
 			'data'   => $deal_products,
 			'total'  => $deal_total,
-		];
+		);
 	}
 } //from Class

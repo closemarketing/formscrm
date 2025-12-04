@@ -158,8 +158,8 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 		// Form information - one line.
 		if ( ! empty( $form_info ) ) {
 			$message_text .= '*' . __( 'Form:', 'formscrm' ) . '* ';
-			$form_parts = array();
-			
+			$form_parts    = array();
+
 			if ( isset( $form_info['form_type'] ) ) {
 				$form_parts[] = $form_info['form_type'];
 			}
@@ -172,7 +172,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			if ( isset( $form_info['entry_id'] ) ) {
 				$form_parts[] = 'Entry: ' . $form_info['entry_id'];
 			}
-			
+
 			$message_text .= implode( ' | ', $form_parts ) . "\n";
 		}
 
@@ -184,20 +184,20 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 		if ( ! empty( $data ) && is_array( $data ) ) {
 			$lead_preview = array_slice( $data, 0, 3 );
 			$lead_parts   = array();
-			
+
 			foreach ( $lead_preview as $item ) {
 				if ( isset( $item['name'] ) && isset( $item['value'] ) ) {
 					$lead_parts[] = $item['name'] . ': ' . $item['value'];
 				}
 			}
-			
+
 			if ( ! empty( $lead_parts ) ) {
 				$message_text .= '*' . __( 'Lead:', 'formscrm' ) . '* ' . implode( ' | ', $lead_parts );
-				
+
 				if ( count( $data ) > 3 ) {
 					$message_text .= sprintf( __( ' ... (+%d more)', 'formscrm' ), count( $data ) - 3 );
 				}
-				
+
 				$message_text .= "\n";
 			}
 		}
@@ -214,7 +214,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			'attachments' => array(
 				array(
 					'fallback'    => sprintf(
-						__( 'FormsCRM Error: %s - %s', 'formscrm' ),
+						__( 'FormsCRM Error: %1$s - %2$s', 'formscrm' ),
 						$crm,
 						$error
 					),

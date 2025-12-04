@@ -42,8 +42,8 @@ class CRMLIB_Mailerlite {
 		}
 
 		if ( 'GET' === $method ) {
-			$limit  = 100; // default limit.
-			$offset = 0;
+			$limit        = 100; // default limit.
+			$offset       = 0;
 			$result_data  = array();
 			$repeat_query = false;
 			do {
@@ -56,7 +56,6 @@ class CRMLIB_Mailerlite {
 				} else {
 					return $result;
 				}
-
 			} while ( $repeat_query );
 			return array(
 				'status' => 'ok',
@@ -66,7 +65,6 @@ class CRMLIB_Mailerlite {
 			$result = $this->request( $module, $args );
 			return $result;
 		}
-
 	}
 
 	/**
@@ -113,19 +111,17 @@ class CRMLIB_Mailerlite {
 		try {
 			$results = $this->api( 'GET', 'groups', $apikey );
 
-			if ( !empty( $results ) && 'ok' === $results['status'] ) {
+			if ( ! empty( $results ) && 'ok' === $results['status'] ) {
 				return true;
 			}
 
 			return false;
-
 		} catch ( \Exception $e ) {
 
 			// Log that authentication test failed.
 			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() );
 
 			return false;
-
 		}
 	}
 
@@ -161,7 +157,6 @@ class CRMLIB_Mailerlite {
 				'label' => esc_html( $group['name'] ),
 				'value' => esc_attr( $group['id'] ),
 			);
-
 		}
 
 		return $choices;
@@ -170,7 +165,7 @@ class CRMLIB_Mailerlite {
 	/**
 	 * List fields for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
+	 * @param  array  $settings settings from Gravity Forms options.
 	 * @param  string $module settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
@@ -183,7 +178,6 @@ class CRMLIB_Mailerlite {
 
 		try {
 			$custom_fields = $this->api( 'GET', 'fields', $apikey );
-
 		} catch ( \Exception $e ) {
 
 			// Log that we could not retrieve custom fields.
@@ -200,7 +194,6 @@ class CRMLIB_Mailerlite {
 				'name'  => $custom_field['key'],
 				'label' => $custom_field['title'],
 			);
-
 		}
 		return $field_map;
 	}
@@ -257,5 +250,4 @@ class CRMLIB_Mailerlite {
 
 		return $response_result;
 	}
-
 } //from Class

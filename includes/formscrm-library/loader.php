@@ -87,25 +87,32 @@ if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 		}
 	);
 
-	add_action( 'elementor/editor/after_enqueue_scripts', function() {
-		wp_enqueue_script(
-			'formcrm-elementor-editor-script',
-			FORMSCRM_PLUGIN_URL . 'includes/assets/elementor-editor.js',
-			[ 'jquery', 'elementor-editor' ],
-			null,
-			true
-		);
+	add_action(
+		'elementor/editor/after_enqueue_scripts',
+		function () {
+			wp_enqueue_script(
+				'formcrm-elementor-editor-script',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/elementor-editor.js',
+				array( 'jquery', 'elementor-editor' ),
+				null,
+				true
+			);
 
-		wp_localize_script( 'formcrm-elementor-editor-script', 'formcrm_elementor', array(
-			'ajaxurl' => admin_url( 'admin-ajax.php' ),
-			'nonce'   => wp_create_nonce( 'formcrm_nonce' ),
-		) );
+			wp_localize_script(
+				'formcrm-elementor-editor-script',
+				'formcrm_elementor',
+				array(
+					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'formcrm_nonce' ),
+				)
+			);
 
-		wp_enqueue_style(
-			'formcrm-elementor-editor-style',
-			FORMSCRM_PLUGIN_URL . 'includes/assets/elementor.css',
-			array(),
-			FORMSCRM_VERSION
-		);
-	});
+			wp_enqueue_style(
+				'formcrm-elementor-editor-style',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/elementor.css',
+				array(),
+				FORMSCRM_VERSION
+			);
+		}
+	);
 }

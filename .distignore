@@ -6,13 +6,14 @@
 circle.yml
 .DS_Store
 phpcs.xml.dist
+.phpcs.xml.dist
+phpstan.neon.dist
 composer.json
 composer.lock
 phpunit.xml.dist
 tests/
 .github
 .wordpress-org
-.phpcs.xml.dist
 *.yml
 node_modules/
 .wp-env.json
@@ -21,4 +22,5 @@ package-lock.json
 vendor/
 .wp-env-sample.json
 .phpunit.result.cache
+.phpstan.result.cache
 bin/

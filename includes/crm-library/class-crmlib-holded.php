@@ -27,7 +27,7 @@ class CRMLIB_HOLDED {
 	 * @return array
 	 */
 	public function get( $url, $apikey, $function = 'invoicing' ) {
-		$args     = array(
+		$args   = array(
 			'headers' => array(
 				'key' => $apikey,
 			),
@@ -114,7 +114,7 @@ class CRMLIB_HOLDED {
 		$function = 'contacts' === $module ? 'invoicing' : 'crm';
 		$next     = true;
 		$page     = 1;
- 
+
 		while ( $next ) {
 			$contacts = $this->get( $module . '?page=' . $page, $apikey, $function );
 			if ( 'error' === $contacts['status'] || empty( $contacts['data'] ) ) {
@@ -126,9 +126,9 @@ class CRMLIB_HOLDED {
 					return $contact['id'];
 				}
 			}
-						 
-			if ( count( $contacts['data'] )  === MAX_LIMIT_HOLDED_API ) {
-				$page++;
+
+			if ( count( $contacts['data'] ) === MAX_LIMIT_HOLDED_API ) {
+				++$page;
 			} else {
 				$next = false;
 			}
@@ -144,12 +144,11 @@ class CRMLIB_HOLDED {
 	 * @return false or id     returns false if cannot login and string if gets token
 	 */
 	public function login( $settings ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$apikey       = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$login_result = $this->get( 'contacts', $apikey );
 
 		if ( $apikey && 'error' !== $login_result['status'] ) {
 			return true;
-
 		} else {
 			return false;
 		}
@@ -343,18 +342,18 @@ class CRMLIB_HOLDED {
 					'name'     => 'defaults|currency',
 					'label'    => __( 'Expenses Account Name', 'formscrm' ),
 					'required' => false,
-					'tooltip' => __( 'Currency ISO code in lowercase (e.g., eur = Euro, usd = U.S. Dollar, etc )', 'formscrm' ),
+					'tooltip'  => __( 'Currency ISO code in lowercase (e.g., eur = Euro, usd = U.S. Dollar, etc )', 'formscrm' ),
 				),
 				array(
 					'name'     => 'defaults|language',
 					'label'    => __( 'Language', 'formscrm' ),
 					'required' => false,
-					'tooltip' => __( 'options (es = spanish, en = english, fr = french, de = german, it = italian, ca = catalan, eu = euskera)', 'formscrm' ),
+					'tooltip'  => __( 'options (es = spanish, en = english, fr = french, de = german, it = italian, ca = catalan, eu = euskera)', 'formscrm' ),
 				),
 				array(
 					'name'     => 'defaults|showTradeNameOnDocs',
 					'label'    => __( 'Show Trade Name on Docs', 'formscrm' ),
-					'tooltip' => __( 'Use: 1 = Yes, 0 = No.', 'formscrm' ),
+					'tooltip'  => __( 'Use: 1 = Yes, 0 = No.', 'formscrm' ),
 					'required' => false,
 				),
 				array(
@@ -412,5 +411,4 @@ class CRMLIB_HOLDED {
 
 		return $response_result;
 	}
-
 } //from Class

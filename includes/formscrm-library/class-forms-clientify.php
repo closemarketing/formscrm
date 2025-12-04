@@ -31,7 +31,7 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 
 			if ( is_plugin_active( 'gravityforms/gravityforms.php' ) && $this->has_gravity_feed_clientify() ) {
 				add_action( 'gform_after_save_form', array( $this, 'create_visitor_key_field' ), 10, 2 );
-				add_action( 'gform_enqueue_scripts',  array( $this, 'enqueue_scripts' ), 10, 2 );
+				add_action( 'gform_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10, 2 );
 				add_action( 'gform_enqueue_scripts', array( $this, 'contact_enqueue_scripts' ), 15, 2 );
 			}
 
@@ -41,44 +41,47 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 				add_action( 'wpcf7_contact_form', array( $this, 'contact_enqueue_scripts' ) );
 			}
 			if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
-				add_filter( 'woocommerce_checkout_fields' , array( $this, 'clientify_cookie_checkout_field' ) );
+				add_filter( 'woocommerce_checkout_fields', array( $this, 'clientify_cookie_checkout_field' ) );
 			}
 
 			// elementor
 			if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 
 				// filter form fields before render
-				add_filter( 'elementor/widget/render_content', function( $widget_content, $form ) {
+				add_filter(
+					'elementor/widget/render_content',
+					function ( $widget_content, $form ) {
 
-
-					// check if form is type of ElementorPro\Modules\Forms\Widgets\Form
-					if ( ! $form instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
-						return $widget_content;
-					}
-
-					$settings = $form->get_settings_for_display();
-					if ( empty( $settings['fc_crm_type'] ) ) {
-						return $widget_content;
-					}
-					$crm_type = $settings['fc_crm_type'];
-					if ( 'clientify' !== $crm_type ) {
-						return $widget_content;
-					}
-					// check if visitor_key field exists in content
-					if ( false === strpos( $widget_content, 'visitor_key' ) ) {
-						// add visitor_key field before <button only once
-						$pos_button = strpos( $widget_content, '<button' );
-						if ( false !== $pos_button ) {
-
-							global $wp_session;
-							$visitor_key = isset( $wp_session['clientify_visitor_key'] ) ? $wp_session['clientify_visitor_key'] : '';
-
-							$widget_content = preg_replace( '/<button/', '<input type="hidden" name="visitor_key" class="visitor_key" value="' . $visitor_key . '" /><button', $widget_content, 1 );
+						// check if form is type of ElementorPro\Modules\Forms\Widgets\Form
+						if ( ! $form instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
+							return $widget_content;
 						}
-					}
 
-					return $widget_content;
-				}, 10, 2 );
+						$settings = $form->get_settings_for_display();
+						if ( empty( $settings['fc_crm_type'] ) ) {
+							return $widget_content;
+						}
+						$crm_type = $settings['fc_crm_type'];
+						if ( 'clientify' !== $crm_type ) {
+							return $widget_content;
+						}
+						// check if visitor_key field exists in content
+						if ( false === strpos( $widget_content, 'visitor_key' ) ) {
+							// add visitor_key field before <button only once
+							$pos_button = strpos( $widget_content, '<button' );
+							if ( false !== $pos_button ) {
+								global $wp_session;
+								$visitor_key = isset( $wp_session['clientify_visitor_key'] ) ? $wp_session['clientify_visitor_key'] : '';
+
+								$widget_content = preg_replace( '/<button/', '<input type="hidden" name="visitor_key" class="visitor_key" value="' . $visitor_key . '" /><button', $widget_content, 1 );
+							}
+						}
+
+						return $widget_content;
+					},
+					10,
+					2
+				);
 			}
 		}
 
@@ -142,8 +145,8 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 					}
 				}
 			}
-			$new_field_id   = GFFormsModel::get_next_field_id( $form['fields'] );
-			$field_property = array(
+			$new_field_id     = GFFormsModel::get_next_field_id( $form['fields'] );
+			$field_property   = array(
 				'id'         => $new_field_id,
 				'cssClass'   => 'clientify_cookie',
 				'label'      => __( 'Clientify Visitor Key', 'formscrm' ),

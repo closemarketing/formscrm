@@ -216,17 +216,17 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 
 		$widget->add_control(
 			'connect_crm',
-			[
+			array(
 				'label'       => esc_html__( 'Connect CRM', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::BUTTON,
 				'separator'   => 'before',
 				'button_type' => 'info',
 				'text'        => esc_html__( 'Connect', 'formscrm' ),
 				'event'       => 'formscrm:editor:connectCRM',
-				'condition' => array(
+				'condition'   => array(
 					'fc_crm_type' => formscrm_get_dependency_apipassword(),
 				),
-			]
+			)
 		);
 
 		$widget->add_control(
@@ -278,24 +278,24 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 
 		// Normalize the Form Data.
-		$merge_vars = [];
+		$merge_vars = array();
 		foreach ( $raw_fields as $id => $field ) {
 			$key = array_search( $id, $hidden_settings, true );
 			if ( false === $key ) {
 				continue;
 			}
 			$field_id     = str_replace( 'fc_crm_field-', '', $key );
-			$merge_vars[] = [
+			$merge_vars[] = array(
 				'name'  => $field_id,
 				'value' => $field['value'] ?? '',
-			];
+			);
 		}
 
 		if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore
-			$merge_vars['visitor_key'] = [
+			$merge_vars['visitor_key'] = array(
 				'name'  => 'visitor_key',
 				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),
-			];
+			);
 		}
 		// Create contact in CRM.
 		$settings = formscrm_elementor_process_settings( $settings );

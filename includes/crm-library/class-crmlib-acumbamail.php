@@ -124,7 +124,7 @@ class CRMLIB_AcumbaMail {
 	public function list_modules( $settings ) {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$get_result = $this->post( $apikey, 'getLists' );
-		$modules = [];
+		$modules    = array();
 
 		if ( ! empty( $get_result['data'] ) && is_array( $get_result['data'] ) ) {
 			$modules[] = array(
@@ -202,7 +202,7 @@ class CRMLIB_AcumbaMail {
 				if ( empty( $list ) ) {
 					continue;
 				}
-				error_log( '$subscriber:' .print_r( $list, true ) .' ' . print_r( $subscriber, true ) );
+				error_log( '$subscriber:' . print_r( $list, true ) . ' ' . print_r( $subscriber, true ) );
 				$result = $this->post(
 					$apikey,
 					'addSubscriber',

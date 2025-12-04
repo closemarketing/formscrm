@@ -64,13 +64,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			// Check for credentials.
 			if ( empty( $settings['fc_crm_type'] ) ) {
 				$entry_meta->add(
-					[
+					array(
 						'entry_id' => $entry_id,
 						'form_id'  => $form_id,
 						'user_id'  => get_current_user_id(),
 						'type'     => 'note',
 						'data'     => $title . __( 'No connection details.', 'formscrm' ),
-					],
+					),
 					'entry_meta'
 				);
 				return;
@@ -83,13 +83,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 			if ( ! $login_result ) {
 				$entry_meta->add(
-					[
+					array(
 						'entry_id' => $entry_id,
 						'form_id'  => $form_id,
 						'user_id'  => get_current_user_id(),
 						'type'     => 'note',
 						'data'     => $title . __( 'Could not connect to CRM.', 'formscrm' ),
-					],
+					),
 					'entry_meta'
 				);
 				return;
@@ -125,7 +125,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 						break;*/
 
 					case 'Date':
-						$merge_vars[] =  array(
+						$merge_vars[] = array(
 							'name'  => $conn_field_name,
 							'value' => $this->format_date( $fields[ $id ], $conn_field_name, $form_data['fields'][ $id ], 'Y-m-d' ),
 						);
@@ -138,11 +138,11 @@ class WPForms_FormsCRM extends WPForms_Provider {
 						} else {
 							$address_key = $conn_field_name;
 						}
-						$equivalence = array(
+						$equivalence  = array(
 							'street'      => 'address1',
 							'postal_code' => 'postal',
 						);
-						$key = isset( $equivalence[ $address_key ] ) ? $equivalence[ $address_key ] : $address_key;
+						$key          = isset( $equivalence[ $address_key ] ) ? $equivalence[ $address_key ] : $address_key;
 						$merge_vars[] = array(
 							'name'  => $conn_field_name,
 							'value' => $fields[ $id ][ $key ],
@@ -177,13 +177,13 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 			// Add note final.
 			$entry_meta->add(
-				[
+				array(
 					'entry_id' => $entry_id,
 					'form_id'  => $form_id,
 					'user_id'  => get_current_user_id(),
 					'type'     => 'note',
 					'data'     => $title . wpautop( $message ),
-				],
+				),
 				'entry_meta'
 			);
 		}
@@ -193,16 +193,16 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * Fills dynamic value.
 	 *
 	 * @param string $field_value Field value.
-	 * @param array $field_entries Field entries.
+	 * @param array  $field_entries Field entries.
 	 * @return string
 	 */
 	private function fill_dynamic_value( $field_value, $field_entries ) {
-		if ( ! str_contains( $field_value, '{id:' ) ) { 
+		if ( ! str_contains( $field_value, '{id:' ) ) {
 			return $field_value;
 		}
 
 		// Generate dynamic value.
-		$matches = [];
+		$matches = array();
 		preg_match_all( '/{([^}]*)}/', $field_value, $matches );
 		if ( empty( $matches[1] ) ) {
 			return $field_value;
@@ -240,7 +240,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		$result_date = $field_data;
 		if (
 			empty( $field_data['format'] ) ||
-			! in_array( $field_data['format'], [ 'date', 'date-time' ], true )
+			! in_array( $field_data['format'], array( 'date', 'date-time' ), true )
 		) {
 			return $result_date;
 		}
@@ -277,23 +277,23 @@ class WPForms_FormsCRM extends WPForms_Provider {
 
 		// Firstly, check if submitted field value is empty.
 		if ( empty( $field['value'] ) ) {
-			return [
-				[
+			return array(
+				array(
 					'Key'   => '[' . $name . ']',
 					'Value' => '',
-				],
-			];
+				),
+			);
 		}
 
 		// "Multiple" field types, like `Checkbox`, use "\n" for delimiter.
 		$values = explode( "\n", $field['value'] );
 
 		return array_map(
-			static function( $option ) use ( $name ) {
-				return [
+			static function ( $option ) use ( $name ) {
+				return array(
 					'Key'   => '[' . $name . ']',
 					'Value' => $option,
-				];
+				);
 			},
 			$values
 		);
@@ -335,7 +335,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	/**
 	 * Authenticate with the API.
 	 *
-	 * @param array $data
+	 * @param array  $data
 	 * @param string $form_id
 	 *
 	 * @return mixed id or WP_Error object.
@@ -655,14 +655,14 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		}
 
 		printf(
-			"<script>
+			'<script>
 				jQuery( function($) {
-					" . $js_dependency . "
-					$('#fc_crm_type').change(function () { " . $js_dependency . " });
+					' . $js_dependency . "
+					$('#fc_crm_type').change(function () { " . $js_dependency . ' });
 				});
-			</script>"
+			</script>'
 		);
 	}
 }
 
-new WPForms_FormsCRM;
+new WPForms_FormsCRM();

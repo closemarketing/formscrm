@@ -19,8 +19,7 @@ if ( ! function_exists( 'formscrm_get_choices' ) ) {
 	function formscrm_get_choices() {
 		return apply_filters(
 			'formscrm_choices',
-			array(
-			)
+			array()
 		);
 	}
 }

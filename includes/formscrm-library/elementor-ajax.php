@@ -85,7 +85,8 @@ function elementor_formscrm_connect_crm() {
 			<div class="elementor-control-field ">
 				<label for="fc_crm_module" class="elementor-control-title"><?php esc_html_e( 'CRM Module', 'formscrm' ); ?></label>
 				<div class="elementor-control-input-wrapper elementor-control-unit-5">
-					<select id="fc_crm_module"><?php
+					<select id="fc_crm_module">
+					<?php
 					foreach ( $modules as $module ) {
 						$value = '';
 						if ( ! empty( $module['value'] ) ) {
@@ -129,13 +130,15 @@ function elementor_formscrm_connect_crm() {
 
 		if ( empty( $crm_fields ) || ! is_array( $crm_fields ) ) {
 			continue;
-		} ?>
+		}
+		?>
 
 		<table class="elementor-map-table" cellspacing="0" cellpadding="0" data-module="<?php echo esc_html( $value ); ?>"><tbody>
 			<tr class="elementor-map-row">
 				<th class="elementor-map-column elementor-map-column-heading elementor-map-column-key"><?php esc_html_e( 'Field CRM', 'formscrm' ); ?></th>
 				<th class="elementor-map-column elementor-map-column-heading elementor-map-column-value"><?php esc_html_e( 'Select Form Field', 'formscrm' ); ?></th>
-			</tr><?php
+			</tr>
+			<?php
 
 			$count_fields = 0;
 
@@ -183,8 +186,10 @@ function elementor_formscrm_connect_crm() {
 			}
 			if ( 0 === $count_fields ) {
 				echo '<tr><td colspan="2">' . esc_html__( 'No fields found, or the connection has not got the right permissions.', 'formscrm' ) . '</td></tr>';
-			} ?>
-		</tbody></table><?php
+			}
+			?>
+		</tbody></table>
+		<?php
 	}
 
 	wp_send_json_success( ob_get_clean() );

@@ -26,7 +26,7 @@ class GFCRM extends GFFeedAddOn {
 	protected $_url                      = 'https://www.formscrm.com';
 	protected $_title                    = 'CRM Add-On';
 	protected $_short_title              = 'FormsCRM';
-	public    $_async_feed_processing    = true;
+	public $_async_feed_processing       = true;
 
 	// Members plugin integration.
 	protected $_capabilities = array(
@@ -88,24 +88,24 @@ class GFCRM extends GFFeedAddOn {
 				),
 			),
 			array(
-				'name'              => $prefix . 'username',
-				'label'             => __( 'Username', 'formscrm' ),
-				'type'              => 'text',
-				'class'             => 'medium',
-				'dependency'        => array(
-					'field' => $field_name,
+				'name'       => $prefix . 'username',
+				'label'      => __( 'Username', 'formscrm' ),
+				'type'       => 'text',
+				'class'      => 'medium',
+				'dependency' => array(
+					'field'  => $field_name,
 					'values' => formscrm_get_dependency_username(),
 				),
 			),
 			array(
 				'name'          => $prefix . 'password',
-				'label'         => __('Password', 'formscrm' ),
+				'label'         => __( 'Password', 'formscrm' ),
 				'type'          => 'api_key',
 				'class'         => 'medium',
 				'tooltip'       => __( 'Use the password of the actual user.', 'formscrm' ),
 				'tooltip_class' => 'tooltipclass',
 				'dependency'    => array(
-					'field' => $field_name,
+					'field'  => $field_name,
 					'values' => formscrm_get_dependency_password(),
 				),
 			),
@@ -117,16 +117,16 @@ class GFCRM extends GFFeedAddOn {
 				'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
 				'tooltip_class' => 'tooltipclass',
 				'dependency'    => array(
-					'field' => $field_name,
+					'field'  => $field_name,
 					'values' => formscrm_get_dependency_apipassword(),
 				),
 			),
 			array(
 				'name'          => $prefix . 'apisales',
-				'label'         => __('Password and Security Key', 'formscrm'),
+				'label'         => __( 'Password and Security Key', 'formscrm' ),
 				'type'          => 'api_key',
 				'class'         => 'medium',
-				'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm'),
+				'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm' ),
 				'tooltip_class' => 'tooltipclass',
 				'dependency'    => array(
 					'field'  => $field_name,
@@ -269,8 +269,8 @@ class GFCRM extends GFFeedAddOn {
 	 * @return array
 	 */
 	public function feed_settings_fields() {
-		$settings   = $this->get_api_settings_custom();
-		$custom_crm = $this->get_custom_crm();
+		$settings     = $this->get_api_settings_custom();
+		$custom_crm   = $this->get_custom_crm();
 		$settings_crm = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 
 		if ( empty( $settings['fc_crm_type'] ) ) {
@@ -371,12 +371,12 @@ class GFCRM extends GFFeedAddOn {
 			$module = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
 
 			$crm_feed_fields[] = array(
-					'name'     => 'fc_crm_module',
-					'label'    => __( 'CRM Module', 'formscrm' ),
-					'type'     => 'select',
-					'class'    => 'medium',
-					'onchange' => 'jQuery(this).parents("form").submit();',
-					'choices'  => $this->crmlib->list_modules( $settings ),
+				'name'     => 'fc_crm_module',
+				'label'    => __( 'CRM Module', 'formscrm' ),
+				'type'     => 'select',
+				'class'    => 'medium',
+				'onchange' => 'jQuery(this).parents("form").submit();',
+				'choices'  => $this->crmlib->list_modules( $settings ),
 			);
 			if ( empty( $module ) ) {
 				$crm_feed_fields[] = array(
@@ -385,14 +385,14 @@ class GFCRM extends GFFeedAddOn {
 					'type'  => 'hidden',
 				);
 			}
-			
+
 			$crm_feed_fields[] = array(
 				'name'       => 'listFields',
 				'label'      => __( 'Map Fields', 'formscrm' ),
 				'type'       => 'field_map',
 				'dependency' => 'fc_crm_module',
 				'field_map'  => $this->crmlib->list_fields( $settings, $module ),
-				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __('Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 			);
 
 			$crm_feed_fields[] = array(
@@ -407,7 +407,7 @@ class GFCRM extends GFFeedAddOn {
 				),
 			);
 		}
-		
+
 		return $crm_feed_fields;
 	}
 
@@ -428,8 +428,8 @@ class GFCRM extends GFFeedAddOn {
 		}
 		$settings['fc_crm_type'] = $custom_crm;
 		foreach ( FORMSCRM_CRED_VARIABLES as $variable ) {
-			if ( isset( $_POST['_gform_setting_fc_crm_custom_' . $variable ] ) ) {
-				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( $_POST['_gform_setting_fc_crm_custom_' . $variable ] );
+			if ( isset( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) ) {
+				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] );
 			} elseif ( isset( $feed['meta'][ 'fc_crm_custom_' . $variable ] ) ) {
 				$settings[ 'fc_crm_' . $variable ] = $feed['meta'][ 'fc_crm_custom_' . $variable ];
 			} elseif ( isset( $settings[ 'fc_crm_custom_' . $variable ] ) ) {
@@ -444,13 +444,13 @@ class GFCRM extends GFFeedAddOn {
 	 * Get actual feed value
 	 *
 	 * @param [type] $value
-	 * @param array $feed_settings
+	 * @param array  $feed_settings
 	 * @return void
 	 */
 	private function get_actual_feed_value( $value, $feed_settings ) {
 		$feed_value = '';
-		if ( isset( $_POST['_gform_setting_' . $value] ) ) {
-			$feed_value = sanitize_text_field( $_POST['_gform_setting_' . $value] );
+		if ( isset( $_POST[ '_gform_setting_' . $value ] ) ) {
+			$feed_value = sanitize_text_field( $_POST[ '_gform_setting_' . $value ] );
 		} elseif ( isset( $feed_settings['meta'][ $value ] ) ) {
 			$feed_value = $feed_settings['meta'][ $value ];
 		}
@@ -486,7 +486,6 @@ class GFCRM extends GFFeedAddOn {
 	public function get_menu_icon() {
 
 		return file_get_contents( FORMSCRM_PLUGIN_PATH . 'includes/assets/icon.svg' );
-
 	}
 
 	public function ensure_upgrade() {
@@ -641,7 +640,7 @@ class GFCRM extends GFFeedAddOn {
 			$ary          = explode( '|', $entry[ $field_id ] );
 			$product_name = count( $ary ) > 0 ? $ary[0] : '';
 			return array(
-				'name' => $var_key,
+				'name'  => $var_key,
 				'value' => $product_name,
 			);
 		} elseif ( $field && RGFormsModel::get_input_type( $field ) == 'checkbox' ) {
@@ -649,12 +648,12 @@ class GFCRM extends GFFeedAddOn {
 			foreach ( $field['inputs'] as $input ) {
 				$index   = (string) $input['id'];
 				$value_n = apply_filters( 'formscrm_field_value_default', rgar( $entry, $index ), $form['id'], $field_id, $entry );
-				$value .= $value_n;
+				$value  .= $value_n;
 				if ( $value_n ) {
 					$value .= '|';
 				}
 			}
-			$value        = substr( $value, 0, -1 );
+			$value = substr( $value, 0, -1 );
 			return array(
 				'name'  => $var_key,
 				'value' => $value,
@@ -692,11 +691,11 @@ class GFCRM extends GFFeedAddOn {
 	 * Fill field values dinamic with value
 	 *
 	 * @param string $field_value
-	 * @param array $entry
+	 * @param array  $entry
 	 * @return string
 	 */
 	private function fill_dynamic_value( $field_value, $entry, $form ) {
-		if ( str_contains( $field_value, '{id:' ) || str_contains( $field_value, '{label:' ) ) { 
+		if ( str_contains( $field_value, '{id:' ) || str_contains( $field_value, '{label:' ) ) {
 			$dynamic_value = $field_value;
 			preg_match_all( '#\{(.*?)\}#', $field_value, $matches );
 			if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
@@ -783,7 +782,7 @@ class GFCRM extends GFFeedAddOn {
 		$last   = trim( rgar( $entry, $field_id . '.6' ) );
 		$suffix = trim( rgar( $entry, $field_id . '.8' ) );
 
-		$name = $prefix;
+		$name  = $prefix;
 		$name .= ! empty( $name ) && ! empty( $first ) ? " $first" : $first;
 		$name .= ! empty( $name ) && ! empty( $last ) ? " $last" : $last;
 		$name .= ! empty( $name ) && ! empty( $suffix ) ? " $suffix" : $suffix;
@@ -814,5 +813,4 @@ class GFCRM extends GFFeedAddOn {
 
 		return $login_result;
 	}
-
 } //from main class

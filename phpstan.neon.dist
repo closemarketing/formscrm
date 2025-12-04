@@ -1,0 +1,25 @@
+parameters:
+	level: 0
+	paths:
+		- includes
+	excludePaths:
+		- tests/*
+		- vendor/*
+	scanDirectories:
+		- includes
+	bootstrapFiles:
+		- tests/phpstan-bootstrap.php
+	ignoreErrors:
+		# External plugins - methods not available during static analysis
+		- '#Access to an undefined property WPForms_FormsCRM::\$(slug|version|name|priority|icon)\.#'
+		- '#Call to an undefined method WPForms_FormsCRM::error\(\)\.#'
+		- '#Function (wpforms|wpforms_log) not found\.#'
+		- '#Call to (static )?method .* on an unknown class (GFAddOn|FCCRM|GFForms|ElementorPro\\Plugin)\.#'
+		- '#unknown class (WC_Order|WPCF7_Submission|WPCF7_ContactForm)#'
+		# WordPress dynamic variables
+		- '#Variable \$settings in isset\(\) is never defined\.#'
+		- '#Undefined variable: \$(settings|form_info)#'
+		# Return type issues
+		- '#Function formscrm_check_url_crm\(\) (has invalid return type url|should return url but returns string)\.#'
+		- '#Function formscrm_elementor_process_settings\(\) with return type void returns#'
+

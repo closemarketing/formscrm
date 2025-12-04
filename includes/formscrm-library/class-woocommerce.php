@@ -103,7 +103,7 @@ class FormsCRM_WooCommerce {
 		$options_crm  = array();
 		$wc_formscrm  = get_option( 'wc_formscrm' );
 
-		$options_crm[] = __(' None', 'formscrm' );
+		$options_crm[] = __( ' None', 'formscrm' );
 		foreach ( formscrm_get_choices() as $choice ) {
 			$options_crm[ $choice['value'] ] = $choice['label'];
 		}
@@ -215,7 +215,7 @@ class FormsCRM_WooCommerce {
 				'desc' => '',
 				'id'   => 'wc_settings_formscrm_section_field',
 			);
-			$wc_fields = $this->get_woocommerce_order_fields();
+			$wc_fields      = $this->get_woocommerce_order_fields();
 			if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
 				foreach ( $crm_fields as $crm_field ) {
 					$settings_crm[] = array(
@@ -319,10 +319,10 @@ class FormsCRM_WooCommerce {
 			}
 		}
 
-		if ( isset( $_POST['clientify_vk' ] ) ) {
+		if ( isset( $_POST['clientify_vk'] ) ) {
 			$merge_vars[] = array(
 				'name'  => 'clientify_vk',
-				'value' => sanitize_text_field( $_POST['clientify_vk' ] ),
+				'value' => sanitize_text_field( $_POST['clientify_vk'] ),
 			);
 		}
 
