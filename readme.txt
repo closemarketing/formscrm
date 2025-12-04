@@ -87,6 +87,23 @@ When an error occurs, the Slack notification includes:
 **Message Format:**
 
 All Slack notifications use a compact, easy-to-read format with information presented in single lines. Messages are color-coded in red (danger) to stand out in your channel and ensure immediate attention to critical errors.
+== Error Notifications ==
+**Custom Email for Error Reports**
+You can configure a custom email address to receive error notifications when a form submission fails to send to your CRM. This is useful when you want different team members to receive error alerts without using the admin email.
+
+To configure:
+1. Go to Settings > FormsCRM
+2. Enter one or multiple email addresses (comma-separated) in the "Error Notification Email" field
+3. Save changes
+
+**Enhanced Error Email Information**
+When an error occurs, you'll receive a detailed email notification that includes:
+- **Site Information**: Site name, URL, and timestamp of the error
+- **Form Information**: Form type (Gravity Forms, WPForms, Elementor, etc.), Form ID, Form name, and Entry ID
+- **Error Details**: CRM name, complete error message, and all form data in a formatted table
+- **Technical Details**: API URL and JSON request for debugging purposes
+
+The email is professionally formatted with color-coded sections for easy reading and quick troubleshooting.
 
 == Settings for Clientify ==
 **Instructions for adding Clientify cookie in the forms**
@@ -114,12 +131,18 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = n.e.x.t =
-*	Added: Slack integration for real-time error notifications via Incoming Webhook.
-*	Enhanced: Slack notifications include comprehensive information (site, form, CRM, error, lead preview).
-*	Enhanced: Slack messages use a compact, single-line format for quick scanning.
-*	Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now include form context in error reports.
-*	Added: 10 comprehensive unit tests for Slack notification functions.
-*	Added: Test utility for manually testing Slack notifications (tests/test-slack.php).
+*	 Added: Slack integration for real-time error notifications via Incoming Webhook.
+*	 Enhanced: Slack notifications include comprehensive information (site, form, CRM, error, lead preview).
+*	 Enhanced: Slack messages use a compact, single-line format for quick scanning.
+*	 Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now include form context in error reports.
+*	 Added: 10 comprehensive unit tests for Slack notification functions.
+*  Added: Test utility for manually testing Slack notifications (tests/test-slack.php).
+*  Added: Custom email option for error notifications - Configure specific emails to receive error reports.
+*  Enhanced: Error email notifications now include site information (name, URL, timestamp).
+*  Enhanced: Error emails now show detailed form information (type, ID, name, entry ID).
+*  Enhanced: Professional HTML email template with color-coded sections for better readability.
+*  Enhanced: Complete technical details in error emails (API URL and JSON request) for easier debugging.
+*  Improved: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
 
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.

@@ -292,6 +292,17 @@ class FormsCRM_WooCommerce {
 			} else {
 				error_log( $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
 			}
+		if ( 'error' === $response_result['status'] ) {
+			$form_info = array(
+				'form_type' => 'WooCommerce',
+				'form_id'   => 'checkout',
+				'form_name' => 'WooCommerce Checkout',
+				'entry_id'  => $order_id,
+			);
+
+			formscrm_debug_email_lead( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
+		} else {
+			error_log( $response_result['id'] );
 		}
 	}
 

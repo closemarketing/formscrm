@@ -315,7 +315,13 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
 			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
-			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query );
+			$form_info = array(
+				'form_type' => 'Elementor',
+				'form_id'   => isset( $settings['form_id'] ) ? $settings['form_id'] : ( isset( $settings['id'] ) ? $settings['id'] : '' ),
+				'form_name' => isset( $settings['form_name'] ) ? $settings['form_name'] : '',
+			);
+
+			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );
 
 			$response_message = sprintf(
 				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.

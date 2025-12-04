@@ -174,12 +174,18 @@ class WPForms_FormsCRM extends WPForms_Provider {
 				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
-				if ( 'error' === $api_status ) {
-					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars );
-					$message = __( 'Error', 'formscrm' );
-				} else {
-					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
-				}
+			if ( 'error' === $api_status ) {
+				$form_info = array(
+					'form_type' => 'WPForms',
+					'form_id'   => $form_id,
+					'form_name' => isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '',
+					'entry_id'  => $entry_id,
+				);
+				formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
+				$message = __( 'Error', 'formscrm' );
+			} else {
+				$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
+			}
 				$message .= ' ' . $api_message;
 			} catch ( Exception $e ) {
 				$message = __( 'Error sending information to CRM.', 'formscrm' ) . ' ' . $e->getMessage();

@@ -111,15 +111,110 @@ if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
 		$body    = '<p>' . __( 'There was an error creating the Lead in the CRM', 'formscrm' ) . ' ' . $crm . ':</p><p><strong>' . $error . '</strong></p><p>' . __( 'Lead Data', 'formscrm' ) . ':</p>';
 		foreach ( $data as $dataitem ) {
 			$body .= '<p><strong>' . $dataitem['name'] . ': </strong>' . $dataitem['value'] . '</p>';
+	 * @param array  $form_info  Form information (form_id, form_name, form_type).
+	 * @return void
+	 */
+	function formscrm_debug_email_lead( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
+		// Get custom email or fallback to admin email.
+		$custom_email = get_option( 'formscrm_error_notification_email', '' );
+		$to           = ! empty( $custom_email ) ? $custom_email : get_option( 'admin_email' );
+
+		// Subject with site name.
+		$site_name = get_bloginfo( 'name' );
+		$subject   = sprintf(
+			'[%s] FormsCRM - %s',
+			$site_name,
+			__( 'Error creating the Lead', 'formscrm' )
+		);
+
+		// Body with site information.
+		$body  = '<html><body style="font-family: Arial, sans-serif; color: #333;">';
+		$body .= '<div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">';
+
+		// Header.
+		$body .= '<h2 style="color: #d32f2f; margin-top: 0;">' . __( 'FormsCRM Error Report', 'formscrm' ) . '</h2>';
+
+		// Site Information.
+		$body .= '<div style="background-color: #f5f5f5; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
+		$body .= '<h3 style="margin-top: 0; color: #666;">' . __( 'Site Information', 'formscrm' ) . '</h3>';
+		$body .= '<table style="width: 100%; border-collapse: collapse;">';
+		$body .= '<tr><td style="padding: 5px 0;"><strong>' . __( 'Site Name:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( $site_name ) . '</td></tr>';
+		$body .= '<tr><td style="padding: 5px 0;"><strong>' . __( 'Site URL:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( get_site_url() ) . '</td></tr>';
+		$body .= '<tr><td style="padding: 5px 0;"><strong>' . __( 'Time:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( current_time( 'Y-m-d H:i:s' ) ) . '</td></tr>';
+		$body .= '</table>';
+		$body .= '</div>';
+
+		// Form Information.
+		if ( ! empty( $form_info ) ) {
+			$body .= '<div style="background-color: #e3f2fd; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
+			$body .= '<h3 style="margin-top: 0; color: #1976d2;">' . __( 'Form Information', 'formscrm' ) . '</h3>';
+			$body .= '<table style="width: 100%; border-collapse: collapse;">';
+
+			if ( isset( $form_info['form_type'] ) ) {
+				$body .= '<tr><td style="padding: 5px 0;"><strong>' . __( 'Form Type:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( $form_info['form_type'] ) . '</td></tr>';
+			}
+			if ( isset( $form_info['form_id'] ) ) {
+				$body .= '<tr><td style="padding: 5px 0;"><strong>' . __( 'Form ID:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( $form_info['form_id'] ) . '</td></tr>';
+			}
+			if ( isset( $form_info['form_name'] ) ) {
+				$body .= '<tr><td style="padding: 5px 0;"><strong>' . __( 'Form Name:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( $form_info['form_name'] ) . '</td></tr>';
+			}
+			if ( isset( $form_info['entry_id'] ) ) {
+				$body .= '<tr><td style="padding: 5px 0;"><strong>' . __( 'Entry ID:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( $form_info['entry_id'] ) . '</td></tr>';
+			}
+
+			$body .= '</table>';
+			$body .= '</div>';
 		}
-		$body .= '</br/><br/>';
-		if ( $url ) {
-			$body .= '<p>URL: ' . $url . '</p>';
+
+		// Error Information.
+		$body .= '<div style="background-color: #ffebee; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
+		$body .= '<h3 style="margin-top: 0; color: #d32f2f;">' . __( 'Error Details', 'formscrm' ) . '</h3>';
+		$body .= '<table style="width: 100%; border-collapse: collapse;">';
+		$body .= '<tr><td style="padding: 5px 0;"><strong>' . __( 'CRM:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( $crm ) . '</td></tr>';
+		$body .= '<tr><td style="padding: 5px 0; vertical-align: top;"><strong>' . __( 'Error:', 'formscrm' ) . '</strong></td><td style="padding: 5px 0;">' . esc_html( $error ) . '</td></tr>';
+		$body .= '</table>';
+		$body .= '</div>';
+
+		// Lead Data.
+		$body .= '<div style="background-color: #fff3e0; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
+		$body .= '<h3 style="margin-top: 0; color: #f57c00;">' . __( 'Lead Data', 'formscrm' ) . '</h3>';
+		$body .= '<table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">';
+		foreach ( $data as $dataitem ) {
+			$body .= '<tr style="border-bottom: 1px solid #eee;">';
+			$body .= '<td style="padding: 8px; background-color: #fafafa; width: 40%;"><strong>' . esc_html( $dataitem['name'] ) . '</strong></td>';
+			$body .= '<td style="padding: 8px;">' . esc_html( $dataitem['value'] ) . '</td>';
+			$body .= '</tr>';
 		}
-		if ( $url ) {
-			$body .= '<p>JSON: ' . $json . '</p>';
+		$body .= '</table>';
+		$body .= '</div>';
+
+		// Technical Details.
+		if ( $url || $json ) {
+			$body .= '<div style="background-color: #f5f5f5; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
+			$body .= '<h3 style="margin-top: 0; color: #666;">' . __( 'Technical Details', 'formscrm' ) . '</h3>';
+
+			if ( $url ) {
+				$body .= '<p><strong>' . __( 'API URL:', 'formscrm' ) . '</strong><br/>';
+				$body .= '<code style="background-color: #fff; padding: 5px; display: block; word-break: break-all;">' . esc_html( $url ) . '</code></p>';
+			}
+
+			if ( $json ) {
+				$body .= '<p><strong>' . __( 'Request JSON:', 'formscrm' ) . '</strong><br/>';
+				$body .= '<code style="background-color: #fff; padding: 10px; display: block; word-break: break-all; font-size: 11px;">' . esc_html( $json ) . '</code></p>';
+			}
+
+			$body .= '</div>';
 		}
-		$body   .= 'FormsCRM';
+
+		// Footer.
+		$body .= '<div style="text-align: center; padding-top: 20px; border-top: 1px solid #ddd; color: #999; font-size: 12px;">';
+		$body .= '<p>FormsCRM - ' . __( 'Connects Forms with CRM, ERP and Email Marketing', 'formscrm' ) . '</p>';
+		$body .= '<p><a href="https://close.technology" style="color: #1976d2; text-decoration: none;">close.technology</a></p>';
+		$body .= '</div>';
+
+		$body .= '</div></body></html>';
+
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		wp_mail( $to, $subject, $body, $headers );
