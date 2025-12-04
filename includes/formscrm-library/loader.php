@@ -21,8 +21,16 @@ if ( ! function_exists( 'is_plugin_active' ) ) {
 
 if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) && ! class_exists( 'FC_CRM_Bootstrap' ) ) {
 	add_action( 'gform_loaded', array( 'FC_CRM_Bootstrap', 'load' ), 5 );
-	class FC_CRM_Bootstrap {
+	/**
+	 * Bootstrap class for Gravity Forms integration.
+	 */
+	class FC_CRM_Bootstrap { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name for Gravity Forms integration.
 
+		/**
+		 * Loads the Gravity Forms Feed Add-On.
+		 *
+		 * @return void
+		 */
 		public static function load() {
 
 			if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
@@ -35,7 +43,12 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 		}
 	}
 
-	function gf_crm() {
+	/**
+	 * Returns the Gravity Forms CRM instance.
+	 *
+	 * @return object The CRM instance.
+	 */
+	function gf_crm() { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Legacy function name for Gravity Forms compatibility.
 		return FCCRM::get_instance();
 	}
 
@@ -94,7 +107,7 @@ if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 				'formcrm-elementor-editor-script',
 				FORMSCRM_PLUGIN_URL . 'includes/assets/elementor-editor.js',
 				array( 'jquery', 'elementor-editor' ),
-				null,
+				FORMSCRM_VERSION,
 				true
 			);
 

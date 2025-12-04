@@ -18,7 +18,7 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 	 *
 	 * @since 3.5
 	 */
-	class Forms_Clientify {
+	class Forms_Clientify { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 
 		/**
 		 * Construct of Class
@@ -44,30 +44,30 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 				add_filter( 'woocommerce_checkout_fields', array( $this, 'clientify_cookie_checkout_field' ) );
 			}
 
-			// elementor
-			if ( is_plugin_active( 'elementor/elementor.php' ) ) {
+		// Elementor.
+		if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 
-				// filter form fields before render
-				add_filter(
-					'elementor/widget/render_content',
-					function ( $widget_content, $form ) {
+			// Filter form fields before render.
+			add_filter(
+				'elementor/widget/render_content',
+				function ( $widget_content, $form ) {
 
-						// check if form is type of ElementorPro\Modules\Forms\Widgets\Form
-						if ( ! $form instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
-							return $widget_content;
-						}
+					// Check if form is type of ElementorPro\Modules\Forms\Widgets\Form.
+					if ( ! $form instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
+						return $widget_content;
+					}
 
-						$settings = $form->get_settings_for_display();
-						if ( empty( $settings['fc_crm_type'] ) ) {
-							return $widget_content;
-						}
-						$crm_type = $settings['fc_crm_type'];
-						if ( 'clientify' !== $crm_type ) {
-							return $widget_content;
-						}
-						// check if visitor_key field exists in content
-						if ( false === strpos( $widget_content, 'visitor_key' ) ) {
-							// add visitor_key field before <button only once
+					$settings = $form->get_settings_for_display();
+					if ( empty( $settings['fc_crm_type'] ) ) {
+						return $widget_content;
+					}
+					$crm_type = $settings['fc_crm_type'];
+					if ( 'clientify' !== $crm_type ) {
+						return $widget_content;
+					}
+					// Check if visitor_key field exists in content.
+					if ( false === strpos( $widget_content, 'visitor_key' ) ) {
+						// Add visitor_key field before <button only once.
 							$pos_button = strpos( $widget_content, '<button' );
 							if ( false !== $pos_button ) {
 								global $wp_session;
@@ -117,9 +117,9 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 					return true;
 				}
 
-				$table = $wpdb->prefix . 'gf_addon_feed';
-				$sql   = "SELECT COUNT(*) as count FROM $table WHERE `meta` LIKE '%clientify%';";
-				$count = (int) $wpdb->get_var( $sql );
+			$table = $wpdb->prefix . 'gf_addon_feed';
+			$sql   = "SELECT COUNT(*) as count FROM $table WHERE `meta` LIKE '%clientify%';"; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table prefix is safe, search term is hardcoded.
+			$count = (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct query needed for transient check, uses safe interpolation.
 				if ( $count > 0 ) {
 					$is_clientify = 'has_clientify';
 				}
@@ -190,13 +190,13 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 			wp_enqueue_script( 'formscrm-clientify-field' );
 		}
 
-		/**
-		 * Adds field checkout
-		 *
-		 * @param array $fields
-		 * @return array
-		 */
-		public function clientify_cookie_checkout_field( $fields ) {
+	/**
+	 * Adds field checkout
+	 *
+	 * @param array $fields WooCommerce checkout fields.
+	 * @return array Updated checkout fields with Clientify visitor key field.
+	 */
+	public function clientify_cookie_checkout_field( $fields ) {
 			$fields['billing']['clientify_vk'] = array(
 				'type'  => 'hidden',
 				'class' => array( 'clientify_cookie' ),
