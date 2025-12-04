@@ -152,7 +152,7 @@ class CRMLIB_AcumbaMail {
 	 */
 	public function list_fields( $settings ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = formscrm_get_module();
+		$module = formscrm_get_module( 'contact', $settings );
 
 		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
 

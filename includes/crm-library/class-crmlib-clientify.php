@@ -814,11 +814,12 @@ class CRMLIB_Clientify {
 					$deal_tags = $element['value'];
 				} elseif ( 'deal|expected_closed_date_days' === $element['name'] ) {
 					$deal['expected_closed_date'] = gmdate( 'Y-m-d', strtotime( '+' . (int) $element['value'] . ' days' ) );
-				} elseif ( 'deal|pipeline_name' === $element['name'] ) {
-					$pipeline_url = $this->get_pipeline_url( $element['value'], $apikey );
-					if ( ! empty( $pipeline_url ) ) {
-						$deal['pipeline'] = $pipeline_url;
-					}
+			} elseif ( 'deal|pipeline_name' === $element['name'] ) {
+				// Pipeline URL functionality not yet implemented.
+				// For now, use the pipeline name directly if provided.
+				if ( ! empty( $element['value'] ) ) {
+					$deal['pipeline'] = $element['value'];
+				}
 				} else {
 					$deal_field             = explode( '|', $element['name'] );
 					$deal[ $deal_field[1] ] = $element['value'];

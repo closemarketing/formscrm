@@ -488,11 +488,11 @@ class GFCRM extends GFFeedAddOn {
 				'choices'  => $this->crmlib->list_modules( $settings ),
 			);
 			if ( empty( $module ) ) {
-				$crm_feed_fields[] = array(
-					'name'  => 'fc_select_module',
-					'label' => esc_html( 'Select Module and save to select merge values', 'formscrm' ),
-					'type'  => 'hidden',
-				);
+			$crm_feed_fields[] = array(
+				'name'  => 'fc_select_module',
+				'label' => esc_html__( 'Select Module and save to select merge values', 'formscrm' ),
+				'type'  => 'hidden',
+			);
 			}
 
 			$crm_feed_fields[] = array(

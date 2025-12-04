@@ -31,11 +31,11 @@ if ( ! class_exists( 'Forms_Clientify' ) ) {
 				include_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 
-			if ( is_plugin_active( 'gravityforms/gravityforms.php' ) && $this->has_gravity_feed_clientify() ) {
-				add_action( 'gform_after_save_form', array( $this, 'create_visitor_key_field' ), 10, 2 );
-				add_action( 'gform_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10, 2 );
-				add_action( 'gform_enqueue_scripts', array( $this, 'contact_enqueue_scripts' ), 15, 2 );
-			}
+		if ( is_plugin_active( 'gravityforms/gravityforms.php' ) && $this->has_gravity_feed_clientify() ) {
+			add_action( 'gform_after_save_form', array( $this, 'create_visitor_key_field' ), 10, 2 );
+			add_action( 'gform_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10, 0 );
+			add_action( 'gform_enqueue_scripts', array( $this, 'contact_enqueue_scripts' ), 15, 0 );
+		}
 
 			if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
 				add_action( 'wpcf7_after_save', array( $this, 'add_custom_field_cf7_clientify' ), 50 );

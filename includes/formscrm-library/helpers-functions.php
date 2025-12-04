@@ -60,9 +60,10 @@ if ( ! function_exists( 'formscrm_get_module' ) ) {
 	 * Gets default module in forms
 	 *
 	 * @param string $default_module To avoid.
+	 * @param array  $settings       Optional settings array.
 	 * @return string
 	 */
-	function formscrm_get_module( $default_module ) {
+	function formscrm_get_module( $default_module, $settings = array() ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- This function is called in GravityForms context where nonce is already verified.
 		if ( isset( $_POST['_gform_setting_fc_crm_module'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing

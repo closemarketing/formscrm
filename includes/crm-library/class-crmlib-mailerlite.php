@@ -242,12 +242,11 @@ class CRMLIB_Mailerlite {
 				);
 			}
 		} catch ( \Exception $e ) {
-			$message         = isset( $result['data'] ) ? $result['data'] : '';
 			$response_result = array(
 				'status'  => 'error',
-				'message' => $message,
-				'url'     => isset( $result['url'] ) ? $result['url'] : '',
-				'query'   => isset( $result['query'] ) ? $result['query'] : '',
+				'message' => $e->getMessage(),
+				'url'     => '',
+				'query'   => '',
 			);
 		}
 
