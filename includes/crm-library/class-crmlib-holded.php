@@ -9,6 +9,9 @@
  * @package   FormsCRM
  * @version   1.0.0
  * @copyright 2021 Closemarketing
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -18,7 +21,8 @@ define( 'MAX_LIMIT_HOLDED_API', 500 ); // phpcs:ignore WordPress.NamingConventio
 /**
  * Class for Holded connection.
  */
-class CRMLIB_HOLDED { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_HOLDED {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Gets information from Holded CRM
 	 *

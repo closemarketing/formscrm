@@ -6,6 +6,11 @@
  * @author     David Perez <david@closemarketing.es>
  * @copyright  2020 Closemarketing
  * @version    1.0
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+ * phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -24,7 +29,7 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 	/**
 	 * Bootstrap class for Gravity Forms integration.
 	 */
-	class FC_CRM_Bootstrap { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName, Universal.Files.SeparateFunctionsFromOO.Mixed -- Legacy class name for Gravity Forms integration.
+	class FC_CRM_Bootstrap {
 
 		/**
 		 * Loads the Gravity Forms Feed Add-On.

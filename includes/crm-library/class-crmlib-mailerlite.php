@@ -9,6 +9,8 @@
  * @package   FormsCRM
  * @version   1.0.0
  * @copyright 2021 Closemarketing
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -16,7 +18,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class for MailerLite connection.
  */
-class CRMLIB_Mailerlite { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_Mailerlite {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Mailer Lite Connector API
 	 *

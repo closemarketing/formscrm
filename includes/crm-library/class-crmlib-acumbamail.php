@@ -9,12 +9,14 @@
  * @category Functions
  * @package  Gravityforms CRM
  * @version  1.0.0
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 /**
  * Class for AcumbaMail connection.
  */
-class CRMLIB_AcumbaMail { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_AcumbaMail {
 	/**
 	 * Posts information from AcumbaMail CRM
 	 *

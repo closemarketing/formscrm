@@ -6,6 +6,8 @@
  * @author    David Perez <david@closemarketing.es>
  * @copyright 2021 Closemarketing
  * @version   3.3
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -61,11 +63,6 @@ class FORMSCRM_CF7_Settings {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Contact Form 7.
-		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
-		}
-
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );

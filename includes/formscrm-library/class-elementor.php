@@ -8,6 +8,8 @@
  * @version    4.0.0
  *
  * DOC: https://developers.elementor.com/docs/form-actions/
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 // Exit if accessed directly.
@@ -60,10 +62,11 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
 		if ( isset( $_POST['fc_crm_type'] ) ) {
 			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
@@ -293,13 +296,14 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			);
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
 		if ( ! empty( $_POST['visitor_key'] ) ) {
 			$merge_vars['visitor_key'] = array(
 				'name'  => 'visitor_key',
 				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),
 			);
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		// Create contact in CRM.
 		$settings = formscrm_elementor_process_settings( $settings );
 		$this->include_library( $settings['fc_crm_type'] );

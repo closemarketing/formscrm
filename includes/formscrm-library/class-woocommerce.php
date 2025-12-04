@@ -6,6 +6,8 @@
  * @author    David Perez <david@closemarketing.es>
  * @copyright 2021 Closemarketing
  * @version   3.3
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -250,11 +252,6 @@ class FormsCRM_WooCommerce {
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce.
-		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
-		}
-
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );
@@ -321,13 +318,14 @@ class FormsCRM_WooCommerce {
 			}
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce checkout.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WooCommerce checkout.
 		if ( isset( $_POST['clientify_vk'] ) ) {
 			$merge_vars[] = array(
 				'name'  => 'clientify_vk',
 				'value' => sanitize_text_field( wp_unslash( $_POST['clientify_vk'] ) ),
 			);
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return $merge_vars;
 	}

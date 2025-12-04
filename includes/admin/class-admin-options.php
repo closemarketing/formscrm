@@ -6,6 +6,8 @@
  * @author     David Perez <david@closemarketing.es>
  * @copyright  2019 Closemarketing
  * @version    1.0
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;

@@ -8,12 +8,15 @@
  * @category Functions
  * @package  Gravityforms CRM
  * @version  1.0.0
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 /**
  * Class for Clientify connection.
  */
-class CRMLIB_Clientify { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_Clientify {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Gets information from Clientify CRM
 	 *

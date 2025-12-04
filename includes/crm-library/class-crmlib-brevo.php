@@ -11,6 +11,8 @@
  * @package   FormsCRM
  * @version   4.0.0
  * @copyright 2021 Closemarketing
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -18,7 +20,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Brevo CRM Library
  */
-class CRMLIB_Brevo { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+class CRMLIB_Brevo {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Brevo Connector API
 	 *

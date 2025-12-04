@@ -7,6 +7,9 @@
  * @copyright 2021 Closemarketing
  * @version   3.7.2
  * @since     1.0.0
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 /**
@@ -14,7 +17,7 @@
  *
  * @since 1.0.0
  */
-class WPForms_FormsCRM extends WPForms_Provider { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound, WordPress.Files.FileName.InvalidClassFileName -- WPForms provider integration class.
+class WPForms_FormsCRM extends WPForms_Provider {
 	/**
 	 * CRM library instance.
 	 *
@@ -131,14 +134,6 @@ class WPForms_FormsCRM extends WPForms_Provider { // phpcs:ignore WordPress.Nami
 
 				// Special formatting for different types.
 				switch ( $type ) {
-				// Commented out for future use - MultiSelectMany handling.
-				// case 'MultiSelectMany':.
-				// 	$merge_vars = array_merge(
-				// 		$merge_vars,
-				// 		$this->format_multi_select_many( $fields[ $id ], $conn_field_name )
-				// 	);
-				// 	break;
-
 					case 'Date':
 						$merge_vars[] = array(
 							'name'  => $conn_field_name,
@@ -326,11 +321,6 @@ class WPForms_FormsCRM extends WPForms_Provider { // phpcs:ignore WordPress.Nami
 	 * @return void
 	 */
 	private function include_library( $crmtype ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by WPForms.
-		if ( isset( $_POST['_gform_setting_fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( wp_unslash( $_POST['_gform_setting_fc_crm_type'] ) );
-		}
-
 		if ( isset( $crmtype ) ) {
 			$crmname      = strtolower( $crmtype );
 			$crmclassname = str_replace( ' ', '', $crmname );

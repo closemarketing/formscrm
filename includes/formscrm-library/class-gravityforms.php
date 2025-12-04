@@ -8,6 +8,15 @@
  * @author     David Perez <david@closemarketing.net>
  * @copyright  2019 Closemarketing
  * @version    1.0
+ *
+ * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+ * phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+ * phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
+ * phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+ * phpcs:disable WordPress.PHP.StrictInArray.MissingTrueStrict
+ * phpcs:disable Universal.NamingConventions.NoReservedKeywordParameterNames.echoFound
+ * phpcs:disable WordPress.CodeAnalysis.EscapedNotTranslated.Found
  */
 
 GFForms::include_feed_addon_framework();
@@ -340,7 +349,7 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Include library connector
 	 *
-	 * @param string $crmtype Type of CRM.
+	 * @param string $crm_type Type of CRM.
 	 * @return void
 	 */
 	private function include_library( $crm_type ) {
@@ -514,8 +523,8 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Get Settings with custom CRM in feed
 	 *
-	 * @param array $settings
-	 * @return array
+	 * @param array $feed Feed settings array.
+	 * @return array Settings array with custom CRM configuration.
 	 */
 	private function get_api_settings_custom( $feed = array() ) {
 		if ( empty( $feed ) ) {
@@ -527,8 +536,9 @@ class GFCRM extends GFFeedAddOn {
 			return $settings;
 		}
 		$settings['fc_crm_type'] = $custom_crm;
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
 		foreach ( FORMSCRM_CRED_VARIABLES as $variable ) {
-			if ( isset( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+			if ( isset( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) ) {
 				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( wp_unslash( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) );
 			} elseif ( isset( $feed['meta'][ 'fc_crm_custom_' . $variable ] ) ) {
 				$settings[ 'fc_crm_' . $variable ] = $feed['meta'][ 'fc_crm_custom_' . $variable ];
@@ -537,42 +547,48 @@ class GFCRM extends GFFeedAddOn {
 				unset( $settings[ 'fc_crm_custom_' . $variable ] );
 			}
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return $settings;
 	}
 
 	/**
 	 * Get actual feed value
 	 *
-	 * @param [type] $value
-	 * @param array  $feed_settings
-	 * @return void
+	 * @param string $value         Value key to retrieve.
+	 * @param array  $feed_settings Feed settings array.
+	 * @return string Feed value.
 	 */
 	private function get_actual_feed_value( $value, $feed_settings ) {
 		$feed_value = '';
-		if ( isset( $_POST[ '_gform_setting_' . $value ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+		if ( isset( $_POST[ '_gform_setting_' . $value ] ) ) {
 			$feed_value = sanitize_text_field( wp_unslash( $_POST[ '_gform_setting_' . $value ] ) );
 		} elseif ( isset( $feed_settings['meta'][ $value ] ) ) {
 			$feed_value = $feed_settings['meta'][ $value ];
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return $feed_value;
 	}
 
 	/**
 	 * Get custom crm from feed
 	 *
-	 * @return void
+	 * @param array $feed_settings Feed settings array.
+	 * @return string Custom CRM type.
 	 */
 	private function get_custom_crm( $feed_settings = array() ) {
 		if ( empty( $feed_settings ) ) {
 			$feed_settings = $this->get_current_feed();
 		}
-		if ( isset( $_POST['_gform_setting_fc_crm_custom_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+		if ( isset( $_POST['_gform_setting_fc_crm_custom_type'] ) ) {
 			$custom_crm = sanitize_text_field( wp_unslash( $_POST['_gform_setting_fc_crm_custom_type'] ) );
 		} elseif ( ! empty( $feed_settings['meta']['fc_crm_custom_type'] ) ) {
 			$custom_crm = $feed_settings['meta']['fc_crm_custom_type'];
 		} else {
 			$custom_crm = 'no';
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return $custom_crm;
 	}
 
@@ -588,6 +604,11 @@ class GFCRM extends GFFeedAddOn {
 		return file_get_contents( FORMSCRM_PLUGIN_PATH . 'includes/assets/icon.svg' );
 	}
 
+	/**
+	 * Ensure database upgrade
+	 *
+	 * @return bool False if already upgraded.
+	 */
 	public function ensure_upgrade() {
 
 		if ( get_option( 'fc_crm_upgrade' ) ) {
@@ -604,6 +625,11 @@ class GFCRM extends GFFeedAddOn {
 		update_option( 'fc_crm_upgrade', 1 );
 	}
 
+	/**
+	 * Get feed list columns
+	 *
+	 * @return array Column configuration.
+	 */
 	public function feed_list_columns() {
 		return array(
 			'feedName' => __( 'Name', 'formscrm' ),
@@ -613,9 +639,9 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Sends data to API
 	 *
+	 * @param array  $feed  Feed data.
 	 * @param array  $entry Entry data.
-	 * @param object $form Form data.
-	 * @param array  $feed Feed data.
+	 * @param object $form  Form data.
 	 * @return void
 	 */
 	public function process_feed( $feed, $entry, $form ) {
@@ -731,8 +757,11 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Returns the value of GF Field depending of type.
 	 *
-	 * @param array $field
-	 * @return array
+	 * @param string $var_key  Variable key.
+	 * @param int    $field_id Field ID.
+	 * @param array  $entry    Entry data.
+	 * @param array  $form     Form configuration.
+	 * @return array Field value array with name and value.
 	 */
 	public function get_value_from_field( $var_key, $field_id, $entry, $form ) {
 		$field = RGFormsModel::get_field( $form, $field_id );
@@ -790,9 +819,10 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Fill field values dinamic with value
 	 *
-	 * @param string $field_value
-	 * @param array  $entry
-	 * @return string
+	 * @param string $field_value Field value to process.
+	 * @param array  $entry       Entry data.
+	 * @param array  $form        Form configuration.
+	 * @return string Processed field value.
 	 */
 	private function fill_dynamic_value( $field_value, $entry, $form ) {
 		if ( str_contains( $field_value, '{id:' ) || str_contains( $field_value, '{label:' ) ) {
@@ -868,6 +898,13 @@ class GFCRM extends GFFeedAddOn {
 		return $merge_vars;
 	}
 
+	/**
+	 * Get name from entry field
+	 *
+	 * @param array $entry    Entry data.
+	 * @param int   $field_id Field ID.
+	 * @return string Name value.
+	 */
 	private function get_name( $entry, $field_id ) {
 
 		// If field is simple (one input), simply return full content.
