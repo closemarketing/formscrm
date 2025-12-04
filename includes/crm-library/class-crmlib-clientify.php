@@ -472,14 +472,14 @@ class CRMLIB_Clientify {
 				'required' => false,
 			);
 
-			$fields[] = array(
-				'name'     => 'country',
-				'label'    => __( 'Country', 'formscrm' ),
-				'required' => false,
-			);
+		$fields[] = array(
+			'name'     => 'country',
+			'label'    => __( 'Country', 'formscrm' ),
+			'required' => false,
+		);
 
-		// Phones and Emails.
-		$fields = array_merge( $fields, $this->get_fields_email_phones() );
+			// Phones and Emails.
+			$fields = array_merge( $fields, $this->get_fields_email_phones() );
 
 			// Website.
 			$fields = array_merge( $fields, $this->get_fields_websites() );

@@ -227,11 +227,11 @@ class CRMLIB_HOLDED {
 					'label'    => __( 'Email', 'formscrm' ),
 					'required' => false,
 				),
-				array(
-					'name'     => 'phone',
-					'label'    => __( 'Phone', 'formscrm' ),
-					'required' => false,
-				),
+			array(
+				'name'     => 'phone',
+				'label'    => __( 'Phone', 'formscrm' ),
+				'required' => false,
+			),
 			array(
 				'name'     => 'mobile',
 				'label'    => __( 'Mobile', 'formscrm' ),
@@ -247,11 +247,11 @@ class CRMLIB_HOLDED {
 				'label'    => __( 'Billing Address', 'formscrm' ),
 				'required' => false,
 			),
-				array(
-					'name'     => 'billAddress|city',
-					'label'    => __( 'Billing City', 'formscrm' ),
-					'required' => false,
-				),
+			array(
+				'name'     => 'billAddress|city',
+				'label'    => __( 'Billing City', 'formscrm' ),
+				'required' => false,
+			),
 				array(
 					'name'     => 'billAddress|postalCode',
 					'label'    => __( 'Billing ZIP', 'formscrm' ),
