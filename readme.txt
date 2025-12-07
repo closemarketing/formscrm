@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 4.0.6
-Version: 4.0.6
+Stable tag: 4.0.7
+Version: 4.0.7
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -130,7 +130,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
-= n.e.x.t =
+= 4.0.7 =
 *	 Added: Slack integration for real-time error notifications via Incoming Webhook with compact, single-line format.
 *	 Added: Custom email configuration for error notifications with professional HTML template.
 *	 Enhanced: Error notifications (Slack and Email) include comprehensive information: site details, form context (type, ID, name, entry), CRM details, lead preview, and complete technical data (API URL, JSON request).
