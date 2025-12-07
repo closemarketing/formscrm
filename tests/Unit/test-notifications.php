@@ -56,10 +56,10 @@ class SlackNotificationsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that formscrm_debug_email_lead function exists.
+	 * Test that formscrm_alert_error function exists.
 	 */
 	public function test_debug_email_lead_function_exists() {
-		$this->assertTrue( function_exists( 'formscrm_debug_email_lead' ) );
+		$this->assertTrue( function_exists( 'formscrm_alert_error' ) );
 	}
 
 	/**

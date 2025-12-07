@@ -25,7 +25,7 @@ if ( ! $found ) {
 }
 
 // Cargar la función de email si no está cargada.
-if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
+if ( ! function_exists( 'formscrm_alert_error' ) ) {
 	require_once __DIR__ . '/includes/formscrm-library/helpers-functions.php';
 }
 
@@ -186,7 +186,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 			);
 
 			// Enviar el email de prueba.
-			formscrm_debug_email_lead( $crm_type, $error_message, $data, $url, $json, $form_info );
+			formscrm_alert_error( $crm_type, $error_message, $data, $url, $json, $form_info );
 
 			echo '<div class="info-box success">';
 			echo '<h2 style="margin-top: 0;">✅ Email de Prueba Enviado Correctamente</h2>';
