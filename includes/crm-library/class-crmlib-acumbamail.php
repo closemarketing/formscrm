@@ -16,14 +16,14 @@
 /**
  * Class for AcumbaMail connection.
  */
-class CRMLIB_AcumbaMail {
+class CRMLIB_AcumbaMail implements CRMLIB_Interface {
 	/**
 	 * Posts information from AcumbaMail CRM
 	 *
 	 * @param string $apikey  API Authentication.
 	 * @param string $module  URL for module.
-	 * @param string $data    Params to send to API.
-	 * @return array
+	 * @param array<string, mixed> $data Params to send to API.
+	 * @return array<string, mixed>
 	 */
 	private function post( $apikey, $module, $data = array() ) {
 		$url = 'https://acumbamail.com/api/1/' . $module . '/';
@@ -103,10 +103,10 @@ class CRMLIB_AcumbaMail {
 	/**
 	 * Logins to a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return false or id     returns false if cannot login and string if gets token
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return bool True if login successful, false otherwise.
 	 */
-	public function login( $settings ) {
+	public function login( array $settings ): bool {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$get_result = $this->post( $apikey, 'getLists' );
 
@@ -120,10 +120,10 @@ class CRMLIB_AcumbaMail {
 	/**
 	 * List modules of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return array           returns an array of mudules
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<int, array<string, string>> Array of modules.
 	 */
-	public function list_modules( $settings ) {
+	public function list_modules( array $settings ): array {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$get_result = $this->post( $apikey, 'getLists' );
 		$modules    = array();
@@ -147,14 +147,18 @@ class CRMLIB_AcumbaMail {
 	/**
 	 * List fields for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return array           returns an array of mudules
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<int, array<string, mixed>> Array of fields.
 	 */
-	public function list_fields( $settings ) {
+	public function list_fields( array $settings ): array {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module = formscrm_get_module( 'contact', $settings );
 
-		formscrm_debug_message( __( 'Module active:', 'formscrm' ) . $module );
+		formscrm_debug_message(
+			array(
+				'message' => __( 'Module active:', 'formscrm' ) . $module,
+			)
+		);
 
 		$fields     = array();
 		$get_result = $this->post(
@@ -179,11 +183,11 @@ class CRMLIB_AcumbaMail {
 	/**
 	 * Creates an entry for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @param  array $merge_vars array of values for the entry.
-	 * @return array           id or false
+	 * @param array<string, mixed> $merge_vars Array of values for the entry.
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<string, mixed> Response with status and message.
 	 */
-	public function create_entry( $settings, $merge_vars ) {
+	public function create_entry( array $merge_vars, array $settings ): array {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
 
@@ -195,7 +199,9 @@ class CRMLIB_AcumbaMail {
 			);
 		}
 		foreach ( $merge_vars as $merge_var ) {
-			$subscriber[ $merge_var['name'] ] = $merge_var['value'];
+			if ( isset( $merge_var['name'], $merge_var['value'] ) ) {
+				$subscriber[ $merge_var['name'] ] = $merge_var['value'];
+			}
 		}
 		if ( isset( $subscriber['list_id'] ) && is_array( $subscriber['list_id'] ) ) {
 			$lists_to_subscribe = $subscriber['list_id'];

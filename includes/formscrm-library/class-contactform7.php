@@ -295,7 +295,7 @@ class FORMSCRM_CF7_Settings {
 			return;
 		}
 		$merge_vars      = $this->get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
+		$response_result = $this->crmlib->create_entry( $merge_vars, $cf7_crm );
 
 		if ( 'error' === $response_result['status'] ) {
 			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';

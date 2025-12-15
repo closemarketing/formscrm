@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class for MailerLite connection.
  */
-class CRMLIB_Mailerlite {
+class CRMLIB_Mailerlite implements CRMLIB_Interface {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Mailer Lite Connector API
@@ -26,12 +26,15 @@ class CRMLIB_Mailerlite {
 	 * @param string $method Method to connect: GET, POST..
 	 * @param string $module URL endpoint.
 	 * @param string $apikey API Key credential.
-	 * @param array  $query  Body data.
-	 * @return array
+	 * @param array<string, mixed> $query Body data.
+	 * @return array<string, mixed>
 	 */
 	private function api( $method, $module, $apikey, $query = array() ) {
 		if ( empty( $apikey ) ) {
-			return;
+			return array(
+				'status' => 'error',
+				'data'   => 'Empty API key',
+			);
 		}
 		$args = array(
 			'method'  => $method,
@@ -74,8 +77,8 @@ class CRMLIB_Mailerlite {
 	 * Request to MailerLite API
 	 *
 	 * @param string $module URL endpoint with parameters.
-	 * @param array  $args  Body data.
-	 * @return array
+	 * @param array<string, mixed> $args Body data.
+	 * @return array<string, mixed>
 	 */
 	private function request( $module, $args ) {
 		$url         = 'https://api.mailerlite.com/api/v2/' . $module;
@@ -106,10 +109,10 @@ class CRMLIB_Mailerlite {
 	/**
 	 * Logins to a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return false or id     returns false if cannot login and string if gets token
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return bool True if login successful, false otherwise.
 	 */
-	public function login( $settings ) {
+	public function login( array $settings ): bool {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		try {
 			$results = $this->api( 'GET', 'groups', $apikey );
@@ -131,10 +134,10 @@ class CRMLIB_Mailerlite {
 	/**
 	 * List modules of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return array           returns an array of mudules
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<int, array<string, mixed>> Array of modules.
 	 */
-	public function list_modules( $settings ) {
+	public function list_modules( array $settings ): array {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 
 		// If API cannot be initialized, return array.
@@ -168,13 +171,12 @@ class CRMLIB_Mailerlite {
 	/**
 	 * List fields for given module of a CRM
 	 *
-	 * @param  array  $settings settings from Gravity Forms options.
-	 * @param  string $module settings from Gravity Forms options.
-	 * @return array           returns an array of mudules
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<int, array<string, mixed>> Array of fields.
 	 */
-	public function list_fields( $settings, $module ) {
+	public function list_fields( array $settings ): array {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = ! empty( $module ) ? $module : '';
+		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
 
 		// Initialize field map.
 		$field_map = array();
@@ -204,11 +206,11 @@ class CRMLIB_Mailerlite {
 	/**
 	 * Creates an entry for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @param  array $merge_vars array of values for the entry.
-	 * @return array           id or false
+	 * @param array<string, mixed> $merge_vars Array of values for the entry.
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<string, mixed> Response with status and message.
 	 */
-	public function create_entry( $settings, $merge_vars ) {
+	public function create_entry( array $merge_vars, array $settings ): array {
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$list_id = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
 

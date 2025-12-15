@@ -24,3 +24,4 @@ vendor/
 .phpunit.result.cache
 .phpstan.result.cache
 bin/
+docs/

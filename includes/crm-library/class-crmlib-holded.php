@@ -21,15 +21,15 @@ define( 'MAX_LIMIT_HOLDED_API', 500 ); // phpcs:ignore WordPress.NamingConventio
 /**
  * Class for Holded connection.
  */
-class CRMLIB_HOLDED {
+class CRMLIB_HOLDED implements CRMLIB_Interface {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Gets information from Holded CRM
 	 *
-	 * @param string $url      URL for module.
-	 * @param string $apikey   Pass to access.
+	 * @param string $url URL for module.
+	 * @param string $apikey Pass to access.
 	 * @param string $function Holded API function type (invoicing, purchases, etc).
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	public function get( $url, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.
 		$args   = array(
@@ -67,13 +67,18 @@ class CRMLIB_HOLDED {
 	/**
 	 * Posts information from Holded CRM
 	 *
-	 * @param string $url      URL for module.
-	 * @param string $bodypost JSON to pass.
-	 * @param string $apikey   Pass to access.
+	 * @param string $url URL for module.
+	 * @param array<string, mixed>|string $bodypost JSON to pass.
+	 * @param string $apikey Pass to access.
 	 * @param string $function Holded API function type (invoicing, purchases, etc).
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	public function post( $url, $bodypost, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.
+		// Convert array to JSON if needed.
+		if ( is_array( $bodypost ) ) {
+			$bodypost = wp_json_encode( $bodypost );
+		}
+
 		$args   = array(
 			'headers' => array(
 				'key' => $apikey,
@@ -146,10 +151,10 @@ class CRMLIB_HOLDED {
 	/**
 	 * Logins to a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return false or id     returns false if cannot login and string if gets token
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return bool True if login successful, false otherwise.
 	 */
-	public function login( $settings ) {
+	public function login( array $settings ): bool {
 		$apikey       = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$login_result = $this->get( 'contacts', $apikey );
 
@@ -163,10 +168,10 @@ class CRMLIB_HOLDED {
 	/**
 	 * List modules of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return array           returns an array of mudules
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<int, array<string, string>> Array of modules.
 	 */
-	public function list_modules( $settings ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Required by interface.
+	public function list_modules( array $settings ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Required by interface.
 		$modules = array(
 			array(
 				'name'  => 'contacts',
@@ -180,12 +185,11 @@ class CRMLIB_HOLDED {
 	/**
 	 * List fields for given module of a CRM
 	 *
-	 * @param  array  $settings settings from Gravity Forms options.
-	 * @param  string $module   The CRM module name.
-	 * @return array            returns an array of mudules
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<int, array<string, mixed>> Array of fields.
 	 */
-	public function list_fields( $settings, $module ) {
-		$module = ! empty( $module ) ? $module : 'contacts';
+	public function list_fields( array $settings ): array {
+		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 
 		// Initialize fields array.
 		$fields = array();
@@ -381,11 +385,11 @@ class CRMLIB_HOLDED {
 	/**
 	 * Creates an entry for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @param  array $merge_vars array of values for the entry.
-	 * @return array           id or false
+	 * @param array<string, mixed> $merge_vars Array of values for the entry.
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<string, mixed> Response with status and message.
 	 */
-	public function create_entry( $settings, $merge_vars ) {
+	public function create_entry( array $merge_vars, array $settings ): array {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 

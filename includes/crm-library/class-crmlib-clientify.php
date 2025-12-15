@@ -15,15 +15,14 @@
 /**
  * Class for Clientify connection.
  */
-class CRMLIB_Clientify {
+class CRMLIB_Clientify implements CRMLIB_Interface {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Gets information from Clientify CRM
 	 *
 	 * @param string $url URL for module.
 	 * @param string $apikey API Authentication.
-	 *
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	private function get( $url, $apikey ) {
 		if ( ! $apikey ) {
@@ -84,11 +83,11 @@ class CRMLIB_Clientify {
 	/**
 	 * Posts information from Holded CRM
 	 *
-	 * @param string $module   URL for module.
-	 * @param string $bodypost Params to send to API.
-	 * @param string $apikey   API Authentication.
-	 * @param string $method   Method to use.
-	 * @return array
+	 * @param string $module URL for module.
+	 * @param array<string, mixed>|string $bodypost Params to send to API.
+	 * @param string $apikey API Authentication.
+	 * @param string $method Method to use.
+	 * @return array<string, mixed>
 	 */
 	private function request( $module, $bodypost, $apikey, $method = 'POST' ) {
 		$args   = array(
@@ -132,10 +131,10 @@ class CRMLIB_Clientify {
 	/**
 	 * Logins to a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return false or id     returns false if cannot login and string if gets token
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return bool True if login successful, false otherwise.
 	 */
-	public function login( $settings ) {
+	public function login( array $settings ): bool {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$get_result = $this->get( 'settings/my-account/', $apikey );
 
@@ -149,10 +148,10 @@ class CRMLIB_Clientify {
 	/**
 	 * List modules of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @return array           returns an array of mudules
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<int, array<string, string>> Array of modules.
 	 */
-	public function list_modules( $settings ) {
+	public function list_modules( array $settings ): array {
 		$modules = array(
 			array(
 				'name'  => 'contacts',
@@ -181,7 +180,7 @@ class CRMLIB_Clientify {
 	/**
 	 * Sends Fields addresses
 	 *
-	 * @return array
+	 * @return array<int, array<string, mixed>>
 	 */
 	private function get_fields_addresses() {
 		$fields   = array();
@@ -228,7 +227,7 @@ class CRMLIB_Clientify {
 	/**
 	 * Sends Fields addresses
 	 *
-	 * @return array
+	 * @return array<int, array<string, mixed>>
 	 */
 	private function get_fields_social() {
 		$fields = array();
@@ -335,7 +334,7 @@ class CRMLIB_Clientify {
 	/**
 	 * Sends Fields addresses
 	 *
-	 * @return array
+	 * @return array<int, array<string, mixed>>
 	 */
 	private function get_fields_websites() {
 		$fields = array();
@@ -376,7 +375,7 @@ class CRMLIB_Clientify {
 	/**
 	 * Sends Fields Phones and Emails
 	 *
-	 * @return array
+	 * @return array<int, array<string, mixed>>
 	 */
 	private function get_fields_email_phones() {
 		$fields = array();
@@ -424,14 +423,12 @@ class CRMLIB_Clientify {
 	/**
 	 * List fields for given module of a CRM
 	 *
-	 * @param  array  $settings settings from Gravity Forms options.
-	 * @param  string $module   module to get fields from.
-	 *
-	 * @return array           returns an array of mudules
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<int, array<string, mixed>> Array of fields.
 	 */
-	public function list_fields( $settings, $module = 'Contacts' ) {
+	public function list_fields( array $settings ): array {
 		$apikey      = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module      = ! empty( $module ) ? $module : 'Contacts';
+		$module      = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
 		$module_slug = sanitize_title( $module );
 
 		$fields = array();
@@ -781,11 +778,11 @@ class CRMLIB_Clientify {
 	/**
 	 * Creates an entry for given module of a CRM
 	 *
-	 * @param  array $settings settings from Gravity Forms options.
-	 * @param  array $merge_vars array of values for the entry.
-	 * @return array           id or false
+	 * @param array<string, mixed> $merge_vars Array of values for the entry.
+	 * @param array<string, mixed> $settings Settings from Gravity Forms options.
+	 * @return array<string, mixed> Response with status and message.
 	 */
-	public function create_entry( $settings, $merge_vars ) {
+	public function create_entry( array $merge_vars, array $settings ): array {
 		$apikey            = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module            = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
 		$contact           = array();
@@ -976,8 +973,8 @@ class CRMLIB_Clientify {
 	 * Extracts deal products from a string of SKUs and get Clientify schema
 	 *
 	 * @param string $deal_product_skus The string of SKUs separated by commas.
-	 * @param string $apikey            The API key.
-	 * @return array The array of deal products
+	 * @param string $apikey The API key.
+	 * @return array<string, mixed> The array of deal products.
 	 */
 	private function extract_deal_products( $deal_product_skus, $apikey ) {
 		$skus          = explode( ',', $deal_product_skus );

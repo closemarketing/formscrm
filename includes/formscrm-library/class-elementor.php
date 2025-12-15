@@ -304,10 +304,10 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			);
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
-		// Create contact in CRM.
-		$settings = formscrm_elementor_process_settings( $settings );
-		$this->include_library( $settings['fc_crm_type'] );
-		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
+	// Create contact in CRM.
+	$settings = formscrm_elementor_process_settings( $settings );
+	$this->include_library( $settings['fc_crm_type'] );
+	$response_result = $this->crmlib->create_entry( $merge_vars, $settings );
 
 		$response_message = '';
 		if ( 'error' === $response_result['status'] ) {

@@ -1,7 +1,8 @@
 parameters:
-	level: 1
+	level: 6
 	paths:
 		- includes
+		- formscrm.php
 	excludePaths:
 		- tests/*
 		- vendor/*
@@ -12,6 +13,9 @@ parameters:
 		- includes
 	bootstrapFiles:
 		- tests/phpstan-bootstrap.php
+	checkMissingIterableValueType: true
+	reportUnmatchedIgnoredErrors: false
+	treatPhpDocTypesAsCertain: false
 	ignoreErrors:
 		# External plugins - Gravity Forms
 		- '#Call to (static )?method .* on an unknown class (GFFormsModel|RGFormsModel|GF_Fields|GFAPI|GFCommon|GFForms|GFAddOn|GFCRM)\.#'
