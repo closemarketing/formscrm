@@ -285,21 +285,21 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					),
 				);
 
-					foreach ( $crms_supported as $crm ) {
-						echo '<li class="item">';
-						$slug = strtolower( $crm['label'] );
-						if ( ! empty( $crm['url'] ) ) {
-							$url = esc_url( $source_shop_url ) . 'wordpress-plugins/formscrm-' . $slug . '/' . esc_attr( $utm_source );
-							echo ' <a href="' . esc_url( $url ) . '" target="_blank">';
-						}
-						echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $slug . '.svg' ) . '" width="250" alt="' . esc_html( $crm['label'] ) . '"/><br/>';
-
-						if ( ! empty( $crm['url'] ) ) {
-							echo '</a>';
-						}
-						echo '</li>';
+				foreach ( $crms_supported as $crm ) {
+					echo '<li class="item">';
+					$slug = strtolower( $crm['label'] );
+					if ( ! empty( $crm['url'] ) ) {
+						$url = esc_url( $source_shop_url ) . 'wordpress-plugins/formscrm-' . $slug . '/' . esc_attr( $utm_source );
+						echo ' <a href="' . esc_url( $url ) . '" target="_blank">';
 					}
-					?>
+					echo '<img src="' . esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $slug . '.svg' ) . '" width="250" alt="' . esc_html( $crm['label'] ) . '"/><br/>';
+
+					if ( ! empty( $crm['url'] ) ) {
+						echo '</a>';
+					}
+					echo '</li>';
+				}
+				?>
 			</ul>
 			<br/>
 			<a class="button button-primary" href="<?php echo esc_url( $source_shop_url ); ?>formscrm/<?php echo esc_attr( $utm_source ); ?>" target="_blank"><?php esc_html_e( 'View all addons', 'formscrm' ); ?></a>
