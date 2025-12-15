@@ -23,9 +23,9 @@ class CRMLIB_Mailerlite implements CRMLIB_Interface {
 	/**
 	 * Mailer Lite Connector API
 	 *
-	 * @param string $method Method to connect: GET, POST..
-	 * @param string $module URL endpoint.
-	 * @param string $apikey API Key credential.
+	 * @param string               $method Method to connect: GET, POST..
+	 * @param string               $module URL endpoint.
+	 * @param string               $apikey API Key credential.
 	 * @param array<string, mixed> $query Body data.
 	 * @return array<string, mixed>
 	 */
@@ -76,7 +76,7 @@ class CRMLIB_Mailerlite implements CRMLIB_Interface {
 	/**
 	 * Request to MailerLite API
 	 *
-	 * @param string $module URL endpoint with parameters.
+	 * @param string               $module URL endpoint with parameters.
 	 * @param array<string, mixed> $args Body data.
 	 * @return array<string, mixed>
 	 */

@@ -20,8 +20,8 @@ class CRMLIB_AcumbaMail implements CRMLIB_Interface {
 	/**
 	 * Posts information from AcumbaMail CRM
 	 *
-	 * @param string $apikey  API Authentication.
-	 * @param string $module  URL for module.
+	 * @param string               $apikey  API Authentication.
+	 * @param string               $module  URL for module.
 	 * @param array<string, mixed> $data Params to send to API.
 	 * @return array<string, mixed>
 	 */

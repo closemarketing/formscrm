@@ -25,9 +25,9 @@ class CRMLIB_Brevo implements CRMLIB_Interface {
 	/**
 	 * Brevo Connector API
 	 *
-	 * @param string $method Method to connect: GET, POST..
-	 * @param string $module URL endpoint.
-	 * @param string $apikey API Key credential.
+	 * @param string               $method Method to connect: GET, POST..
+	 * @param string               $module URL endpoint.
+	 * @param string               $apikey API Key credential.
 	 * @param array<string, mixed> $query Body data.
 	 * @return array<string, mixed>
 	 */
@@ -80,7 +80,7 @@ class CRMLIB_Brevo implements CRMLIB_Interface {
 	/**
 	 * Request to Brevo API
 	 *
-	 * @param string $module URL endpoint with parameters.
+	 * @param string               $module URL endpoint with parameters.
 	 * @param array<string, mixed> $args Body data.
 	 * @return array<string, mixed>
 	 */

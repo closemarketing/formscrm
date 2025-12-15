@@ -253,10 +253,10 @@ class FormsCRM_WooCommerce {
 		$order       = new WC_Order( $order_id );
 
 		if ( $wc_formscrm && ! empty( $wc_formscrm['fc_crm_type'] ) ) {
-		$this->include_library( $wc_formscrm['fc_crm_type'] );
-		$merge_vars = $this->get_merge_vars( $wc_formscrm, $order );
+			$this->include_library( $wc_formscrm['fc_crm_type'] );
+			$merge_vars = $this->get_merge_vars( $wc_formscrm, $order );
 
-		$response_result = $this->crmlib->create_entry( $merge_vars, $wc_formscrm );
+			$response_result = $this->crmlib->create_entry( $merge_vars, $wc_formscrm );
 
 			if ( 'error' === $response_result['status'] ) {
 				$form_info = array(

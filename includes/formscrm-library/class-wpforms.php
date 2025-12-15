@@ -164,10 +164,10 @@ class FormsCRM_WPForms extends WPForms_Provider {
 						break;
 				}
 			}
-		// Submit to API.
-		$message = '';
-		try {
-			$response_result = $this->crmlib->create_entry( $merge_vars, $settings );
+			// Submit to API.
+			$message = '';
+			try {
+				$response_result = $this->crmlib->create_entry( $merge_vars, $settings );
 				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
 

@@ -64,10 +64,10 @@ class CRMLIB_HOLDED implements CRMLIB_Interface {
 	/**
 	 * Posts information from Holded CRM
 	 *
-	 * @param string $url URL for module.
+	 * @param string                      $url URL for module.
 	 * @param array<string, mixed>|string $bodypost JSON to pass.
-	 * @param string $apikey Pass to access.
-	 * @param string $function Holded API function type (invoicing, purchases, etc).
+	 * @param string                      $apikey Pass to access.
+	 * @param string                      $function Holded API function type (invoicing, purchases, etc).
 	 * @return array<string, mixed>
 	 */
 	public function post( $url, $bodypost, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.

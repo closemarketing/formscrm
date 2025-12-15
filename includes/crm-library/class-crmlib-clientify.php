@@ -83,10 +83,10 @@ class CRMLIB_Clientify implements CRMLIB_Interface {
 	/**
 	 * Posts information from Holded CRM
 	 *
-	 * @param string $module URL for module.
+	 * @param string                      $module URL for module.
 	 * @param array<string, mixed>|string $bodypost Params to send to API.
-	 * @param string $apikey API Authentication.
-	 * @param string $method Method to use.
+	 * @param string                      $apikey API Authentication.
+	 * @param string                      $method Method to use.
 	 * @return array<string, mixed>
 	 */
 	private function request( $module, $bodypost, $apikey, $method = 'POST' ) {
