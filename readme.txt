@@ -131,6 +131,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = n.e.x.t =
+*  Enhanced: FormsCRM now has its own dedicated menu in WordPress admin with custom icon.
 *	 Added: Slack integration for real-time error notifications via Incoming Webhook.
 *	 Enhanced: Slack notifications include comprehensive information (site, form, CRM, error, lead preview).
 *	 Enhanced: Slack messages use a compact, single-line format for quick scanning.
