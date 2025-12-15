@@ -69,12 +69,10 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		 * @return void
 		 */
 		public function add_plugin_page() {
-		// SVG icon encoded as data URI.
-		// phpcs:disable WordPress.PHP.DiscouragedFunctions,Generic.PHP.ForbiddenFunctions -- base64_encode used for data URI encoding, not code obfuscation.
-		$icon_svg = 'data:image/svg+xml;base64,' . base64_encode(
-			file_get_contents( FORMSCRM_PLUGIN_URL . 'includes/assets/icon-menu.svg' ) // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		);
-		// phpcs:enable
+			// SVG icon encoded as data URI.
+			$icon_svg = 'data:image/svg+xml;base64,' . base64_encode(
+				file_get_contents( FORMSCRM_PLUGIN_URL . 'includes/assets/icon-menu.svg' ) // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			);
 
 			add_menu_page(
 				__( 'FormsCRM', 'formscrm' ),

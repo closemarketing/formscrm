@@ -75,4 +75,13 @@
 	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
 		<severity>0</severity>
 	</rule>
+	
+	<!-- Disable base64_encode obfuscation warning - used for data URI encoding -->
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions">
+		<properties>
+			<property name="exclude" type="array">
+				<element value="base64_encode"/>
+			</property>
+		</properties>
+	</rule>
 </ruleset>
