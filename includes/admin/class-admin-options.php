@@ -6,8 +6,6 @@
  * @author     David Perez <david@closemarketing.es>
  * @copyright  2019 Closemarketing
  * @version    1.0
- *
- * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -30,8 +28,6 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 	 * Handles admin settings page for FormsCRM plugin.
 	 */
 	class FORMSCRM_Admin {
- // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
-
 		/**
 		 * Construct of class
 		 */

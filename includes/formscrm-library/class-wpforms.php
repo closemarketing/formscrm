@@ -7,9 +7,6 @@
  * @copyright 2021 Closemarketing
  * @version   3.7.2
  * @since     1.0.0
- *
- * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
- * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 
 /**
@@ -17,7 +14,7 @@
  *
  * @since 1.0.0
  */
-class WPForms_FormsCRM extends WPForms_Provider {
+class FormsCRM_WPForms extends WPForms_Provider {
 	/**
 	 * CRM library instance.
 	 *
@@ -93,7 +90,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 				);
 				return;
 			}
-			$this->include_library( $settings['fc_crm_type'] );
+			$this->crmlib = formscrm_get_api_class( $settings['fc_crm_type'] );
 			$login_result = false;
 			if ( isset( $this->crmlib ) ) {
 				$login_result = $this->crmlib->login( $settings );
@@ -181,7 +178,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 						'form_name' => isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '',
 						'entry_id'  => $entry_id,
 					);
-					formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
+					formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
 					$message = __( 'Error', 'formscrm' );
 				} else {
 					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
@@ -319,31 +316,6 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * API methods - these methods interact directly with the provider API. *
 	 ************************************************************************/
 
-
-	/**
-	 * Include library connector
-	 *
-	 * @param string $crmtype Type of CRM.
-	 * @return void
-	 */
-	private function include_library( $crmtype ) {
-		if ( isset( $crmtype ) ) {
-			$crmname      = strtolower( $crmtype );
-			$crmclassname = str_replace( ' ', '', $crmname );
-			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
-
-			$array_path = formscrm_get_crmlib_path();
-			if ( isset( $array_path[ $crmname ] ) ) {
-				include_once $array_path[ $crmname ];
-			}
-
-			if ( class_exists( $crmclassname ) ) {
-				$this->crmlib = new $crmclassname();
-			}
-		}
-	}
-
 	/**
 	 * Authenticate with the API.
 	 *
@@ -353,7 +325,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	 * @return mixed id or WP_Error object.
 	 */
 	public function api_auth( $data = array(), $form_id = '' ) {
-		$this->include_library( $data['fc_crm_type'] );
+		$this->crmlib = formscrm_get_api_class( $data['fc_crm_type'] );
 		$login_result = false;
 		if ( isset( $this->crmlib ) ) {
 			$login_result = $this->crmlib->login( $data );
@@ -418,8 +390,8 @@ class WPForms_FormsCRM extends WPForms_Provider {
 			if ( empty( $settings['fc_crm_type'] ) ) {
 				$this->error( __( 'No connection details.', 'formscrm' ) );
 			}
-			$this->include_library( $settings['fc_crm_type'] );
-			$lists = $this->crmlib->list_modules( $settings );
+			$this->crmlib = formscrm_get_api_class( $settings['fc_crm_type'] );
+			$lists        = $this->crmlib->list_modules( $settings );
 
 			$lists_wpforms = array();
 			foreach ( $lists as $list ) {
@@ -475,7 +447,7 @@ class WPForms_FormsCRM extends WPForms_Provider {
 		if ( empty( $settings['fc_crm_type'] ) ) {
 			$this->error( __( 'No connection details.', 'formscrm' ) );
 		}
-		$this->include_library( $settings['fc_crm_type'] );
+		$this->crmlib = formscrm_get_api_class( $settings['fc_crm_type'] );
 		$login_result = '';
 		if ( isset( $this->crmlib ) ) {
 			$login_result = $this->crmlib->login( $settings );
@@ -679,4 +651,4 @@ class WPForms_FormsCRM extends WPForms_Provider {
 	}
 }
 
-new WPForms_FormsCRM();
+new FormsCRM_WPForms();

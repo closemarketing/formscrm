@@ -18,22 +18,20 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 	 * @return object|void
 	 */
 	function formscrm_get_api_class( $crm_type ) {
-		if ( isset( $crm_type ) ) {
-			$crmname      = strtolower( $crm_type );
-			$crmclassname = str_replace( ' ', '', $crmname );
-			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
+		$crmname      = strtolower( $crm_type );
+		$crmclassname = str_replace( ' ', '', $crmname );
+		$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+		$crmname      = str_replace( ' ', '_', $crmname );
 
-			$array_path = formscrm_get_crmlib_path();
+		$array_path = formscrm_get_crmlib_path();
 
-			if ( isset( $array_path[ $crmname ] ) ) {
-				include_once $array_path[ $crmname ];
-				formscrm_debug_message( $array_path[ $crmname ] );
-			}
+		if ( isset( $array_path[ $crmname ] ) ) {
+			include_once $array_path[ $crmname ];
+			formscrm_debug_message( $array_path[ $crmname ] );
+		}
 
-			if ( class_exists( $crmclassname ) ) {
-				return new $crmclassname();
-			}
+		if ( class_exists( $crmclassname ) ) {
+			return new $crmclassname();
 		}
 	}
 }
@@ -94,7 +92,7 @@ if ( ! function_exists( 'formscrm_error_admin_message' ) ) {
 }
 
 // * Sends an email to administrator when it not creates the lead
-if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
+if ( ! function_exists( 'formscrm_alert_error' ) ) {
 	/**
 	 * Sends error to admin
 	 *
@@ -106,7 +104,7 @@ if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
 	 * @param array  $form_info  Form information (form_id, form_name, form_type, entry_id).
 	 * @return void
 	 */
-	function formscrm_debug_email_lead( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
+	function formscrm_alert_error( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
 		// Get custom email or fallback to admin email.
 		$custom_email = get_option( 'formscrm_error_notification_email', '' );
 		$to           = ! empty( $custom_email ) ? $custom_email : get_option( 'admin_email' );
@@ -372,15 +370,7 @@ if ( ! function_exists( 'formscrm_check_url_crm' ) ) {
 	 * @return url
 	 */
 	function formscrm_check_url_crm( $url ) {
-
-		if ( ! isset( $url ) ) {
-			$url = '';
-		}
-		if ( substr( $url, -1 ) !== '/' ) {
-			$url .= '/'; // adds slash to url.
-		}
-
-		return $url;
+		return trailingslashit( sanitize_url( $url ) );
 	}
 }
 
@@ -394,7 +384,7 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 	 */
 	function formscrm_send_webhook( $settings, $response ) {
 		$webhook_url = isset( $settings['fc_crm_webhook'] ) ? $settings['fc_crm_webhook'] : '';
-		if ( empty( $webhook_url ) ) {
+		if ( ! $webhook_url ) {
 			return;
 		}
 		$module   = isset( $response['module'] ) ? $response['module'] : '';

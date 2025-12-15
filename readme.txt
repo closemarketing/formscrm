@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 4.0.6
-Version: 4.0.6
+Stable tag: 4.1.0
+Version: 4.1.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -148,6 +148,12 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Enhanced: Professional HTML email template with color-coded sections for better readability.
 *  Enhanced: Complete technical details in error emails (API URL and JSON request) for easier debugging.
 *  Improved: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
+= 4.1.0 =
+*	 Added: Slack integration for real-time error notifications via Incoming Webhook with compact, single-line format.
+*	 Added: Custom email configuration for error notifications with professional HTML template.
+*	 Enhanced: Error notifications (Slack and Email) include comprehensive information: site details, form context (type, ID, name, entry), CRM details, lead preview, and complete technical data (API URL, JSON request).
+*	 Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
+*	 Added: 10 comprehensive unit tests and manual test utility (tests/test-slack.php) for notification functions.
 
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
