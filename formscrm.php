@@ -91,5 +91,7 @@ add_filter(
 );
 
 // Include files.
+// Load CRM Interface first before any CRM classes.
+require_once FORMSCRM_PLUGIN_PATH . '/includes/crm-library/interface-crmlib.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
