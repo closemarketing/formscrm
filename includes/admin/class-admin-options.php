@@ -49,24 +49,25 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 			register_setting( 'formscrm_settings', 'formscrm_error_notification_email' );
 		}
 
-	/**
-	 * Enqueue Scripts and styles
-	 *
-	 * @return void
-	 */
-	public function enqueue_admin_scripts( $hook ) {
-		// Only load on our settings page.
-		if ( 'settings_page_formscrm' !== $hook ) {
-			return;
-		}
+		/**
+		 * Enqueue Scripts and styles
+		 *
+		 * @param string $hook Current admin page hook.
+		 * @return void
+		 */
+		public function enqueue_admin_scripts( $hook ) {
+			// Only load on our settings page.
+			if ( 'settings_page_formscrm' !== $hook ) {
+				return;
+			}
 
-		wp_enqueue_style(
-			'formscrm-admin',
-			FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-admin.css',
-			array(),
-			FORMSCRM_VERSION
-		);
-	}
+			wp_enqueue_style(
+				'formscrm-admin',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-admin.css',
+				array(),
+				FORMSCRM_VERSION
+			);
+		}
 
 		/**
 		 * Adds plugin page.
@@ -84,13 +85,13 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 			);
 		}
 
-	/**
-	 * Create admin page.
-	 *
-	 * @return void
-	 */
-	public function create_admin_page() {
-		?>
+		/**
+		 * Create admin page.
+		 *
+		 * @return void
+		 */
+		public function create_admin_page() {
+			?>
 		<div class="fcrm-settings-wrapper">
 			<!-- Header Section -->
 			<div class="fcrm-header">
@@ -117,7 +118,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 						<p class="fcrm-notice-text"><?php esc_html_e( 'Changes saved successfully', 'formscrm' ); ?></p>
 					</div>
 					<?php
-				endif;
+					endif;
 
 				// Check if tabs exist via filter.
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -135,53 +136,53 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				);
 
 				// Ensure tabs is an array.
-				if ( ! is_array( $formscrm_tabs ) ) {
-					$formscrm_tabs = array();
-				}
+			if ( ! is_array( $formscrm_tabs ) ) {
+				$formscrm_tabs = array();
+			}
 
 				// Display tabs if there's more than one tab.
-				if ( count( $formscrm_tabs ) > 1 ) :
-					?>
+			if ( count( $formscrm_tabs ) > 1 ) :
+				?>
 					<div class="fcrm-tabs-wrapper">
 						<nav class="fcrm-tabs">
-							<?php
-							foreach ( $formscrm_tabs as $tab ) {
-								if ( ! is_array( $tab ) || ! isset( $tab['tab'] ) ) {
-									continue;
-								}
-								$is_active = $tab['tab'] === $active_tab;
-								$class = $is_active ? 'fcrm-tab fcrm-tab-active' : 'fcrm-tab';
-								?>
+						<?php
+						foreach ( $formscrm_tabs as $tab ) {
+							if ( ! is_array( $tab ) || ! isset( $tab['tab'] ) ) {
+								continue;
+							}
+							$is_active = $tab['tab'] === $active_tab;
+							$class     = $is_active ? 'fcrm-tab fcrm-tab-active' : 'fcrm-tab';
+							?>
 								<a href="?page=formscrm&tab=<?php echo esc_attr( $tab['tab'] ); ?>" class="<?php echo esc_attr( $class ); ?>">
-									<?php echo esc_html( $tab['label'] ?? '' ); ?>
+								<?php echo esc_html( $tab['label'] ?? '' ); ?>
 								</a>
 								<?php
-							}
-							// Allow addons to add their own tabs via separate action.
-							do_action( 'formscrm_settings_tabs_html', $active_tab );
-							?>
+						}
+						// Allow addons to add their own tabs via separate action.
+						do_action( 'formscrm_settings_tabs_html', $active_tab );
+						?>
 						</nav>
 					</div>
 					<?php
-				endif;
+					endif;
 
 				// Handle standard tabs with actions.
 				$tab_handled = false;
-				foreach ( $formscrm_tabs as $tab ) {
-					if ( ! is_array( $tab ) || ! isset( $tab['tab'] ) ) {
-						continue;
-					}
-					if ( $tab['tab'] === $active_tab && isset( $tab['action'] ) ) {
-						do_action( $tab['action'] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Dynamic action name from tab configuration.
-						$tab_handled = true;
-					}
+			foreach ( $formscrm_tabs as $tab ) {
+				if ( ! is_array( $tab ) || ! isset( $tab['tab'] ) ) {
+					continue;
 				}
+				if ( $tab['tab'] === $active_tab && isset( $tab['action'] ) ) {
+					do_action( $tab['action'] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Dynamic action name from tab configuration.
+					$tab_handled = true;
+				}
+			}
 
 				// If not handled by standard tabs, check for addon content (like license content).
-				if ( ! $tab_handled ) {
-					do_action( 'formscrm_settings_content', $active_tab );
-				}
-				?>
+			if ( ! $tab_handled ) {
+				do_action( 'formscrm_settings_content', $active_tab );
+			}
+			?>
 
 				<!-- Footer -->
 				<div class="fcrm-footer">
@@ -195,22 +196,22 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				</div>
 			</div>
 		</div>
-		<?php
-	}
+			<?php
+		}
 
-	/**
-	 * Renders the settings page.
-	 *
-	 * Displays the FormsCRM settings form with Slack integration options.
-	 *
-	 * @return void
-	 */
-	public function settings_page() {
-		$source_shop_url          = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://close.technology/en/';
-		$utm_source               = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
-		$slack_webhook_url        = get_option( 'formscrm_slack_webhook_url', '' );
-		$error_notification_email = get_option( 'formscrm_error_notification_email', '' );
-		?>
+		/**
+		 * Renders the settings page.
+		 *
+		 * Displays the FormsCRM settings form with Slack integration options.
+		 *
+		 * @return void
+		 */
+		public function settings_page() {
+			$source_shop_url          = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://close.technology/en/';
+			$utm_source               = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
+			$slack_webhook_url        = get_option( 'formscrm_slack_webhook_url', '' );
+			$error_notification_email = get_option( 'formscrm_error_notification_email', '' );
+			?>
 
 		<!-- Notifications Section -->
 		<div class="fcrm-section">
@@ -282,7 +283,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 						<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
 						</svg>
-						<?php esc_html_e( 'Save Settings', 'formscrm' ); ?>
+							<?php esc_html_e( 'Save Settings', 'formscrm' ); ?>
 					</button>
 				</form>
 			</div>
@@ -295,26 +296,26 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
 					</svg>
-					<?php esc_html_e( 'Forms Supported', 'formscrm' ); ?>
+						<?php esc_html_e( 'Forms Supported', 'formscrm' ); ?>
 				</h2>
 				<p class="fcrm-section-description">
-					<?php esc_html_e( 'FormsCRM works seamlessly with these popular form plugins', 'formscrm' ); ?>
+						<?php esc_html_e( 'FormsCRM works seamlessly with these popular form plugins', 'formscrm' ); ?>
 				</p>
 			</div>
 			<div class="fcrm-section-content">
 				<div class="fcrm-grid">
-					<?php
-					$forms_supported = array(
-						array( 'label' => 'Gravity' ),
-						array( 'label' => 'Elementor' ),
-						array( 'label' => 'ContactForm7' ),
-						array( 'label' => 'WooCommerce' ),
-						array( 'label' => 'WPForms' ),
-					);
+						<?php
+						$forms_supported = array(
+							array( 'label' => 'Gravity' ),
+							array( 'label' => 'Elementor' ),
+							array( 'label' => 'ContactForm7' ),
+							array( 'label' => 'WooCommerce' ),
+							array( 'label' => 'WPForms' ),
+						);
 
-					foreach ( $forms_supported as $form ) {
-						$slug = strtolower( $form['label'] );
-						?>
+						foreach ( $forms_supported as $form ) {
+							$slug = strtolower( $form['label'] );
+							?>
 						<div class="fcrm-card">
 							<img 
 								src="<?php echo esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/forms-' . $slug . '.svg' ); ?>" 
@@ -323,9 +324,9 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 							/>
 							<h3 class="fcrm-card-title"><?php echo esc_html( $form['label'] ); ?></h3>
 						</div>
-						<?php
-					}
-					?>
+							<?php
+						}
+						?>
 				</div>
 			</div>
 		</div>
@@ -337,7 +338,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
 					</svg>
-					<?php esc_html_e( 'CRM / ERP / Email Marketing', 'formscrm' ); ?>
+						<?php esc_html_e( 'CRM / ERP / Email Marketing', 'formscrm' ); ?>
 				</h2>
 				<p class="fcrm-section-description">
 					<?php esc_html_e( 'Connect your forms with these powerful business tools. Free and premium integrations available.', 'formscrm' ); ?>
@@ -347,22 +348,55 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				<div class="fcrm-grid">
 					<?php
 					$crms_supported = array(
-						array( 'label' => 'Holded', 'url' => false ),
-						array( 'label' => 'Clientify', 'url' => false ),
-						array( 'label' => 'AcumbaMail', 'url' => false ),
-						array( 'label' => 'Brevo', 'url' => false ),
-						array( 'label' => 'Odoo', 'url' => true ),
-						array( 'label' => 'WHMCS', 'url' => true ),
-						array( 'label' => 'vTiger', 'url' => true ),
-						array( 'label' => 'Inmovilla', 'url' => true ),
-						array( 'label' => 'Pipedrive', 'url' => true ),
-						array( 'label' => 'SuiteCRM', 'url' => true ),
-						array( 'label' => 'FacturaDirecta', 'url' => true ),
+						array(
+							'label' => 'Holded',
+							'url'   => false,
+						),
+						array(
+							'label' => 'Clientify',
+							'url'   => false,
+						),
+						array(
+							'label' => 'AcumbaMail',
+							'url'   => false,
+						),
+						array(
+							'label' => 'Brevo',
+							'url'   => false,
+						),
+						array(
+							'label' => 'Odoo',
+							'url'   => true,
+						),
+						array(
+							'label' => 'WHMCS',
+							'url'   => true,
+						),
+						array(
+							'label' => 'vTiger',
+							'url'   => true,
+						),
+						array(
+							'label' => 'Inmovilla',
+							'url'   => true,
+						),
+						array(
+							'label' => 'Pipedrive',
+							'url'   => true,
+						),
+						array(
+							'label' => 'SuiteCRM',
+							'url'   => true,
+						),
+						array(
+							'label' => 'FacturaDirecta',
+							'url'   => true,
+						),
 					);
 
 					foreach ( $crms_supported as $crm ) {
-						$slug = strtolower( $crm['label'] );
-						$has_link = isset( $crm['url'] ) && $crm['url'];
+						$slug       = strtolower( $crm['label'] );
+						$has_link   = isset( $crm['url'] ) && $crm['url'];
 						$card_class = $has_link ? 'fcrm-card fcrm-card-pro' : 'fcrm-card';
 						?>
 						<div class="<?php echo esc_attr( $card_class ); ?>">
@@ -408,8 +442,8 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				</div>
 			</div>
 		</div>
-		<?php
-	}
+			<?php
+		}
 	}
 }
 if ( is_admin() ) {
