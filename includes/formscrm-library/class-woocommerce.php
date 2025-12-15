@@ -6,8 +6,6 @@
  * @author    David Perez <david@closemarketing.es>
  * @copyright 2021 Closemarketing
  * @version   3.3
- *
- * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,7 +19,6 @@ defined( 'ABSPATH' ) || exit;
  * @version    1.0
  */
 class FormsCRM_WooCommerce {
- // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 	/**
 	 * CRM LIB external
 	 *
@@ -176,7 +173,7 @@ class FormsCRM_WooCommerce {
 			}
 
 			// Module.
-			$this->include_library( $wc_formscrm['fc_crm_type'] );
+			$this->crmlib   = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
 			$options_module = array();
 			if ( ! empty( $this->crmlib ) && method_exists( $this->crmlib, 'list_modules' ) ) {
 				foreach ( $this->crmlib->list_modules( $wc_formscrm ) as $module ) {
@@ -246,32 +243,6 @@ class FormsCRM_WooCommerce {
 	}
 
 	/**
-	 * Include library connector
-	 *
-	 * @param string $crmtype Type of CRM.
-	 * @return void
-	 */
-	private function include_library( $crmtype ) {
-		if ( isset( $crmtype ) ) {
-			$crmname      = strtolower( $crmtype );
-			$crmclassname = str_replace( ' ', '', $crmname );
-			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
-
-			$array_path = formscrm_get_crmlib_path();
-			if ( isset( $array_path[ $crmname ] ) ) {
-				include_once $array_path[ $crmname ];
-			}
-
-			formscrm_debug_message( $array_path[ $crmname ] );
-
-			if ( class_exists( $crmclassname ) ) {
-				$this->crmlib = new $crmclassname();
-			}
-		}
-	}
-
-	/**
 	 * Process the entry.
 	 *
 	 * @param int $order_id Order ID.
@@ -282,8 +253,8 @@ class FormsCRM_WooCommerce {
 		$order       = new WC_Order( $order_id );
 
 		if ( $wc_formscrm && ! empty( $wc_formscrm['fc_crm_type'] ) ) {
-			$this->include_library( $wc_formscrm['fc_crm_type'] );
-			$merge_vars = $this->get_merge_vars( $wc_formscrm, $order );
+			$this->crmlib = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
+			$merge_vars   = $this->get_merge_vars( $wc_formscrm, $order );
 
 			$response_result = $this->crmlib->create_entry( $wc_formscrm, $merge_vars );
 
@@ -295,7 +266,7 @@ class FormsCRM_WooCommerce {
 					'entry_id'  => $order_id,
 				);
 
-				formscrm_debug_email_lead( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
+				formscrm_alert_error( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
 			} else {
 				error_log( $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
 			}

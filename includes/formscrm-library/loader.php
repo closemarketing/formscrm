@@ -6,11 +6,6 @@
  * @author     David Perez <david@closemarketing.es>
  * @copyright  2020 Closemarketing
  * @version    1.0
- *
- * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
- * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
- * phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed
- * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -24,12 +19,12 @@ if ( ! function_exists( 'is_plugin_active' ) ) {
 	include_once ABSPATH . 'wp-admin/includes/plugin.php';
 }
 
-if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) && ! class_exists( 'FC_CRM_Bootstrap' ) ) {
-	add_action( 'gform_loaded', array( 'FC_CRM_Bootstrap', 'load' ), 5 );
+if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 'gravity-forms/gravityforms.php' ) ) && ! class_exists( 'FORMSCRM_Bootstrap' ) ) {
+	add_action( 'gform_loaded', array( 'FORMSCRM_Bootstrap', 'load' ), 5 );
 	/**
 	 * Bootstrap class for Gravity Forms integration.
 	 */
-	class FC_CRM_Bootstrap {
+	class FORMSCRM_Bootstrap {
 
 		/**
 		 * Loads the Gravity Forms Feed Add-On.
@@ -71,7 +66,7 @@ if ( is_plugin_active( 'woocommerce/woocommerce.php' ) && ! class_exists( 'Forms
 }
 
 // WPForms.
-if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_FormsCRM' ) ) {
+if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'FormsCRM_WPForms' ) ) {
 	add_action( 'wpforms_loaded', 'formscrm_wpforms' );
 	/**
 	 * Load the provider class.

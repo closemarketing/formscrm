@@ -923,30 +923,29 @@ class CRMLIB_Clientify {
 				// Add tags to deal.
 				if ( ! empty( $deal_tags ) ) {
 					$deal_tags_raw = explode( ',', $deal_tags );
-					if ( ! empty( $deal_tags_raw ) ) {
-						$deal_id = $result['data']['id'];
-						foreach ( $deal_tags_raw as $deal_tag ) {
-							$deal_tags_api = array(
-								'name' => sanitize_text_field( $deal_tag ),
+					$deal_id       = $result['data']['id'];
+
+					foreach ( $deal_tags_raw as $deal_tag ) {
+						$deal_tags_api = array(
+							'name' => sanitize_text_field( $deal_tag ),
+						);
+
+						$result_tag = $this->request( 'deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
+
+						if ( 'ok' !== $result_tag['status'] ) {
+							$result_deal_tag = sprintf(
+								/* translators: %s: Tag name */
+								__( 'Tag %s not added to deal', 'formscrm' ),
+								$deal_tag,
 							);
-
-							$result_tag = $this->request( 'deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
-
-							if ( 'ok' !== $result_tag['status'] ) {
-								$result_deal_tag = sprintf(
-									/* translators: %s: Tag name */
-									__( 'Tag %s not added to deal', 'formscrm' ),
-									$deal_tag,
-								);
-							} else {
-								$result_deal_tag = sprintf(
-									/* translators: %s: Tag name */
-									__( 'Tag %s added to deal', 'formscrm' ),
-									$deal_tag,
-								);
-							}
-							$response_result['message'] .= ' ' . $result_deal_tag;
+						} else {
+							$result_deal_tag = sprintf(
+								/* translators: %s: Tag name */
+								__( 'Tag %s added to deal', 'formscrm' ),
+								$deal_tag,
+							);
 						}
+						$response_result['message'] .= ' ' . $result_deal_tag;
 					}
 				}
 

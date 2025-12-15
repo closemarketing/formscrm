@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 4.0.6
-Version: 4.0.6
+Stable tag: 4.1.0
+Version: 4.1.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -130,20 +130,15 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
 = n.e.x.t =
 *  Enhanced: FormsCRM now has its own dedicated menu in WordPress admin with custom icon.
 *	 Added: Slack integration for real-time error notifications via Incoming Webhook.
 *	 Enhanced: Slack notifications include comprehensive information (site, form, CRM, error, lead preview).
-*	 Enhanced: Slack messages use a compact, single-line format for quick scanning.
-*	 Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now include form context in error reports.
-*	 Added: 10 comprehensive unit tests for Slack notification functions.
-*  Added: Test utility for manually testing Slack notifications (tests/test-slack.php).
-*  Added: Custom email option for error notifications - Configure specific emails to receive error reports.
 *  Enhanced: Error email notifications now include site information (name, URL, timestamp).
-*  Enhanced: Error emails now show detailed form information (type, ID, name, entry ID).
 *  Enhanced: Professional HTML email template with color-coded sections for better readability.
 *  Enhanced: Complete technical details in error emails (API URL and JSON request) for easier debugging.
-*  Improved: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
+*	 Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
 
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
