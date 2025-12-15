@@ -1,40 +1,33 @@
+/**
+ * FormsCRM Admin - Legacy Compatibility Styles
+ * 
+ * @deprecated These styles are kept for backwards compatibility only
+ * The new admin uses formscrm-admin.css
+ */
+
+/* Legacy styles for addon pages that might still use old classes */
 .wp-admin ul.formscrm-list-crm {
 	display: grid;
 	grid-column-gap: 10px;
 	grid-row-gap: 5px;
-	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
+
 .wp-admin ul.formscrm-list-forms {
 	display: flex;
+	flex-wrap: wrap;
+	gap: 15px;
 }
 
 .wp-admin ul.formscrm-list-forms li {
-	margin-right: 15px;
+	list-style: none;
 }
 
-.settings_page_formscrm {
-	display: -ms-flexbox;
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-}
-
-.formscrm-header {
-	background: #F7C440 url( 'background.svg' );
-	margin-left: -20px;
+/* Basic fallback for non-redesigned pages */
+.settings_page_formscrm .formscrm-header {
+	background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 100%);
 	padding: 20px 15%;
-	display: flex;
-	justify-content: space-between;
 	color: white;
 	background-repeat: no-repeat;
 	background-size: cover;
-}
-.formscrm-header .logo {
-	min-width: 20%;
-}
-.formscrm-header h2 {
-	float: right;
-	color: white;
-	padding: 10px 0 0 30px;
-	margin: 0;
 }
