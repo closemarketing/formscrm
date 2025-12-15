@@ -131,6 +131,11 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = n.e.x.t =
+*  Enhanced: Complete redesign of the settings page with modern UI and improved UX.
+*  Enhanced: New color scheme with cyan-to-purple gradient for better visual appeal.
+*  Enhanced: Modern tab navigation system for better organization of settings and license management.
+*  Enhanced: Responsive grid layout for forms and CRM integrations display.
+*  Enhanced: Improved cards design with hover effects and smooth transitions.
 *	 Added: Slack integration for real-time error notifications via Incoming Webhook.
 *	 Enhanced: Slack notifications include comprehensive information (site, form, CRM, error, lead preview).
 *	 Enhanced: Slack messages use a compact, single-line format for quick scanning.
