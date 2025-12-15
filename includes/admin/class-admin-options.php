@@ -70,6 +70,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		 */
 		public function add_plugin_page() {
 			// SVG icon encoded as data URI.
+			// phpcs:ignore WordPress.PHP.DiscouragedFunctions -- base64_encode used for data URI encoding, not code obfuscation.
 			$icon_svg = 'data:image/svg+xml;base64,' . base64_encode(
 				file_get_contents( FORMSCRM_PLUGIN_URL . 'includes/assets/icon-menu.svg' ) // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			);
