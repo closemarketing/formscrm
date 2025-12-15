@@ -14,7 +14,7 @@ if ( ! function_exists( 'formscrm_get_choices' ) ) {
 	/**
 	 * Returns dependecies CRM Choices.
 	 *
-	 * @return array
+	 * @return array<int, array<string, string>>
 	 */
 	function formscrm_get_choices() {
 		return apply_filters(
@@ -28,7 +28,7 @@ if ( ! function_exists( 'formscrm_get_crmlib_path' ) ) {
 	/**
 	 * Returns dependecies CRM Choices.
 	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
 	function formscrm_get_crmlib_path() {
 		return apply_filters(
@@ -42,7 +42,7 @@ if ( ! function_exists( 'formscrm_get_dependency_url' ) ) {
 	/**
 	 * Returns dependecies URL for forms depending of CRM.
 	 *
-	 * @return array
+	 * @return array<int, string>
 	 */
 	function formscrm_get_dependency_url() {
 		return apply_filters(
@@ -69,7 +69,7 @@ if ( ! function_exists( 'formscrm_get_dependency_username' ) ) {
 	/**
 	 * Returns dependecies Username for forms depending of CRM.
 	 *
-	 * @return array
+	 * @return array<int, string>
 	 */
 	function formscrm_get_dependency_username() {
 		return apply_filters(
@@ -98,7 +98,7 @@ if ( ! function_exists( 'formscrm_get_dependency_password' ) ) {
 	/**
 	 * Returns dependecies Password for forms depending of CRM.
 	 *
-	 * @return array
+	 * @return array<int, string>
 	 */
 	function formscrm_get_dependency_password() {
 		return apply_filters(
@@ -123,7 +123,7 @@ if ( ! function_exists( 'formscrm_get_dependency_apipassword' ) ) {
 	/**
 	 * Returns dependecies API Password for forms depending of CRM.
 	 *
-	 * @return array
+	 * @return array<int, string>
 	 */
 	function formscrm_get_dependency_apipassword() {
 		return apply_filters(
@@ -142,7 +142,7 @@ if ( ! function_exists( 'formscrm_get_dependency_apisales' ) ) {
 	/**
 	 * Returns dependecies API Password for forms depending of CRM.
 	 *
-	 * @return array
+	 * @return array<int, string>
 	 */
 	function formscrm_get_dependency_apisales() {
 		return apply_filters(
@@ -158,7 +158,7 @@ if ( ! function_exists( 'formscrm_get_dependency_odoodb' ) ) {
 	/**
 	 * Returns dependecies Odoo DB for forms depending of CRM.
 	 *
-	 * @return array
+	 * @return array<int, string>
 	 */
 	function formscrm_get_dependency_odoodb() {
 		return apply_filters(

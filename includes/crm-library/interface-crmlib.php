@@ -30,7 +30,7 @@ interface CRMLIB_Interface {
 	 * Get list of available modules/entities in the CRM.
 	 *
 	 * @param array<string, mixed> $settings Configuration settings.
-	 * @return array<string, string> Array of module names with labels.
+	 * @return array<int, array<string, mixed>> Array of modules with properties.
 	 */
 	public function list_modules( array $settings ): array;
 
@@ -38,7 +38,7 @@ interface CRMLIB_Interface {
 	 * Get list of fields for a specific module.
 	 *
 	 * @param array<string, mixed> $settings Configuration settings including module name.
-	 * @return array<string, array<string, mixed>> Array of fields with their properties.
+	 * @return array<int, array<string, mixed>> Array of fields with their properties.
 	 */
 	public function list_fields( array $settings ): array;
 

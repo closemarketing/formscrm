@@ -40,7 +40,7 @@ if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	/**
 	 * Debug message in log
 	 *
-	 * @param array $message Message.
+	 * @param array<string, mixed>|string $message Message.
 	 * @return void
 	 */
 	function formscrm_debug_message( $message ) {
@@ -57,8 +57,8 @@ if ( ! function_exists( 'formscrm_get_module' ) ) {
 	/**
 	 * Gets default module in forms
 	 *
-	 * @param string $default_module To avoid.
-	 * @param array  $settings       Optional settings array.
+	 * @param string               $default_module To avoid.
+	 * @param array<string, mixed> $settings Optional settings array.
 	 * @return string
 	 */
 	function formscrm_get_module( $default_module, $settings = array() ) {
@@ -96,12 +96,12 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 	/**
 	 * Sends error to admin
 	 *
-	 * @param string $crm        CRM.
-	 * @param string $error      Error to send.
-	 * @param array  $data       Data of error.
-	 * @param string $url        API URL.
-	 * @param string $json       JSON request.
-	 * @param array  $form_info  Form information (form_id, form_name, form_type, entry_id).
+	 * @param string               $crm CRM.
+	 * @param string               $error Error to send.
+	 * @param array<mixed>         $data Data of error.
+	 * @param string               $url API URL.
+	 * @param string               $json JSON request.
+	 * @param array<string, mixed> $form_info Form information (form_id, form_name, form_type, entry_id).
 	 * @return void
 	 */
 	function formscrm_alert_error( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
@@ -218,12 +218,12 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 	/**
 	 * Sends error notification to Slack
 	 *
-	 * @param string $crm        CRM name.
-	 * @param string $error      Error message.
-	 * @param array  $data       Lead data.
-	 * @param string $url        API URL.
-	 * @param string $json       JSON request.
-	 * @param array  $form_info  Form information.
+	 * @param string               $crm CRM name.
+	 * @param string               $error Error message.
+	 * @param array<mixed>         $data Lead data.
+	 * @param string               $url API URL.
+	 * @param string               $json JSON request.
+	 * @param array<string, mixed> $form_info Form information.
 	 * @return bool|WP_Error True on success, WP_Error on failure.
 	 */
 	function formscrm_send_slack_notification( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
@@ -367,7 +367,7 @@ if ( ! function_exists( 'formscrm_check_url_crm' ) ) {
 	 * Checks CRM URL to see that is correct
 	 *
 	 * @param string $url URL to check.
-	 * @return url
+	 * @return string
 	 */
 	function formscrm_check_url_crm( $url ) {
 		return trailingslashit( sanitize_url( $url ) );
@@ -378,9 +378,9 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 	/**
 	 * Sends webhook
 	 *
-	 * @param string $settings Settings.
-	 * @param array  $response Response from CRM.
-	 * @return void
+	 * @param array<string, mixed> $settings Settings.
+	 * @param array<string, mixed> $response Response from CRM.
+	 * @return array<string, mixed>|void
 	 */
 	function formscrm_send_webhook( $settings, $response ) {
 		$webhook_url = isset( $settings['fc_crm_webhook'] ) ? $settings['fc_crm_webhook'] : '';

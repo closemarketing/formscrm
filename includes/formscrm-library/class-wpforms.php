@@ -18,7 +18,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 	/**
 	 * CRM library instance.
 	 *
-	 * @var object
+	 * @var CRMLIB_Interface|null
 	 */
 	private $crmlib;
 
@@ -459,7 +459,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 		try {
 			// Get Custom Fields for the List from the API.
-			$fields = $this->crmlib->list_fields( $settings, $module );
+			$fields = $this->crmlib->list_fields( $settings );
 
 			$fields_wpforms = array();
 			foreach ( $fields as $field ) {

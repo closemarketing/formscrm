@@ -118,7 +118,7 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * CRM library instance.
 	 *
-	 * @var object
+	 * @var CRMLIB_Interface|null
 	 */
 	private $crmlib;
 
@@ -452,7 +452,7 @@ class GFCRM extends GFFeedAddOn {
 				'label'      => __( 'Map Fields', 'formscrm' ),
 				'type'       => 'field_map',
 				'dependency' => 'fc_crm_module',
-				'field_map'  => $this->crmlib->list_fields( $settings, $module ),
+				'field_map'  => $this->crmlib->list_fields( $settings ),
 				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 			);
 
@@ -903,7 +903,11 @@ class GFCRM extends GFFeedAddOn {
 
 		if ( isset( $this->crmlib ) ) {
 			$login_result = $this->crmlib->login( $settings );
-			formscrm_debug_message( $login_result );
+			formscrm_debug_message(
+				array(
+					'login_result' => $login_result ? 'success' : 'failed',
+				)
+			);
 		}
 		formscrm_testserver();
 

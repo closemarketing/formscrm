@@ -13,8 +13,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Process post data for Elementor forms
  *
- * @param array $post_data Post data from form.
- * @return array Processed settings data.
+ * @param array<string, mixed> $post_data Post data from form.
+ * @return array<string, mixed> Processed settings data.
  */
 function formscrm_elementor_process_settings( $post_data ) {
 	if ( isset( $post_data['fc_crm_url'] ) && is_array( $post_data['fc_crm_url'] ) ) {
@@ -126,9 +126,10 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 			continue;
 		}
 
-		$crm_settings_raw = isset( $_POST['crmSettings'] ) ? wp_unslash( $_POST['crmSettings'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in formscrm_elementor_process_settings().
-		$post_data        = formscrm_elementor_process_settings( $crm_settings_raw );
-		$crm_fields       = $crmlib->list_fields( $post_data, $value );
+		$crm_settings_raw           = isset( $_POST['crmSettings'] ) ? wp_unslash( $_POST['crmSettings'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in formscrm_elementor_process_settings().
+		$post_data                  = formscrm_elementor_process_settings( $crm_settings_raw );
+		$post_data['fc_crm_module'] = $value;
+		$crm_fields                 = $crmlib->list_fields( $post_data );
 
 		if ( empty( $crm_fields ) || ! is_array( $crm_fields ) ) {
 			continue;

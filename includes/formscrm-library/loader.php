@@ -72,6 +72,7 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'FormsCRM_WPFo
 	 * Load the provider class.
 	 *
 	 * @since 3.7.2
+	 * @return void
 	 */
 	function formscrm_wpforms() { // phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed -- Loading function for WPForms integration.
 

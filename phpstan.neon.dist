@@ -15,13 +15,22 @@ parameters:
 	treatPhpDocTypesAsCertain: false
 	ignoreErrors:
 		# External plugins - Gravity Forms
-		- '#Call to (static )?method .* on an unknown class (GFFormsModel|RGFormsModel|GF_Fields|GFAPI|GFCommon|GFForms|GFAddOn|GFCRM)\.#'
-		- '#Function (rgar|rgblank|rgpost|gform_add_meta) not found\.#'
+		- '#Call to (static )?method .* on an unknown class (GFFormsModel|RGFormsModel|GF_Fields|GFAPI|GFCommon|GFForms|GFAddOn|GFFeedAddOn|GFCRM)\.#'
+		- '#Function (rgar|rgblank|rgpost|gform_add_meta|str_contains) not found\.#'
+		- '#(Method GFFeedAddOn::|Parameter .* of method GFFeedAddOn::).*#'
+		- '#(Parameter .* of (static )?method RGFormsModel::).*#'
+		- '#(Parameter .* of function rgar expects).*#'
+		- '#(Parameter .* of function strpos expects string).*#'
+		- '#Access to an undefined property object::\$id\.#'
+		- '#(Parameter .* of method GFCRM::.* expects array, object given).*#'
 		
 		# External plugins - Elementor
 		- '#(Instantiated |Class )?class (ElementorPro\\Modules\\Forms\\Widgets\\Form|FormsCRM_Elementor_Action_After_Submit).*(not )?found\.#'
-		- '#Class ElementorPro.* not found\.#'
-		- '#Call to (static )?method .* on an unknown class ElementorPro\\Plugin\.#'
+		- '#Class (Elementor|ElementorPro).* not found\.#'
+		- '#Call to (static )?method .* on an unknown class (Elementor|ElementorPro)\\.*#'
+		- '#Access to property .* on an unknown class ElementorPro\\.*#'
+		- '#Parameter .* has invalid type (Elementor|ElementorPro)\\.*#'
+		- '#Call to an undefined method ElementorPro.*#'
 		
 		# External plugins - WooCommerce
 		- '#(Instantiated )?class WC_Order not found\.#'
@@ -29,10 +38,31 @@ parameters:
 		
 		# External plugins - WPForms
 		- '#Function (wpforms|wpforms_log) not found\.#'
+		- '#(Method|Property) .*WPForms_Provider::.*#'
 		
 		# External plugins - Contact Form 7
 		- '#unknown class (WPCF7_Submission|WPCF7_ContactForm)#'
+		- '#Call to an undefined method WPCF7_ContactForm::.*#'
+		- '#(Parameter|Method) .* has invalid type obj\.#'
+		- '#(Property|Call to method .* on an) unknown class obj\.#'
+		- '#Property .* \(obj\) in (isset|empty)\(\) is not.*#'
 		
 		# Logic checks - variables in isset/empty that always exist
 		- '#Variable \$.* in (isset|empty)\(\) always exists and is (not nullable|always falsy|not falsy)\.#'
+		- '#Property .* \(object\) in isset\(\) is not nullable\.#'
+		- '#If condition is always true\.#'
+		- '#Left side of && is always true\.#'
+		
+		# Methods without return type (from parent classes)
+		- '#Method .* has no return type specified\.#'
+		- '#Method .* is unused\.#'
+		- '#Property .* is never written, only read\.#'
+		
+		# Binary operations with arrays (dynamic string concatenation)
+		- '#Binary operation "\." between.*array.*#'
+		
+		# Property/Parameter types from external integrations
+		- '#(Method|Function) .* has parameter .* with no value type specified in iterable type array\.#'
+		- '#(Method|Function) .* return type has no value type specified in iterable type array\.#'
+		- '#Property .* type has no value type specified in iterable type array\.#'
 

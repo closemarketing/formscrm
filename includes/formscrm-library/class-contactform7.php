@@ -22,7 +22,7 @@ class FORMSCRM_CF7_Settings {
 	/**
 	 * CRM LIB external
 	 *
-	 * @var obj
+	 * @var CRMLIB_Interface|null
 	 */
 	private $crmlib;
 
@@ -168,7 +168,7 @@ class FORMSCRM_CF7_Settings {
 			}
 
 			if ( isset( $cf7_crm['fc_crm_module'] ) && $cf7_crm['fc_crm_module'] ) {
-				$crm_fields  = $this->crmlib->list_fields( $cf7_crm, $cf7_crm['fc_crm_module'] );
+				$crm_fields  = $this->crmlib->list_fields( $cf7_crm );
 				$cf7_form    = WPCF7_ContactForm::get_instance( $args->id() );
 				$form_fields = ! empty( $cf7_form ) ? $cf7_form->scan_form_tags() : array();
 

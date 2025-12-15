@@ -22,7 +22,7 @@ class FormsCRM_WooCommerce {
 	/**
 	 * CRM LIB external
 	 *
-	 * @var obj
+	 * @var CRMLIB_Interface|null
 	 */
 	private $crmlib;
 
@@ -208,7 +208,7 @@ class FormsCRM_WooCommerce {
 
 		// Settings Fields.
 		if ( isset( $wc_formscrm['fc_crm_module'] ) && $wc_formscrm['fc_crm_module'] && ! empty( $this->crmlib ) ) {
-			$crm_fields     = $this->crmlib->list_fields( $wc_formscrm, $wc_formscrm['fc_crm_module'] );
+			$crm_fields     = $this->crmlib->list_fields( $wc_formscrm );
 			$settings_crm[] = array(
 				'name' => __( 'Field Settings', 'formscrm' ),
 				'type' => 'title',
@@ -253,8 +253,8 @@ class FormsCRM_WooCommerce {
 		$order       = new WC_Order( $order_id );
 
 		if ( $wc_formscrm && ! empty( $wc_formscrm['fc_crm_type'] ) ) {
-			$this->include_library( $wc_formscrm['fc_crm_type'] );
-			$merge_vars = $this->get_merge_vars( $wc_formscrm, $order );
+			$this->crmlib = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
+			$merge_vars   = $this->get_merge_vars( $wc_formscrm, $order );
 
 			$response_result = $this->crmlib->create_entry( $merge_vars, $wc_formscrm );
 

@@ -24,6 +24,20 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
+// PHP 7.4 Polyfill for str_contains (available natively in PHP 8.0+).
+if ( ! function_exists( 'str_contains' ) ) {
+	/**
+	 * Polyfill for str_contains() function.
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle The substring to search for.
+	 * @return bool True if needle is found in haystack, false otherwise.
+	 */
+	function str_contains( $haystack, $needle ) {
+		return '' === $needle || false !== strpos( $haystack, $needle );
+	}
+}
+
 define( 'FORMSCRM_VERSION', '4.1.0' );
 define( 'FORMSCRM_PLUGIN', __FILE__ );
 define( 'FORMSCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
