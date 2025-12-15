@@ -6,8 +6,6 @@
  * @author    David Perez <david@closemarketing.es>
  * @copyright 2021 Closemarketing
  * @version   3.3
- *
- * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,8 +19,6 @@ defined( 'ABSPATH' ) || exit;
 	 * @version    1.0
 	 */
 class FORMSCRM_CF7_Settings {
- // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
-
 	/**
 	 * CRM LIB external
 	 *
@@ -54,32 +50,6 @@ class FORMSCRM_CF7_Settings {
 		);
 		$panels   = array_merge( $panels, $new_page );
 		return $panels;
-	}
-
-	/**
-	 * Include library connector
-	 *
-	 * @param string $crmtype Type of CRM.
-	 * @return void
-	 */
-	private function include_library( $crmtype ) {
-		if ( isset( $crmtype ) ) {
-			$crmname      = strtolower( $crmtype );
-			$crmclassname = str_replace( ' ', '', $crmname );
-			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
-
-			$array_path = formscrm_get_crmlib_path();
-			if ( isset( $array_path[ $crmname ] ) ) {
-				include_once $array_path[ $crmname ];
-			}
-
-			formscrm_debug_message( $array_path[ $crmname ] );
-
-			if ( class_exists( $crmclassname ) ) {
-				$this->crmlib = new $crmclassname();
-			}
-		}
 	}
 
 	/**
@@ -150,9 +120,11 @@ class FORMSCRM_CF7_Settings {
 						<input type="text" id="wpcf7-crm-fc_crm_odoodb" name="wpcf7-crm[fc_crm_odoodb]" class="wide" size="70" placeholder="<?php esc_html_e( 'Odoo DB', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_odoodb'] ) ) ? esc_attr( $cf7_crm['fc_crm_odoodb'] ) : ''; ?>" />
 					</p>
 					<?php } ?>
-
+					
+					<?php
+					$this->crmlib = formscrm_get_api_class( $cf7_crm['fc_crm_type'] );
+					?>
 					<p>
-						<?php $this->include_library( $cf7_crm['fc_crm_type'] ); ?>
 						<select name="wpcf7-crm[fc_crm_module]" class="medium" onchange="jQuery(this).parents('form').submit();" id="fc_crm_module">
 							<?php
 							$settings_module = isset( $cf7_crm['fc_crm_module'] ) ? $cf7_crm['fc_crm_module'] : '';
@@ -167,7 +139,7 @@ class FORMSCRM_CF7_Settings {
 									continue;
 								}
 								echo '<option value="' . esc_html( $value ) . '" ';
-								if ( isset( $value ) ) {
+								if ( $value ) {
 									selected( $settings_module, $value );
 								}
 								echo '>' . esc_html( $module['label'] ) . '</option>';
@@ -223,7 +195,7 @@ class FORMSCRM_CF7_Settings {
 										<label for="wpcf7-crm-field-<?php echo esc_html( $crm_field_name ); ?>">
 											<?php
 											echo esc_html( $crm_field_label );
-											if ( isset( $crm_field_req ) && $crm_field_req ) {
+											if ( $crm_field_req ) {
 												echo ' <span class="required">*</span>';
 											}
 											?>
@@ -290,7 +262,7 @@ class FORMSCRM_CF7_Settings {
 		$crm_type   = ! empty( $cf7_crm['fc_crm_type'] ) ? sanitize_text_field( $cf7_crm['fc_crm_type'] ) : '';
 
 		// Create contact in CRM.
-		$this->include_library( $crm_type );
+		$this->crmlib = formscrm_get_api_class( $crm_type );
 		if ( empty( $this->crmlib ) ) {
 			return;
 		}
@@ -307,7 +279,7 @@ class FORMSCRM_CF7_Settings {
 				'form_name' => $contact_form->title(),
 			);
 
-			formscrm_debug_email_lead( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query, $form_info );
+			formscrm_alert_error( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query, $form_info );
 		}
 	}
 

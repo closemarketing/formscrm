@@ -65,7 +65,7 @@ El archivo `tests/Unit/test-notifications.php` contiene tests completos para las
 
 ### Funciones Testeadas
 
-#### 1. `formscrm_debug_email_lead()`
+#### 1. `formscrm_alert_error()`
 
 **Tests incluidos:**
 
@@ -238,7 +238,7 @@ public function test_nueva_funcionalidad() {
     );
 
     // Act - Ejecutar función.
-    formscrm_debug_email_lead( $crm, $error, $data );
+    formscrm_alert_error( $crm, $error, $data );
 
     // Assert - Verificar resultado.
     $mailer = tests_retrieve_phpmailer_instance();

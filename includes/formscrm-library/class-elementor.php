@@ -8,8 +8,6 @@
  * @version    4.0.0
  *
  * DOC: https://developers.elementor.com/docs/form-actions/
- *
- * phpcs:disable WordPress.Files.FileName.InvalidClassFileName
  */
 
 // Exit if accessed directly.
@@ -23,7 +21,6 @@ use ElementorPro\Modules\Forms\Submissions\Database\Query;
  * Action Class
  */
 class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\Action_Base {
- // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- File name follows plugin convention.
 	/**
 	 * CRM Library Object
 	 *
@@ -53,40 +50,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 */
 	public function get_label() {
 		return __( 'FormsCRM', 'formscrm' );
-	}
-
-	/**
-	 * Include library connector
-	 *
-	 * @param string $crmtype Type of CRM.
-	 * @return void
-	 */
-	private function include_library( $crmtype ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
-		if ( isset( $_POST['fc_crm_type'] ) ) {
-			$crmtype = sanitize_text_field( wp_unslash( $_POST['fc_crm_type'] ) );
-		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( isset( $crmtype ) ) {
-			$crmname      = strtolower( $crmtype );
-			$crmclassname = str_replace( ' ', '', $crmname );
-			$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-			$crmname      = str_replace( ' ', '_', $crmname );
-
-			$array_path = formscrm_get_crmlib_path();
-			if ( isset( $array_path[ $crmname ] ) ) {
-				include_once $array_path[ $crmname ];
-			}
-
-			if ( class_exists( $crmclassname ) ) {
-				$this->crmlib = new $crmclassname();
-			} else {
-				// If the class does not exist, we throw an error.
-				formscrm_debug_message( 'Class ' . $crmclassname . ' not found in ' . $array_path[ $crmname ] );
-				wp_send_json_error( __( 'CRM library not found', 'formscrm' ) );
-			}
-		}
 	}
 
 	/**
@@ -273,6 +236,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$raw_fields = $record->get( 'fields' );
 
 		// Unpack hidden settings for the form.
+		$hidden_settings = array();
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
 			$hidden_settings = json_decode( $settings['formscrm_settings_hidden'], true );
 			$settings        = array_merge( $settings, $hidden_settings );
@@ -321,7 +285,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'form_name' => isset( $settings['form_name'] ) ? $settings['form_name'] : '',
 			);
 
-			formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );
+			formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );
 
 			$response_message = sprintf(
 				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.

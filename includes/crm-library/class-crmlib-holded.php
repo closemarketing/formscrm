@@ -9,14 +9,11 @@
  * @package   FormsCRM
  * @version   1.0.0
  * @copyright 2021 Closemarketing
- *
- * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
- * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MAX_LIMIT_HOLDED_API', 500 ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- Legacy constant, changing would break compatibility.
+define( 'FORMSCRM_MAX_LIMIT_HOLDED_API', 500 );
 
 /**
  * Class for Holded connection.
@@ -138,7 +135,7 @@ class CRMLIB_HOLDED implements CRMLIB_Interface {
 				}
 			}
 
-			if ( count( $contacts['data'] ) === MAX_LIMIT_HOLDED_API ) {
+			if ( count( $contacts['data'] ) === FORMSCRM_MAX_LIMIT_HOLDED_API ) {
 				++$page;
 			} else {
 				$next = false;
@@ -398,7 +395,7 @@ class CRMLIB_HOLDED implements CRMLIB_Interface {
 		foreach ( $merge_vars as $element ) {
 			if ( false !== strpos( $element['name'], '|' ) ) {
 				$data_field = explode( '|', $element['name'] );
-				if ( is_array( $data_field ) && ! empty( $data_field ) ) {
+				if ( is_array( $data_field ) ) {
 					$contact[ $data_field[0] ][ $data_field[1] ] = (string) $element['value'];
 				}
 			} elseif ( 'tags' === $element['name'] ) {

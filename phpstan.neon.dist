@@ -6,9 +6,6 @@ parameters:
 	excludePaths:
 		- tests/*
 		- vendor/*
-		- includes/formscrm-library/class-elementor.php
-		- includes/formscrm-library/class-gravityforms.php
-		- includes/formscrm-library/class-wpforms.php
 	scanDirectories:
 		- includes
 	bootstrapFiles:
