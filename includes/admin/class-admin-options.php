@@ -69,13 +69,19 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		 * @return void
 		 */
 		public function add_plugin_page() {
-			add_submenu_page(
-				'options-general.php',
+			// SVG icon encoded as data URI.
+			$icon_svg = 'data:image/svg+xml;base64,' . base64_encode(
+				file_get_contents( FORMSCRM_PLUGIN_URL . 'includes/assets/icon-menu.svg' ) // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			);
+
+			add_menu_page(
 				__( 'FormsCRM', 'formscrm' ),
 				__( 'FormsCRM', 'formscrm' ),
 				'manage_options',
 				'formscrm',
-				array( $this, 'create_admin_page' )
+				array( $this, 'create_admin_page' ),
+				$icon_svg,
+				80
 			);
 		}
 

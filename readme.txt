@@ -130,12 +130,15 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
-= 4.1.0 =
-*	 Added: Slack integration for real-time error notifications via Incoming Webhook with compact, single-line format.
-*	 Added: Custom email configuration for error notifications with professional HTML template.
-*	 Enhanced: Error notifications (Slack and Email) include comprehensive information: site details, form context (type, ID, name, entry), CRM details, lead preview, and complete technical data (API URL, JSON request).
+
+= n.e.x.t =
+*  Enhanced: FormsCRM now has its own dedicated menu in WordPress admin with custom icon.
+*	 Added: Slack integration for real-time error notifications via Incoming Webhook.
+*	 Enhanced: Slack notifications include comprehensive information (site, form, CRM, error, lead preview).
+*  Enhanced: Error email notifications now include site information (name, URL, timestamp).
+*  Enhanced: Professional HTML email template with color-coded sections for better readability.
+*  Enhanced: Complete technical details in error emails (API URL and JSON request) for easier debugging.
 *	 Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
-*	 Added: 10 comprehensive unit tests and manual test utility (tests/test-slack.php) for notification functions.
 
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
