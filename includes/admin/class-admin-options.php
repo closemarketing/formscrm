@@ -57,7 +57,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		 */
 		public function enqueue_admin_scripts( $hook ) {
 			// Only load on our settings page.
-			if ( 'settings_page_formscrm' !== $hook ) {
+			if ( 'toplevel_page_formscrm' !== $hook ) {
 				return;
 			}
 
@@ -309,7 +309,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				</p>
 			</div>
 			<div class="fcrm-section-content">
-				<div class="fcrm-grid">
+				<div class="fcrm-grid fcrm-grid-forms">
 						<?php
 						$forms_supported = array(
 							array( 'label' => 'Gravity' ),
@@ -418,7 +418,6 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 								src="<?php echo esc_url( FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-' . $slug . '.svg' ); ?>" 
 								alt="<?php echo esc_attr( $crm['label'] ); ?>"
 								class="fcrm-card-icon"
-								style="width: 120px; height: auto;"
 							/>
 							<h3 class="fcrm-card-title"><?php echo esc_html( $crm['label'] ); ?></h3>
 							
