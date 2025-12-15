@@ -77,11 +77,8 @@
 	</rule>
 	
 	<!-- Disable base64_encode obfuscation warning - used for data URI encoding -->
-	<rule ref="WordPress.PHP.DiscouragedPHPFunctions">
-		<properties>
-			<property name="exclude" type="array">
-				<element value="base64_encode"/>
-			</property>
-		</properties>
+	<!-- Exclude the obfuscation sniff for base64_encode -->
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode">
+		<severity>0</severity>
 	</rule>
 </ruleset>
