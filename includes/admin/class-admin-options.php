@@ -114,7 +114,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				if ( isset( $_GET['settings-updated'] ) && 'true' === sanitize_text_field( wp_unslash( $_GET['settings-updated'] ) ) ) :
 					?>
-					<div class="fcrm-notice fcrm-notice-success fcrm-animate">
+					<div class="fcrm-notice fcrm-notice-success">
 						<svg class="fcrm-notice-icon" fill="currentColor" viewBox="0 0 20 20">
 							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
 						</svg>
@@ -142,6 +142,32 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				if ( ! is_array( $formscrm_tabs ) ) {
 					$formscrm_tabs = array();
 				}
+
+				// Display tabs if there's more than one tab.
+				if ( count( $formscrm_tabs ) > 1 ) :
+					?>
+					<div class="fcrm-tabs-wrapper">
+						<nav class="fcrm-tabs">
+							<?php
+							foreach ( $formscrm_tabs as $tab ) {
+								if ( ! is_array( $tab ) || ! isset( $tab['tab'] ) ) {
+									continue;
+								}
+								$is_active = $tab['tab'] === $active_tab;
+								$class = $is_active ? 'fcrm-tab fcrm-tab-active' : 'fcrm-tab';
+								?>
+								<a href="?page=formscrm&tab=<?php echo esc_attr( $tab['tab'] ); ?>" class="<?php echo esc_attr( $class ); ?>">
+									<?php echo esc_html( $tab['label'] ?? '' ); ?>
+								</a>
+								<?php
+							}
+							// Allow addons to add their own tabs via separate action.
+							do_action( 'formscrm_settings_tabs_html', $active_tab );
+							?>
+						</nav>
+					</div>
+					<?php
+				endif;
 
 				// Handle standard tabs with actions.
 				$tab_handled = false;
@@ -191,7 +217,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		?>
 
 		<!-- Notifications Section -->
-		<div class="fcrm-section fcrm-animate">
+		<div class="fcrm-section">
 			<div class="fcrm-section-header">
 				<h2 class="fcrm-section-title">
 					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +293,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		</div>
 
 		<!-- Forms Supported Section -->
-		<div class="fcrm-section fcrm-animate">
+		<div class="fcrm-section">
 			<div class="fcrm-section-header">
 				<h2 class="fcrm-section-title">
 					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,7 +335,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		</div>
 
 		<!-- CRM Supported Section -->
-		<div class="fcrm-section fcrm-animate">
+		<div class="fcrm-section">
 			<div class="fcrm-section-header">
 				<h2 class="fcrm-section-title">
 					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
