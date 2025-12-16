@@ -234,6 +234,11 @@ class CRMLIB_HOLDED {
 					'required' => false,
 				),
 				array(
+					'name'     => 'country',
+					'label'    => __( 'Country', 'formscrm' ),
+					'required' => false,
+				),
+				array(
 					'name'     => 'billAddress|address',
 					'label'    => __( 'Billing Address', 'formscrm' ),
 					'required' => false,
