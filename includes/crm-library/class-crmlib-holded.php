@@ -239,6 +239,11 @@ class CRMLIB_HOLDED implements CRMLIB_Interface {
 					'required' => false,
 				),
 				array(
+					'name'     => 'country',
+					'label'    => __( 'Country', 'formscrm' ),
+					'required' => false,
+				),
+				array(
 					'name'     => 'billAddress|address',
 					'label'    => __( 'Billing Address', 'formscrm' ),
 					'required' => false,

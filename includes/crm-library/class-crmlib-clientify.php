@@ -469,6 +469,12 @@ class CRMLIB_Clientify implements CRMLIB_Interface {
 				'required' => false,
 			);
 
+			$fields[] = array(
+				'name'     => 'country',
+				'label'    => __( 'Country', 'formscrm' ),
+				'required' => false,
+			);
+
 			// Phones and Emails.
 			$fields = array_merge( $fields, $this->get_fields_email_phones() );
 
