@@ -1,6 +1,6 @@
 === FormsCRM - Connect Forms to CRM directly ===
 Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasquero
-Tags: gravityforms, wpforms, crm, vtiger, odoo
+Tags: gravityforms, wpforms, crm, vtiger, odoo, ninjaforms
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
@@ -22,6 +22,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
+- [Ninja Forms](https://wordpress.org/plugins/ninja-forms/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -88,6 +89,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.1.0 =
+*  Added: Support for Ninja Forms integration.
+*  Added: Full compatibility with Ninja Forms actions system.
+
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
 *  Fixed: Format of webhook url in GravityForms.
