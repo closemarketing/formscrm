@@ -71,7 +71,7 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'WPForms_Forms
 }
 
 // Ninja Forms.
-if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) && ! class_exists( 'FORMSCRM_NinjaForms_Settings' ) ) {
+if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) && class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FORMSCRM_NinjaForms_Settings' ) ) {
 	require_once 'class-ninjaforms.php';
 }
 

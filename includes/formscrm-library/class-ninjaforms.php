@@ -10,6 +10,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// Check if Ninja Forms abstract class exists before defining our classes.
+if ( ! class_exists( 'NF_Abstracts_Action' ) ) {
+	return;
+}
+
 /**
  * Library for Ninja Forms Settings
  *
