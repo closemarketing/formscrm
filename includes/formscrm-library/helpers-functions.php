@@ -417,3 +417,26 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 		);
 	}
 }
+
+if ( ! function_exists( 'formscrm_get_svg_icon' ) ) {
+	/**
+	 * Get SVG icon content.
+	 *
+	 * @param string $icon_name Icon name without extension.
+	 * @param string $class_name Optional CSS class to add to SVG element.
+	 * @return string SVG content or empty string if file not found.
+	 */
+	function formscrm_get_svg_icon( $icon_name, $class_name = '' ) {
+		$icon_path = FORMSCRM_PLUGIN_PATH . 'includes/assets/icons/' . $icon_name . '.svg';
+		if ( file_exists( $icon_path ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$svg_content = file_get_contents( $icon_path );
+			if ( ! empty( $class_name ) ) {
+				// Add class to SVG element.
+				$svg_content = str_replace( '<svg', '<svg class="' . esc_attr( $class_name ) . '"', $svg_content );
+			}
+			return $svg_content;
+		}
+		return '';
+	}
+}

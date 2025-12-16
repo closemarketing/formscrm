@@ -43,8 +43,8 @@
 /* Header Section */
 .fcrm-header {
 	background: linear-gradient(135deg, var(--fcrm-primary) 0%, var(--fcrm-accent) 100%);
-	padding: 3rem 2rem;
-	margin-bottom: 2rem;
+	padding: 2rem;
+	margin-bottom: 1rem;
 	position: relative;
 	overflow: hidden;
 }
@@ -66,6 +66,10 @@
 	margin: 0 auto;
 	position: relative;
 	z-index: 1;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 2rem;
 }
 
 .fcrm-header h1 {
@@ -82,6 +86,10 @@
 	margin: 0;
 }
 
+.fcrm-header-text {
+	flex: 1;
+}
+
 .fcrm-header .fcrm-version-badge {
 	display: inline-flex;
 	align-items: center;
@@ -92,8 +100,8 @@
 	color: white;
 	font-size: 0.875rem;
 	font-weight: 600;
-	margin-top: 1rem;
 	border: 1px solid rgba(255, 255, 255, 0.2);
+	flex-shrink: 0;
 }
 
 /* Container */
@@ -485,8 +493,17 @@
 		padding: 2rem 1rem;
 	}
 
+	.fcrm-header-content {
+		flex-direction: column;
+		gap: 1rem;
+	}
+
 	.fcrm-header h1 {
 		font-size: 1.75rem;
+	}
+
+	.fcrm-header .fcrm-version-badge {
+		align-self: flex-end;
 	}
 
 	.fcrm-container {

@@ -102,8 +102,10 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 			<!-- Header Section -->
 			<div class="fcrm-header">
 				<div class="fcrm-header-content">
-					<h1><?php esc_html_e( 'FormsCRM Settings', 'formscrm' ); ?></h1>
-					<p><?php esc_html_e( 'Connect your forms with CRM, ERP, and Email Marketing platforms', 'formscrm' ); ?></p>
+					<div class="fcrm-header-text">
+						<h1><?php esc_html_e( 'FormsCRM Settings', 'formscrm' ); ?></h1>
+						<p><?php esc_html_e( 'Connect your forms with CRM, ERP, and Email Marketing platforms', 'formscrm' ); ?></p>
+					</div>
 					<span class="fcrm-version-badge">
 						<?php echo esc_html__( 'Version', 'formscrm' ) . ' ' . esc_html( FORMSCRM_VERSION ); ?>
 					</span>
@@ -118,9 +120,10 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				if ( isset( $_GET['settings-updated'] ) && 'true' === sanitize_text_field( wp_unslash( $_GET['settings-updated'] ) ) ) :
 					?>
 					<div class="fcrm-notice fcrm-notice-success">
-						<svg class="fcrm-notice-icon" fill="currentColor" viewBox="0 0 20 20">
-							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-						</svg>
+						<?php
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+						echo formscrm_get_svg_icon( 'icon-checkmark', 'fcrm-notice-icon' );
+						?>
 						<p class="fcrm-notice-text"><?php esc_html_e( 'Changes saved successfully', 'formscrm' ); ?></p>
 					</div>
 					<?php
@@ -223,9 +226,10 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		<div class="fcrm-section">
 			<div class="fcrm-section-header">
 				<h2 class="fcrm-section-title">
-					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-					</svg>
+					<?php
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+					echo formscrm_get_svg_icon( 'icon-bell' );
+					?>
 					<?php esc_html_e( 'Error Notifications', 'formscrm' ); ?>
 				</h2>
 				<p class="fcrm-section-description">
@@ -238,9 +242,12 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					
 					<div class="fcrm-form-group">
 						<label class="fcrm-form-label" for="formscrm_slack_webhook_url">
-							<svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M6 8a2 2 0 1 0-4 0 2 2 0 0 0 4 0zm8 0a2 2 0 1 0-4 0 2 2 0 0 0 4 0zm8 0a2 2 0 1 0-4 0 2 2 0 0 0 4 0zM6 16a2 2 0 1 0-4 0 2 2 0 0 0 4 0zm8 0a2 2 0 1 0-4 0 2 2 0 0 0 4 0zm8 0a2 2 0 1 0-4 0 2 2 0 0 0 4 0z"/>
-							</svg>
+							<span style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
+								<?php
+								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+								echo formscrm_get_svg_icon( 'icon-slack' );
+								?>
+							</span>
 							<?php esc_html_e( 'Slack Webhook URL', 'formscrm' ); ?>
 						</label>
 						<input 
@@ -261,9 +268,12 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 
 					<div class="fcrm-form-group">
 						<label class="fcrm-form-label" for="formscrm_error_notification_email">
-							<svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-							</svg>
+							<span style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
+								<?php
+								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+								echo formscrm_get_svg_icon( 'icon-email' );
+								?>
+							</span>
 							<?php esc_html_e( 'Error Notification Email', 'formscrm' ); ?>
 						</label>
 						<input 
@@ -286,10 +296,11 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 					</div>
 
 					<button type="submit" class="fcrm-button fcrm-button-primary">
-						<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-						</svg>
-							<?php esc_html_e( 'Save Settings', 'formscrm' ); ?>
+						<?php
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+						echo formscrm_get_svg_icon( 'icon-check-simple' );
+						?>
+						<?php esc_html_e( 'Save Settings', 'formscrm' ); ?>
 					</button>
 				</form>
 			</div>
@@ -299,10 +310,11 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		<div class="fcrm-section">
 			<div class="fcrm-section-header">
 				<h2 class="fcrm-section-title">
-					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-					</svg>
-						<?php esc_html_e( 'Forms Supported', 'formscrm' ); ?>
+					<?php
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+					echo formscrm_get_svg_icon( 'icon-document' );
+					?>
+					<?php esc_html_e( 'Forms Supported', 'formscrm' ); ?>
 				</h2>
 				<p class="fcrm-section-description">
 						<?php esc_html_e( 'FormsCRM works seamlessly with these popular form plugins', 'formscrm' ); ?>
@@ -341,10 +353,11 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		<div class="fcrm-section">
 			<div class="fcrm-section-header">
 				<h2 class="fcrm-section-title">
-					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-					</svg>
-						<?php esc_html_e( 'CRM / ERP / Email Marketing', 'formscrm' ); ?>
+					<?php
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+					echo formscrm_get_svg_icon( 'icon-users' );
+					?>
+					<?php esc_html_e( 'CRM / ERP / Email Marketing', 'formscrm' ); ?>
 				</h2>
 				<p class="fcrm-section-description">
 					<?php esc_html_e( 'Connect your forms with these powerful business tools. Free and premium integrations available.', 'formscrm' ); ?>
@@ -432,16 +445,18 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 
 				<!-- Action Buttons -->
 				<div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
-					<a class="fcrm-button fcrm-button-primary" href="<?php echo esc_url( $source_shop_url . 'formscrm/' . $utm_source ); ?>" target="_blank">
-						<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-						</svg>
+					<a class="fcrm-button fcrm-button-primary" href="<?php echo esc_url( $source_shop_url . 'functionalities/wordpress-forms/' . $utm_source ); ?>" target="_blank">
+						<?php
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+						echo formscrm_get_svg_icon( 'icon-plus' );
+						?>
 						<?php esc_html_e( 'View All Addons', 'formscrm' ); ?>
 					</a>
 					<a class="fcrm-button fcrm-button-secondary" href="https://wordpress.org/support/plugin/formscrm/" target="_blank">
-						<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
-						</svg>
+						<?php
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+						echo formscrm_get_svg_icon( 'icon-support' );
+						?>
 						<?php esc_html_e( 'Get Support', 'formscrm' ); ?>
 					</a>
 				</div>
