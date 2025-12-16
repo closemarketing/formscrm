@@ -130,15 +130,24 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
-
 = n.e.x.t =
-*  Enhanced: FormsCRM now has its own dedicated menu in WordPress admin with custom icon.
+*  Enhanced: Complete redesign of the settings page with modern UI and improved UX.
+*  Enhanced: New color scheme with cyan-to-purple gradient for better visual appeal.
+*  Enhanced: Modern tab navigation system for better organization of settings and license management.
+*  Enhanced: Responsive grid layout for forms and CRM integrations display.
+*  Enhanced: Improved cards design with hover effects and smooth transitions.
 *	 Added: Slack integration for real-time error notifications via Incoming Webhook.
 *	 Enhanced: Slack notifications include comprehensive information (site, form, CRM, error, lead preview).
+*	 Enhanced: Slack messages use a compact, single-line format for quick scanning.
+*	 Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now include form context in error reports.
+*	 Added: 10 comprehensive unit tests for Slack notification functions.
+*  Added: Test utility for manually testing Slack notifications (tests/test-slack.php).
+*  Added: Custom email option for error notifications - Configure specific emails to receive error reports.
 *  Enhanced: Error email notifications now include site information (name, URL, timestamp).
+*  Enhanced: Error emails now show detailed form information (type, ID, name, entry ID).
 *  Enhanced: Professional HTML email template with color-coded sections for better readability.
 *  Enhanced: Complete technical details in error emails (API URL and JSON request) for easier debugging.
-*	 Enhanced: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
+*  Improved: All form integrations (Gravity Forms, WPForms, Elementor, Contact Form 7, WooCommerce) now send enhanced error information.
 
 = 4.0.6 =
 *  Added: Support Deals tags in Clientify.
