@@ -214,6 +214,23 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_debug_email_lead' ) ) {
+	/**
+	 * Sends debug email for lead creation errors (backward compatibility wrapper)
+	 *
+	 * This function is a wrapper for formscrm_alert_error() to maintain backward
+	 * compatibility with addon plugins that use the old function name.
+	 *
+	 * @param string $crm_type  CRM type.
+	 * @param string $message   Error message.
+	 * @param array  $merge_vars Lead data array.
+	 * @return void
+	 */
+	function formscrm_debug_email_lead( $crm_type, $message, $merge_vars = array() ) {
+		formscrm_alert_error( $crm_type, $message, $merge_vars );
+	}
+}
+
 if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 	/**
 	 * Sends error notification to Slack

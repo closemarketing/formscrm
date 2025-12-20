@@ -34,7 +34,7 @@
 	"scripts": {
 		"test": "phpunit",
 		"test-debug": "XDEBUG_MODE=debug XDEBUG_TRIGGER=1 phpunit",
-		"test-install": "bash bin/install-wp-tests.sh wordpress_test root 'root' 127.0.0.1 latest",
+		"test-install": "AUTO_APPROVE_DB_DELETE=y bash bin/install-wp-tests.sh wordpress_test root 'root' 127.0.0.1 latest",
 		"lint": "phpcs --standard=.phpcs.xml.dist",
 		"format": "phpcbf --standard=.phpcs.xml.dist",
 		"phpstan": "phpstan analyse --memory-limit=2048M"
