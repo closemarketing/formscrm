@@ -176,7 +176,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Error', 'formscrm' ); ?></th>
 										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Status', 'formscrm' ); ?></th>
 										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Attempts', 'formscrm' ); ?></th>
-										<th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Actions', 'formscrm' ); ?></th>
+										<th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd; width: 280px; min-width: 280px;"><?php esc_html_e( 'Actions', 'formscrm' ); ?></th>
 									</tr>
 								</thead>
 								<tbody>
@@ -188,16 +188,16 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 											<td style="padding: 12px;">
 												<strong><?php echo esc_html( ucfirst( $log->crm_type ) ); ?></strong>
 											</td>
-											<td style="padding: 12px;">
-												<?php
-												if ( $log->form_name ) {
-													echo esc_html( $log->form_name );
-												}
-												if ( $log->form_type ) {
-													echo '<br><small style="color: #666;">' . esc_html( $log->form_type ) . '</small>';
-												}
-												?>
-											</td>
+										<td style="padding: 12px;">
+											<?php
+											if ( $log->form_name ) {
+												echo esc_html( $log->form_name );
+											}
+											if ( $log->form_type_title ) {
+												echo '<br><small style="color: #666;">' . esc_html( $log->form_type_title ) . '</small>';
+											}
+											?>
+										</td>
 											<td style="padding: 12px;">
 												<div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
 													<?php echo esc_html( wp_trim_words( $log->error_message, 15 ) ); ?>
@@ -221,32 +221,32 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 											<td style="padding: 12px;">
 												<?php echo esc_html( $log->resend_attempts ); ?>
 											</td>
-											<td style="padding: 12px; text-align: center;">
-												<button 
-													type="button" 
-													class="fcrm-button fcrm-button-small fcrm-resend-btn"
-													data-log-id="<?php echo esc_attr( $log->id ); ?>"
-													style="margin-right: 5px; font-size: 12px; padding: 6px 12px;"
-												>
-													<?php esc_html_e( 'Resend', 'formscrm' ); ?>
-												</button>
-												<button 
-													type="button" 
-													class="fcrm-button fcrm-button-small fcrm-button-secondary fcrm-view-details-btn"
-													data-log-id="<?php echo esc_attr( $log->id ); ?>"
-													style="margin-right: 5px; font-size: 12px; padding: 6px 12px;"
-												>
-													<?php esc_html_e( 'Details', 'formscrm' ); ?>
-												</button>
-												<button 
-													type="button" 
-													class="fcrm-button fcrm-button-small fcrm-button-danger fcrm-delete-log-btn"
-													data-log-id="<?php echo esc_attr( $log->id ); ?>"
-													style="font-size: 12px; padding: 6px 12px;"
-												>
-													<?php esc_html_e( 'Delete', 'formscrm' ); ?>
-												</button>
-											</td>
+										<td style="padding: 12px; text-align: center; width: 280px; min-width: 280px;">
+											<button 
+												type="button" 
+												class="fcrm-button fcrm-button-small fcrm-resend-btn"
+												data-log-id="<?php echo esc_attr( $log->id ); ?>"
+												style="margin-right: 5px; font-size: 12px; padding: 6px 12px;"
+											>
+												<?php esc_html_e( 'Resend', 'formscrm' ); ?>
+											</button>
+											<button 
+												type="button" 
+												class="fcrm-button fcrm-button-small fcrm-button-secondary fcrm-view-details-btn"
+												data-log-id="<?php echo esc_attr( $log->id ); ?>"
+												style="margin-right: 5px; font-size: 12px; padding: 6px 12px;"
+											>
+												<?php esc_html_e( 'Details', 'formscrm' ); ?>
+											</button>
+											<button 
+												type="button" 
+												class="fcrm-button fcrm-button-small fcrm-button-danger fcrm-delete-log-btn"
+												data-log-id="<?php echo esc_attr( $log->id ); ?>"
+												style="font-size: 12px; padding: 6px 12px;"
+											>
+												<?php esc_html_e( 'Delete', 'formscrm' ); ?>
+											</button>
+										</td>
 										</tr>
 
 										<!-- Details Row (Hidden by default) -->

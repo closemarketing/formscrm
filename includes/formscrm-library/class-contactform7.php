@@ -273,11 +273,12 @@ class FORMSCRM_CF7_Settings {
 			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
 
-			$form_info = array(
-				'form_type' => 'Contact Form 7',
-				'form_id'   => $contact_form->id(),
-				'form_name' => $contact_form->title(),
-			);
+		$form_info = array(
+			'form_type'       => 'contactform7',
+			'form_type_title' => 'Contact Form 7',
+			'form_id'         => $contact_form->id(),
+			'form_name'       => $contact_form->title(),
+		);
 
 			formscrm_alert_error( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query, $form_info );
 		}
