@@ -96,6 +96,74 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test formscrm_send_webhook ID extraction from different formats.
+	 *
+	 * Test that the function correctly extracts numeric ID from:
+	 * - Plain number: '22222'
+	 * - Pipe-separated with text: 'Lead 32132|Deal 22222'
+	 * - Text prefix: 'Deal 22222'
+	 * - Spanish text prefix: 'Oportunidad 22222'
+	 */
+	public function test_webhook_id_extraction() {
+		$settings = array( 'fc_crm_webhook' => 'https://webhook.com/test' );
+
+		// Test Case 1: Plain numeric ID.
+		$response_api = array(
+			'status'  => 'ok',
+			'message' => 'success',
+			'module'  => 'deal',
+			'id'      => '22222',
+		);
+		$response     = formscrm_send_webhook( $settings, $response_api );
+		$this->assertEquals( 22222, $response['request']['data']['id'] );
+		$this->assertIsInt( $response['request']['data']['id'] );
+
+		// Test Case 2: Pipe-separated IDs with text prefix (Lead 32132|Deal 22222).
+		$response_api = array(
+			'status'  => 'ok',
+			'message' => 'success',
+			'module'  => 'deal',
+			'id'      => 'Lead 32132|Deal 22222',
+		);
+		$response     = formscrm_send_webhook( $settings, $response_api );
+		$this->assertEquals( 22222, $response['request']['data']['id'] );
+		$this->assertIsInt( $response['request']['data']['id'] );
+
+		// Test Case 3: Single ID with text prefix (Deal 22222).
+		$response_api = array(
+			'status'  => 'ok',
+			'message' => 'success',
+			'module'  => 'deal',
+			'id'      => 'Deal 22222',
+		);
+		$response     = formscrm_send_webhook( $settings, $response_api );
+		$this->assertEquals( 22222, $response['request']['data']['id'] );
+		$this->assertIsInt( $response['request']['data']['id'] );
+
+		// Test Case 4: Spanish text prefix (Oportunidad 22222).
+		$response_api = array(
+			'status'  => 'ok',
+			'message' => 'success',
+			'module'  => 'deal',
+			'id'      => 'Oportunidad 22222',
+		);
+		$response     = formscrm_send_webhook( $settings, $response_api );
+		$this->assertEquals( 22222, $response['request']['data']['id'] );
+		$this->assertIsInt( $response['request']['data']['id'] );
+
+		// Test Case 5: Multiple pipe-separated with different numbers.
+		$response_api = array(
+			'status'  => 'ok',
+			'message' => 'success',
+			'module'  => 'deal',
+			'id'      => 'Contact 11111|Lead 99999|Deal 22222',
+		);
+		$response     = formscrm_send_webhook( $settings, $response_api );
+		$this->assertEquals( 22222, $response['request']['data']['id'] );
+		$this->assertIsInt( $response['request']['data']['id'] );
+	}
+
+	/**
 	 * Test formscrm_debug_message with WP_DEBUG enabled.
 	 */
 	public function test_debug_message_with_wp_debug() {
