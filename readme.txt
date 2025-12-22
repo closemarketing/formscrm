@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 4.2.0
-Version: 4.2.0
+Stable tag: 4.2.1
+Version: 4.2.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -130,6 +130,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.2.1 =
+*  Hotfix: Error not sending correctly entry id in webhook.
+
 = 4.2.0 =
 *  Enhanced: New design for the settings page.
 *  Dedicated menu for FormsCRM settings.
