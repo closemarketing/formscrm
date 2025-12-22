@@ -141,6 +141,11 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 							'label'  => esc_html__( 'Settings', 'formscrm' ),
 							'action' => 'formscrm_settings',
 						),
+						array(
+							'tab'    => 'error-log',
+							'label'  => esc_html__( 'Error Log', 'formscrm' ),
+							'action' => 'formscrm_error_log_content',
+						),
 					)
 				);
 

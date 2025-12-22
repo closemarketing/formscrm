@@ -554,3 +554,126 @@
 	width: 1.5rem;
 	height: 1.5rem;
 }
+
+/* Error Log Specific Styles */
+.fcrm-error-log-table-wrapper {
+	overflow-x: auto;
+	margin-top: 1.5rem;
+}
+
+.fcrm-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: white;
+}
+
+.fcrm-table thead {
+	background: var(--fcrm-gray-50);
+}
+
+.fcrm-table th {
+	padding: 0.75rem 1rem;
+	text-align: left;
+	border-bottom: 2px solid var(--fcrm-gray-200);
+	font-weight: 600;
+	color: var(--fcrm-gray-700);
+	font-size: 0.875rem;
+	white-space: nowrap;
+}
+
+.fcrm-table td {
+	padding: 0.75rem 1rem;
+	border-bottom: 1px solid var(--fcrm-gray-200);
+	font-size: 0.875rem;
+	color: var(--fcrm-gray-700);
+}
+
+.fcrm-table tbody tr:hover {
+	background: var(--fcrm-gray-50);
+}
+
+.fcrm-button-small {
+	padding: 0.375rem 0.75rem;
+	font-size: 0.8125rem;
+}
+
+.fcrm-button-danger {
+	background: var(--fcrm-error);
+	color: white;
+}
+
+.fcrm-button-danger:hover {
+	background: #dc2626;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.fcrm-status {
+	display: inline-block;
+	padding: 0.25rem 0.625rem;
+	border-radius: 0.375rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.025em;
+}
+
+.fcrm-status-error {
+	background: #fef2f2;
+	color: #991b1b;
+}
+
+.fcrm-status-success {
+	background: #f0fdf4;
+	color: #15803d;
+}
+
+.fcrm-log-details {
+	background: var(--fcrm-gray-50);
+}
+
+.fcrm-log-details td {
+	padding: 1.5rem;
+}
+
+.fcrm-pagination {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+	margin-top: 1.5rem;
+	flex-wrap: wrap;
+}
+
+.fcrm-notice-info {
+	background: #eff6ff;
+	border-left: 4px solid var(--fcrm-blue);
+}
+
+.fcrm-notice-info .fcrm-notice-text {
+	color: #1e40af;
+}
+
+@media (max-width: 768px) {
+	.fcrm-error-log-filters {
+		flex-direction: column;
+		align-items: stretch !important;
+	}
+
+	.fcrm-error-log-filters form {
+		flex-direction: column;
+		width: 100%;
+	}
+
+	.fcrm-error-log-filters .fcrm-form-input {
+		max-width: 100% !important;
+	}
+
+	.fcrm-table {
+		font-size: 0.75rem;
+	}
+
+	.fcrm-table th,
+	.fcrm-table td {
+		padding: 0.5rem;
+	}
+}

@@ -87,6 +87,7 @@ When an error occurs, the Slack notification includes:
 **Message Format:**
 
 All Slack notifications use a compact, easy-to-read format with information presented in single lines. Messages are color-coded in red (danger) to stand out in your channel and ensure immediate attention to critical errors.
+
 == Error Notifications ==
 **Custom Email for Error Reports**
 You can configure a custom email address to receive error notifications when a form submission fails to send to your CRM. This is useful when you want different team members to receive error alerts without using the admin email.
@@ -104,6 +105,48 @@ When an error occurs, you'll receive a detailed email notification that includes
 - **Technical Details**: API URL and JSON request for debugging purposes
 
 The email is professionally formatted with color-coded sections for easy reading and quick troubleshooting.
+
+== Error Log with Resend Capability ==
+
+**Track and Manage All Form Submission Errors**
+
+The Error Log feature provides a comprehensive interface to view, track, and manage all errors that occur when sending form submissions to your CRM. This powerful tool helps you troubleshoot issues and recover from failed submissions without requiring users to resubmit forms.
+
+**Key Features:**
+
+* **Complete Error Tracking**: All errors are automatically saved to the database with complete context including CRM type, error message, form information, lead data, and technical details
+* **Advanced Filtering**: Filter errors by status (failed/success) and CRM type to quickly find specific issues
+* **Detailed Error Information**: View complete error details including lead data, API URLs, JSON requests, and full error messages
+* **One-Click Resend**: Resend failed entries directly from the error log with a single click
+* **Error Management**: Delete individual entries or clear all logs with confirmation dialogs
+* **Pagination**: Navigate through large numbers of error logs with built-in pagination (20 entries per page)
+* **Status Tracking**: Visual status badges show failed and successful entries at a glance
+* **Resend Attempts Counter**: Track how many times an entry has been resent
+* **Responsive Design**: Fully responsive interface that works on all devices
+
+**How to Use:**
+
+1. Go to **WordPress Admin → FormsCRM → Error Log tab**
+2. View all form submission errors in an organized table
+3. Filter by status or CRM type to find specific errors
+4. Click **Details** to view complete error information
+5. Click **Resend** to retry sending a failed entry to your CRM
+6. Click **Delete** to remove individual log entries
+7. Use **Clear All Logs** to remove all entries at once
+
+**What Information is Stored:**
+
+* Date and time of error
+* CRM type (Holded, Clientify, etc.)
+* Form information (type, ID, name, entry ID)
+* Complete error message
+* All lead data from the form submission
+* API endpoint URL
+* JSON request payload
+* Resend attempts count
+* Last resend date
+
+The Error Log feature helps you maintain data integrity by ensuring no form submissions are lost due to temporary errors or connectivity issues.
 
 == Settings for Clientify ==
 **Instructions for adding Clientify cookie in the forms**
@@ -130,9 +173,22 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.3.0 =
+*  Added: Error Log feature with comprehensive error tracking and management interface.
+*  Added: Resend capability for failed form submissions directly from the error log.
+*  Added: Advanced filtering for error logs by status (failed/success) and CRM type.
+*  Added: Detailed error information display including lead data, API URLs, and JSON requests.
+*  Added: Pagination support for error logs (20 entries per page).
+*  Added: Status badges with color coding for quick visual identification of errors.
+*  Added: Individual and bulk delete operations for error log entries.
+*  Added: Automatic error logging to database when form submissions fail.
+*  Added: Resend attempts counter and last resend date tracking.
+*  Added: AJAX-based operations for smooth user experience without page reloads.
+*  Enhanced: Responsive design for error log interface on all devices.
+
 = 4.2.0 =
 *  Enhanced: New design for the settings page.
-*  Dedicated menu for FormsCRM settings.
+*  Enhanced: Dedicated menu for FormsCRM settings.
 *  Improved: Added new tests for more consistent code coverage.
 *  Fixed: Fatal error in formscrm_debug_email_lead function.
 

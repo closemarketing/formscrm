@@ -105,6 +105,12 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 	 * @return void
 	 */
 	function formscrm_alert_error( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
+		// Log error to database.
+		global $formscrm_error_log;
+		if ( isset( $formscrm_error_log ) && method_exists( $formscrm_error_log, 'insert_log' ) ) {
+			$formscrm_error_log->insert_log( $crm, $error, $data, $url, $json, $form_info );
+		}
+
 		// Get custom email or fallback to admin email.
 		$custom_email = get_option( 'formscrm_error_notification_email', '' );
 		$to           = ! empty( $custom_email ) ? $custom_email : get_option( 'admin_email' );
