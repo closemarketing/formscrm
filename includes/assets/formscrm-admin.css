@@ -554,3 +554,32 @@
 	width: 1.5rem;
 	height: 1.5rem;
 }
+
+/* Contact Form 7 Auto-Submit Styles */
+@keyframes formscrm-rotation {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(359deg);
+	}
+}
+
+.formscrm-saving-indicator {
+	display: inline-flex;
+	align-items: center;
+	font-size: 14px;
+	margin-left: 10px;
+	color: #46b450;
+}
+
+.formscrm-saving-indicator .dashicons {
+	margin-right: 5px;
+	animation: formscrm-rotation 1s infinite linear;
+}
+
+.formscrm-submitting {
+	opacity: 0.6;
+	pointer-events: none;
+	cursor: wait;
+}

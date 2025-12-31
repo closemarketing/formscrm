@@ -130,6 +130,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= 4.2.2 =
+*  Enhanced: Contact Form 7 module selection now auto-saves configuration with visual feedback.
+
 = 4.2.1 =
 *  Hotfix: Error not sending correctly entry id in webhook.
 
