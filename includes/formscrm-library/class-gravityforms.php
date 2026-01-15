@@ -325,101 +325,19 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Settings Connection Status field.
 	 *
-	 * Renders the API connection status indicator with a test button.
+	 * Renders the API connection status indicator for plugin settings.
 	 *
 	 * @param array $field   Field configuration.
 	 * @param bool  $display Whether to display or return the HTML.
 	 * @return string HTML output.
 	 */
 	public function settings_connection_status( $field, $display = true ) {
-		$settings      = $this->get_plugin_settings();
-		$crm_type      = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
-		$html          = '';
-		$status        = 'unknown';
-		$status_text   = __( 'Not configured', 'formscrm' );
-		$status_color  = '#999999';
-		$status_icon   = '○';
-		$error_message = '';
-
-		if ( ! empty( $crm_type ) ) {
-			$this->crmlib = formscrm_get_api_class( $crm_type );
-
-			if ( isset( $this->crmlib ) ) {
-				$login_result = $this->crmlib->login( $settings );
-
-				if ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
-					$status        = 'error';
-					$status_text   = __( 'Error', 'formscrm' );
-					$status_color  = '#dc3232';
-					$status_icon   = '✕';
-					$error_message = isset( $login_result['message'] ) ? $login_result['message'] : '';
-				} elseif ( true === $login_result ) {
-					$status       = 'connected';
-					$status_text  = __( 'Connected', 'formscrm' );
-					$status_color = '#46b450';
-					$status_icon  = '✓';
-				} else {
-					$status       = 'disconnected';
-					$status_text  = __( 'Disconnected', 'formscrm' );
-					$status_color = '#dc3232';
-					$status_icon  = '✕';
-				}
-			}
-		}
-
-		// Build the status badge HTML.
-		$html .= '<div class="formscrm-connection-status" style="display: flex; align-items: center; gap: 10px;">';
-		$html .= sprintf(
-			'<span class="formscrm-status-badge" style="display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 4px; background-color: %1$s; color: white; font-weight: bold; font-size: 13px;">',
-			esc_attr( $status_color )
-		);
-		$html .= '<span style="margin-right: 6px; font-size: 14px;">' . esc_html( $status_icon ) . '</span>';
-		$html .= esc_html( $status_text );
-		$html .= '</span>';
-
-		// Show CRM name if configured.
-		if ( ! empty( $crm_type ) ) {
-			$html .= sprintf(
-				'<span class="formscrm-crm-name" style="color: #666; font-size: 13px;">(%s)</span>',
-				esc_html( ucfirst( $crm_type ) )
-			);
-		}
-
-		$html .= '</div>';
-
-		// Show error message if available.
-		if ( ! empty( $error_message ) ) {
-			$html .= sprintf(
-				'<p class="formscrm-error-message" style="color: #dc3232; margin-top: 8px; font-size: 12px;"><strong>%s:</strong> %s</p>',
-				esc_html__( 'Error details', 'formscrm' ),
-				esc_html( $error_message )
-			);
-		}
-
-		// Add help text.
-		$html .= '<p class="formscrm-status-help" style="color: #666; margin-top: 8px; font-size: 12px;">';
-		$html .= esc_html__( 'Save settings and reload the page to test the connection.', 'formscrm' );
-		$html .= '</p>';
+		$settings  = $this->get_plugin_settings();
+		$help_text = __( 'Save settings and reload the page to test the connection.', 'formscrm' );
+		$html      = formscrm_get_connection_status_html( $settings, 'badge', $help_text );
 
 		if ( $display ) {
-			echo wp_kses(
-				$html,
-				array(
-					'div'    => array(
-						'class' => array(),
-						'style' => array(),
-					),
-					'span'   => array(
-						'class' => array(),
-						'style' => array(),
-					),
-					'p'      => array(
-						'class' => array(),
-						'style' => array(),
-					),
-					'strong' => array(),
-				)
-			);
+			formscrm_render_connection_status( $settings, 'badge', $help_text );
 		}
 
 		return $html;
@@ -435,92 +353,19 @@ class GFCRM extends GFFeedAddOn {
 	 * @return string HTML output.
 	 */
 	public function settings_feed_connection_status( $field, $display = true ) {
-		$settings      = $this->get_api_settings_custom();
-		$crm_type      = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
-		$html          = '';
-		$status        = 'unknown';
-		$status_text   = __( 'Not configured', 'formscrm' );
-		$status_color  = '#999999';
-		$status_icon   = '○';
-		$error_message = '';
+		$settings    = $this->get_api_settings_custom();
+		$status_data = formscrm_check_connection_status( $settings );
+		$help_text   = '';
 
-		if ( ! empty( $crm_type ) ) {
-			$login_result = $this->login_api_crm();
-
-			if ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
-				$status        = 'error';
-				$status_text   = __( 'Error', 'formscrm' );
-				$status_color  = '#dc3232';
-				$status_icon   = '✕';
-				$error_message = isset( $login_result['message'] ) ? $login_result['message'] : '';
-			} elseif ( true === $login_result ) {
-				$status       = 'connected';
-				$status_text  = __( 'Connected', 'formscrm' );
-				$status_color = '#46b450';
-				$status_icon  = '✓';
-			} else {
-				$status       = 'disconnected';
-				$status_text  = __( 'Disconnected', 'formscrm' );
-				$status_color = '#dc3232';
-				$status_icon  = '✕';
-			}
+		// Show help text only for error states.
+		if ( 'disconnected' === $status_data['status'] || 'error' === $status_data['status'] ) {
+			$help_text = __( 'Please check your CRM credentials in the FormsCRM settings.', 'formscrm' );
 		}
 
-		// Build the status badge HTML.
-		$html .= '<div class="formscrm-connection-status" style="display: flex; align-items: center; gap: 10px;">';
-		$html .= sprintf(
-			'<span class="formscrm-status-badge" style="display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 4px; background-color: %1$s; color: white; font-weight: bold; font-size: 13px;">',
-			esc_attr( $status_color )
-		);
-		$html .= '<span style="margin-right: 6px; font-size: 14px;">' . esc_html( $status_icon ) . '</span>';
-		$html .= esc_html( $status_text );
-		$html .= '</span>';
-
-		// Show CRM name if configured.
-		if ( ! empty( $crm_type ) ) {
-			$html .= sprintf(
-				'<span class="formscrm-crm-name" style="color: #666; font-size: 13px;">(%s)</span>',
-				esc_html( ucfirst( $crm_type ) )
-			);
-		}
-
-		$html .= '</div>';
-
-		// Show error message if available.
-		if ( ! empty( $error_message ) ) {
-			$html .= sprintf(
-				'<p class="formscrm-error-message" style="color: #dc3232; margin-top: 8px; font-size: 12px;"><strong>%s:</strong> %s</p>',
-				esc_html__( 'Error details', 'formscrm' ),
-				esc_html( $error_message )
-			);
-		}
-
-		// Add help text for disconnected status.
-		if ( 'disconnected' === $status || 'error' === $status ) {
-			$html .= '<p class="formscrm-status-help" style="color: #666; margin-top: 8px; font-size: 12px;">';
-			$html .= esc_html__( 'Please check your CRM credentials in the FormsCRM settings.', 'formscrm' );
-			$html .= '</p>';
-		}
+		$html = formscrm_build_status_html( $status_data, 'badge', $help_text );
 
 		if ( $display ) {
-			echo wp_kses(
-				$html,
-				array(
-					'div'    => array(
-						'class' => array(),
-						'style' => array(),
-					),
-					'span'   => array(
-						'class' => array(),
-						'style' => array(),
-					),
-					'p'      => array(
-						'class' => array(),
-						'style' => array(),
-					),
-					'strong' => array(),
-				)
-			);
+			formscrm_render_connection_status( $settings, 'badge', $help_text );
 		}
 
 		return $html;

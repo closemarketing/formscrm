@@ -462,90 +462,191 @@ if ( ! function_exists( 'formscrm_get_connection_status_html' ) ) {
 	/**
 	 * Get HTML for API connection status indicator.
 	 *
-	 * @param array  $settings     CRM settings array with fc_crm_type and credentials.
-	 * @param string $output_type  Output type: 'html' for raw HTML, 'notice' for WordPress notice.
+	 * @param array  $settings    CRM settings array with fc_crm_type and credentials.
+	 * @param string $output_type Output type: 'html', 'notice', 'badge', or 'elementor'.
+	 * @param string $help_text   Optional help text to display below status.
 	 * @return string HTML output for the connection status.
 	 */
-	function formscrm_get_connection_status_html( $settings, $output_type = 'html' ) {
-		$crm_type      = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
-		$status        = 'unknown';
-		$status_text   = __( 'Not configured', 'formscrm' );
-		$status_color  = '#999999';
-		$status_icon   = '○';
-		$error_message = '';
+	function formscrm_get_connection_status_html( $settings, $output_type = 'html', $help_text = '' ) {
+		$status_data = formscrm_check_connection_status( $settings );
 
-		if ( ! empty( $crm_type ) ) {
-			$crmlib = formscrm_get_api_class( $crm_type );
+		return formscrm_build_status_html( $status_data, $output_type, $help_text );
+	}
+}
 
-			if ( isset( $crmlib ) && method_exists( $crmlib, 'login' ) ) {
-				$login_result = $crmlib->login( $settings );
+if ( ! function_exists( 'formscrm_check_connection_status' ) ) {
+	/**
+	 * Check connection status and return status data array.
+	 *
+	 * @param array $settings CRM settings array with fc_crm_type and credentials.
+	 * @return array Status data with keys: status, text, color, icon, error_message, crm_type.
+	 */
+	function formscrm_check_connection_status( $settings ) {
+		$crm_type = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
+		$data     = array(
+			'status'        => 'unknown',
+			'text'          => __( 'Not configured', 'formscrm' ),
+			'color'         => '#999999',
+			'icon'          => '○',
+			'error_message' => '',
+			'crm_type'      => $crm_type,
+		);
 
-				if ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
-					$status        = 'error';
-					$status_text   = __( 'Error', 'formscrm' );
-					$status_color  = '#dc3232';
-					$status_icon   = '✕';
-					$error_message = isset( $login_result['message'] ) ? $login_result['message'] : '';
-				} elseif ( true === $login_result ) {
-					$status       = 'connected';
-					$status_text  = __( 'Connected', 'formscrm' );
-					$status_color = '#46b450';
-					$status_icon  = '✓';
-				} else {
-					$status       = 'disconnected';
-					$status_text  = __( 'Disconnected', 'formscrm' );
-					$status_color = '#dc3232';
-					$status_icon  = '✕';
-				}
-			}
+		if ( empty( $crm_type ) ) {
+			return $data;
 		}
 
-		// Build the HTML based on output type.
-		if ( 'notice' === $output_type ) {
-			$notice_class = 'connected' === $status ? 'notice-success' : ( 'unknown' === $status ? 'notice-warning' : 'notice-error' );
-			$html         = '<div class="notice ' . esc_attr( $notice_class ) . '" style="padding: 10px;">';
-			$html        .= '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
-			$html        .= '<span style="color: ' . esc_attr( $status_color ) . '; font-weight: bold;">';
-			$html        .= esc_html( $status_icon ) . ' ' . esc_html( $status_text );
-			$html        .= '</span>';
+		$crmlib = formscrm_get_api_class( $crm_type );
 
-			if ( ! empty( $crm_type ) ) {
-				$html .= ' <span style="color: #666;">(' . esc_html( ucfirst( $crm_type ) ) . ')</span>';
-			}
+		if ( ! isset( $crmlib ) || ! method_exists( $crmlib, 'login' ) ) {
+			return $data;
+		}
 
-			if ( ! empty( $error_message ) ) {
-				$html .= '<br/><span style="color: #dc3232; font-size: 12px;">' . esc_html( $error_message ) . '</span>';
-			}
+		$login_result = $crmlib->login( $settings );
 
-			$html .= '</div>';
+		if ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
+			$data['status']        = 'error';
+			$data['text']          = __( 'Error', 'formscrm' );
+			$data['color']         = '#dc3232';
+			$data['icon']          = '✕';
+			$data['error_message'] = isset( $login_result['message'] ) ? $login_result['message'] : '';
+		} elseif ( true === $login_result ) {
+			$data['status'] = 'connected';
+			$data['text']   = __( 'Connected', 'formscrm' );
+			$data['color']  = '#46b450';
+			$data['icon']   = '✓';
 		} else {
-			// Default HTML output (badge style).
-			$html  = '<div class="formscrm-connection-status" style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">';
-			$html .= '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
-			$html .= sprintf(
-				'<span class="formscrm-status-badge" style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 3px; background-color: %1$s; color: white; font-weight: bold; font-size: 12px;">',
-				esc_attr( $status_color )
-			);
-			$html .= '<span style="margin-right: 5px;">' . esc_html( $status_icon ) . '</span>';
-			$html .= esc_html( $status_text );
-			$html .= '</span>';
+			$data['status'] = 'disconnected';
+			$data['text']   = __( 'Disconnected', 'formscrm' );
+			$data['color']  = '#dc3232';
+			$data['icon']   = '✕';
+		}
 
-			if ( ! empty( $crm_type ) ) {
+		return $data;
+	}
+}
+
+if ( ! function_exists( 'formscrm_build_status_html' ) ) {
+	/**
+	 * Build HTML from status data.
+	 *
+	 * @param array  $status_data Status data from formscrm_check_connection_status().
+	 * @param string $output_type Output type: 'html', 'notice', 'badge', or 'elementor'.
+	 * @param string $help_text   Optional help text to display below status.
+	 * @return string HTML output.
+	 */
+	function formscrm_build_status_html( $status_data, $output_type = 'html', $help_text = '' ) {
+		$status        = $status_data['status'];
+		$status_text   = $status_data['text'];
+		$status_color  = $status_data['color'];
+		$status_icon   = $status_data['icon'];
+		$error_message = $status_data['error_message'];
+		$crm_type      = $status_data['crm_type'];
+		$html          = '';
+
+		switch ( $output_type ) {
+			case 'notice':
+				$notice_class = 'connected' === $status ? 'notice-success' : ( 'unknown' === $status ? 'notice-warning' : 'notice-error' );
+				$html         = '<div class="notice ' . esc_attr( $notice_class ) . '" style="padding: 10px;">';
+				$html        .= '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
+				$html        .= '<span style="color: ' . esc_attr( $status_color ) . '; font-weight: bold;">';
+				$html        .= esc_html( $status_icon ) . ' ' . esc_html( $status_text );
+				$html        .= '</span>';
+
+				if ( ! empty( $crm_type ) ) {
+					$html .= ' <span style="color: #666;">(' . esc_html( ucfirst( $crm_type ) ) . ')</span>';
+				}
+
+				if ( ! empty( $error_message ) ) {
+					$html .= '<br/><span style="color: #dc3232; font-size: 12px;">' . esc_html( $error_message ) . '</span>';
+				}
+
+				$html .= '</div>';
+				break;
+
+			case 'elementor':
+				$bg_color = 'connected' === $status ? '#e8f5e9' : ( 'unknown' === $status ? '#f0f0f0' : '#ffebee' );
+				$border   = 'connected' === $status ? '#46b450' : ( 'unknown' === $status ? '#999' : '#dc3232' );
+
+				$html  = '<div class="formscrm-elementor-connection-result" style="margin: 10px 0;">';
+				$html .= '<p style="padding: 10px; background: ' . esc_attr( $bg_color ) . '; border-left: 4px solid ' . esc_attr( $border ) . '; border-radius: 4px;">';
+				$html .= '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
+				$html .= '<span style="color: ' . esc_attr( $status_color ) . '; font-weight: bold;">' . esc_html( $status_icon ) . ' ' . esc_html( $status_text ) . '</span>';
+
+				if ( ! empty( $crm_type ) ) {
+					$html .= ' <span style="color: #666;">(' . esc_html( ucfirst( $crm_type ) ) . ')</span>';
+				}
+
+				if ( ! empty( $error_message ) ) {
+					$html .= '<br/><span style="color: #dc3232; font-size: 12px;">' . esc_html( $error_message ) . '</span>';
+				}
+
+				$html .= '</p></div>';
+				break;
+
+			case 'badge':
+				$html  = '<div class="formscrm-connection-status" style="display: flex; align-items: center; gap: 10px;">';
 				$html .= sprintf(
-					'<span style="color: #666; font-size: 12px;">(%s)</span>',
-					esc_html( ucfirst( $crm_type ) )
+					'<span class="formscrm-status-badge" style="display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 4px; background-color: %1$s; color: white; font-weight: bold; font-size: 13px;">',
+					esc_attr( $status_color )
 				);
-			}
+				$html .= '<span style="margin-right: 6px; font-size: 14px;">' . esc_html( $status_icon ) . '</span>';
+				$html .= esc_html( $status_text );
+				$html .= '</span>';
 
-			$html .= '</div>';
+				if ( ! empty( $crm_type ) ) {
+					$html .= sprintf(
+						'<span class="formscrm-crm-name" style="color: #666; font-size: 13px;">(%s)</span>',
+						esc_html( ucfirst( $crm_type ) )
+					);
+				}
 
-			if ( ! empty( $error_message ) ) {
+				$html .= '</div>';
+
+				if ( ! empty( $error_message ) ) {
+					$html .= sprintf(
+						'<p class="formscrm-error-message" style="color: #dc3232; margin-top: 8px; font-size: 12px;"><strong>%s:</strong> %s</p>',
+						esc_html__( 'Error details', 'formscrm' ),
+						esc_html( $error_message )
+					);
+				}
+				break;
+
+			default: // 'html'
+				$html  = '<div class="formscrm-connection-status" style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">';
+				$html .= '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
 				$html .= sprintf(
-					'<p style="color: #dc3232; margin: 5px 0; font-size: 12px;"><strong>%s:</strong> %s</p>',
-					esc_html__( 'Error', 'formscrm' ),
-					esc_html( $error_message )
+					'<span class="formscrm-status-badge" style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 3px; background-color: %1$s; color: white; font-weight: bold; font-size: 12px;">',
+					esc_attr( $status_color )
 				);
-			}
+				$html .= '<span style="margin-right: 5px;">' . esc_html( $status_icon ) . '</span>';
+				$html .= esc_html( $status_text );
+				$html .= '</span>';
+
+				if ( ! empty( $crm_type ) ) {
+					$html .= sprintf(
+						'<span style="color: #666; font-size: 12px;">(%s)</span>',
+						esc_html( ucfirst( $crm_type ) )
+					);
+				}
+
+				$html .= '</div>';
+
+				if ( ! empty( $error_message ) ) {
+					$html .= sprintf(
+						'<p style="color: #dc3232; margin: 5px 0; font-size: 12px;"><strong>%s:</strong> %s</p>',
+						esc_html__( 'Error', 'formscrm' ),
+						esc_html( $error_message )
+					);
+				}
+				break;
+		}
+
+		// Add help text if provided.
+		if ( ! empty( $help_text ) ) {
+			$html .= '<p class="formscrm-status-help" style="color: #666; margin-top: 8px; font-size: 12px;">';
+			$html .= esc_html( $help_text );
+			$html .= '</p>';
 		}
 
 		return $html;
@@ -559,27 +660,28 @@ if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 	 * Echoes the HTML for API connection status.
 	 *
 	 * @param array  $settings    CRM settings array with fc_crm_type and credentials.
-	 * @param string $output_type Output type: 'html' for raw HTML, 'notice' for WordPress notice.
+	 * @param string $output_type Output type: 'html', 'notice', 'badge', or 'elementor'.
+	 * @param string $help_text   Optional help text to display below status.
 	 * @return void
 	 */
-	function formscrm_render_connection_status( $settings, $output_type = 'html' ) {
-		echo wp_kses(
-			formscrm_get_connection_status_html( $settings, $output_type ),
-			array(
-				'div'    => array(
-					'class' => array(),
-					'style' => array(),
-				),
-				'span'   => array(
-					'class' => array(),
-					'style' => array(),
-				),
-				'strong' => array(),
-				'p'      => array(
-					'style' => array(),
-				),
-				'br'     => array(),
-			)
+	function formscrm_render_connection_status( $settings, $output_type = 'html', $help_text = '' ) {
+		$allowed_html = array(
+			'div'    => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'span'   => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'strong' => array(),
+			'p'      => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'br'     => array(),
 		);
+
+		echo wp_kses( formscrm_get_connection_status_html( $settings, $output_type, $help_text ), $allowed_html );
 	}
 }

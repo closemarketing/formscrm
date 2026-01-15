@@ -77,39 +77,20 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 	$crm_settings_raw = isset( $_POST['crmSettings'] ) ? wp_unslash( $_POST['crmSettings'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in formscrm_elementor_process_settings().
 	$post_data        = formscrm_elementor_process_settings( $crm_settings_raw );
 
-	// Check connection status and show it.
-	$login_result = $crmlib->login( $post_data );
+	// Check connection status and show it using helper function.
+	$status_data = formscrm_check_connection_status( $post_data );
 
-	// Show connection status.
-	echo '<div class="formscrm-elementor-connection-result" style="margin: 10px 0;">';
-	if ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
-		$error_message = isset( $login_result['message'] ) ? $login_result['message'] : '';
-		echo '<p style="padding: 10px; background: #ffebee; border-left: 4px solid #dc3232; border-radius: 4px;">';
-		echo '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
-		echo '<span style="color: #dc3232; font-weight: bold;">✕ ' . esc_html__( 'Error', 'formscrm' ) . '</span>';
-		echo ' <span style="color: #666;">(' . esc_html( ucfirst( $crmtype ) ) . ')</span>';
-		if ( ! empty( $error_message ) ) {
-			echo '<br/><span style="color: #dc3232; font-size: 12px;">' . esc_html( $error_message ) . '</span>';
+	// Render connection status.
+	formscrm_render_connection_status( $post_data, 'elementor' );
+
+	// If connection failed, return error.
+	if ( 'connected' !== $status_data['status'] ) {
+		$error_msg = __( 'Could not connect to CRM', 'formscrm' );
+		if ( ! empty( $status_data['error_message'] ) ) {
+			$error_msg .= ': ' . $status_data['error_message'];
 		}
-		echo '</p>';
-		echo '</div>';
-		wp_send_json_error( __( 'Could not connect to CRM', 'formscrm' ) . ': ' . $error_message );
-	} elseif ( true === $login_result ) {
-		echo '<p style="padding: 10px; background: #e8f5e9; border-left: 4px solid #46b450; border-radius: 4px;">';
-		echo '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
-		echo '<span style="color: #46b450; font-weight: bold;">✓ ' . esc_html__( 'Connected', 'formscrm' ) . '</span>';
-		echo ' <span style="color: #666;">(' . esc_html( ucfirst( $crmtype ) ) . ')</span>';
-		echo '</p>';
-	} else {
-		echo '<p style="padding: 10px; background: #ffebee; border-left: 4px solid #dc3232; border-radius: 4px;">';
-		echo '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
-		echo '<span style="color: #dc3232; font-weight: bold;">✕ ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
-		echo ' <span style="color: #666;">(' . esc_html( ucfirst( $crmtype ) ) . ')</span>';
-		echo '</p>';
-		echo '</div>';
-		wp_send_json_error( __( 'Could not connect to CRM', 'formscrm' ) );
+		wp_send_json_error( $error_msg );
 	}
-	echo '</div>';
 
 	// 2. Show modules dropdown
 	$modules         = $crmlib->list_modules( $post_data );
