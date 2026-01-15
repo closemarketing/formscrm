@@ -182,12 +182,26 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			)
 		);
 
+		// API Connection Status indicator.
+		$widget->add_control(
+			'fc_connection_status_info',
+			array(
+				'type'            => \Elementor\Controls_Manager::RAW_HTML,
+				'raw'             => '<div class="formscrm-elementor-status-container" id="formscrm-connection-status">' .
+					'<p style="padding: 10px; background: #f0f0f0; border-radius: 4px; margin: 10px 0;">' .
+					'<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ' .
+					'<span style="color: #999;">○ ' . esc_html__( 'Click "Connect" to verify', 'formscrm' ) . '</span>' .
+					'</p></div>',
+				'content_classes' => 'formscrm-connection-status-wrapper',
+				'separator'       => 'before',
+			)
+		);
+
 		$widget->add_control(
 			'connect_crm',
 			array(
 				'label'       => esc_html__( 'Connect CRM', 'formscrm' ),
 				'type'        => \Elementor\Controls_Manager::BUTTON,
-				'separator'   => 'before',
 				'button_type' => 'info',
 				'text'        => esc_html__( 'Connect', 'formscrm' ),
 				'event'       => 'formscrm:editor:connectCRM',

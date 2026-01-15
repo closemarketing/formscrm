@@ -154,15 +154,18 @@ class FORMSCRM_CF7_Settings {
 				<?php } ?>
 			</div>
 			<?php
+			// Show API connection status.
+			if ( ! empty( $cf7_crm['fc_crm_type'] ) ) {
+				formscrm_render_connection_status( $cf7_crm, 'html' );
+			}
+
 			if ( ! empty( $this->crmlib ) ) {
 				$login_crm = $this->crmlib->login( $cf7_crm );
 				if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
-					echo '<p>' . esc_html__( 'We could not login to the CRM', 'formscrm' ) . ' ' . esc_html( $login_crm['message'] ) . '</p>';
 					return;
 				}
 
 				if ( false === $login_crm ) {
-					echo '<p>' . esc_html__( 'We could not login to the CRM', 'formscrm' ) . '</p>';
 					return;
 				}
 			}

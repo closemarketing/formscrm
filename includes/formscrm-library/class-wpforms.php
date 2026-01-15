@@ -516,10 +516,17 @@ class FormsCRM_WPForms extends WPForms_Provider {
 	 * @return string
 	 */
 	public function output_options( $connection_id = '', $connection = array() ) {
+		$account_id = ! empty( $connection['account_id'] ) ? $connection['account_id'] : '';
+		$html       = '';
 
-		// Double opt in and a welcome email are defined in the List options on FormsCRM.
-		// They can't be controlled via the API.
-		return '';
+		if ( ! empty( $account_id ) ) {
+			$settings = $this->api_connect( $account_id );
+			if ( is_array( $settings ) && ! empty( $settings['fc_crm_type'] ) ) {
+				$html = formscrm_get_connection_status_html( $settings, 'html' );
+			}
+		}
+
+		return $html;
 	}
 
 	/*************************************************************************
