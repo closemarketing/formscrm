@@ -64,6 +64,10 @@ class FormsCRM_GravityForms_Widget {
 			if ( ! isset( $_POST['formscrm_resend_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['formscrm_resend_nonce'] ) ), 'formscrm_resend_entry_' . $entry_id ) ) {
 				$html .= '<p style="color:red;">' . esc_html__( 'Security check failed. Please try again.', 'formscrm' ) . '</p>';
 			} else {
+				// Get selected feed(s).
+				$selected_feeds = isset( $_POST['formscrm_selected_feeds'] ) && is_array( $_POST['formscrm_selected_feeds'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['formscrm_selected_feeds'] ) ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+				$process_all    = in_array( 'all', $selected_feeds, true );
+
 				$html .= '<p><strong>' . esc_html__( 'Feeds processed:', 'formscrm' ) . '</strong></p>';
 				$html .= '<ul>';
 
@@ -71,14 +75,18 @@ class FormsCRM_GravityForms_Widget {
 					if ( ! $feed['is_active'] || $form_id !== (int) $feed['form_id'] ) {
 						continue;
 					}
-					GFCRM::get_instance()->process_feed( $feed, $entry, $form );
-					$html .= '<li>';
-					$html .= sprintf(
-						// translators: %s is the name of the feed.
-						__( 'Feed: %s', 'formscrm' ),
-						isset( $feed['meta']['feedName'] ) ? $feed['meta']['feedName'] : $feed['id'],
-					);
-					$html .= '</li>';
+
+					// Process feed if "all" is selected or if this specific feed is selected.
+					if ( $process_all || in_array( (string) $feed['id'], $selected_feeds, true ) ) {
+						GFCRM::get_instance()->process_feed( $feed, $entry, $form );
+						$html .= '<li>';
+						$html .= sprintf(
+							// translators: %s is the name of the feed.
+							__( 'Feed: %s', 'formscrm' ),
+							isset( $feed['meta']['feedName'] ) ? $feed['meta']['feedName'] : $feed['id'],
+						);
+						$html .= '</li>';
+					}
 				}
 				$html .= '</ul>';
 			}
@@ -110,6 +118,21 @@ class FormsCRM_GravityForms_Widget {
 			$html .= '<form method="post" style="display:inline;">';
 			$html .= wp_nonce_field( 'formscrm_resend_entry_' . $entry_id, 'formscrm_resend_nonce', true, false );
 			$html .= '<input type="hidden" name="formscrm_action" value="' . esc_attr( $action ) . '" />';
+			$html .= '<label for="formscrm_feed_select">' . esc_html__( 'Select Feeds to Resend', 'formscrm' ) . ':</label> ';
+			$html .= '<select id="formscrm_feed_select" name="formscrm_selected_feeds[]" style="min-width:200px;">';
+			$html .= '<option value="all">' . esc_html__( 'All feeds', 'formscrm' ) . '</option>';
+			foreach ( $feeds as $feed ) {
+				if ( ! $feed['is_active'] || $form_id !== (int) $feed['form_id'] ) {
+					continue;
+				}
+				$feed_name = isset( $feed['meta']['feedName'] ) ? $feed['meta']['feedName'] : $feed['id'];
+				$html .= sprintf(
+					'<option value="%s">%s</option>',
+					esc_attr( $feed['id'] ),
+					esc_html( $feed_name )
+				);
+			}
+			$html .= '</select><br/><br/>';
 			$html .= sprintf(
 				'<input type="submit" value="%s" class="button button-primary" />',
 				esc_attr__( 'Resend Entry', 'formscrm' )
@@ -137,6 +160,18 @@ class FormsCRM_GravityForms_Widget {
 					'value' => array(),
 					'class' => array(),
 					'id'    => array(),
+				),
+				'select' => array(
+					'name'     => array(),
+					'id'       => array(),
+					'multiple' => array(),
+					'style'    => array(),
+				),
+				'option' => array(
+					'value' => array(),
+				),
+				'label'  => array(
+					'for' => array(),
 				),
 				'em'     => array(),
 			)

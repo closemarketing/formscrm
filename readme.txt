@@ -132,6 +132,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 = n.e.x.t. =
 *  Fixed: Resend button missing in Gravity Forms Entries view.
+*  Enhanced: Added feed selector in Resend Entry widget to choose between all feeds or individual feed.
 
 = 4.2.1 =
 *  Hotfix: Error not sending correctly entry id in webhook.
