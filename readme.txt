@@ -130,6 +130,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+= n.e.x.t. =
+*  Fixed: Resend button missing in Gravity Forms Entries view.
+
 = 4.2.1 =
 *  Hotfix: Error not sending correctly entry id in webhook.
 
