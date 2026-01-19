@@ -237,14 +237,40 @@ class CRMLIB_Brevo {
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$list_id = isset( $settings['fc_crm_module'] ) ? (int) $settings['fc_crm_module'] : '';
 
+		// List of standard Brevo contact fields that should be at root level.
+		// All other fields are automatically treated as custom attributes.
+		// See https://developers.brevo.com/reference/createcontact.
+		$standard_fields = array(
+			'email',
+			'ext_id',
+			'emailBlacklisted',
+			'smsBlacklisted',
+			'listIds',
+			'unlinkListIds',
+			'updateEnabled',
+			'smtpBlacklistSender',
+		);
+
 		$subscriber            = array();
 		$subscriber['listIds'] = array( $list_id );
 		foreach ( $merge_vars as $element ) {
-			if ( false === strpos( $element['name'], '|' ) ) {
-				$subscriber[ $element['name'] ] = $element['value'];
+			$field_name  = $element['name'];
+			$field_value = $element['value'];
+
+			// Check if field contains pipe separator (attributes|FIELDNAME).
+			if ( false === strpos( $field_name, '|' ) ) {
+				// No pipe - check if it's a standard field.
+				if ( in_array( $field_name, $standard_fields, true ) ) {
+					// Standard field - add to root level.
+					$subscriber[ $field_name ] = $field_value;
+				} else {
+					// Custom attribute - add to attributes object.
+					$subscriber['attributes'][ $field_name ] = $field_value;
+				}
 			} else {
-				$key                              = str_replace( 'attributes|', '', $element['name'] );
-				$subscriber['attributes'][ $key ] = $element['value'];
+				// Pipe found - extract attribute name and add to attributes.
+				$key                              = str_replace( 'attributes|', '', $field_name );
+				$subscriber['attributes'][ $key ] = $field_value;
 			}
 		}
 
