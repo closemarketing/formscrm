@@ -47,11 +47,11 @@ class FormsCRM_GravityForms_Widget {
 	 * @param array $args An array containing the form and entry objects.
 	 */
 	public function resend_metabox( $args ) {
-		$html    = '';
-		$action  = 'formscrm_process_feeds';
-		$form    = ! empty( $args['form'] ) ? $args['form'] : array();
-		$form_id = isset( $form['id'] ) ? (int) $form['id'] : 0;
-		$entry   = ! empty( $args['entry'] ) ? $args['entry'] : array();
+		$html     = '';
+		$action   = 'formscrm_process_feeds';
+		$form     = ! empty( $args['form'] ) ? $args['form'] : array();
+		$form_id  = isset( $form['id'] ) ? (int) $form['id'] : 0;
+		$entry    = ! empty( $args['entry'] ) ? $args['entry'] : array();
 		$entry_id = isset( $entry['id'] ) ? (int) $entry['id'] : 0;
 
 		$feeds = GFCRM::get_instance()->get_feeds( null, $form_id, 'formscrm', true );
