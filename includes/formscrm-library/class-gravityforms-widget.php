@@ -126,7 +126,7 @@ class FormsCRM_GravityForms_Widget {
 					continue;
 				}
 				$feed_name = isset( $feed['meta']['feedName'] ) ? $feed['meta']['feedName'] : $feed['id'];
-				$html .= sprintf(
+				$html     .= sprintf(
 					'<option value="%s">%s</option>',
 					esc_attr( $feed['id'] ),
 					esc_html( $feed_name )
