@@ -130,7 +130,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
-= 4.2.2 =
+= n.e.x.t. =
+*  Fixed: Resend button missing in Gravity Forms Entries view.
+*  Enhanced: Added feed selector in Resend Entry widget to choose between all feeds or individual feed.
 *  Added date conversion in Clientify for birthday field.
 
 = 4.2.1 =
