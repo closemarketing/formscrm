@@ -424,4 +424,153 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 		$result = formscrm_get_api_class( 'Invalid CRM' );
 		$this->assertNull( $result );
 	}
+
+	/**
+	 * Test formscrm_normalize_date_format with European format dd/mm/yyyy.
+	 */
+	public function test_normalize_date_format_european_slash() {
+		$result = formscrm_normalize_date_format( '25/12/1990' );
+		$this->assertEquals( '1990-12-25', $result );
+
+		$result = formscrm_normalize_date_format( '01/01/2000' );
+		$this->assertEquals( '2000-01-01', $result );
+
+		$result = formscrm_normalize_date_format( '15/06/1985' );
+		$this->assertEquals( '1985-06-15', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with European format dd-mm-yyyy.
+	 */
+	public function test_normalize_date_format_european_dash() {
+		$result = formscrm_normalize_date_format( '25-12-1990' );
+		$this->assertEquals( '1990-12-25', $result );
+
+		$result = formscrm_normalize_date_format( '01-01-2000' );
+		$this->assertEquals( '2000-01-01', $result );
+
+		$result = formscrm_normalize_date_format( '15-06-1985' );
+		$this->assertEquals( '1985-06-15', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with European format dd.mm.yyyy.
+	 */
+	public function test_normalize_date_format_european_dot() {
+		$result = formscrm_normalize_date_format( '25.12.1990' );
+		$this->assertEquals( '1990-12-25', $result );
+
+		$result = formscrm_normalize_date_format( '01.01.2000' );
+		$this->assertEquals( '2000-01-01', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with ISO format yyyy-mm-dd.
+	 */
+	public function test_normalize_date_format_iso() {
+		$result = formscrm_normalize_date_format( '1990-12-25' );
+		$this->assertEquals( '1990-12-25', $result );
+
+		$result = formscrm_normalize_date_format( '2000-01-01' );
+		$this->assertEquals( '2000-01-01', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with ISO format yyyy/mm/dd.
+	 */
+	public function test_normalize_date_format_iso_slash() {
+		$result = formscrm_normalize_date_format( '1990/12/25' );
+		$this->assertEquals( '1990-12-25', $result );
+
+		$result = formscrm_normalize_date_format( '2000/01/01' );
+		$this->assertEquals( '2000-01-01', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with US format mm/dd/yyyy.
+	 * When day value > 12, it's clearly US format.
+	 */
+	public function test_normalize_date_format_us_format() {
+		// When month value > 12, swap is applied.
+		$result = formscrm_normalize_date_format( '06/25/1985' );
+		$this->assertEquals( '1985-06-25', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with Unix timestamp.
+	 */
+	public function test_normalize_date_format_unix_timestamp() {
+		// Timestamp for 1990-12-25 00:00:00 UTC.
+		$result = formscrm_normalize_date_format( '662083200' );
+		$this->assertEquals( '1990-12-25', $result );
+
+		// Timestamp for 2000-01-01 00:00:00 UTC.
+		$result = formscrm_normalize_date_format( '946684800' );
+		$this->assertEquals( '2000-01-01', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with empty value.
+	 */
+	public function test_normalize_date_format_empty() {
+		$result = formscrm_normalize_date_format( '' );
+		$this->assertFalse( $result );
+
+		$result = formscrm_normalize_date_format( null );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with invalid date.
+	 */
+	public function test_normalize_date_format_invalid() {
+		$result = formscrm_normalize_date_format( 'invalid-date' );
+		$this->assertFalse( $result );
+
+		$result = formscrm_normalize_date_format( 'abc' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with single digit day and month.
+	 */
+	public function test_normalize_date_format_single_digits() {
+		$result = formscrm_normalize_date_format( '5/6/1990' );
+		$this->assertEquals( '1990-06-05', $result );
+
+		$result = formscrm_normalize_date_format( '1-2-2000' );
+		$this->assertEquals( '2000-02-01', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with whitespace.
+	 */
+	public function test_normalize_date_format_whitespace() {
+		$result = formscrm_normalize_date_format( '  25/12/1990  ' );
+		$this->assertEquals( '1990-12-25', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with text date formats.
+	 */
+	public function test_normalize_date_format_text_formats() {
+		$result = formscrm_normalize_date_format( 'December 25, 1990' );
+		$this->assertEquals( '1990-12-25', $result );
+
+		$result = formscrm_normalize_date_format( '25 Dec 1990' );
+		$this->assertEquals( '1990-12-25', $result );
+	}
+
+	/**
+	 * Test formscrm_normalize_date_format with invalid day/month values.
+	 */
+	public function test_normalize_date_format_invalid_day_month() {
+		// Invalid day 32.
+		$result = formscrm_normalize_date_format( '32/12/1990' );
+		$this->assertFalse( $result );
+
+		// Invalid month 13.
+		$result = formscrm_normalize_date_format( '25/13/1990' );
+		$this->assertFalse( $result );
+	}
 }
