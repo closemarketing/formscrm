@@ -39,20 +39,20 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			add_action( 'wp_ajax_formscrm_clear_all_logs', array( $this, 'ajax_clear_all_logs' ) );
 		}
 
-	/**
-	 * Check database version and create/update table if needed
-	 *
-	 * @return void
-	 */
-	public function check_database_version() {
-		$installed_version = get_option( 'formscrm_error_log_db_version', '0' );
-		$current_version   = '1.1';
+		/**
+		 * Check database version and create/update table if needed
+		 *
+		 * @return void
+		 */
+		public function check_database_version() {
+			$installed_version = get_option( 'formscrm_error_log_db_version', '0' );
+			$current_version   = '1.1';
 
-		if ( version_compare( $installed_version, $current_version, '<' ) ) {
-			$this->create_table();
-			update_option( 'formscrm_error_log_db_version', $current_version );
+			if ( version_compare( $installed_version, $current_version, '<' ) ) {
+				$this->create_table();
+				update_option( 'formscrm_error_log_db_version', $current_version );
+			}
 		}
-	}
 
 		/**
 		 * Create error log table
@@ -64,66 +64,66 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 
 			$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE {$this->table_name} (
-			id bigint(20) NOT NULL AUTO_INCREMENT,
-			error_date datetime NOT NULL,
-			crm_type varchar(100) NOT NULL,
-			error_message text NOT NULL,
-			form_type varchar(50) DEFAULT NULL,
-			form_type_title varchar(255) DEFAULT NULL,
-			form_id varchar(50) DEFAULT NULL,
-			form_name varchar(255) DEFAULT NULL,
-			entry_id varchar(50) DEFAULT NULL,
-			lead_data longtext NOT NULL,
-			api_url text DEFAULT NULL,
-			json_request longtext DEFAULT NULL,
-			status varchar(20) DEFAULT 'failed',
-			resend_attempts int(11) DEFAULT 0,
-			last_resend_date datetime DEFAULT NULL,
-			PRIMARY KEY  (id),
-			KEY crm_type (crm_type),
-			KEY status (status),
-			KEY error_date (error_date)
-		) $charset_collate;";
+			$sql = "CREATE TABLE {$this->table_name} (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				error_date datetime NOT NULL,
+				crm_type varchar(100) NOT NULL,
+				error_message text NOT NULL,
+				form_type varchar(50) DEFAULT NULL,
+				form_type_title varchar(255) DEFAULT NULL,
+				form_id varchar(50) DEFAULT NULL,
+				form_name varchar(255) DEFAULT NULL,
+				entry_id varchar(50) DEFAULT NULL,
+				lead_data longtext NOT NULL,
+				api_url text DEFAULT NULL,
+				json_request longtext DEFAULT NULL,
+				status varchar(20) DEFAULT 'failed',
+				resend_attempts int(11) DEFAULT 0,
+				last_resend_date datetime DEFAULT NULL,
+				PRIMARY KEY  (id),
+				KEY crm_type (crm_type),
+				KEY status (status),
+				KEY error_date (error_date)
+			) $charset_collate;";
 
 			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 			dbDelta( $sql );
 		}
 
-	/**
-	 * Insert error log
-	 *
-	 * @param string $crm        CRM type.
-	 * @param string $error      Error message.
-	 * @param array  $data       Lead data.
-	 * @param string $url        API URL.
-	 * @param string $json       JSON request.
-	 * @param array  $form_info  Form information.
-	 * @return int|false Log ID or false on failure.
-	 */
-	public function insert_log( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
-		global $wpdb;
+		/**
+		 * Insert error log
+		 *
+		 * @param string $crm        CRM type.
+		 * @param string $error      Error message.
+		 * @param array  $data       Lead data.
+		 * @param string $url        API URL.
+		 * @param string $json       JSON request.
+		 * @param array  $form_info  Form information.
+		 * @return int|false Log ID or false on failure.
+		 */
+		public function insert_log( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
+			global $wpdb;
 
-		$log_data = array(
-			'error_date'      => current_time( 'mysql' ),
-			'crm_type'        => sanitize_text_field( $crm ),
-			'error_message'   => sanitize_textarea_field( $error ),
-			'form_type'       => isset( $form_info['form_type'] ) ? sanitize_text_field( $form_info['form_type'] ) : null,
-			'form_type_title' => isset( $form_info['form_type_title'] ) ? sanitize_text_field( $form_info['form_type_title'] ) : null,
-			'form_id'         => isset( $form_info['form_id'] ) ? sanitize_text_field( $form_info['form_id'] ) : null,
-			'form_name'       => isset( $form_info['form_name'] ) ? sanitize_text_field( $form_info['form_name'] ) : null,
-			'entry_id'        => isset( $form_info['entry_id'] ) ? sanitize_text_field( $form_info['entry_id'] ) : null,
-			'lead_data'       => wp_json_encode( $data ),
-			'api_url'         => $url ? esc_url_raw( $url ) : null,
-			'json_request'    => $json ? wp_json_encode( json_decode( $json ) ) : null,
-			'status'          => 'failed',
-		);
+			$log_data = array(
+				'error_date'      => current_time( 'mysql' ),
+				'crm_type'        => sanitize_text_field( $crm ),
+				'error_message'   => sanitize_textarea_field( $error ),
+				'form_type'       => isset( $form_info['form_type'] ) ? sanitize_text_field( $form_info['form_type'] ) : null,
+				'form_type_title' => isset( $form_info['form_type_title'] ) ? sanitize_text_field( $form_info['form_type_title'] ) : null,
+				'form_id'         => isset( $form_info['form_id'] ) ? sanitize_text_field( $form_info['form_id'] ) : null,
+				'form_name'       => isset( $form_info['form_name'] ) ? sanitize_text_field( $form_info['form_name'] ) : null,
+				'entry_id'        => isset( $form_info['entry_id'] ) ? sanitize_text_field( $form_info['entry_id'] ) : null,
+				'lead_data'       => wp_json_encode( $data ),
+				'api_url'         => $url ? esc_url_raw( $url ) : null,
+				'json_request'    => $json ? wp_json_encode( json_decode( $json ) ) : null,
+				'status'          => 'failed',
+			);
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$result = $wpdb->insert( $this->table_name, $log_data );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$result = $wpdb->insert( $this->table_name, $log_data );
 
-		return $result ? $wpdb->insert_id : false;
-	}
+			return $result ? $wpdb->insert_id : false;
+		}
 
 		/**
 		 * Get error logs
@@ -330,19 +330,54 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				wp_send_json_error( array( 'message' => __( 'Invalid lead data', 'formscrm' ) ) );
 			}
 
+			// Get CRM settings.
+			$settings = formscrm_get_crm_settings( $log->form_type );
+
+			if ( empty( $settings ) ) {
+				formscrm_debug_message( 'ERROR: CRM settings not found for form type: ' . $log->form_type );
+				wp_send_json_error(
+					array(
+						'message' => __( 'CRM settings not found. Please configure the CRM connection in FormsCRM settings.', 'formscrm' ),
+					)
+				);
+			}
+
 			// Get CRM API class.
 			$api_class = formscrm_get_api_class( $log->crm_type );
 
 			if ( ! $api_class ) {
-				wp_send_json_error( array( 'message' => __( 'CRM API class not found', 'formscrm' ) ) );
+				$error_msg = sprintf(
+					/* translators: %s: CRM type name */
+					__( 'CRM API class not found for "%s". Please check if the CRM plugin is active and the library file exists.', 'formscrm' ),
+					$log->crm_type
+				);
+
+				wp_send_json_error(
+					array(
+						'message'  => $error_msg,
+						'crm_type' => $log->crm_type,
+						'log_id'   => $log_id,
+					)
+				);
 			}
-			// Attempt to resend.
+
+			// Verify API class has create_entry method.
+			if ( ! method_exists( $api_class, 'create_entry' ) ) {
+				$error_msg = sprintf(
+					/* translators: %s: CRM type name */
+					__( 'CRM API class for "%s" does not have create_entry method.', 'formscrm' ),
+					$log->crm_type
+				);
+
+				wp_send_json_error( array( 'message' => $error_msg ) );
+			}
+
+			$this->increment_resend_attempts( $log_id );
 			try {
-				$response = $api_class->create_entry( $lead_data );
+				$response = $api_class->create_entry( $settings, $lead_data );
 
 				if ( isset( $response['success'] ) && $response['success'] ) {
 					$this->update_status( $log_id, 'success' );
-					$this->increment_resend_attempts( $log_id );
 
 					wp_send_json_success(
 						array(
@@ -351,7 +386,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					);
 				} else {
 					$error_message = isset( $response['message'] ) ? $response['message'] : __( 'Unknown error occurred', 'formscrm' );
-					$this->increment_resend_attempts( $log_id );
 
 					wp_send_json_error(
 						array(
@@ -360,8 +394,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					);
 				}
 			} catch ( Exception $e ) {
-				$this->increment_resend_attempts( $log_id );
-
 				wp_send_json_error(
 					array(
 						'message' => $e->getMessage(),

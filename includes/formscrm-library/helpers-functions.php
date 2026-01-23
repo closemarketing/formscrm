@@ -15,24 +15,77 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 	 * Include library connector
 	 *
 	 * @param string $crm_type Type of CRM.
-	 * @return object|void
+	 * @return object|null
 	 */
 	function formscrm_get_api_class( $crm_type ) {
-		$crmname      = strtolower( $crm_type );
+		// Normalize CRM type.
+		$crmname      = strtolower( trim( $crm_type ) );
 		$crmclassname = str_replace( ' ', '', $crmname );
-		$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+		$crmclassname = 'CRMLIB_' . ucfirst( $crmclassname );
 		$crmname      = str_replace( ' ', '_', $crmname );
+
+		formscrm_debug_message( 'Attempting to load CRM: ' . $crmname );
 
 		$array_path = formscrm_get_crmlib_path();
 
+		// Log available CRM paths for debugging.
+		formscrm_debug_message( 'Available CRM paths: ' . print_r( array_keys( $array_path ), true ) );
+
 		if ( isset( $array_path[ $crmname ] ) ) {
-			include_once $array_path[ $crmname ];
-			formscrm_debug_message( $array_path[ $crmname ] );
+			$file_path = $array_path[ $crmname ];
+
+			// Verify file exists before including.
+			if ( ! file_exists( $file_path ) ) {
+				formscrm_debug_message( 'ERROR: CRM library file not found: ' . $file_path );
+				return null;
+			}
+
+			include_once $file_path;
+			formscrm_debug_message( 'Included CRM library: ' . $file_path );
+		} else {
+			formscrm_debug_message( 'ERROR: CRM path not registered for: ' . $crmname );
+			return null;
 		}
 
+		// Verify class exists after including file.
 		if ( class_exists( $crmclassname ) ) {
+			formscrm_debug_message( 'Successfully created instance of: ' . $crmclassname );
 			return new $crmclassname();
 		}
+
+		formscrm_debug_message( 'ERROR: CRM class not found: ' . $crmclassname );
+		return null;
+	}
+}
+
+if ( ! function_exists( 'formscrm_get_crm_settings' ) ) {
+	/**
+	 * Get CRM settings from WordPress options
+	 *
+	 * @param string $form_type Type of form (gravity, woocommerce, etc).
+	 * @return array Settings array.
+	 */
+	function formscrm_get_crm_settings( $form_type = '' ) {
+		$settings = array();
+
+		// Try to get settings based on form type.
+		if ( 'gravity' === $form_type || 'gravityforms' === $form_type ) {
+			$settings = get_option( 'gravityformsaddon_formscrm_settings', array() );
+		} elseif ( 'woocommerce' === $form_type ) {
+			$settings = get_option( 'wc_formscrm', array() );
+		} else {
+			// Default to Gravity Forms settings as fallback.
+			$settings = get_option( 'gravityformsaddon_formscrm_settings', array() );
+
+			// If empty, try WooCommerce.
+			if ( empty( $settings ) ) {
+				$settings = get_option( 'wc_formscrm', array() );
+			}
+		}
+
+		formscrm_debug_message( 'Retrieved CRM settings for form type: ' . $form_type );
+
+		return $settings;
 	}
 }
 
