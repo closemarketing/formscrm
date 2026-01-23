@@ -115,18 +115,18 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 
 				<div class="fcrm-section-content">
 					<!-- Filters -->
-					<div class="fcrm-error-log-filters" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-						<form method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+					<div class="fcrm-error-log-filters">
+						<form method="get" class="fcrm-error-log-filters-form">
 							<input type="hidden" name="page" value="formscrm">
 							<input type="hidden" name="tab" value="error-log">
 
-							<select name="filter_status" class="fcrm-form-input" style="max-width: 150px;">
+							<select name="filter_status" class="fcrm-form-input fcrm-filter-select">
 								<option value=""><?php esc_html_e( 'All Status', 'formscrm' ); ?></option>
 								<option value="failed" <?php selected( $status, 'failed' ); ?>><?php esc_html_e( 'Failed', 'formscrm' ); ?></option>
 								<option value="success" <?php selected( $status, 'success' ); ?>><?php esc_html_e( 'Success', 'formscrm' ); ?></option>
 							</select>
 
-							<select name="filter_crm" class="fcrm-form-input" style="max-width: 150px;">
+							<select name="filter_crm" class="fcrm-form-input fcrm-filter-select">
 								<option value=""><?php esc_html_e( 'All CRMs', 'formscrm' ); ?></option>
 								<?php
 								$crm_choices = formscrm_get_choices();
@@ -156,7 +156,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 					</div>
 
 					<!-- Stats Summary -->
-					<div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px;">
+					<div class="fcrm-stats-summary">
 						<strong><?php esc_html_e( 'Total Entries:', 'formscrm' ); ?></strong> <?php echo esc_html( $total_items ); ?>
 					</div>
 
@@ -166,106 +166,101 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 							<p><?php esc_html_e( 'No error logs found.', 'formscrm' ); ?></p>
 						</div>
 					<?php else : ?>
-						<div class="fcrm-error-log-table-wrapper" style="overflow-x: auto;">
-							<table class="fcrm-table" style="width: 100%; border-collapse: collapse;">
+						<div class="fcrm-error-log-table-wrapper">
+							<table class="fcrm-table">
 								<thead>
-									<tr style="background: #f9f9f9;">
-										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Date', 'formscrm' ); ?></th>
-										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'CRM', 'formscrm' ); ?></th>
-										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Form', 'formscrm' ); ?></th>
-										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Error', 'formscrm' ); ?></th>
-										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Status', 'formscrm' ); ?></th>
-										<th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Attempts', 'formscrm' ); ?></th>
-										<th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd; width: 280px; min-width: 280px;"><?php esc_html_e( 'Actions', 'formscrm' ); ?></th>
+									<tr>
+										<th><?php esc_html_e( 'ID', 'formscrm' ); ?></th>
+										<th><?php esc_html_e( 'Date', 'formscrm' ); ?></th>
+										<th><?php esc_html_e( 'CRM', 'formscrm' ); ?></th>
+										<th><?php esc_html_e( 'Form', 'formscrm' ); ?></th>
+										<th><?php esc_html_e( 'Error', 'formscrm' ); ?></th>
+										<th><?php esc_html_e( 'Status', 'formscrm' ); ?></th>
+										<th><?php esc_html_e( 'Attempts', 'formscrm' ); ?></th>
+										<th class="fcrm-table-actions"><?php esc_html_e( 'Actions', 'formscrm' ); ?></th>
 									</tr>
 								</thead>
 								<tbody>
 									<?php foreach ( $logs as $log ) : ?>
-										<tr data-log-id="<?php echo esc_attr( $log->id ); ?>" style="border-bottom: 1px solid #eee;">
-											<td style="padding: 12px;">
+										<tr data-log-id="<?php echo esc_attr( $log->id ); ?>">
+											<td>
+												<strong><?php echo esc_html( $log->id ); ?></strong>
+											</td>
+											<td>
 												<?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $log->error_date ) ) ); ?>
 											</td>
-											<td style="padding: 12px;">
+											<td>
 												<strong><?php echo esc_html( ucfirst( $log->crm_type ) ); ?></strong>
 											</td>
-										<td style="padding: 12px;">
-											<?php
-											if ( $log->form_name ) {
-												echo esc_html( $log->form_name );
-											}
-											if ( $log->form_type_title ) {
-												echo '<br><small style="color: #666;">' . esc_html( $log->form_type_title ) . '</small>';
-											}
-											?>
-										</td>
-											<td style="padding: 12px;">
-												<div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+											<td>
+												<?php
+												if ( $log->form_name ) {
+													echo esc_html( $log->form_name );
+												}
+												if ( $log->form_type_title ) {
+													echo '<br><small class="fcrm-form-subtitle">' . esc_html( $log->form_type_title ) . '</small>';
+												}
+												?>
+											</td>
+											<td>
+												<div class="fcrm-error-message">
 													<?php echo esc_html( wp_trim_words( $log->error_message, 15 ) ); ?>
 												</div>
 											</td>
-											<td style="padding: 12px;">
+											<td>
 												<?php
 												$status_class = 'failed' === $log->status ? 'error' : 'success';
 												$status_text  = 'failed' === $log->status ? __( 'Failed', 'formscrm' ) : __( 'Success', 'formscrm' );
 												?>
-												<span class="fcrm-status fcrm-status-<?php echo esc_attr( $status_class ); ?>" style="
-													padding: 4px 8px;
-													border-radius: 3px;
-													font-size: 12px;
-													font-weight: 600;
-													<?php echo 'failed' === $log->status ? 'background: #ffebee; color: #d32f2f;' : 'background: #e8f5e9; color: #2e7d32;'; ?>
-												">
+												<span class="fcrm-status fcrm-status-<?php echo esc_attr( $status_class ); ?>">
 													<?php echo esc_html( $status_text ); ?>
 												</span>
 											</td>
-											<td style="padding: 12px;">
+											<td>
 												<?php echo esc_html( $log->resend_attempts ); ?>
 											</td>
-										<td style="padding: 12px; text-align: center; width: 280px; min-width: 280px;">
-											<button 
-												type="button" 
-												class="fcrm-button fcrm-button-small fcrm-resend-btn"
-												data-log-id="<?php echo esc_attr( $log->id ); ?>"
-												style="margin-right: 5px; font-size: 12px; padding: 6px 12px;"
-											>
-												<?php esc_html_e( 'Resend', 'formscrm' ); ?>
-											</button>
-											<button 
-												type="button" 
-												class="fcrm-button fcrm-button-small fcrm-button-secondary fcrm-view-details-btn"
-												data-log-id="<?php echo esc_attr( $log->id ); ?>"
-												style="margin-right: 5px; font-size: 12px; padding: 6px 12px;"
-											>
-												<?php esc_html_e( 'Details', 'formscrm' ); ?>
-											</button>
-											<button 
-												type="button" 
-												class="fcrm-button fcrm-button-small fcrm-button-danger fcrm-delete-log-btn"
-												data-log-id="<?php echo esc_attr( $log->id ); ?>"
-												style="font-size: 12px; padding: 6px 12px;"
-											>
-												<?php esc_html_e( 'Delete', 'formscrm' ); ?>
-											</button>
-										</td>
+											<td class="fcrm-table-actions">
+												<button 
+													type="button" 
+													class="fcrm-button fcrm-button-small fcrm-resend-btn"
+													data-log-id="<?php echo esc_attr( $log->id ); ?>"
+												>
+													<?php esc_html_e( 'Resend', 'formscrm' ); ?>
+												</button>
+												<button 
+													type="button" 
+													class="fcrm-button fcrm-button-small fcrm-button-secondary fcrm-view-details-btn"
+													data-log-id="<?php echo esc_attr( $log->id ); ?>"
+												>
+													<?php esc_html_e( 'Details', 'formscrm' ); ?>
+												</button>
+												<button 
+													type="button" 
+													class="fcrm-button fcrm-button-small fcrm-button-danger fcrm-delete-log-btn"
+													data-log-id="<?php echo esc_attr( $log->id ); ?>"
+												>
+													<?php esc_html_e( 'Delete', 'formscrm' ); ?>
+												</button>
+											</td>
 										</tr>
 
 										<!-- Details Row (Hidden by default) -->
-										<tr class="fcrm-log-details" id="fcrm-details-<?php echo esc_attr( $log->id ); ?>" style="display: none;">
-											<td colspan="7" style="padding: 20px; background: #f9f9f9;">
-												<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+										<tr class="fcrm-log-details" id="fcrm-details-<?php echo esc_attr( $log->id ); ?>">
+											<td colspan="8" class="fcrm-details-cell">
+												<div class="fcrm-details-grid">
 													<!-- Lead Data -->
-													<div>
-														<h4 style="margin-top: 0;"><?php esc_html_e( 'Lead Data', 'formscrm' ); ?></h4>
-														<div style="background: white; padding: 15px; border-radius: 5px; max-height: 300px; overflow-y: auto;">
+													<div class="fcrm-details-section">
+														<h4><?php esc_html_e( 'Lead Data', 'formscrm' ); ?></h4>
+														<div class="fcrm-details-box fcrm-details-box-scroll">
 															<?php
 															$lead_data = json_decode( $log->lead_data, true );
 															if ( $lead_data ) {
-																echo '<table style="width: 100%;">';
+																echo '<table class="fcrm-lead-data-table">';
 																foreach ( $lead_data as $item ) {
 																	if ( isset( $item['name'] ) && isset( $item['value'] ) ) {
 																		echo '<tr>';
-																		echo '<td style="padding: 5px; font-weight: 600;">' . esc_html( $item['name'] ) . ':</td>';
-																		echo '<td style="padding: 5px;">' . esc_html( $item['value'] ) . '</td>';
+																		echo '<td class="fcrm-lead-data-name">' . esc_html( $item['name'] ) . ':</td>';
+																		echo '<td class="fcrm-lead-data-value">' . esc_html( $item['value'] ) . '</td>';
 																		echo '</tr>';
 																	}
 																}
@@ -276,17 +271,17 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 													</div>
 
 													<!-- Technical Details -->
-													<div>
-														<h4 style="margin-top: 0;"><?php esc_html_e( 'Technical Details', 'formscrm' ); ?></h4>
-														<div style="background: white; padding: 15px; border-radius: 5px;">
+													<div class="fcrm-details-section">
+														<h4><?php esc_html_e( 'Technical Details', 'formscrm' ); ?></h4>
+														<div class="fcrm-details-box">
 															<?php if ( $log->api_url ) : ?>
 																<p><strong><?php esc_html_e( 'API URL:', 'formscrm' ); ?></strong><br>
-																<code style="word-break: break-all; font-size: 11px;"><?php echo esc_html( $log->api_url ); ?></code></p>
+																<code class="fcrm-code"><?php echo esc_html( $log->api_url ); ?></code></p>
 															<?php endif; ?>
 
 															<?php if ( $log->json_request ) : ?>
 																<p><strong><?php esc_html_e( 'JSON Request:', 'formscrm' ); ?></strong><br>
-																<code style="display: block; word-break: break-all; font-size: 11px; max-height: 150px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 3px;">
+																<code class="fcrm-code fcrm-code-block">
 																	<?php echo esc_html( $log->json_request ); ?>
 																</code></p>
 															<?php endif; ?>
@@ -299,9 +294,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 													</div>
 
 													<!-- Error Details -->
-													<div style="grid-column: 1 / -1;">
-														<h4 style="margin-top: 0;"><?php esc_html_e( 'Full Error Message', 'formscrm' ); ?></h4>
-														<div style="background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #d32f2f;">
+													<div class="fcrm-details-section fcrm-details-full">
+														<h4><?php esc_html_e( 'Full Error Message', 'formscrm' ); ?></h4>
+														<div class="fcrm-error-box">
 															<?php echo esc_html( $log->error_message ); ?>
 														</div>
 													</div>
@@ -315,7 +310,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 
 						<!-- Pagination -->
 						<?php if ( $total_pages > 1 ) : ?>
-							<div class="fcrm-pagination" style="margin-top: 20px; display: flex; justify-content: center; gap: 5px;">
+							<div class="fcrm-pagination">
 								<?php
 								$base_url = add_query_arg(
 									array(
