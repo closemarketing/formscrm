@@ -134,26 +134,26 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'settings';
 
-			$formscrm_tabs = apply_filters(
-				'formscrm_settings_tabs',
-				array(
+				$formscrm_tabs = apply_filters(
+					'formscrm_settings_tabs',
 					array(
-						'tab'    => 'settings',
-						'label'  => esc_html__( 'Settings', 'formscrm' ),
-						'action' => 'formscrm_settings',
-					),
-					array(
-						'tab'    => 'notifications',
-						'label'  => esc_html__( 'Notifications', 'formscrm' ),
-						'action' => 'formscrm_notifications',
-					),
-					array(
-						'tab'    => 'error-log',
-						'label'  => esc_html__( 'Error Log', 'formscrm' ),
-						'action' => 'formscrm_error_log_content',
-					),
-				)
-			);
+						array(
+							'tab'    => 'settings',
+							'label'  => esc_html__( 'Settings', 'formscrm' ),
+							'action' => 'formscrm_settings',
+						),
+						array(
+							'tab'    => 'notifications',
+							'label'  => esc_html__( 'Notifications', 'formscrm' ),
+							'action' => 'formscrm_notifications',
+						),
+						array(
+							'tab'    => 'error-log',
+							'label'  => esc_html__( 'Error Log', 'formscrm' ),
+							'action' => 'formscrm_error_log_content',
+						),
+					)
+				);
 
 				// Ensure tabs is an array.
 			if ( ! is_array( $formscrm_tabs ) ) {

@@ -29,7 +29,7 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 		$array_path = formscrm_get_crmlib_path();
 
 		// Log available CRM paths for debugging.
-		formscrm_debug_message( 'Available CRM paths: ' . print_r( array_keys( $array_path ), true ) );
+		formscrm_debug_message( 'Available CRM paths: ' . wp_json_encode( array_keys( $array_path ) ) );
 
 		if ( isset( $array_path[ $crmname ] ) ) {
 			$file_path = $array_path[ $crmname ];
@@ -77,7 +77,7 @@ if ( ! function_exists( 'formscrm_get_crm_settings' ) ) {
 			// Default to Gravity Forms settings as fallback.
 			$settings = get_option( 'gravityformsaddon_formscrm_settings', array() );
 
-			// If empty, try WooCommerce.
+			// Fallback to WooCommerce settings when Gravity Forms settings are empty.
 			if ( empty( $settings ) ) {
 				$settings = get_option( 'wc_formscrm', array() );
 			}
