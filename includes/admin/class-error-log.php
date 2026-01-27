@@ -37,6 +37,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			add_action( 'wp_ajax_formscrm_resend_entry', array( $this, 'ajax_resend_entry' ) );
 			add_action( 'wp_ajax_formscrm_delete_log', array( $this, 'ajax_delete_log' ) );
 			add_action( 'wp_ajax_formscrm_clear_all_logs', array( $this, 'ajax_clear_all_logs' ) );
+
+			// Hook for automatic retry cron.
+			add_action( 'formscrm_retry_failed_entry', array( $this, 'retry_failed_entry' ), 10, 1 );
 		}
 
 		/**
@@ -122,7 +125,16 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 			$result = $wpdb->insert( $this->table_name, $log_data );
 
-			return $result ? $wpdb->insert_id : false;
+			if ( $result ) {
+				$log_id = $wpdb->insert_id;
+
+				// Schedule automatic retry in 1 hour.
+				$this->schedule_retry( $log_id );
+
+				return $log_id;
+			}
+
+			return false;
 		}
 
 		/**
@@ -279,6 +291,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		public function delete_log( $log_id ) {
 			global $wpdb;
 
+			// Clear any scheduled retry before deleting.
+			wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
+
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			return $wpdb->delete(
 				$this->table_name,
@@ -294,6 +309,15 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		 */
 		public function clear_all_logs() {
 			global $wpdb;
+
+			// Get all log IDs to clear scheduled events.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$log_ids = $wpdb->get_col( "SELECT id FROM {$this->table_name}" );
+
+			// Clear scheduled retries for all logs.
+			foreach ( $log_ids as $log_id ) {
+				wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
+			}
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			return $wpdb->query( "TRUNCATE TABLE {$this->table_name}" );
@@ -379,6 +403,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				if ( isset( $response['success'] ) && $response['success'] ) {
 					$this->update_status( $log_id, 'success' );
 
+					// Clear any scheduled retries.
+					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
+
 					wp_send_json_success(
 						array(
 							'message' => __( 'Entry resent successfully', 'formscrm' ),
@@ -387,6 +414,12 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				} else {
 					$error_message = isset( $response['message'] ) ? $response['message'] : __( 'Unknown error occurred', 'formscrm' );
 
+					// Schedule next retry if we haven't reached max attempts.
+					$log = $this->get_log( $log_id );
+					if ( $log && $log->resend_attempts < 3 ) {
+						$this->schedule_retry( $log_id );
+					}
+
 					wp_send_json_error(
 						array(
 							'message' => $error_message,
@@ -394,6 +427,12 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					);
 				}
 			} catch ( Exception $e ) {
+				// Schedule next retry if we haven't reached max attempts.
+				$log = $this->get_log( $log_id );
+				if ( $log && $log->resend_attempts < 3 ) {
+					$this->schedule_retry( $log_id );
+				}
+
 				wp_send_json_error(
 					array(
 						'message' => $e->getMessage(),
@@ -443,6 +482,112 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				wp_send_json_success( array( 'message' => __( 'All logs cleared successfully', 'formscrm' ) ) );
 			} else {
 				wp_send_json_error( array( 'message' => __( 'Failed to clear logs', 'formscrm' ) ) );
+			}
+		}
+
+		/**
+		 * Schedule automatic retry for failed entry
+		 *
+		 * @param int $log_id Log ID.
+		 * @return void
+		 */
+		private function schedule_retry( $log_id ) {
+			$log = $this->get_log( $log_id );
+
+			if ( ! $log ) {
+				return;
+			}
+
+			// Only schedule if we haven't reached max attempts.
+			if ( $log->resend_attempts >= 3 ) {
+				return;
+			}
+
+			// Schedule retry in 1 hour.
+			$timestamp = time() + HOUR_IN_SECONDS;
+
+			// Clear any existing scheduled retry for this log.
+			wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
+
+			// Schedule new retry.
+			wp_schedule_single_event( $timestamp, 'formscrm_retry_failed_entry', array( $log_id ) );
+		}
+
+		/**
+		 * Get next scheduled retry timestamp for a log entry
+		 *
+		 * @param int $log_id Log ID.
+		 * @return int|false Timestamp or false if not scheduled.
+		 */
+		public function get_next_retry_time( $log_id ) {
+			$timestamp = wp_next_scheduled( 'formscrm_retry_failed_entry', array( $log_id ) );
+			return $timestamp;
+		}
+
+		/**
+		 * Retry failed entry automatically (called by cron)
+		 *
+		 * @param int $log_id Log ID.
+		 * @return void
+		 */
+		public function retry_failed_entry( $log_id ) {
+			$log = $this->get_log( $log_id );
+
+			if ( ! $log || 'failed' !== $log->status ) {
+				return;
+			}
+
+			// Check if we've reached max attempts.
+			if ( $log->resend_attempts >= 3 ) {
+				return;
+			}
+
+			// Decode lead data.
+			$lead_data = json_decode( $log->lead_data, true );
+
+			if ( ! $lead_data ) {
+				return;
+			}
+
+			// Get CRM settings.
+			$settings = formscrm_get_crm_settings( $log->form_type );
+
+			if ( empty( $settings ) ) {
+				return;
+			}
+
+			// Get CRM API class.
+			$api_class = formscrm_get_api_class( $log->crm_type );
+
+			if ( ! $api_class || ! method_exists( $api_class, 'create_entry' ) ) {
+				return;
+			}
+
+			// Increment attempts before trying.
+			$this->increment_resend_attempts( $log_id );
+
+			try {
+				$response = $api_class->create_entry( $settings, $lead_data );
+
+				if ( isset( $response['success'] ) && $response['success'] ) {
+					// Success - update status.
+					$this->update_status( $log_id, 'success' );
+
+					// Clear any scheduled retries.
+					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
+				} else {
+					// Failed - check if we should schedule another retry.
+					$log = $this->get_log( $log_id );
+					if ( $log && $log->resend_attempts < 3 ) {
+						$this->schedule_retry( $log_id );
+					}
+				}
+			} catch ( Exception $e ) {
+				// Failed - check if we should schedule another retry.
+				$log = $this->get_log( $log_id );
+				if ( $log && $log->resend_attempts < 3 ) {
+					$this->schedule_retry( $log_id );
+				}
 			}
 		}
 	}

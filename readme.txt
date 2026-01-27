@@ -106,35 +106,48 @@ When an error occurs, you'll receive a detailed email notification that includes
 
 The email is professionally formatted with color-coded sections for easy reading and quick troubleshooting.
 
-== Error Log with Resend Capability ==
+== Error Log with Automatic Retry System ==
 
-**Track and Manage All Form Submission Errors**
+**Track, Manage, and Automatically Retry Failed Form Submissions**
 
-The Error Log feature provides a comprehensive interface to view, track, and manage all errors that occur when sending form submissions to your CRM. This powerful tool helps you troubleshoot issues and recover from failed submissions without requiring users to resubmit forms.
+The Error Log feature provides a comprehensive interface to view, track, and manage all errors that occur when sending form submissions to your CRM. This powerful tool includes an automatic retry system that helps you troubleshoot issues and recover from failed submissions without requiring manual intervention or users to resubmit forms.
 
 **Key Features:**
 
+* **Automatic Retry System**: Failed entries are automatically retried up to 3 times with 1-hour intervals between attempts
+* **Smart Retry Management**: Retries stop automatically when an entry is successfully sent or manually deleted
 * **Complete Error Tracking**: All errors are automatically saved to the database with complete context including CRM type, error message, form information, lead data, and technical details
 * **Advanced Filtering**: Filter errors by status (failed/success) and CRM type to quickly find specific issues
 * **Detailed Error Information**: View complete error details including lead data, API URLs, JSON requests, and full error messages
-* **One-Click Resend**: Resend failed entries directly from the error log with a single click
+* **One-Click Manual Resend**: Manually resend failed entries directly from the error log with a single click
 * **Error Management**: Delete individual entries or clear all logs with confirmation dialogs
 * **Pagination**: Navigate through large numbers of error logs with built-in pagination (20 entries per page)
-* **Status Tracking**: Visual status badges show failed and successful entries at a glance
-* **Resend Attempts Counter**: Track how many times an entry has been resent
+* **Visual Status Tracking**: Status badges show failed and successful entries at a glance
+* **Retry Progress Counter**: Shows retry attempts (e.g., "2/3") and displays time until next automatic retry
 * **Responsive Design**: Fully responsive interface that works on all devices
+
+**Automatic Retry System:**
+
+When a form submission fails to send to your CRM:
+
+1. The error is logged immediately and the first retry is scheduled for 1 hour later
+2. If the retry fails, another retry is scheduled for 1 hour after that
+3. This continues for up to 3 total attempts (original submission + 2 retries)
+4. If an attempt succeeds, all future retries are automatically cancelled
+5. You can manually resend at any time, which counts toward the 3-attempt limit
+6. The interface shows the current attempt count (e.g., "1/3", "2/3") and time until next retry
 
 **How to Use:**
 
 1. Go to **WordPress Admin → FormsCRM → Error Log tab**
 2. View all form submission errors in an organized table
 3. Filter by status or CRM type to find specific errors
-4. Click **Details** to view complete error information
-5. Click **Resend** to retry sending a failed entry to your CRM
-6. Click **Delete** to remove individual log entries
-7. Use **Clear All Logs** to remove all entries at once
+4. Click **Details** to view complete error information including retry schedule
+5. Click **Resend** to manually retry sending a failed entry to your CRM
+6. Click **Delete** to remove individual log entries and cancel any pending retries
+7. Use **Clear All Logs** to remove all entries at once and cancel all pending retries
 
-**What Information is Stored:**
+**What Information is Displayed:**
 
 * Date and time of error
 * CRM type (Holded, Clientify, etc.)
@@ -143,10 +156,11 @@ The Error Log feature provides a comprehensive interface to view, track, and man
 * All lead data from the form submission
 * API endpoint URL
 * JSON request payload
-* Resend attempts count
-* Last resend date
+* Retry attempts count (e.g., "2/3")
+* Time until next automatic retry (e.g., "Next: in 45 minutes")
+* Last resend date and time
 
-The Error Log feature helps you maintain data integrity by ensuring no form submissions are lost due to temporary errors or connectivity issues.
+The Error Log with automatic retry system helps you maintain data integrity by ensuring no form submissions are lost due to temporary errors, connectivity issues, or API downtime. The automatic retry mechanism increases the success rate of form submissions without requiring manual intervention.
 
 == Settings for Clientify ==
 **Instructions for adding Clientify cookie in the forms**
@@ -174,6 +188,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = 4.3.0 =
+*  Added: Automatic retry system for failed form submissions with up to 3 attempts.
+*  Added: Smart retry scheduling with 1-hour intervals between automatic retry attempts.
+*  Added: Visual retry counter showing current attempts (e.g., "2/3") and time until next retry.
+*  Added: Automatic cancellation of pending retries when entry succeeds or is deleted.
 *  Added: Error Log feature with comprehensive error tracking and management interface.
 *  Added: Resend capability for failed form submissions directly from the error log.
 *  Added: Advanced filtering for error logs by status (failed/success) and CRM type.
@@ -185,6 +203,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Added: Resend attempts counter and last resend date tracking.
 *  Added: AJAX-based operations for smooth user experience without page reloads.
 *  Enhanced: Responsive design for error log interface on all devices.
+*  Enhanced: Manual and automatic retries are synchronized and count toward the 3-attempt limit.
 
 = 4.2.0 =
 *  Enhanced: New design for the settings page.

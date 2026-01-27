@@ -217,7 +217,23 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 												</span>
 											</td>
 											<td>
-												<?php echo esc_html( $log->resend_attempts ); ?>
+												<?php
+												echo esc_html( $log->resend_attempts ) . '/3';
+
+												// Show next retry info if scheduled and not at max attempts.
+												if ( 'failed' === $log->status && $log->resend_attempts < 3 ) {
+													global $formscrm_error_log;
+													$next_retry = $formscrm_error_log->get_next_retry_time( $log->id );
+
+													if ( $next_retry ) {
+														$time_diff = human_time_diff( time(), $next_retry );
+														echo '<br><small style="color: #666;">';
+														/* translators: %s: Time until next retry */
+														printf( esc_html__( 'Next: in %s', 'formscrm' ), esc_html( $time_diff ) );
+														echo '</small>';
+													}
+												}
+												?>
 											</td>
 											<td class="fcrm-table-actions">
 												<button 
