@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 4.2.0
-Version: 4.2.0
+Stable tag: 4.2.1
+Version: 4.2.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -188,22 +188,13 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = 4.3.0 =
-*  Added: Automatic retry system for failed form submissions with up to 3 attempts.
-*  Added: Smart retry scheduling with 1-hour intervals between automatic retry attempts.
-*  Added: Visual retry counter showing current attempts (e.g., "2/3") and time until next retry.
-*  Added: Automatic cancellation of pending retries when entry succeeds or is deleted.
-*  Added: Error Log feature with comprehensive error tracking and management interface.
-*  Added: Resend capability for failed form submissions directly from the error log.
-*  Added: Advanced filtering for error logs by status (failed/success) and CRM type.
-*  Added: Detailed error information display including lead data, API URLs, and JSON requests.
-*  Added: Pagination support for error logs (20 entries per page).
-*  Added: Status badges with color coding for quick visual identification of errors.
-*  Added: Individual and bulk delete operations for error log entries.
-*  Added: Automatic error logging to database when form submissions fail.
-*  Added: Resend attempts counter and last resend date tracking.
-*  Added: AJAX-based operations for smooth user experience without page reloads.
-*  Enhanced: Responsive design for error log interface on all devices.
-*  Enhanced: Manual and automatic retries are synchronized and count toward the 3-attempt limit.
+*  Added: Automatic retry system with up to 3 attempts at 1-hour intervals, visual progress counter, and smart cancellation when entries succeed or are deleted.
+*  Added: Error Log feature with comprehensive tracking, filtering by status/CRM, detailed error views, resend capability, and pagination for easy management.
+*  Enhanced: Responsive AJAX-based interface with color-coded status badges and synchronized manual/automatic retry system.
+*  Fixed: Resend button missing in Gravity Forms Entries view.
+*  Enhanced: Added feed selector in Resend Entry widget to choose between all feeds or individual feed.
+*  Added date conversion in Clientify for birthday field.
+*  Hotfix: Error not sending correctly entry id in webhook.
 
 = 4.2.0 =
 *  Enhanced: New design for the settings page.

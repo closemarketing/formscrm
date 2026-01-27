@@ -463,11 +463,11 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 		if ( ! $webhook_url ) {
 			return;
 		}
-		$module   = isset( $response['module'] ) ? $response['module'] : '';
-		$ids      = isset( $response['id'] ) ? $response['id'] : '';
-		$ids      = explode( '|', $ids );
-		$entry_id = end( $ids );
-		$entry_id = str_replace( 'Deal ', '', $entry_id );
+		$module    = isset( $response['module'] ) ? $response['module'] : '';
+		$ids       = isset( $response['id'] ) ? $response['id'] : '';
+		$ids       = explode( '|', $ids );
+		$entry_raw = end( $ids );
+		$entry_id  = preg_replace( '/\D/', '', $entry_raw );
 
 		$body     = array(
 			'hook' => array(
@@ -475,7 +475,7 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 				'target' => $webhook_url,
 			),
 			'data' => array(
-				'id' => $entry_id,
+				'id' => (int) $entry_id,
 			),
 		);
 		$response = wp_remote_post(
@@ -491,6 +491,87 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 			'response' => $response,
 			'request'  => $body,
 		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_normalize_date_format' ) ) {
+	/**
+	 * Normalizes date to YYYY-MM-DD format required by APIs like Clientify.
+	 *
+	 * Supported input formats:
+	 * - dd/mm/yyyy (European format)
+	 * - dd-mm-yyyy (European format with dashes)
+	 * - dd.mm.yyyy (European format with dots)
+	 * - yyyy-mm-dd (ISO format - already correct)
+	 * - yyyy/mm/dd (ISO format with slashes)
+	 * - mm/dd/yyyy (US format)
+	 * - mm-dd-yyyy (US format with dashes)
+	 * - Unix timestamps
+	 *
+	 * @param string $date_value The date value to normalize.
+	 * @return string|false Normalized date in YYYY-MM-DD format or false if invalid.
+	 */
+	function formscrm_normalize_date_format( $date_value ) {
+		if ( empty( $date_value ) ) {
+			return false;
+		}
+
+		$date_value = trim( $date_value );
+
+		// Already in correct format YYYY-MM-DD.
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_value ) ) {
+			return $date_value;
+		}
+
+		// Handle Unix timestamp.
+		if ( is_numeric( $date_value ) && strlen( $date_value ) >= 8 ) {
+			$timestamp = (int) $date_value;
+			$date      = gmdate( 'Y-m-d', $timestamp );
+			if ( false !== $date ) {
+				return $date;
+			}
+		}
+
+		// European format: dd/mm/yyyy or dd-mm-yyyy or dd.mm.yyyy.
+		if ( preg_match( '/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/', $date_value, $matches ) ) {
+			$day   = (int) $matches[1];
+			$month = (int) $matches[2];
+			$year  = (int) $matches[3];
+
+			// Validate date components.
+			if ( $day > 31 || $month > 12 ) {
+				// Could be US format mm/dd/yyyy, try swapping.
+				if ( $month <= 31 && $day <= 12 ) {
+					$temp  = $day;
+					$day   = $month;
+					$month = $temp;
+				}
+			}
+
+			// Validate the date.
+			if ( checkdate( $month, $day, $year ) ) {
+				return sprintf( '%04d-%02d-%02d', $year, $month, $day );
+			}
+		}
+
+		// ISO format with slashes: yyyy/mm/dd.
+		if ( preg_match( '/^(\d{4})[\/](\d{1,2})[\/](\d{1,2})$/', $date_value, $matches ) ) {
+			$year  = (int) $matches[1];
+			$month = (int) $matches[2];
+			$day   = (int) $matches[3];
+
+			if ( checkdate( $month, $day, $year ) ) {
+				return sprintf( '%04d-%02d-%02d', $year, $month, $day );
+			}
+		}
+
+		// Try PHP's strtotime as last resort for other formats.
+		$timestamp = strtotime( $date_value );
+		if ( false !== $timestamp && -1 !== $timestamp ) {
+			return gmdate( 'Y-m-d', $timestamp );
+		}
+
+		return false;
 	}
 }
 
