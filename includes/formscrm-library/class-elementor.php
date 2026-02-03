@@ -280,9 +280,10 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 			$form_info = array(
-				'form_type' => 'Elementor',
-				'form_id'   => isset( $settings['form_id'] ) ? $settings['form_id'] : ( isset( $settings['id'] ) ? $settings['id'] : '' ),
-				'form_name' => isset( $settings['form_name'] ) ? $settings['form_name'] : '',
+				'form_type'       => 'elementor',
+				'form_type_title' => 'Elementor',
+				'form_id'         => isset( $settings['form_id'] ) ? $settings['form_id'] : ( isset( $settings['id'] ) ? $settings['id'] : '' ),
+				'form_name'       => isset( $settings['form_name'] ) ? $settings['form_name'] : '',
 			);
 
 			formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );

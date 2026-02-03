@@ -2,7 +2,7 @@
 /**
  * Clientify connect library
  *
- * Has functions to login, list fields and create leadº
+ * Has functions to login, list fields and create lead
  *
  * @author   closemarketing
  * @category Functions

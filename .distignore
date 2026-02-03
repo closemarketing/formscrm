@@ -26,3 +26,4 @@ vendor/
 bin/
 .cursor/
 docs/
+README.md

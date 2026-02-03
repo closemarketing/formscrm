@@ -36,6 +36,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 
 			add_action( 'admin_menu', array( $this, 'add_plugin_page' ) );
 			add_action( 'formscrm_settings', array( $this, 'settings_page' ) );
+			add_action( 'formscrm_notifications', array( $this, 'notifications_page' ) );
 			add_action( 'admin_init', array( $this, 'register_settings' ) );
 		}
 
@@ -141,6 +142,16 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 							'label'  => esc_html__( 'Settings', 'formscrm' ),
 							'action' => 'formscrm_settings',
 						),
+						array(
+							'tab'    => 'notifications',
+							'label'  => esc_html__( 'Notifications', 'formscrm' ),
+							'action' => 'formscrm_notifications',
+						),
+						array(
+							'tab'    => 'error-log',
+							'label'  => esc_html__( 'Error Log', 'formscrm' ),
+							'action' => 'formscrm_error_log_content',
+						),
 					)
 				);
 
@@ -209,20 +220,18 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		}
 
 		/**
-		 * Renders the settings page.
+		 * Renders the notifications page.
 		 *
-		 * Displays the FormsCRM settings form with Slack integration options.
+		 * Displays error notification settings including Slack and Email options.
 		 *
 		 * @return void
 		 */
-		public function settings_page() {
-			$source_shop_url          = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://close.technology/en/';
-			$utm_source               = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
+		public function notifications_page() {
 			$slack_webhook_url        = get_option( 'formscrm_slack_webhook_url', '' );
 			$error_notification_email = get_option( 'formscrm_error_notification_email', '' );
 			?>
 
-		<!-- Notifications Section -->
+		<!-- Error Notifications Section -->
 		<div class="fcrm-section">
 			<div class="fcrm-section-header">
 				<h2 class="fcrm-section-title">
@@ -305,6 +314,20 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				</form>
 			</div>
 		</div>
+			<?php
+		}
+
+		/**
+		 * Renders the settings page.
+		 *
+		 * Displays supported forms and CRM integrations.
+		 *
+		 * @return void
+		 */
+		public function settings_page() {
+			$source_shop_url = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://close.technology/en/';
+			$utm_source      = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
+			?>
 
 		<!-- Forms Supported Section -->
 		<div class="fcrm-section">

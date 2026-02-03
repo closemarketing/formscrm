@@ -173,10 +173,11 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 				if ( 'error' === $api_status ) {
 					$form_info = array(
-						'form_type' => 'WPForms',
-						'form_id'   => $form_id,
-						'form_name' => isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '',
-						'entry_id'  => $entry_id,
+						'form_type'       => 'wpforms',
+						'form_type_title' => 'WPForms',
+						'form_id'         => $form_id,
+						'form_name'       => isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '',
+						'entry_id'        => $entry_id,
 					);
 					formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
 					$message = __( 'Error', 'formscrm' );
