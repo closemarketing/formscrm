@@ -162,6 +162,56 @@ When a form submission fails to send to your CRM:
 
 The Error Log with automatic retry system helps you maintain data integrity by ensuring no form submissions are lost due to temporary errors, connectivity issues, or API downtime. The automatic retry mechanism increases the success rate of form submissions without requiring manual intervention.
 
+== Markdown Export for GravityForms Entries ==
+
+**Export your GravityForms entries as portable, human-readable Markdown files**
+
+The Markdown Export feature allows you to export GravityForms entries into clean, well-structured `.md` files. This makes it easy to document, share, version control, or integrate form submissions with knowledge bases, static site generators, or any Markdown-compatible system.
+
+**Key Features:**
+
+* **Single Entry Export**: Export individual entries directly from the entry detail page
+* **Bulk Export**: Export multiple selected entries at once as a convenient ZIP file
+* **Clean Formatting**: Produces readable, well-structured Markdown with proper headers and field organization
+* **Comprehensive Field Support**: Handles all GravityForms field types including text, email, number, textarea, checkboxes, multiselect, name fields, address fields, file uploads, and list fields
+* **Smart Content Handling**: Properly formats multi-line content, preserves line breaks, and handles file attachments with Markdown links
+* **Metadata Included**: Each export includes form title, entry ID, submission date, and all field labels and values
+* **Safe Character Escaping**: Automatically escapes Markdown special characters to ensure valid output
+
+**How to Use:**
+
+**Single Entry Export:**
+1. Go to **Forms → Entries** in GravityForms
+2. Click on any entry to view its details
+3. Find the **Export to Markdown** widget in the right sidebar
+4. Click **Download Markdown** to get the `.md` file
+
+**Bulk Export:**
+1. Go to **Forms → Entries** in GravityForms
+2. Select one or multiple entries using the checkboxes
+3. Choose **Export to Markdown** from the bulk actions dropdown
+4. Click **Apply** to download a ZIP file containing all selected entries as separate Markdown files
+
+**Exported Markdown Format:**
+
+Each Markdown file includes:
+- Form title as the main heading
+- Entry ID and submission timestamp
+- All filled fields organized in a clean bullet list format
+- Field labels in bold with their corresponding values
+- Multi-line content properly formatted with preserved line breaks
+- File attachments as clickable Markdown links
+
+**Use Cases:**
+
+* Document form submissions for record-keeping
+* Share entry data with team members in a readable format
+* Version control form submissions using Git or similar tools
+* Import entries into knowledge bases or wikis
+* Generate reports or documentation from form data
+* Backup form entries in a portable, future-proof format
+* Integrate with static site generators (Jekyll, Hugo, etc.)
+
 == Settings for Clientify ==
 **Instructions for adding Clientify cookie in the forms**
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
@@ -188,6 +238,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 = 4.3.0 =
+*  Added: Markdown Export feature for GravityForms entries with single and bulk export capabilities.
+*  Added: Export entries as clean, well-structured Markdown files with full field type support.
+*  Added: Bulk export creates ZIP file with multiple entry Markdown files for easy sharing.
 *  Added: Automatic retry system with up to 3 attempts at 1-hour intervals, visual progress counter, and smart cancellation when entries succeed or are deleted.
 *  Added: Error Log feature with comprehensive tracking, filtering by status/CRM, detailed error views, resend capability, and pagination for easy management.
 *  Enhanced: Responsive AJAX-based interface with color-coded status badges and synchronized manual/automatic retry system.

@@ -33,7 +33,7 @@ class FormsCRM_GravityForms_Widget {
 	 */
 	public function widget_resend_entries( $meta_boxes, $entry, $form ) {
 		$meta_boxes['formscrm'] = array(
-			'title'         => esc_html__( 'Resend Entry to CRM', 'formscrm' ),
+			'title'         => esc_html__( 'FormsCRM: Resend', 'formscrm' ),
 			'callback'      => array( $this, 'resend_metabox' ),
 			'context'       => 'side',
 			'callback_args' => array( $entry, $form ),
