@@ -264,10 +264,11 @@ class FormsCRM_WooCommerce {
 
 			if ( 'error' === $response_result['status'] ) {
 				$form_info = array(
-					'form_type' => 'WooCommerce',
-					'form_id'   => 'checkout',
-					'form_name' => 'WooCommerce Checkout',
-					'entry_id'  => $order_id,
+					'form_type'       => 'woocommerce',
+					'form_type_title' => 'WooCommerce',
+					'form_id'         => 'checkout',
+					'form_name'       => 'WooCommerce Checkout',
+					'entry_id'        => $order_id,
 				);
 
 				formscrm_alert_error( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );

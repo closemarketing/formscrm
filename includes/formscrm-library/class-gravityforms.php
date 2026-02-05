@@ -740,10 +740,11 @@ class GFCRM extends GFFeedAddOn {
 			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 			$form_info = array(
-				'form_type' => 'Gravity Forms',
-				'form_id'   => isset( $form['id'] ) ? $form['id'] : '',
-				'form_name' => isset( $form['title'] ) ? $form['title'] : '',
-				'entry_id'  => isset( $entry['id'] ) ? $entry['id'] : '',
+				'form_type'       => 'gravityforms',
+				'form_type_title' => 'Gravity Forms',
+				'form_id'         => isset( $form['id'] ) ? $form['id'] : '',
+				'form_name'       => isset( $form['title'] ) ? $form['title'] : '',
+				'entry_id'        => isset( $entry['id'] ) ? $entry['id'] : '',
 			);
 
 			formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );

@@ -87,6 +87,7 @@ When an error occurs, the Slack notification includes:
 **Message Format:**
 
 All Slack notifications use a compact, easy-to-read format with information presented in single lines. Messages are color-coded in red (danger) to stand out in your channel and ensure immediate attention to critical errors.
+
 == Error Notifications ==
 **Custom Email for Error Reports**
 You can configure a custom email address to receive error notifications when a form submission fails to send to your CRM. This is useful when you want different team members to receive error alerts without using the admin email.
@@ -104,6 +105,62 @@ When an error occurs, you'll receive a detailed email notification that includes
 - **Technical Details**: API URL and JSON request for debugging purposes
 
 The email is professionally formatted with color-coded sections for easy reading and quick troubleshooting.
+
+== Error Log with Automatic Retry System ==
+
+**Track, Manage, and Automatically Retry Failed Form Submissions**
+
+The Error Log feature provides a comprehensive interface to view, track, and manage all errors that occur when sending form submissions to your CRM. This powerful tool includes an automatic retry system that helps you troubleshoot issues and recover from failed submissions without requiring manual intervention or users to resubmit forms.
+
+**Key Features:**
+
+* **Automatic Retry System**: Failed entries are automatically retried up to 3 times with 1-hour intervals between attempts
+* **Smart Retry Management**: Retries stop automatically when an entry is successfully sent or manually deleted
+* **Complete Error Tracking**: All errors are automatically saved to the database with complete context including CRM type, error message, form information, lead data, and technical details
+* **Advanced Filtering**: Filter errors by status (failed/success) and CRM type to quickly find specific issues
+* **Detailed Error Information**: View complete error details including lead data, API URLs, JSON requests, and full error messages
+* **One-Click Manual Resend**: Manually resend failed entries directly from the error log with a single click
+* **Error Management**: Delete individual entries or clear all logs with confirmation dialogs
+* **Pagination**: Navigate through large numbers of error logs with built-in pagination (20 entries per page)
+* **Visual Status Tracking**: Status badges show failed and successful entries at a glance
+* **Retry Progress Counter**: Shows retry attempts (e.g., "2/3") and displays time until next automatic retry
+* **Responsive Design**: Fully responsive interface that works on all devices
+
+**Automatic Retry System:**
+
+When a form submission fails to send to your CRM:
+
+1. The error is logged immediately and the first retry is scheduled for 1 hour later
+2. If the retry fails, another retry is scheduled for 1 hour after that
+3. This continues for up to 3 total attempts (original submission + 2 retries)
+4. If an attempt succeeds, all future retries are automatically cancelled
+5. You can manually resend at any time, which counts toward the 3-attempt limit
+6. The interface shows the current attempt count (e.g., "1/3", "2/3") and time until next retry
+
+**How to Use:**
+
+1. Go to **WordPress Admin → FormsCRM → Error Log tab**
+2. View all form submission errors in an organized table
+3. Filter by status or CRM type to find specific errors
+4. Click **Details** to view complete error information including retry schedule
+5. Click **Resend** to manually retry sending a failed entry to your CRM
+6. Click **Delete** to remove individual log entries and cancel any pending retries
+7. Use **Clear All Logs** to remove all entries at once and cancel all pending retries
+
+**What Information is Displayed:**
+
+* Date and time of error
+* CRM type (Holded, Clientify, etc.)
+* Form information (type, ID, name, entry ID)
+* Complete error message
+* All lead data from the form submission
+* API endpoint URL
+* JSON request payload
+* Retry attempts count (e.g., "2/3")
+* Time until next automatic retry (e.g., "Next: in 45 minutes")
+* Last resend date and time
+
+The Error Log with automatic retry system helps you maintain data integrity by ensuring no form submissions are lost due to temporary errors, connectivity issues, or API downtime. The automatic retry mechanism increases the success rate of form submissions without requiring manual intervention.
 
 == Settings for Clientify ==
 **Instructions for adding Clientify cookie in the forms**
@@ -135,15 +192,17 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Added: API connection status indicators across all form integrations (GravityForms, WPForms, Elementor, Contact Form 7, WooCommerce).
 *  Added: Visual connection status badges with color coding - green (connected), red (error), gray (not configured).
 *  Added: Real-time connection validation with detailed error messages when authentication fails.
-*  Enhanced: Centralized connection status logic with reusable helper functions for better code maintainability (DRY principles).
-*  Enhanced: WPForms now displays prominent connection status box after account selection.
-
-= 4.2.1 =
+*  Added: Automatic retry system with up to 3 attempts at 1-hour intervals, visual progress counter, and smart cancellation when entries succeed or are deleted.
+*  Added: Error Log feature with comprehensive tracking, filtering by status/CRM, detailed error views, resend capability, and pagination for easy management.
+*  Enhanced: Responsive AJAX-based interface with color-coded status badges and synchronized manual/automatic retry system.
+*  Fixed: Resend button missing in Gravity Forms Entries view.
+*  Enhanced: Added feed selector in Resend Entry widget to choose between all feeds or individual feed.
+*  Added date conversion in Clientify for birthday field.
 *  Hotfix: Error not sending correctly entry id in webhook.
 
 = 4.2.0 =
 *  Enhanced: New design for the settings page.
-*  Dedicated menu for FormsCRM settings.
+*  Enhanced: Dedicated menu for FormsCRM settings.
 *  Improved: Added new tests for more consistent code coverage.
 *  Fixed: Fatal error in formscrm_debug_email_lead function.
 
