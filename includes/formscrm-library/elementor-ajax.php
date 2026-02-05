@@ -50,46 +50,41 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 	ob_start();
 	// 1. Check connection to CRM
 	$crmtype = isset( $_POST['crmSettings']['fc_crm_type'] ) ? sanitize_text_field( wp_unslash( $_POST['crmSettings']['fc_crm_type'] ) ) : '';
-	$crmlib  = null;
 
 	if ( empty( $crmtype ) ) {
 		wp_send_json_error( __( 'No CRM selected', 'formscrm' ) );
 	}
 
-	$crmname      = strtolower( $crmtype );
-	$crmclassname = str_replace( ' ', '', $crmname );
-	$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
-	$crmname      = str_replace( ' ', '_', $crmname );
+	// Load CRM library class using helper function.
+	$crmlib = formscrm_get_api_class( $crmtype );
 
-	$array_path = formscrm_get_crmlib_path();
-	if ( isset( $array_path[ $crmname ] ) ) {
-		include_once $array_path[ $crmname ];
+	if ( ! $crmlib ) {
+		wp_send_json_error( __( 'Could not load CRM library', 'formscrm' ) );
 	}
-
-	formscrm_debug_message( $array_path[ $crmname ] );
-
-	if ( ! class_exists( $crmclassname ) ) {
-		wp_send_json_error( __( 'Class not found', 'formscrm' ) );
-	}
-
-	$crmlib = new $crmclassname();
 
 	$crm_settings_raw = isset( $_POST['crmSettings'] ) ? wp_unslash( $_POST['crmSettings'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in formscrm_elementor_process_settings().
 	$post_data        = formscrm_elementor_process_settings( $crm_settings_raw );
 
-	// Check connection status and show it using helper function.
+	// Check connection status.
 	$status_data = formscrm_check_connection_status( $post_data );
 
-	// Render connection status.
-	formscrm_render_connection_status( $post_data, 'elementor' );
+	// Store connection status HTML separately.
+	$status_html = formscrm_get_connection_status_html( $post_data, 'elementor' );
 
-	// If connection failed, return error.
+	// If connection failed, return error with status HTML.
 	if ( 'connected' !== $status_data['status'] ) {
 		$error_msg = __( 'Could not connect to CRM', 'formscrm' );
 		if ( ! empty( $status_data['error_message'] ) ) {
 			$error_msg .= ': ' . $status_data['error_message'];
 		}
-		wp_send_json_error( $error_msg );
+
+		// Return error with status HTML for JavaScript to handle.
+		wp_send_json_error(
+			array(
+				'message'     => $error_msg,
+				'status_html' => $status_html,
+			)
+		);
 	}
 
 	// 2. Show modules dropdown
@@ -210,5 +205,13 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 		<?php
 	}
 
-	wp_send_json_success( ob_get_clean() );
+	$form_html = ob_get_clean();
+
+	// Return success with both form HTML and status HTML.
+	wp_send_json_success(
+		array(
+			'form_html'   => $form_html,
+			'status_html' => $status_html,
+		)
+	);
 }

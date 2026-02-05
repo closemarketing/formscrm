@@ -20,7 +20,7 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 	function formscrm_get_api_class( $crm_type ) {
 		$crmname      = strtolower( $crm_type );
 		$crmclassname = str_replace( ' ', '', $crmname );
-		$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+		$crmclassname = 'CRMLIB_' . ucfirst( $crmclassname );
 		$crmname      = str_replace( ' ', '_', $crmname );
 
 		$array_path = formscrm_get_crmlib_path();
@@ -503,14 +503,15 @@ if ( ! function_exists( 'formscrm_check_connection_status' ) ) {
 		}
 
 		$login_result = $crmlib->login( $settings );
+		$login_status = isset( $login_result['status'] ) ? $login_result['status'] : '';
 
-		if ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
+		if ( is_array( $login_result ) && 'error' === $login_status ) {
 			$data['status']        = 'error';
 			$data['text']          = __( 'Error', 'formscrm' );
 			$data['color']         = '#dc3232';
 			$data['icon']          = '✕';
 			$data['error_message'] = isset( $login_result['message'] ) ? $login_result['message'] : '';
-		} elseif ( true === $login_result ) {
+		} elseif ( true === $login_result || 'ok' === $login_status ) {
 			$data['status'] = 'connected';
 			$data['text']   = __( 'Connected', 'formscrm' );
 			$data['color']  = '#46b450';
@@ -565,23 +566,33 @@ if ( ! function_exists( 'formscrm_build_status_html' ) ) {
 				break;
 
 			case 'elementor':
-				$bg_color = 'connected' === $status ? '#e8f5e9' : ( 'unknown' === $status ? '#f0f0f0' : '#ffebee' );
-				$border   = 'connected' === $status ? '#46b450' : ( 'unknown' === $status ? '#999' : '#dc3232' );
+				$bg_color     = 'connected' === $status ? '#f9f9f9' : ( 'unknown' === $status ? '#f9f9f9' : '#ffebee' );
+				$border_color = 'connected' === $status ? '#46b450' : ( 'unknown' === $status ? '#0073aa' : '#dc3232' );
+				$badge_color  = 'connected' === $status ? '#46b450' : ( 'unknown' === $status ? '#999' : '#dc3232' );
 
-				$html  = '<div class="formscrm-elementor-connection-result" style="margin: 10px 0;">';
-				$html .= '<p style="padding: 10px; background: ' . esc_attr( $bg_color ) . '; border-left: 4px solid ' . esc_attr( $border ) . '; border-radius: 4px;">';
-				$html .= '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
-				$html .= '<span style="color: ' . esc_attr( $status_color ) . '; font-weight: bold;">' . esc_html( $status_icon ) . ' ' . esc_html( $status_text ) . '</span>';
+				$html  = '<div style="padding: 12px; background: ' . esc_attr( $bg_color ) . '; border-left: 4px solid ' . esc_attr( $border_color ) . '; border-radius: 4px; margin-bottom: 15px;">';
+				$html .= '<div style="display: flex; align-items: center; justify-content: space-between;">';
+				$html .= '<div style="display: flex; align-items: center; gap: 8px;">';
+				$html .= '<strong style="color: #23282d;">' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
+				$html .= '<span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 3px; background: ' . esc_attr( $badge_color ) . '; color: white; font-size: 12px; font-weight: bold;">';
+				$html .= '<span style="margin-right: 5px;">' . esc_html( $status_icon ) . '</span>' . esc_html( $status_text );
+				$html .= '</span>';
+				$html .= '</div>';
 
 				if ( ! empty( $crm_type ) ) {
-					$html .= ' <span style="color: #666;">(' . esc_html( ucfirst( $crm_type ) ) . ')</span>';
+					$html .= '<div style="text-align: right;">';
+					$html .= '<span style="display: block; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">' . esc_html__( 'CRM Type', 'formscrm' ) . '</span>';
+					$html .= '<strong style="font-size: 14px; color: #0073aa;">' . esc_html( ucfirst( $crm_type ) ) . '</strong>';
+					$html .= '</div>';
 				}
+
+				$html .= '</div>';
 
 				if ( ! empty( $error_message ) ) {
-					$html .= '<br/><span style="color: #dc3232; font-size: 12px;">' . esc_html( $error_message ) . '</span>';
+					$html .= '<p style="margin: 8px 0 0 0; padding-top: 8px; border-top: 1px solid #ddd; color: #dc3232; font-size: 12px;"><strong>' . esc_html__( 'Error:', 'formscrm' ) . '</strong> ' . esc_html( $error_message ) . '</p>';
 				}
 
-				$html .= '</p></div>';
+				$html .= '</div>';
 				break;
 
 			case 'badge':

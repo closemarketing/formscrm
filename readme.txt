@@ -130,6 +130,14 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 4.3.0 =
+*  Added: API connection status indicators across all form integrations (GravityForms, WPForms, Elementor, Contact Form 7, WooCommerce).
+*  Added: Visual connection status badges with color coding - green (connected), red (error), gray (not configured).
+*  Added: Real-time connection validation with detailed error messages when authentication fails.
+*  Enhanced: Centralized connection status logic with reusable helper functions for better code maintainability (DRY principles).
+*  Enhanced: WPForms now displays prominent connection status box after account selection.
+
 = 4.2.1 =
 *  Hotfix: Error not sending correctly entry id in webhook.
 
