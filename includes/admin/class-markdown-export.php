@@ -181,8 +181,8 @@ if ( ! class_exists( 'FORMSCRM_Markdown_Export' ) ) {
 			if ( ! $is_single ) {
 				// Multiple entries - add main title.
 				$markdown .= "# {$form['title']}\n\n";
-				$markdown .= "**Total Entries:** " . count( $entries ) . "\n";
-				$markdown .= "**Export Date:** " . current_time( 'Y-m-d H:i:s' ) . "\n\n";
+				$markdown .= '**Total Entries:** ' . count( $entries ) . "\n";
+				$markdown .= '**Export Date:** ' . current_time( 'Y-m-d H:i:s' ) . "\n\n";
 				$markdown .= "---\n\n";
 			}
 
@@ -269,11 +269,11 @@ if ( ! class_exists( 'FORMSCRM_Markdown_Export' ) ) {
 			// Format based on field type.
 			switch ( $field_type ) {
 				case 'checkbox':
-					$markdown .= "- **{$field_label}:**\n";
+					$markdown       .= "- **{$field_label}:**\n";
 					$checkbox_values = is_array( $value ) ? $value : explode( '|', $value );
 					foreach ( $checkbox_values as $checkbox_value ) {
 						if ( ! empty( trim( $checkbox_value ) ) ) {
-							$markdown .= "  - " . esc_html( trim( $checkbox_value ) ) . "\n";
+							$markdown .= '  - ' . esc_html( trim( $checkbox_value ) ) . "\n";
 						}
 					}
 					break;

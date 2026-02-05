@@ -99,7 +99,7 @@ require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
 // Add Markdown Export tab to FormsCRM settings.
 add_filter(
 	'formscrm_settings_tabs',
-	function( $tabs ) {
+	function ( $tabs ) {
 		$tabs[] = array(
 			'tab'    => 'markdown-export',
 			'label'  => esc_html__( 'Export Entries', 'formscrm' ),
