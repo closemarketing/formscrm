@@ -336,6 +336,6 @@ class MarkdownExportTest extends WP_UnitTestCase {
 		$result = $this->markdown_export->add_export_metabox( $meta_boxes, $entry, $form );
 
 		$this->assertArrayHasKey( 'formscrm_markdown', $result );
-		$this->assertStringContainsString( 'Export to Markdown', $result['formscrm_markdown']['title'] );
+		$this->assertStringContainsString( 'FormsCRM: Export', $result['formscrm_markdown']['title'] );
 	}
 }
