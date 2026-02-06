@@ -29,7 +29,9 @@ class FormsCRM_GravityForms_Markdown_Export {
 		add_filter( 'gform_entry_detail_meta_boxes', array( $this, 'add_export_metabox' ), 10, 3 );
 
 		// Handle single entry export via query parameter.
-		add_action( 'admin_init', array( $this, 'handle_single_export' ) );
+		// Using multiple hooks to ensure it catches the request early enough.
+		add_action( 'init', array( $this, 'handle_single_export' ), 1 );
+		add_action( 'admin_init', array( $this, 'handle_single_export' ), 1 );
 	}
 
 	/**
@@ -129,8 +131,18 @@ class FormsCRM_GravityForms_Markdown_Export {
 	 * @return void
 	 */
 	public function handle_single_export() {
-		// Check if export request.
+		// Check if export request first (fastest check).
 		if ( ! isset( $_GET['formscrm_export_markdown'] ) || '1' !== $_GET['formscrm_export_markdown'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified below.
+			return;
+		}
+
+		// Check if we're in admin area.
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		// Verify we're on the right page.
+		if ( ! isset( $_GET['page'] ) || 'gf_entries' !== $_GET['page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified below.
 			return;
 		}
 
@@ -138,25 +150,57 @@ class FormsCRM_GravityForms_Markdown_Export {
 		$form_id  = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified below.
 		$nonce    = isset( $_GET['nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified here.
 
-		// Verify nonce.
-		if ( ! wp_verify_nonce( $nonce, 'formscrm_export_' . $entry_id ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'formscrm' ) );
+		// Basic validation.
+		if ( ! $entry_id || ! $form_id ) {
+			wp_die( esc_html__( 'Invalid entry or form ID.', 'formscrm' ) );
 		}
 
-		// Check capabilities - allow view, export, or edit entries.
-		$has_permission = current_user_can( 'gravityforms_view_entries' ) ||
-						  current_user_can( 'gravityforms_export_entries' ) ||
-						  current_user_can( 'gravityforms_edit_entries' ); // phpcs:ignore WordPress.WP.Capabilities.Unknown -- GravityForms custom capabilities.
+		// Verify nonce.
+		if ( ! wp_verify_nonce( $nonce, 'formscrm_export_' . $entry_id ) ) {
+			wp_die( esc_html__( 'Security check failed. Please try again.', 'formscrm' ) );
+		}
+
+		// Check capabilities using GravityForms API.
+		$has_permission = false;
+		
+		if ( class_exists( 'GFCommon' ) && method_exists( 'GFCommon', 'current_user_can_any' ) ) {
+			// Use GravityForms permission check method - this checks form-specific permissions.
+			$has_permission = GFCommon::current_user_can_any( array( 'gravityforms_view_entries', 'gravityforms_edit_entries', 'gravityforms_export_entries' ) );
+		}
+		
+		// If GFCommon not available or permission still false, check standard capabilities.
+		if ( ! $has_permission ) {
+			$has_permission = current_user_can( 'gravityforms_view_entries' ) ||
+							  current_user_can( 'gravityforms_export_entries' ) ||
+							  current_user_can( 'gravityforms_edit_entries' ) ||
+							  current_user_can( 'gform_full_access' ) ||
+							  current_user_can( 'manage_options' ); // phpcs:ignore WordPress.WP.Capabilities.Unknown -- GravityForms custom capabilities.
+		}
 
 		if ( ! $has_permission ) {
-			wp_die( esc_html__( 'You do not have permission to export entries.', 'formscrm' ) );
+			// Debug info for troubleshooting.
+			$current_user = wp_get_current_user();
+			$user_roles = implode( ', ', $current_user->roles );
+			wp_die( 
+				esc_html__( 'You do not have permission to export entries.', 'formscrm' ) . 
+				'<br><br><small>User roles: ' . esc_html( $user_roles ) . '</small>'
+			);
+		}
+
+		// Verify GravityForms API is available.
+		if ( ! class_exists( 'GFAPI' ) ) {
+			wp_die( esc_html__( 'GravityForms API not available.', 'formscrm' ) );
 		}
 
 		$entry = GFAPI::get_entry( $entry_id );
 		$form  = GFAPI::get_form( $form_id );
 
-		if ( ! $entry || ! $form ) {
-			wp_die( esc_html__( 'Entry or form not found.', 'formscrm' ) );
+		if ( ! $entry || is_wp_error( $entry ) ) {
+			wp_die( esc_html__( 'Entry not found.', 'formscrm' ) );
+		}
+
+		if ( ! $form || is_wp_error( $form ) ) {
+			wp_die( esc_html__( 'Form not found.', 'formscrm' ) );
 		}
 
 		// Generate markdown content.
@@ -168,7 +212,7 @@ class FormsCRM_GravityForms_Markdown_Export {
 		// Force download.
 		$this->force_download_markdown( $markdown, $filename );
 
-		exit;
+		die();
 	}
 
 	/**
@@ -410,21 +454,28 @@ class FormsCRM_GravityForms_Markdown_Export {
 	 * @return void
 	 */
 	private function force_download_markdown( $content, $filename ) {
-		// Clear output buffer.
-		if ( ob_get_level() ) {
+		// Clear all output buffers.
+		while ( ob_get_level() ) {
 			ob_end_clean();
 		}
+
+		// Prevent any caching.
+		nocache_headers();
 
 		// Set headers for download.
 		header( 'Content-Type: text/markdown; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
 		header( 'Content-Length: ' . strlen( $content ) );
-		header( 'Cache-Control: must-revalidate' );
-		header( 'Pragma: public' );
-		header( 'Expires: 0' );
+		header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+		header( 'Cache-Control: post-check=0, pre-check=0', false );
+		header( 'Pragma: no-cache' );
+		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
 
 		// Output content.
 		echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Markdown content is properly escaped in generation.
+
+		// Ensure we stop execution.
+		die();
 	}
 
 	/**
