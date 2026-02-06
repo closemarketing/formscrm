@@ -823,3 +823,88 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* =================================================================
+   Gravity Forms - Connected Feeds Column
+   ================================================================= */
+
+/* Column Styling */
+.gform-table .formscrm_feeds,
+.wp-list-table .formscrm_feeds {
+	min-width: 200px;
+	max-width: 350px;
+	vertical-align: top;
+}
+
+.wp-list-table td.formscrm_feeds {
+	padding: 10px;
+}
+
+/* Status Badges - Using GravityForms native classes */
+/* .gform-status-indicator.gform-status--active for connected state */
+/* .gform-status-indicator.gform-status--inactive for disconnected/error state */
+
+/* Feeds Wrapper */
+.formscrm_feeds {
+
+	.gform-status--active {
+    border-radius: .75rem;
+    gap: .25rem;
+    padding-block: 0.0625rem;
+    padding-inline: 0.375rem 0.5rem;
+		font-size: 12px;
+	}
+}
+
+/* Feeds List */
+.formscrm-feeds-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid #e0e0e0;
+}
+
+.formscrm-feed-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	line-height: 1.4;
+}
+
+.formscrm-feed-name {
+	font-weight: 500;
+	color: #000;
+}
+
+.formscrm-feed-crm {
+	color: #666;
+	font-size: 0.85em;
+	font-style: italic;
+}
+
+.formscrm-feed-total {
+	margin-top: 4px;
+	padding-top: 4px;
+	border-top: 1px solid #ddd;
+	color: #666;
+	font-size: 0.85em;
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 782px) {
+	.gform-table .formscrm_feeds,
+	.wp-list-table .formscrm_feeds {
+		min-width: 150px;
+	}
+	
+	.formscrm-status-badge {
+		padding: 4px 8px;
+		font-size: 0.85em;
+	}
+	
+	.formscrm-feed-item {
+		font-size: 0.9em;
+	}
+}

@@ -191,6 +191,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Added: Automatic retry system with up to 3 attempts at 1-hour intervals, visual progress counter, and smart cancellation when entries succeed or are deleted.
 *  Added: Error Log feature with comprehensive tracking, filtering by status/CRM, detailed error views, resend capability, and pagination for easy management.
 *  Enhanced: Responsive AJAX-based interface with color-coded status badges and synchronized manual/automatic retry system.
+*  Enhanced: Feed connection status in Forms list in Gravity Forms.
 *  Fixed: Resend button missing in Gravity Forms Entries view.
 *  Enhanced: Added feed selector in Resend Entry widget to choose between all feeds or individual feed.
 *  Added date conversion in Clientify for birthday field.
