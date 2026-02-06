@@ -53,6 +53,7 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 	}
 
 	require_once 'class-gravityforms-widget.php';
+	require_once 'class-gravityforms-markdown-export.php';
 }
 
 // ContactForms7.

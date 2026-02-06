@@ -15,24 +15,77 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 	 * Include library connector
 	 *
 	 * @param string $crm_type Type of CRM.
-	 * @return object|void
+	 * @return object|null
 	 */
 	function formscrm_get_api_class( $crm_type ) {
-		$crmname      = strtolower( $crm_type );
+		// Normalize CRM type.
+		$crmname      = strtolower( trim( $crm_type ) );
 		$crmclassname = str_replace( ' ', '', $crmname );
-		$crmclassname = 'CRMLIB_' . strtoupper( $crmclassname );
+		$crmclassname = 'CRMLIB_' . ucfirst( $crmclassname );
 		$crmname      = str_replace( ' ', '_', $crmname );
+
+		formscrm_debug_message( 'Attempting to load CRM: ' . $crmname );
 
 		$array_path = formscrm_get_crmlib_path();
 
+		// Log available CRM paths for debugging.
+		formscrm_debug_message( 'Available CRM paths: ' . wp_json_encode( array_keys( $array_path ) ) );
+
 		if ( isset( $array_path[ $crmname ] ) ) {
-			include_once $array_path[ $crmname ];
-			formscrm_debug_message( $array_path[ $crmname ] );
+			$file_path = $array_path[ $crmname ];
+
+			// Verify file exists before including.
+			if ( ! file_exists( $file_path ) ) {
+				formscrm_debug_message( 'ERROR: CRM library file not found: ' . $file_path );
+				return null;
+			}
+
+			include_once $file_path;
+			formscrm_debug_message( 'Included CRM library: ' . $file_path );
+		} else {
+			formscrm_debug_message( 'ERROR: CRM path not registered for: ' . $crmname );
+			return null;
 		}
 
+		// Verify class exists after including file.
 		if ( class_exists( $crmclassname ) ) {
+			formscrm_debug_message( 'Successfully created instance of: ' . $crmclassname );
 			return new $crmclassname();
 		}
+
+		formscrm_debug_message( 'ERROR: CRM class not found: ' . $crmclassname );
+		return null;
+	}
+}
+
+if ( ! function_exists( 'formscrm_get_crm_settings' ) ) {
+	/**
+	 * Get CRM settings from WordPress options
+	 *
+	 * @param string $form_type Type of form (gravity, woocommerce, etc).
+	 * @return array Settings array.
+	 */
+	function formscrm_get_crm_settings( $form_type = '' ) {
+		$settings = array();
+
+		// Try to get settings based on form type.
+		if ( 'gravity' === $form_type || 'gravityforms' === $form_type ) {
+			$settings = get_option( 'gravityformsaddon_formscrm_settings', array() );
+		} elseif ( 'woocommerce' === $form_type ) {
+			$settings = get_option( 'wc_formscrm', array() );
+		} else {
+			// Default to Gravity Forms settings as fallback.
+			$settings = get_option( 'gravityformsaddon_formscrm_settings', array() );
+
+			// Fallback to WooCommerce settings when Gravity Forms settings are empty.
+			if ( empty( $settings ) ) {
+				$settings = get_option( 'wc_formscrm', array() );
+			}
+		}
+
+		formscrm_debug_message( 'Retrieved CRM settings for form type: ' . $form_type );
+
+		return $settings;
 	}
 }
 
@@ -105,6 +158,12 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 	 * @return void
 	 */
 	function formscrm_alert_error( $crm, $error, $data, $url = '', $json = '', $form_info = array() ) {
+		// Log error to database.
+		global $formscrm_error_log;
+		if ( isset( $formscrm_error_log ) && method_exists( $formscrm_error_log, 'insert_log' ) ) {
+			$formscrm_error_log->insert_log( $crm, $error, $data, $url, $json, $form_info );
+		}
+
 		// Get custom email or fallback to admin email.
 		$custom_email = get_option( 'formscrm_error_notification_email', '' );
 		$to           = ! empty( $custom_email ) ? $custom_email : get_option( 'admin_email' );
@@ -435,6 +494,87 @@ if ( ! function_exists( 'formscrm_send_webhook' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_normalize_date_format' ) ) {
+	/**
+	 * Normalizes date to YYYY-MM-DD format required by APIs like Clientify.
+	 *
+	 * Supported input formats:
+	 * - dd/mm/yyyy (European format)
+	 * - dd-mm-yyyy (European format with dashes)
+	 * - dd.mm.yyyy (European format with dots)
+	 * - yyyy-mm-dd (ISO format - already correct)
+	 * - yyyy/mm/dd (ISO format with slashes)
+	 * - mm/dd/yyyy (US format)
+	 * - mm-dd-yyyy (US format with dashes)
+	 * - Unix timestamps
+	 *
+	 * @param string $date_value The date value to normalize.
+	 * @return string|false Normalized date in YYYY-MM-DD format or false if invalid.
+	 */
+	function formscrm_normalize_date_format( $date_value ) {
+		if ( empty( $date_value ) ) {
+			return false;
+		}
+
+		$date_value = trim( $date_value );
+
+		// Already in correct format YYYY-MM-DD.
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_value ) ) {
+			return $date_value;
+		}
+
+		// Handle Unix timestamp.
+		if ( is_numeric( $date_value ) && strlen( $date_value ) >= 8 ) {
+			$timestamp = (int) $date_value;
+			$date      = gmdate( 'Y-m-d', $timestamp );
+			if ( false !== $date ) {
+				return $date;
+			}
+		}
+
+		// European format: dd/mm/yyyy or dd-mm-yyyy or dd.mm.yyyy.
+		if ( preg_match( '/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/', $date_value, $matches ) ) {
+			$day   = (int) $matches[1];
+			$month = (int) $matches[2];
+			$year  = (int) $matches[3];
+
+			// Validate date components.
+			if ( $day > 31 || $month > 12 ) {
+				// Could be US format mm/dd/yyyy, try swapping.
+				if ( $month <= 31 && $day <= 12 ) {
+					$temp  = $day;
+					$day   = $month;
+					$month = $temp;
+				}
+			}
+
+			// Validate the date.
+			if ( checkdate( $month, $day, $year ) ) {
+				return sprintf( '%04d-%02d-%02d', $year, $month, $day );
+			}
+		}
+
+		// ISO format with slashes: yyyy/mm/dd.
+		if ( preg_match( '/^(\d{4})[\/](\d{1,2})[\/](\d{1,2})$/', $date_value, $matches ) ) {
+			$year  = (int) $matches[1];
+			$month = (int) $matches[2];
+			$day   = (int) $matches[3];
+
+			if ( checkdate( $month, $day, $year ) ) {
+				return sprintf( '%04d-%02d-%02d', $year, $month, $day );
+			}
+		}
+
+		// Try PHP's strtotime as last resort for other formats.
+		$timestamp = strtotime( $date_value );
+		if ( false !== $timestamp && -1 !== $timestamp ) {
+			return gmdate( 'Y-m-d', $timestamp );
+		}
+
+		return false;
+	}
+}
+
 if ( ! function_exists( 'formscrm_get_svg_icon' ) ) {
 	/**
 	 * Get SVG icon content.
@@ -455,5 +595,244 @@ if ( ! function_exists( 'formscrm_get_svg_icon' ) ) {
 			return $svg_content;
 		}
 		return '';
+	}
+}
+
+if ( ! function_exists( 'formscrm_get_connection_status_html' ) ) {
+	/**
+	 * Get HTML for API connection status indicator.
+	 *
+	 * @param array  $settings    CRM settings array with fc_crm_type and credentials.
+	 * @param string $output_type Output type: 'html', 'notice', 'badge', or 'elementor'.
+	 * @param string $help_text   Optional help text to display below status.
+	 * @return string HTML output for the connection status.
+	 */
+	function formscrm_get_connection_status_html( $settings, $output_type = 'html', $help_text = '' ) {
+		$status_data = formscrm_check_connection_status( $settings );
+
+		return formscrm_build_status_html( $status_data, $output_type, $help_text );
+	}
+}
+
+if ( ! function_exists( 'formscrm_check_connection_status' ) ) {
+	/**
+	 * Check connection status and return status data array.
+	 *
+	 * @param array $settings CRM settings array with fc_crm_type and credentials.
+	 * @return array Status data with keys: status, text, color, icon, error_message, crm_type.
+	 */
+	function formscrm_check_connection_status( $settings ) {
+		$crm_type = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
+		$data     = array(
+			'status'        => 'unknown',
+			'text'          => __( 'Not configured', 'formscrm' ),
+			'color'         => '#999999',
+			'icon'          => '○',
+			'error_message' => '',
+			'crm_type'      => $crm_type,
+		);
+
+		if ( empty( $crm_type ) ) {
+			return $data;
+		}
+
+		$crmlib = formscrm_get_api_class( $crm_type );
+
+		if ( ! isset( $crmlib ) || ! method_exists( $crmlib, 'login' ) ) {
+			return $data;
+		}
+
+		$login_result = $crmlib->login( $settings );
+		$login_status = isset( $login_result['status'] ) ? $login_result['status'] : '';
+
+		if ( is_array( $login_result ) && 'error' === $login_status ) {
+			$data['status']        = 'error';
+			$data['text']          = __( 'Error', 'formscrm' );
+			$data['color']         = '#dc3232';
+			$data['icon']          = '✕';
+			$data['error_message'] = isset( $login_result['message'] ) ? $login_result['message'] : '';
+		} elseif ( true === $login_result || 'ok' === $login_status ) {
+			$data['status'] = 'connected';
+			$data['text']   = __( 'Connected', 'formscrm' );
+			$data['color']  = '#46b450';
+			$data['icon']   = '✓';
+		} else {
+			$data['status'] = 'disconnected';
+			$data['text']   = __( 'Disconnected', 'formscrm' );
+			$data['color']  = '#dc3232';
+			$data['icon']   = '✕';
+		}
+
+		return $data;
+	}
+}
+
+if ( ! function_exists( 'formscrm_build_status_html' ) ) {
+	/**
+	 * Build HTML from status data.
+	 *
+	 * @param array  $status_data Status data from formscrm_check_connection_status().
+	 * @param string $output_type Output type: 'html', 'notice', 'badge', or 'elementor'.
+	 * @param string $help_text   Optional help text to display below status.
+	 * @return string HTML output.
+	 */
+	function formscrm_build_status_html( $status_data, $output_type = 'html', $help_text = '' ) {
+		$status        = $status_data['status'];
+		$status_text   = $status_data['text'];
+		$status_color  = $status_data['color'];
+		$status_icon   = $status_data['icon'];
+		$error_message = $status_data['error_message'];
+		$crm_type      = $status_data['crm_type'];
+		$html          = '';
+
+		switch ( $output_type ) {
+			case 'notice':
+				$notice_class = 'connected' === $status ? 'notice-success' : ( 'unknown' === $status ? 'notice-warning' : 'notice-error' );
+				$html         = '<div class="notice ' . esc_attr( $notice_class ) . '" style="padding: 10px;">';
+				$html        .= '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
+				$html        .= '<span style="color: ' . esc_attr( $status_color ) . '; font-weight: bold;">';
+				$html        .= esc_html( $status_icon ) . ' ' . esc_html( $status_text );
+				$html        .= '</span>';
+
+				if ( ! empty( $crm_type ) ) {
+					$html .= ' <span style="color: #666;">(' . esc_html( ucfirst( $crm_type ) ) . ')</span>';
+				}
+
+				if ( ! empty( $error_message ) ) {
+					$html .= '<br/><span style="color: #dc3232; font-size: 12px;">' . esc_html( $error_message ) . '</span>';
+				}
+
+				$html .= '</div>';
+				break;
+
+			case 'elementor':
+				$bg_color     = 'connected' === $status ? '#f9f9f9' : ( 'unknown' === $status ? '#f9f9f9' : '#ffebee' );
+				$border_color = 'connected' === $status ? '#46b450' : ( 'unknown' === $status ? '#0073aa' : '#dc3232' );
+				$badge_color  = 'connected' === $status ? '#46b450' : ( 'unknown' === $status ? '#999' : '#dc3232' );
+
+				$html  = '<div style="padding: 12px; background: ' . esc_attr( $bg_color ) . '; border-left: 4px solid ' . esc_attr( $border_color ) . '; border-radius: 4px; margin-bottom: 15px;">';
+				$html .= '<div style="display: flex; align-items: center; justify-content: space-between;">';
+				$html .= '<div style="display: flex; align-items: center; gap: 8px;">';
+				$html .= '<strong style="color: #23282d;">' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
+				$html .= '<span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 3px; background: ' . esc_attr( $badge_color ) . '; color: white; font-size: 12px; font-weight: bold;">';
+				$html .= '<span style="margin-right: 5px;">' . esc_html( $status_icon ) . '</span>' . esc_html( $status_text );
+				$html .= '</span>';
+				$html .= '</div>';
+
+				if ( ! empty( $crm_type ) ) {
+					$html .= '<div style="text-align: right;">';
+					$html .= '<span style="display: block; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">' . esc_html__( 'CRM Type', 'formscrm' ) . '</span>';
+					$html .= '<strong style="font-size: 14px; color: #0073aa;">' . esc_html( ucfirst( $crm_type ) ) . '</strong>';
+					$html .= '</div>';
+				}
+
+				$html .= '</div>';
+
+				if ( ! empty( $error_message ) ) {
+					$html .= '<p style="margin: 8px 0 0 0; padding-top: 8px; border-top: 1px solid #ddd; color: #dc3232; font-size: 12px;"><strong>' . esc_html__( 'Error:', 'formscrm' ) . '</strong> ' . esc_html( $error_message ) . '</p>';
+				}
+
+				$html .= '</div>';
+				break;
+
+			case 'badge':
+				$html  = '<div class="formscrm-connection-status" style="display: flex; align-items: center; gap: 10px;">';
+				$html .= sprintf(
+					'<span class="formscrm-status-badge" style="display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 4px; background-color: %1$s; color: white; font-weight: bold; font-size: 13px;">',
+					esc_attr( $status_color )
+				);
+				$html .= '<span style="margin-right: 6px; font-size: 14px;">' . esc_html( $status_icon ) . '</span>';
+				$html .= esc_html( $status_text );
+				$html .= '</span>';
+
+				if ( ! empty( $crm_type ) ) {
+					$html .= sprintf(
+						'<span class="formscrm-crm-name" style="color: #666; font-size: 13px;">(%s)</span>',
+						esc_html( ucfirst( $crm_type ) )
+					);
+				}
+
+				$html .= '</div>';
+
+				if ( ! empty( $error_message ) ) {
+					$html .= sprintf(
+						'<p class="formscrm-error-message" style="color: #dc3232; margin-top: 8px; font-size: 12px;"><strong>%s:</strong> %s</p>',
+						esc_html__( 'Error details', 'formscrm' ),
+						esc_html( $error_message )
+					);
+				}
+				break;
+
+			default: // 'html'
+				$html  = '<div class="formscrm-connection-status" style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">';
+				$html .= '<strong>' . esc_html__( 'API Connection Status:', 'formscrm' ) . '</strong> ';
+				$html .= sprintf(
+					'<span class="formscrm-status-badge" style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 3px; background-color: %1$s; color: white; font-weight: bold; font-size: 12px;">',
+					esc_attr( $status_color )
+				);
+				$html .= '<span style="margin-right: 5px;">' . esc_html( $status_icon ) . '</span>';
+				$html .= esc_html( $status_text );
+				$html .= '</span>';
+
+				if ( ! empty( $crm_type ) ) {
+					$html .= sprintf(
+						'<span style="color: #666; font-size: 12px;">(%s)</span>',
+						esc_html( ucfirst( $crm_type ) )
+					);
+				}
+
+				$html .= '</div>';
+
+				if ( ! empty( $error_message ) ) {
+					$html .= sprintf(
+						'<p style="color: #dc3232; margin: 5px 0; font-size: 12px;"><strong>%s:</strong> %s</p>',
+						esc_html__( 'Error', 'formscrm' ),
+						esc_html( $error_message )
+					);
+				}
+				break;
+		}
+
+		// Add help text if provided.
+		if ( ! empty( $help_text ) ) {
+			$html .= '<p class="formscrm-status-help" style="color: #666; margin-top: 8px; font-size: 12px;">';
+			$html .= esc_html( $help_text );
+			$html .= '</p>';
+		}
+
+		return $html;
+	}
+}
+
+if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
+	/**
+	 * Render API connection status indicator.
+	 *
+	 * Echoes the HTML for API connection status.
+	 *
+	 * @param array  $settings    CRM settings array with fc_crm_type and credentials.
+	 * @param string $output_type Output type: 'html', 'notice', 'badge', or 'elementor'.
+	 * @param string $help_text   Optional help text to display below status.
+	 * @return void
+	 */
+	function formscrm_render_connection_status( $settings, $output_type = 'html', $help_text = '' ) {
+		$allowed_html = array(
+			'div'    => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'span'   => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'strong' => array(),
+			'p'      => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'br'     => array(),
+		);
+
+		echo wp_kses( formscrm_get_connection_status_html( $settings, $output_type, $help_text ), $allowed_html );
 	}
 }

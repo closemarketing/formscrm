@@ -171,15 +171,18 @@ class FORMSCRM_CF7_Settings {
 				<?php } ?>
 			</div>
 			<?php
+			// Show API connection status.
+			if ( ! empty( $cf7_crm['fc_crm_type'] ) ) {
+				formscrm_render_connection_status( $cf7_crm, 'html' );
+			}
+
 			if ( ! empty( $this->crmlib ) ) {
 				$login_crm = $this->crmlib->login( $cf7_crm );
 				if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
-					echo '<p>' . esc_html__( 'We could not login to the CRM', 'formscrm' ) . ' ' . esc_html( $login_crm['message'] ) . '</p>';
 					return;
 				}
 
 				if ( false === $login_crm ) {
-					echo '<p>' . esc_html__( 'We could not login to the CRM', 'formscrm' ) . '</p>';
 					return;
 				}
 			}
@@ -291,9 +294,10 @@ class FORMSCRM_CF7_Settings {
 			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
 
 			$form_info = array(
-				'form_type' => 'Contact Form 7',
-				'form_id'   => $contact_form->id(),
-				'form_name' => $contact_form->title(),
+				'form_type'       => 'contactform7',
+				'form_type_title' => 'Contact Form 7',
+				'form_id'         => $contact_form->id(),
+				'form_name'       => $contact_form->title(),
 			);
 
 			formscrm_alert_error( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query, $form_info );
@@ -325,6 +329,9 @@ class FORMSCRM_CF7_Settings {
 			if ( is_array( $value ) ) {
 				$value = implode( ',', $value );
 			}
+
+			// Process dynamic values (shortcodes).
+			$value = $this->fill_dynamic_value( $value, $submitted_data );
 
 			$merge_vars[] = array(
 				'name'  => $crm_key,
@@ -364,6 +371,53 @@ class FORMSCRM_CF7_Settings {
 			FORMSCRM_VERSION,
 			true
 		);
+  }
+  /**
+	 * Fills dynamic value with shortcode support.
+	 *
+	 * Supports {id:field_name} syntax to reference other form field values.
+	 * Example: "Customer: {id:your-name} - {id:your-email}"
+	 *
+	 * @param string $field_value Field value that may contain shortcodes.
+	 * @param array  $submitted_data All submitted form data.
+	 * @return string Processed field value with shortcodes replaced.
+	 */
+	private function fill_dynamic_value( $field_value, $submitted_data ) {
+		if ( ! str_contains( $field_value, '{id:' ) ) {
+			return $field_value;
+		}
+
+		// Generate dynamic value.
+		$matches = array();
+		preg_match_all( '/{([^}]*)}/', $field_value, $matches );
+		if ( empty( $matches[1] ) ) {
+			return $field_value;
+		}
+
+		foreach ( $matches[1] as $match ) {
+			$field_options = explode( ':', $match );
+			if ( ! isset( $field_options[1] ) || 'id' !== $field_options[0] ) {
+				continue;
+			}
+
+			$field_name = $field_options[1];
+			if ( ! isset( $submitted_data[ $field_name ] ) ) {
+				continue;
+			}
+
+			// Get the value from submitted data.
+			$entry_value = $submitted_data[ $field_name ];
+
+			// Handle array values (checkboxes, etc.).
+			if ( is_array( $entry_value ) ) {
+				$entry_value = implode( ', ', $entry_value );
+			}
+
+			// Replace the shortcode with the actual value.
+			$field_value = str_replace( '{' . $match . '}', $entry_value, $field_value );
+		}
+
+		return $field_value;
 	}
 }
 

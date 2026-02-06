@@ -193,15 +193,19 @@ class FormsCRM_WooCommerce {
 			'type' => 'sectionend',
 			'id'   => 'wc_settings_formscrm_section_end',
 		);
+
+		// Show API connection status.
+		if ( ! empty( $wc_formscrm['fc_crm_type'] ) ) {
+			formscrm_render_connection_status( $wc_formscrm, 'notice' );
+		}
+
 		if ( ! empty( $this->crmlib ) && ! empty( $wc_formscrm ) ) {
 			$login_crm = $this->crmlib->login( $wc_formscrm );
 			if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
-				echo '<div class="notice notice-error"><p>' . esc_html__( 'We could not login to the CRM', 'formscrm' ) . ' ' . esc_html( $login_crm['message'] ) . '</p></div>';
 				return $settings_crm;
 			}
 
 			if ( false === $login_crm ) {
-				echo '<div class="notice notice-error"><p>' . esc_html__( 'We could not login to the CRM', 'formscrm' ) . '</p></div>';
 				return $settings_crm;
 			}
 		}
@@ -260,10 +264,11 @@ class FormsCRM_WooCommerce {
 
 			if ( 'error' === $response_result['status'] ) {
 				$form_info = array(
-					'form_type' => 'WooCommerce',
-					'form_id'   => 'checkout',
-					'form_name' => 'WooCommerce Checkout',
-					'entry_id'  => $order_id,
+					'form_type'       => 'woocommerce',
+					'form_type_title' => 'WooCommerce',
+					'form_id'         => 'checkout',
+					'form_name'       => 'WooCommerce Checkout',
+					'entry_id'        => $order_id,
 				);
 
 				formscrm_alert_error( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );

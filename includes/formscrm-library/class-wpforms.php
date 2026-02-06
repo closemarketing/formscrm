@@ -173,10 +173,11 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 				if ( 'error' === $api_status ) {
 					$form_info = array(
-						'form_type' => 'WPForms',
-						'form_id'   => $form_id,
-						'form_name' => isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '',
-						'entry_id'  => $entry_id,
+						'form_type'       => 'wpforms',
+						'form_type_title' => 'WPForms',
+						'form_id'         => $form_id,
+						'form_name'       => isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '',
+						'entry_id'        => $entry_id,
 					);
 					formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
 					$message = __( 'Error', 'formscrm' );
@@ -516,10 +517,37 @@ class FormsCRM_WPForms extends WPForms_Provider {
 	 * @return string
 	 */
 	public function output_options( $connection_id = '', $connection = array() ) {
+		$account_id = ! empty( $connection['account_id'] ) ? $connection['account_id'] : '';
+		$html       = '';
 
-		// Double opt in and a welcome email are defined in the List options on FormsCRM.
-		// They can't be controlled via the API.
-		return '';
+		if ( ! empty( $account_id ) ) {
+			$settings = $this->api_connect( $account_id );
+			if ( is_array( $settings ) && ! empty( $settings['fc_crm_type'] ) ) {
+				// Get connection status and display it prominently.
+				$status_html = formscrm_get_connection_status_html( $settings, 'badge' );
+
+				// Wrap in a visible container with proper styling.
+				$html  = '<div class="wpforms-provider-connection-status" style="margin: 15px 0; padding: 12px; background: #f9f9f9; border-radius: 4px; border-left: 4px solid #0073aa;">';
+				$html .= '<div style="display: flex; align-items: center; justify-content: space-between;">';
+				$html .= '<div>';
+				$html .= '<strong style="display: block; margin-bottom: 5px; color: #23282d;">' . esc_html__( 'CRM Connection:', 'formscrm' ) . '</strong>';
+				$html .= $status_html;
+				$html .= '</div>';
+
+				// Add CRM type info.
+				if ( ! empty( $settings['fc_crm_type'] ) ) {
+					$html .= '<div style="text-align: right;">';
+					$html .= '<span style="display: block; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">' . esc_html__( 'CRM Type', 'formscrm' ) . '</span>';
+					$html .= '<strong style="font-size: 14px; color: #0073aa;">' . esc_html( ucfirst( $settings['fc_crm_type'] ) ) . '</strong>';
+					$html .= '</div>';
+				}
+
+				$html .= '</div>';
+				$html .= '</div>';
+			}
+		}
+
+		return $html;
 	}
 
 	/*************************************************************************

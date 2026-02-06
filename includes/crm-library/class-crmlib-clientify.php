@@ -2,7 +2,7 @@
 /**
  * Clientify connect library
  *
- * Has functions to login, list fields and create leadº
+ * Has functions to login, list fields and create lead
  *
  * @author   closemarketing
  * @category Functions
@@ -873,6 +873,12 @@ class CRMLIB_Clientify {
 				$contact[ $element['name'] ] = array( $element['value'] );
 			} elseif ( 'gdpr_accept' === $element['name'] || 'disclaimer' === $element['name'] ) {
 				$contact[ $element['name'] ] = empty( $element['value'] ) ? false : true;
+			} elseif ( 'birthday' === $element['name'] ) {
+				// Normalize birthday date format to YYYY-MM-DD.
+				$normalized_date = formscrm_normalize_date_format( $element['value'] );
+				if ( false !== $normalized_date ) {
+					$contact[ $element['name'] ] = $normalized_date;
+				}
 			} else {
 				$contact[ $element['name'] ] = $element['value'];
 			}

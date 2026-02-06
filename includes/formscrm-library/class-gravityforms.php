@@ -144,6 +144,31 @@ class GFCRM extends GFFeedAddOn {
 		parent::init_admin();
 
 		$this->ensure_upgrade();
+
+		// Add custom columns to forms list.
+		if ( is_admin() ) {
+			add_filter( 'gform_form_list_columns', array( $this, 'add_feeds_column' ), 10 );
+			add_action( 'gform_form_list_column_formscrm_feeds', array( $this, 'display_feeds_column' ), 10, 1 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_forms_list_styles' ) );
+		}
+	}
+
+	/**
+	 * Enqueue styles for forms list page
+	 *
+	 * @param string $hook Current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_forms_list_styles( $hook ) {
+		// Only load on Gravity Forms pages.
+		if ( 'toplevel_page_gf_edit_forms' === $hook || strpos( $hook, 'gf_' ) !== false ) {
+			wp_enqueue_style(
+				'formscrm-forms-list',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-admin.css',
+				array(),
+				FORMSCRM_VERSION
+			);
+		}
 	}
 
 	/**
@@ -259,6 +284,18 @@ class GFCRM extends GFFeedAddOn {
 		$fields = array();
 		$fields = $this->get_crm_fields( true, array(), 'settings' );
 
+		// API Connection Status.
+		$fields = array_merge(
+			$fields,
+			array(
+				array(
+					'label' => __( 'API Connection Status', 'formscrm' ),
+					'type'  => 'connection_status',
+					'name'  => 'fc_crm_connection_status',
+				),
+			),
+		);
+
 		// Expert Mode.
 		$fields = array_merge(
 			$fields,
@@ -308,6 +345,55 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		return $api_key_field . '</br>' . $caption;
+	}
+
+	/**
+	 * Settings Connection Status field.
+	 *
+	 * Renders the API connection status indicator for plugin settings.
+	 *
+	 * @param array $field   Field configuration.
+	 * @param bool  $display Whether to display or return the HTML.
+	 * @return string HTML output.
+	 */
+	public function settings_connection_status( $field, $display = true ) {
+		$settings  = $this->get_plugin_settings();
+		$help_text = __( 'Save settings and reload the page to test the connection.', 'formscrm' );
+		$html      = formscrm_get_connection_status_html( $settings, 'badge', $help_text );
+
+		if ( $display ) {
+			formscrm_render_connection_status( $settings, 'badge', $help_text );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Settings Feed Connection Status field.
+	 *
+	 * Renders the API connection status indicator for feed settings.
+	 *
+	 * @param array $field   Field configuration.
+	 * @param bool  $display Whether to display or return the HTML.
+	 * @return string HTML output.
+	 */
+	public function settings_feed_connection_status( $field, $display = true ) {
+		$settings    = $this->get_api_settings_custom();
+		$status_data = formscrm_check_connection_status( $settings );
+		$help_text   = '';
+
+		// Show help text only for error states.
+		if ( 'disconnected' === $status_data['status'] || 'error' === $status_data['status'] ) {
+			$help_text = __( 'Please check your CRM credentials in the FormsCRM settings.', 'formscrm' );
+		}
+
+		$html = formscrm_build_status_html( $status_data, 'badge', $help_text );
+
+		if ( $display ) {
+			formscrm_render_connection_status( $settings, 'badge', $help_text );
+		}
+
+		return $html;
 	}
 
 	/**
@@ -413,21 +499,20 @@ class GFCRM extends GFFeedAddOn {
 		$feed_settings   = $this->get_current_feed();
 		$login_crm       = $this->login_api_crm();
 
+		// Add connection status field.
+		$crm_feed_fields[] = array(
+			'name'  => 'fc_feed_connection_status',
+			'label' => __( 'API Connection Status', 'formscrm' ),
+			'type'  => 'feed_connection_status',
+		);
+
 		if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
-			$crm_feed_fields[] = array(
-				'name'  => 'fc_login_result',
-				'label' => __( 'We could not login to the CRM', 'formscrm' ) . ' ' . $login_crm['message'],
-				'type'  => 'hidden',
-			);
 			return $crm_feed_fields;
 		}
 
 		if ( false === $login_crm ) {
-			$crm_feed_fields[] = array(
-				'name'  => 'fc_login_result',
-				'label' => __( 'We could not login to the CRM', 'formscrm' ),
-				'type'  => 'hidden',
-			);
+			// Connection status field already added above, no additional fields needed.
+			return $crm_feed_fields;
 		} else {
 			$module = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
 
@@ -578,6 +663,113 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Add feeds column to forms list
+	 *
+	 * @param array $columns Existing columns.
+	 * @return array Modified columns.
+	 */
+	public function add_feeds_column( $columns ) {
+		$columns['formscrm_feeds'] = esc_html__( 'Connected Feeds', 'formscrm' );
+		return $columns;
+	}
+
+	/**
+	 * Display feeds column content
+	 *
+	 * @param array $form Form object.
+	 * @return void
+	 */
+	public function display_feeds_column( $form ) {
+		// Get form ID from array or object.
+		$form_id = 0;
+
+		if ( is_array( $form ) ) {
+			$form_id = isset( $form['id'] ) ? absint( $form['id'] ) : 0;
+		} elseif ( is_object( $form ) ) {
+			$form_id = isset( $form->id ) ? absint( $form->id ) : 0;
+		}
+
+		// If no form ID, show disconnected.
+		if ( ! $form_id ) {
+			echo '<span class="gform-status-indicator gform-status--inactive">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
+			return;
+		}
+
+		try {
+			// Get feeds for this form.
+			$feeds = $this->get_feeds( $form_id );
+
+			// No feeds - show Disconnected.
+			if ( empty( $feeds ) || ! is_array( $feeds ) ) {
+				return;
+			}
+
+			// Has feeds - show Connected.
+			$feed_count = count( $feeds );
+
+			echo '<div class="formscrm-feeds-wrapper">';
+			echo '<span class="gform-status-indicator gform-status--active">' . esc_html__( 'Connected', 'formscrm' ) . '</span>';
+
+			// Show feed details.
+			echo '<div class="formscrm-feeds-list">';
+
+			foreach ( $feeds as $feed ) {
+				if ( ! is_array( $feed ) || empty( $feed['meta'] ) ) {
+					continue;
+				}
+
+				$feed_name = isset( $feed['meta']['feedName'] ) ? $feed['meta']['feedName'] : __( 'Unnamed Feed', 'formscrm' );
+				$crm_type  = '';
+
+				// Get CRM type.
+				if ( ! empty( $feed['meta']['fc_crm_custom_type'] ) && 'no' !== $feed['meta']['fc_crm_custom_type'] ) {
+					$crm_type = $feed['meta']['fc_crm_custom_type'];
+				} else {
+					$settings = $this->get_plugin_settings();
+					if ( ! empty( $settings['fc_crm_type'] ) ) {
+						$crm_type = $settings['fc_crm_type'];
+					}
+				}
+
+				$is_active = ! empty( $feed['is_active'] );
+				$status    = $is_active ? '✓' : '✗';
+				$color     = $is_active ? '#46b450' : '#dc3232';
+				$title     = $is_active ? __( 'Active', 'formscrm' ) : __( 'Inactive', 'formscrm' );
+
+				echo '<div class="formscrm-feed-item">';
+				printf(
+					'<span style="color: %s; font-weight: bold;" title="%s">%s</span> ',
+					esc_attr( $color ),
+					esc_attr( $title ),
+					esc_html( $status )
+				);
+					echo '<span class="formscrm-feed-name">' . esc_html( $feed_name ) . '</span>';
+
+				if ( ! empty( $crm_type ) ) {
+					echo ' <span class="formscrm-feed-crm">(' . esc_html( ucfirst( $crm_type ) ) . ')</span>';
+				}
+				echo '</div>';
+			}
+
+			// Show total if more than 1.
+			if ( $feed_count > 1 ) {
+				echo '<div class="formscrm-feed-total">';
+				printf(
+					/* translators: %d: number of feeds */
+					esc_html__( 'Total: %d feeds', 'formscrm' ),
+					absint( $feed_count )
+				);
+				echo '</div>';
+			}
+
+			echo '</div>'; // .formscrm-feeds-list
+			echo '</div>'; // .formscrm-feeds-wrapper
+		} catch ( Exception $e ) {
+			echo '<span class="gform-status-indicator gform-status--inactive">● ' . esc_html__( 'Error', 'formscrm' ) . '</span>';
+		}
+	}
+
+	/**
 	 * Get feed list columns
 	 *
 	 * @return array Column configuration.
@@ -680,10 +872,11 @@ class GFCRM extends GFFeedAddOn {
 			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 			$form_info = array(
-				'form_type' => 'Gravity Forms',
-				'form_id'   => isset( $form['id'] ) ? $form['id'] : '',
-				'form_name' => isset( $form['title'] ) ? $form['title'] : '',
-				'entry_id'  => isset( $entry['id'] ) ? $entry['id'] : '',
+				'form_type'       => 'gravityforms',
+				'form_type_title' => 'Gravity Forms',
+				'form_id'         => isset( $form['id'] ) ? $form['id'] : '',
+				'form_name'       => isset( $form['title'] ) ? $form['title'] : '',
+				'entry_id'        => isset( $entry['id'] ) ? $entry['id'] : '',
 			);
 
 			formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );
