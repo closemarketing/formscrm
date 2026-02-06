@@ -144,6 +144,12 @@ class GFCRM extends GFFeedAddOn {
 		parent::init_admin();
 
 		$this->ensure_upgrade();
+
+		// Add custom columns to forms list.
+		if ( is_admin() ) {
+			add_filter( 'gform_form_list_columns', array( $this, 'add_feeds_column' ), 10 );
+			add_action( 'gform_form_list_column_formscrm_feeds', array( $this, 'display_feeds_column' ), 10, 1 );
+		}
 	}
 
 	/**
@@ -575,6 +581,126 @@ class GFCRM extends GFFeedAddOn {
 
 		update_option( 'fc_crm_upgrade', 1 );
 		return true;
+	}
+
+	/**
+	 * Add feeds column to forms list
+	 *
+	 * @param array $columns Existing columns.
+	 * @return array Modified columns.
+	 */
+	public function add_feeds_column( $columns ) {
+		$columns['formscrm_feeds'] = esc_html__( 'Connected Feeds', 'formscrm' );
+		return $columns;
+	}
+
+	/**
+	 * Display feeds column content
+	 *
+	 * @param array $form Form object.
+	 * @return void
+	 */
+	public function display_feeds_column( $form ) {
+		// Try to get form ID in different ways.
+		$form_id = 0;
+		
+		if ( is_array( $form ) ) {
+			$form_id = rgar( $form, 'id' );
+		} elseif ( is_object( $form ) ) {
+			$form_id = isset( $form->id ) ? $form->id : 0;
+		}
+		
+		if ( ! $form_id ) {
+			echo '<span style="color: #dc3232; font-weight: 600; font-size: 0.95em;">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
+			return;
+		}
+
+		try {
+			$feeds = $this->get_feeds( $form_id );
+
+			// No feeds - show Disconnected.
+			if ( empty( $feeds ) || ! is_array( $feeds ) ) {
+				echo '<span style="color: #dc3232; font-weight: 600; font-size: 0.95em;">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
+				return;
+			}
+
+			$feed_count = count( $feeds );
+			$output     = array();
+
+			// Show Connected status.
+			echo '<div class="formscrm-feeds-list">';
+			echo '<div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">';
+			echo '<span style="color: #46b450; font-weight: 600; font-size: 0.95em;">● ' . esc_html__( 'Connected', 'formscrm' ) . '</span>';
+			echo '</div>';
+
+			foreach ( $feeds as $feed ) {
+				if ( ! is_array( $feed ) || ! isset( $feed['meta'] ) || ! is_array( $feed['meta'] ) ) {
+					continue;
+				}
+
+				$feed_name = rgar( $feed['meta'], 'feedName' );
+				if ( empty( $feed_name ) ) {
+					$feed_name = __( 'Unnamed Feed', 'formscrm' );
+				}
+
+				$crm_type = '';
+				
+				// Get CRM type from custom or default settings.
+				$custom_crm_type = rgar( $feed['meta'], 'fc_crm_custom_type' );
+				if ( ! empty( $custom_crm_type ) && 'no' !== $custom_crm_type ) {
+					$crm_type = $custom_crm_type;
+				} else {
+					$settings = $this->get_plugin_settings();
+					if ( is_array( $settings ) ) {
+						$crm_type = rgar( $settings, 'fc_crm_type' );
+					}
+				}
+
+				$is_active = rgar( $feed, 'is_active' );
+				$status    = $is_active ? '✓' : '✗';
+				$color     = $is_active ? '#46b450' : '#dc3232';
+				$title     = $is_active ? __( 'Active', 'formscrm' ) : __( 'Inactive', 'formscrm' );
+				
+				$feed_html = '<div style="margin-bottom: 4px;">';
+				$feed_html .= sprintf(
+					'<span style="color: %s; font-weight: bold;" title="%s">%s</span> ',
+					esc_attr( $color ),
+					esc_attr( $title ),
+					esc_html( $status )
+				);
+				$feed_html .= '<span style="font-weight: 500;">' . esc_html( $feed_name ) . '</span>';
+
+				if ( ! empty( $crm_type ) ) {
+					$feed_html .= sprintf(
+						' <span style="color: #666; font-size: 0.85em; font-style: italic;">(%s)</span>',
+						esc_html( ucfirst( $crm_type ) )
+					);
+				}
+				$feed_html .= '</div>';
+
+				$output[] = $feed_html;
+			}
+
+			if ( ! empty( $output ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped above.
+				echo implode( '', $output );
+				
+				// Show total count if more than 1.
+				if ( $feed_count > 1 ) {
+					echo '<div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #ddd; color: #666; font-size: 0.85em;">';
+					printf(
+						/* translators: %d: number of feeds */
+						esc_html__( 'Total: %d feeds', 'formscrm' ),
+						absint( $feed_count )
+					);
+					echo '</div>';
+				}
+			}
+			
+			echo '</div>';
+		} catch ( Exception $e ) {
+			echo '<span style="color: #dc3232; font-weight: 600;">● ' . esc_html__( 'Error', 'formscrm' ) . '</span>';
+		}
 	}
 
 	/**
