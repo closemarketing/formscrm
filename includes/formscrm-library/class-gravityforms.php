@@ -284,6 +284,18 @@ class GFCRM extends GFFeedAddOn {
 		$fields = array();
 		$fields = $this->get_crm_fields( true, array(), 'settings' );
 
+		// API Connection Status.
+		$fields = array_merge(
+			$fields,
+			array(
+				array(
+					'label' => __( 'API Connection Status', 'formscrm' ),
+					'type'  => 'connection_status',
+					'name'  => 'fc_crm_connection_status',
+				),
+			),
+		);
+
 		// Expert Mode.
 		$fields = array_merge(
 			$fields,
@@ -333,6 +345,55 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		return $api_key_field . '</br>' . $caption;
+	}
+
+	/**
+	 * Settings Connection Status field.
+	 *
+	 * Renders the API connection status indicator for plugin settings.
+	 *
+	 * @param array $field   Field configuration.
+	 * @param bool  $display Whether to display or return the HTML.
+	 * @return string HTML output.
+	 */
+	public function settings_connection_status( $field, $display = true ) {
+		$settings  = $this->get_plugin_settings();
+		$help_text = __( 'Save settings and reload the page to test the connection.', 'formscrm' );
+		$html      = formscrm_get_connection_status_html( $settings, 'badge', $help_text );
+
+		if ( $display ) {
+			formscrm_render_connection_status( $settings, 'badge', $help_text );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Settings Feed Connection Status field.
+	 *
+	 * Renders the API connection status indicator for feed settings.
+	 *
+	 * @param array $field   Field configuration.
+	 * @param bool  $display Whether to display or return the HTML.
+	 * @return string HTML output.
+	 */
+	public function settings_feed_connection_status( $field, $display = true ) {
+		$settings    = $this->get_api_settings_custom();
+		$status_data = formscrm_check_connection_status( $settings );
+		$help_text   = '';
+
+		// Show help text only for error states.
+		if ( 'disconnected' === $status_data['status'] || 'error' === $status_data['status'] ) {
+			$help_text = __( 'Please check your CRM credentials in the FormsCRM settings.', 'formscrm' );
+		}
+
+		$html = formscrm_build_status_html( $status_data, 'badge', $help_text );
+
+		if ( $display ) {
+			formscrm_render_connection_status( $settings, 'badge', $help_text );
+		}
+
+		return $html;
 	}
 
 	/**
@@ -438,21 +499,20 @@ class GFCRM extends GFFeedAddOn {
 		$feed_settings   = $this->get_current_feed();
 		$login_crm       = $this->login_api_crm();
 
+		// Add connection status field.
+		$crm_feed_fields[] = array(
+			'name'  => 'fc_feed_connection_status',
+			'label' => __( 'API Connection Status', 'formscrm' ),
+			'type'  => 'feed_connection_status',
+		);
+
 		if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
-			$crm_feed_fields[] = array(
-				'name'  => 'fc_login_result',
-				'label' => __( 'We could not login to the CRM', 'formscrm' ) . ' ' . $login_crm['message'],
-				'type'  => 'hidden',
-			);
 			return $crm_feed_fields;
 		}
 
 		if ( false === $login_crm ) {
-			$crm_feed_fields[] = array(
-				'name'  => 'fc_login_result',
-				'label' => __( 'We could not login to the CRM', 'formscrm' ),
-				'type'  => 'hidden',
-			);
+			// Connection status field already added above, no additional fields needed.
+			return $crm_feed_fields;
 		} else {
 			$module = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
 

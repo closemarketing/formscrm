@@ -237,7 +237,11 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
 = 4.3.0 =
+*  Added: API connection status indicators across all form integrations (GravityForms, WPForms, Elementor, Contact Form 7, WooCommerce).
+*  Added: Visual connection status badges with color coding - green (connected), red (error), gray (not configured).
+*  Added: Real-time connection validation with detailed error messages when authentication fails.
 *  Added: Markdown Export feature for GravityForms entries with single and bulk export capabilities.
 *  Added: Export entries as clean, well-structured Markdown files with full field type support.
 *  Added: Bulk export creates ZIP file with multiple entry Markdown files for easy sharing.
