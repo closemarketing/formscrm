@@ -21,6 +21,62 @@ class FormsCRM_GravityForms_Widget {
 	 */
 	public function __construct() {
 		add_filter( 'gform_entry_detail_meta_boxes', array( $this, 'widget_resend_entries' ), 10, 3 );
+		add_action( 'gform_post_add_feed', array( $this, 'clear_feeds_cache' ), 10, 2 );
+		add_action( 'gform_post_update_feed', array( $this, 'clear_feeds_cache' ), 10, 2 );
+		add_action( 'gform_post_delete_feed', array( $this, 'clear_feeds_cache' ), 10, 2 );
+	}
+
+	/**
+	 * Get feeds with caching and error handling to improve performance.
+	 *
+	 * @param int $form_id Form ID.
+	 * @return array Array of feeds.
+	 */
+	private function get_feeds_cached( $form_id ) {
+		$cache_key = 'formscrm_feeds_' . $form_id;
+		$feeds     = get_transient( $cache_key );
+
+		if ( false === $feeds ) {
+			try {
+				// Increase max execution time temporarily for this operation.
+				$original_time_limit = ini_get( 'max_execution_time' );
+				if ( function_exists( 'set_time_limit' ) && false === strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) ) {
+					set_time_limit( 60 );
+				}
+
+				$feeds = GFCRM::get_instance()->get_feeds( null, $form_id, 'formscrm', true );
+
+				// Restore original time limit.
+				if ( function_exists( 'set_time_limit' ) && false === strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) ) {
+					set_time_limit( (int) $original_time_limit );
+				}
+
+				// Only cache if we got valid data.
+				if ( is_array( $feeds ) ) {
+					set_transient( $cache_key, $feeds, 5 * MINUTE_IN_SECONDS );
+				} else {
+					$feeds = array();
+				}
+			} catch ( Exception $e ) {
+				$feeds = array();
+			}
+		}
+
+		return is_array( $feeds ) ? $feeds : array();
+	}
+
+	/**
+	 * Clear feeds cache for a form.
+	 *
+	 * @param int   $feed_id Feed ID.
+	 * @param array $form_id Form ID.
+	 * @return void
+	 */
+	public function clear_feeds_cache( $feed_id, $form_id ) {
+		if ( ! empty( $form_id ) ) {
+			$cache_key = 'formscrm_feeds_' . $form_id;
+			delete_transient( $cache_key );
+		}
 	}
 
 	/**
@@ -33,7 +89,7 @@ class FormsCRM_GravityForms_Widget {
 	 */
 	public function widget_resend_entries( $meta_boxes, $entry, $form ) {
 		$meta_boxes['formscrm'] = array(
-			'title'         => esc_html__( 'Resend Entry to CRM', 'formscrm' ),
+			'title'         => esc_html__( 'FormsCRM: Resend', 'formscrm' ),
 			'callback'      => array( $this, 'resend_metabox' ),
 			'context'       => 'side',
 			'callback_args' => array( $entry, $form ),
@@ -41,6 +97,7 @@ class FormsCRM_GravityForms_Widget {
 
 		return $meta_boxes;
 	}
+
 	/**
 	 * The callback used to echo the content to the meta box.
 	 *
@@ -54,7 +111,8 @@ class FormsCRM_GravityForms_Widget {
 		$entry    = ! empty( $args['entry'] ) ? $args['entry'] : array();
 		$entry_id = isset( $entry['id'] ) ? (int) $entry['id'] : 0;
 
-		$feeds = GFCRM::get_instance()->get_feeds( null, $form_id, 'formscrm', true );
+		// Use cached version with error handling.
+		$feeds = $this->get_feeds_cached( $form_id );
 
 		// Check if action was triggered.
 		$resend_action = isset( $_POST['formscrm_action'] ) ? sanitize_text_field( wp_unslash( $_POST['formscrm_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified below.

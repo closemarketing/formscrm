@@ -313,6 +313,9 @@ class FORMSCRM_CF7_Settings {
 				$value = implode( ',', $value );
 			}
 
+			// Process dynamic values (shortcodes).
+			$value = $this->fill_dynamic_value( $value, $submitted_data );
+
 			$merge_vars[] = array(
 				'name'  => $crm_key,
 				'value' => $value,
@@ -320,6 +323,54 @@ class FORMSCRM_CF7_Settings {
 		}
 
 		return $merge_vars;
+	}
+
+	/**
+	 * Fills dynamic value with shortcode support.
+	 *
+	 * Supports {id:field_name} syntax to reference other form field values.
+	 * Example: "Customer: {id:your-name} - {id:your-email}"
+	 *
+	 * @param string $field_value Field value that may contain shortcodes.
+	 * @param array  $submitted_data All submitted form data.
+	 * @return string Processed field value with shortcodes replaced.
+	 */
+	private function fill_dynamic_value( $field_value, $submitted_data ) {
+		if ( ! str_contains( $field_value, '{id:' ) ) {
+			return $field_value;
+		}
+
+		// Generate dynamic value.
+		$matches = array();
+		preg_match_all( '/{([^}]*)}/', $field_value, $matches );
+		if ( empty( $matches[1] ) ) {
+			return $field_value;
+		}
+
+		foreach ( $matches[1] as $match ) {
+			$field_options = explode( ':', $match );
+			if ( ! isset( $field_options[1] ) || 'id' !== $field_options[0] ) {
+				continue;
+			}
+
+			$field_name = $field_options[1];
+			if ( ! isset( $submitted_data[ $field_name ] ) ) {
+				continue;
+			}
+
+			// Get the value from submitted data.
+			$entry_value = $submitted_data[ $field_name ];
+
+			// Handle array values (checkboxes, etc.).
+			if ( is_array( $entry_value ) ) {
+				$entry_value = implode( ', ', $entry_value );
+			}
+
+			// Replace the shortcode with the actual value.
+			$field_value = str_replace( '{' . $match . '}', $entry_value, $field_value );
+		}
+
+		return $field_value;
 	}
 }
 
