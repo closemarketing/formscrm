@@ -631,7 +631,7 @@ class GFCRM extends GFFeedAddOn {
 
 		// If no form ID, show disconnected.
 		if ( ! $form_id ) {
-			echo '<span class="formscrm-status-badge formscrm-disconnected">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
+			echo '<span class="gform-status-indicator gform-status--inactive">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
 			return;
 		}
 
@@ -641,7 +641,6 @@ class GFCRM extends GFFeedAddOn {
 
 			// No feeds - show Disconnected.
 			if ( empty( $feeds ) || ! is_array( $feeds ) ) {
-				echo '<span class="formscrm-status-badge formscrm-disconnected">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
 				return;
 			}
 
@@ -649,7 +648,7 @@ class GFCRM extends GFFeedAddOn {
 			$feed_count = count( $feeds );
 
 			echo '<div class="formscrm-feeds-wrapper">';
-			echo '<span class="formscrm-status-badge formscrm-connected">● ' . esc_html__( 'Connected', 'formscrm' ) . '</span>';
+			echo '<span class="gform-status-indicator gform-status--active">' . esc_html__( 'Connected', 'formscrm' ) . '</span>';
 
 			// Show feed details.
 			echo '<div class="formscrm-feeds-list">';
@@ -706,7 +705,7 @@ class GFCRM extends GFFeedAddOn {
 			echo '</div>'; // .formscrm-feeds-list
 			echo '</div>'; // .formscrm-feeds-wrapper
 		} catch ( Exception $e ) {
-			echo '<span class="formscrm-status-badge formscrm-error">● ' . esc_html__( 'Error', 'formscrm' ) . '</span>';
+			echo '<span class="gform-status-indicator gform-status--inactive">● ' . esc_html__( 'Error', 'formscrm' ) . '</span>';
 		}
 	}
 
