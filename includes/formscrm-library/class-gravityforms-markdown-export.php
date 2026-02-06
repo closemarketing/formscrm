@@ -162,27 +162,29 @@ class FormsCRM_GravityForms_Markdown_Export {
 
 		// Check capabilities using GravityForms API.
 		$has_permission = false;
-		
+
 		if ( class_exists( 'GFCommon' ) && method_exists( 'GFCommon', 'current_user_can_any' ) ) {
 			// Use GravityForms permission check method - this checks form-specific permissions.
 			$has_permission = GFCommon::current_user_can_any( array( 'gravityforms_view_entries', 'gravityforms_edit_entries', 'gravityforms_export_entries' ) );
 		}
-		
+
 		// If GFCommon not available or permission still false, check standard capabilities.
 		if ( ! $has_permission ) {
+			// phpcs:disable WordPress.WP.Capabilities.Unknown -- GravityForms custom capabilities.
 			$has_permission = current_user_can( 'gravityforms_view_entries' ) ||
-							  current_user_can( 'gravityforms_export_entries' ) ||
-							  current_user_can( 'gravityforms_edit_entries' ) ||
-							  current_user_can( 'gform_full_access' ) ||
-							  current_user_can( 'manage_options' ); // phpcs:ignore WordPress.WP.Capabilities.Unknown -- GravityForms custom capabilities.
+			current_user_can( 'gravityforms_export_entries' ) ||
+			current_user_can( 'gravityforms_edit_entries' ) ||
+			current_user_can( 'gform_full_access' ) ||
+			current_user_can( 'manage_options' );
+			// phpcs:enable WordPress.WP.Capabilities.Unknown
 		}
 
 		if ( ! $has_permission ) {
 			// Debug info for troubleshooting.
 			$current_user = wp_get_current_user();
-			$user_roles = implode( ', ', $current_user->roles );
-			wp_die( 
-				esc_html__( 'You do not have permission to export entries.', 'formscrm' ) . 
+			$user_roles   = implode( ', ', $current_user->roles );
+			wp_die(
+				esc_html__( 'You do not have permission to export entries.', 'formscrm' ) .
 				'<br><br><small>User roles: ' . esc_html( $user_roles ) . '</small>'
 			);
 		}
