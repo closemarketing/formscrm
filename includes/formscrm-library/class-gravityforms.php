@@ -149,6 +149,25 @@ class GFCRM extends GFFeedAddOn {
 		if ( is_admin() ) {
 			add_filter( 'gform_form_list_columns', array( $this, 'add_feeds_column' ), 10 );
 			add_action( 'gform_form_list_column_formscrm_feeds', array( $this, 'display_feeds_column' ), 10, 1 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_forms_list_styles' ) );
+		}
+	}
+
+	/**
+	 * Enqueue styles for forms list page
+	 *
+	 * @param string $hook Current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_forms_list_styles( $hook ) {
+		// Only load on Gravity Forms pages.
+		if ( 'toplevel_page_gf_edit_forms' === $hook || strpos( $hook, 'gf_' ) !== false ) {
+			wp_enqueue_style(
+				'formscrm-forms-list',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-admin.css',
+				array(),
+				FORMSCRM_VERSION
+			);
 		}
 	}
 
@@ -601,105 +620,93 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function display_feeds_column( $form ) {
-		// Try to get form ID in different ways.
+		// Get form ID from array or object.
 		$form_id = 0;
 		
 		if ( is_array( $form ) ) {
-			$form_id = rgar( $form, 'id' );
+			$form_id = isset( $form['id'] ) ? absint( $form['id'] ) : 0;
 		} elseif ( is_object( $form ) ) {
-			$form_id = isset( $form->id ) ? $form->id : 0;
+			$form_id = isset( $form->id ) ? absint( $form->id ) : 0;
 		}
 		
+		// If no form ID, show disconnected.
 		if ( ! $form_id ) {
-			echo '<span style="color: #dc3232; font-weight: 600; font-size: 0.95em;">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
+			echo '<span class="formscrm-status-badge formscrm-disconnected">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
 			return;
 		}
 
 		try {
+			// Get feeds for this form.
 			$feeds = $this->get_feeds( $form_id );
 
 			// No feeds - show Disconnected.
 			if ( empty( $feeds ) || ! is_array( $feeds ) ) {
-				echo '<span style="color: #dc3232; font-weight: 600; font-size: 0.95em;">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
+				echo '<span class="formscrm-status-badge formscrm-disconnected">● ' . esc_html__( 'Disconnected', 'formscrm' ) . '</span>';
 				return;
 			}
 
+			// Has feeds - show Connected.
 			$feed_count = count( $feeds );
-			$output     = array();
+			
+			echo '<div class="formscrm-feeds-wrapper">';
+			echo '<span class="formscrm-status-badge formscrm-connected">● ' . esc_html__( 'Connected', 'formscrm' ) . '</span>';
 
-			// Show Connected status.
+			// Show feed details.
 			echo '<div class="formscrm-feeds-list">';
-			echo '<div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">';
-			echo '<span style="color: #46b450; font-weight: 600; font-size: 0.95em;">● ' . esc_html__( 'Connected', 'formscrm' ) . '</span>';
-			echo '</div>';
-
+			
 			foreach ( $feeds as $feed ) {
-				if ( ! is_array( $feed ) || ! isset( $feed['meta'] ) || ! is_array( $feed['meta'] ) ) {
+				if ( ! is_array( $feed ) || empty( $feed['meta'] ) ) {
 					continue;
 				}
 
-				$feed_name = rgar( $feed['meta'], 'feedName' );
-				if ( empty( $feed_name ) ) {
-					$feed_name = __( 'Unnamed Feed', 'formscrm' );
-				}
-
-				$crm_type = '';
+				$feed_name = isset( $feed['meta']['feedName'] ) ? $feed['meta']['feedName'] : __( 'Unnamed Feed', 'formscrm' );
+				$crm_type  = '';
 				
-				// Get CRM type from custom or default settings.
-				$custom_crm_type = rgar( $feed['meta'], 'fc_crm_custom_type' );
-				if ( ! empty( $custom_crm_type ) && 'no' !== $custom_crm_type ) {
-					$crm_type = $custom_crm_type;
+				// Get CRM type.
+				if ( ! empty( $feed['meta']['fc_crm_custom_type'] ) && 'no' !== $feed['meta']['fc_crm_custom_type'] ) {
+					$crm_type = $feed['meta']['fc_crm_custom_type'];
 				} else {
 					$settings = $this->get_plugin_settings();
-					if ( is_array( $settings ) ) {
-						$crm_type = rgar( $settings, 'fc_crm_type' );
+					if ( ! empty( $settings['fc_crm_type'] ) ) {
+						$crm_type = $settings['fc_crm_type'];
 					}
 				}
 
-				$is_active = rgar( $feed, 'is_active' );
+				$is_active = ! empty( $feed['is_active'] );
 				$status    = $is_active ? '✓' : '✗';
 				$color     = $is_active ? '#46b450' : '#dc3232';
 				$title     = $is_active ? __( 'Active', 'formscrm' ) : __( 'Inactive', 'formscrm' );
 				
-				$feed_html = '<div style="margin-bottom: 4px;">';
-				$feed_html .= sprintf(
+				echo '<div class="formscrm-feed-item">';
+				printf(
 					'<span style="color: %s; font-weight: bold;" title="%s">%s</span> ',
 					esc_attr( $color ),
 					esc_attr( $title ),
 					esc_html( $status )
 				);
-				$feed_html .= '<span style="font-weight: 500;">' . esc_html( $feed_name ) . '</span>';
+				echo '<span class="formscrm-feed-name">' . esc_html( $feed_name ) . '</span>';
 
 				if ( ! empty( $crm_type ) ) {
-					$feed_html .= sprintf(
-						' <span style="color: #666; font-size: 0.85em; font-style: italic;">(%s)</span>',
-						esc_html( ucfirst( $crm_type ) )
-					);
+					echo ' <span class="formscrm-feed-crm">(' . esc_html( ucfirst( $crm_type ) ) . ')</span>';
 				}
-				$feed_html .= '</div>';
-
-				$output[] = $feed_html;
-			}
-
-			if ( ! empty( $output ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped above.
-				echo implode( '', $output );
-				
-				// Show total count if more than 1.
-				if ( $feed_count > 1 ) {
-					echo '<div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #ddd; color: #666; font-size: 0.85em;">';
-					printf(
-						/* translators: %d: number of feeds */
-						esc_html__( 'Total: %d feeds', 'formscrm' ),
-						absint( $feed_count )
-					);
-					echo '</div>';
-				}
+				echo '</div>';
 			}
 			
-			echo '</div>';
+			// Show total if more than 1.
+			if ( $feed_count > 1 ) {
+				echo '<div class="formscrm-feed-total">';
+				printf(
+					/* translators: %d: number of feeds */
+					esc_html__( 'Total: %d feeds', 'formscrm' ),
+					absint( $feed_count )
+				);
+				echo '</div>';
+			}
+			
+			echo '</div>'; // .formscrm-feeds-list
+			echo '</div>'; // .formscrm-feeds-wrapper
 		} catch ( Exception $e ) {
-			echo '<span style="color: #dc3232; font-weight: 600;">● ' . esc_html__( 'Error', 'formscrm' ) . '</span>';
+			echo '<span class="formscrm-status-badge formscrm-error">● ' . esc_html__( 'Error', 'formscrm' ) . '</span>';
 		}
 	}
 
