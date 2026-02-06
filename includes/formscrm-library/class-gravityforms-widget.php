@@ -58,8 +58,6 @@ class FormsCRM_GravityForms_Widget {
 					$feeds = array();
 				}
 			} catch ( Exception $e ) {
-				// Log error and return empty array to prevent crashes.
-				error_log( 'FormsCRM Widget: Error getting feeds for form ' . $form_id . ' - ' . $e->getMessage() );
 				$feeds = array();
 			}
 		}
