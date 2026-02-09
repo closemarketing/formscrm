@@ -371,8 +371,8 @@ class FORMSCRM_CF7_Settings {
 			FORMSCRM_VERSION,
 			true
 		);
-  }
-  /**
+	}
+	/**
 	 * Fills dynamic value with shortcode support.
 	 *
 	 * Supports {id:field_name} syntax to reference other form field values.
