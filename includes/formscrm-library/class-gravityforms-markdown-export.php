@@ -43,6 +43,7 @@ class FormsCRM_GravityForms_Markdown_Export {
 	 */
 	public function add_bulk_action( $actions, $form_id ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Required by WordPress filter hook.
 		$actions['export_markdown'] = esc_html__( 'FormsCRM: Export to Markdown', 'formscrm' );
+		return $actions;
 	}
 
 	/**
