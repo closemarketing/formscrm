@@ -247,6 +247,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Added: Bulk export creates ZIP file with multiple entry Markdown files for easy sharing.
 *  Added: Automatic retry system with up to 3 attempts at 1-hour intervals, visual progress counter, and smart cancellation when entries succeed or are deleted.
 *  Added: Error Log feature with comprehensive tracking, filtering by status/CRM, detailed error views, resend capability, and pagination for easy management.
+*  Enhanced: Contact Form 7 module selection now auto-saves configuration with visual feedback.
 *  Enhanced: Responsive AJAX-based interface with color-coded status badges and synchronized manual/automatic retry system.
 *  Enhanced: Feed connection status in Forms list in Gravity Forms.
 *  Fixed: Resend button missing in Gravity Forms Entries view.

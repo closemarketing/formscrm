@@ -33,6 +33,7 @@ class FORMSCRM_CF7_Settings {
 		add_filter( 'wpcf7_editor_panels', array( $this, 'show_cm_metabox' ) );
 		add_action( 'wpcf7_after_save', array( $this, 'crm_save_options' ) );
 		add_action( 'wpcf7_before_send_mail', array( $this, 'crm_process_entry' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_autosubmit_assets' ) );
 	}
 
 	/**
@@ -61,11 +62,13 @@ class FORMSCRM_CF7_Settings {
 	public function settings_add_crm( $args ) {
 		$cf7_crm_defaults = array();
 		$cf7_crm          = get_option( 'cf7_crm_' . $args->id(), $cf7_crm_defaults );
+		$settings_module  = isset( $cf7_crm['fc_crm_module'] ) ? $cf7_crm['fc_crm_module'] : '';
 		?>
 		<div class="metabox-holder">
 			<div class="cme-main-fields">
 				<p>
-					<select name="wpcf7-crm[fc_crm_type]" class="medium" onchange="jQuery(this).parents('form').submit();" id="fc_crm_type">
+					<label for="fc_crm_type"><?php esc_html_e( 'CRM Type:', 'formscrm' ); ?></label><br />
+					<select name="wpcf7-crm[fc_crm_type]" class="medium formscrm-autosubmit" id="fc_crm_type" data-formscrm-autosubmit="true">
 						<?php
 						foreach ( formscrm_get_choices() as $choice ) {
 							echo '<option value="' . esc_html( $choice['value'] ) . '" ';
@@ -76,6 +79,10 @@ class FORMSCRM_CF7_Settings {
 						}
 						?>
 					</select>
+					<span class="formscrm-saving-indicator" style="display:none; margin-left:10px; color:#46b450;">
+						<span class="dashicons dashicons-update-alt" style="animation: rotation 1s infinite linear;"></span>
+						<?php esc_html_e( 'Saving...', 'formscrm' ); ?>
+					</span>
 				</p>
 				<?php if ( isset( $cf7_crm['fc_crm_type'] ) && $cf7_crm['fc_crm_type'] ) { ?>
 
@@ -125,10 +132,11 @@ class FORMSCRM_CF7_Settings {
 					$this->crmlib = formscrm_get_api_class( $cf7_crm['fc_crm_type'] );
 					?>
 					<p>
-						<select name="wpcf7-crm[fc_crm_module]" class="medium" onchange="jQuery(this).parents('form').submit();" id="fc_crm_module">
+						<label for="fc_crm_module"><?php esc_html_e( 'CRM Module:', 'formscrm' ); ?></label><br />
+						<select name="wpcf7-crm[fc_crm_module]" class="medium formscrm-autosubmit" id="fc_crm_module" data-formscrm-autosubmit="true">
 							<?php
-							$settings_module = isset( $cf7_crm['fc_crm_module'] ) ? $cf7_crm['fc_crm_module'] : '';
-							foreach ( $this->crmlib->list_modules( $cf7_crm ) as $module ) {
+							$modules = $this->crmlib->list_modules( $cf7_crm );
+							foreach ( $modules as $module ) {
 								$value = '';
 								if ( ! empty( $module['value'] ) ) {
 									$value = $module['value'];
@@ -144,8 +152,17 @@ class FORMSCRM_CF7_Settings {
 								}
 								echo '>' . esc_html( $module['label'] ) . '</option>';
 							}
+							if ( empty( $settings_module ) || ! in_array( $settings_module, array_column( $modules, 'value' ), true ) ) {
+								$default_value            = ! empty( $modules[0]['value'] ) ? $modules[0]['value'] : '';
+								$settings_module          = $default_value;
+								$cf7_crm['fc_crm_module'] = $default_value;
+							}
 							?>
 						</select>
+						<span class="formscrm-saving-indicator" style="display:none; margin-left:10px; color:#46b450;">
+							<span class="dashicons dashicons-update-alt" style="animation: rotation 1s infinite linear;"></span>
+							<?php esc_html_e( 'Saving...', 'formscrm' ); ?>
+						</span>
 					</p>
 					<p>
 						<label for="wpcf7-crm-fc_crm_mode_expert"><?php esc_html_e( 'Expert Mode', 'formscrm' ); ?></label><br />
@@ -170,8 +187,8 @@ class FORMSCRM_CF7_Settings {
 				}
 			}
 
-			if ( isset( $cf7_crm['fc_crm_module'] ) && $cf7_crm['fc_crm_module'] ) {
-				$crm_fields  = $this->crmlib->list_fields( $cf7_crm, $cf7_crm['fc_crm_module'] );
+			if ( $settings_module ) {
+				$crm_fields  = $this->crmlib->list_fields( $cf7_crm, $settings_module );
 				$cf7_form    = WPCF7_ContactForm::get_instance( $args->id() );
 				$form_fields = ! empty( $cf7_form ) ? $cf7_form->scan_form_tags() : array();
 
@@ -325,6 +342,36 @@ class FORMSCRM_CF7_Settings {
 		return $merge_vars;
 	}
 
+	/**
+	 * Enqueue auto-submit assets for CF7 settings
+	 *
+	 * @param string $hook Hook suffix for the current admin page.
+	 * @return void
+	 */
+	public function enqueue_autosubmit_assets( $hook ) {
+		// Only load on CF7 edit pages.
+		if ( 'toplevel_page_wpcf7' !== $hook ) {
+			return;
+		}
+
+		// Enqueue CSS (reusing admin styles for consistency).
+		wp_enqueue_style(
+			'formscrm-admin',
+			FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-admin.css',
+			array(),
+			FORMSCRM_VERSION,
+			'all'
+		);
+
+		// Enqueue JavaScript.
+		wp_enqueue_script(
+			'formscrm-cf7-autosubmit',
+			FORMSCRM_PLUGIN_URL . 'includes/assets/js/cf7-autosubmit.js',
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
+	}
 	/**
 	 * Fills dynamic value with shortcode support.
 	 *
