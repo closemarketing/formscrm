@@ -251,9 +251,9 @@ class CRMLIB_Brevo {
 			'smtpBlacklistSender',
 		);
 
-		$subscriber                   = array();
-		$subscriber['listIds']        = array( $list_id );
-		$subscriber['updateEnabled']  = true;
+		$subscriber                  = array();
+		$subscriber['listIds']       = array( $list_id );
+		$subscriber['updateEnabled'] = true;
 		foreach ( $merge_vars as $element ) {
 			$field_name  = $element['name'];
 			$field_value = $element['value'];
