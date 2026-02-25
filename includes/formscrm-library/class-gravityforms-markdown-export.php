@@ -164,7 +164,7 @@ class FormsCRM_GravityForms_Markdown_Export {
 		$has_permission = false;
 
 		if ( class_exists( 'GFCommon' ) && method_exists( 'GFCommon', 'current_user_can_any' ) ) {
-			// Use GravityForms permission check method - this checks form-specific permissions.
+			// @phpstan-ignore staticMethod.notFound
 			$has_permission = GFCommon::current_user_can_any( array( 'gravityforms_view_entries', 'gravityforms_edit_entries', 'gravityforms_export_entries' ) );
 		}
 
@@ -197,10 +197,12 @@ class FormsCRM_GravityForms_Markdown_Export {
 		$entry = GFAPI::get_entry( $entry_id );
 		$form  = GFAPI::get_form( $form_id );
 
+		// @phpstan-ignore function.impossibleType
 		if ( ! $entry || is_wp_error( $entry ) ) {
 			wp_die( esc_html__( 'Entry not found.', 'formscrm' ) );
 		}
 
+		// @phpstan-ignore function.impossibleType
 		if ( ! $form || is_wp_error( $form ) ) {
 			wp_die( esc_html__( 'Form not found.', 'formscrm' ) );
 		}
