@@ -947,6 +947,22 @@ class GFCRM extends GFFeedAddOn {
 				'name'  => $var_key,
 				'value' => $value,
 			);
+		} elseif ( $field && 'fileupload' === RGFormsModel::get_input_type( $field ) ) {
+			$file_value = rgar( $entry, $field_id );
+			$value      = '';
+			if ( ! empty( $file_value ) ) {
+				// Multiple files are stored as a JSON array, single file as plain URL.
+				$files = json_decode( $file_value, true );
+				if ( is_array( $files ) ) {
+					$value = implode( ', ', array_filter( $files ) );
+				} else {
+					$value = $file_value;
+				}
+			}
+			return array(
+				'name'  => $var_key,
+				'value' => apply_filters( 'formscrm_field_value_fileupload', $value, $form['id'], $field_id, $entry ),
+			);
 		} elseif ( $field && 'textarea' === RGFormsModel::get_input_type( $field ) ) {
 			$value = apply_filters( 'formscrm_field_value_textarea', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 			return array(
