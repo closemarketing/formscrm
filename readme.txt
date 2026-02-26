@@ -238,6 +238,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.3.1 =
+* Fixed: File upload field not sending correctly in GravityForms.
+
 = 4.3.0 =
 *  Added: API connection status indicators across all form integrations (GravityForms, WPForms, Elementor, Contact Form 7, WooCommerce).
 *  Added: Visual connection status badges with color coding - green (connected), red (error), gray (not configured).
