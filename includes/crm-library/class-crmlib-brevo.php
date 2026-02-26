@@ -251,8 +251,9 @@ class CRMLIB_Brevo {
 			'smtpBlacklistSender',
 		);
 
-		$subscriber            = array();
-		$subscriber['listIds'] = array( $list_id );
+		$subscriber                  = array();
+		$subscriber['listIds']       = array( $list_id );
+		$subscriber['updateEnabled'] = true;
 		foreach ( $merge_vars as $element ) {
 			$field_name  = $element['name'];
 			$field_value = $element['value'];
@@ -275,14 +276,15 @@ class CRMLIB_Brevo {
 		}
 
 		try {
-			// Subscribe user.
+			// Create or update contact.
 			$result = $this->api( 'POST', 'contacts', $apikey, $subscriber );
 
 			if ( 'ok' === $result['status'] ) {
+				$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
 				$response_result = array(
 					'status'  => 'ok',
 					'message' => 'success',
-					'id'      => $result['data']['id'],
+					'id'      => $contact_id,
 				);
 			} else {
 				$message         = isset( $result['data'] ) ? $result['data'] : '';

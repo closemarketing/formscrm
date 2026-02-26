@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 4.3.0
-Version: 4.3.0
+Stable tag: 4.3.1
+Version: 4.3.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -239,7 +239,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = 4.3.1 =
-* Fixed: File upload field not sending correctly in GravityForms.
+*  Fixed: File upload field not sending correctly in GravityForms.
+*  Fixed: Brevo duplicate contact error when email already exists. Contacts are now updated instead of returning an error.
+*  Fixed: PHP warning when Brevo returns 204 No Content response for updated contacts.
 
 = 4.3.0 =
 *  Added: API connection status indicators across all form integrations (GravityForms, WPForms, Elementor, Contact Form 7, WooCommerce).
