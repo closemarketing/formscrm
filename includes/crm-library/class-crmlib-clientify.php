@@ -613,6 +613,13 @@ class CRMLIB_Clientify {
 			);
 
 			$fields[] = array(
+				'name'     => 'marketing_status',
+				'label'    => __( 'Marketing Status', 'formscrm' ),
+				'tooltip'  => __( '1=Sales Contact, 2=Marketing Contact.', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
 				'name'     => 'birthday',
 				'label'    => __( 'Birthday date', 'formscrm' ),
 				'required' => false,
@@ -915,6 +922,8 @@ class CRMLIB_Clientify {
 				$contact[ $element['name'] ] = array( $element['value'] );
 			} elseif ( 'gdpr_accept' === $element['name'] || 'disclaimer' === $element['name'] ) {
 				$contact[ $element['name'] ] = empty( $element['value'] ) ? false : true;
+			} elseif ( 'marketing_status' === $element['name'] ) {
+				$contact['marketing_status'] = (int) $element['value'];
 			} elseif ( 'birthday' === $element['name'] ) {
 				// Normalize birthday date format to YYYY-MM-DD.
 				$normalized_date = formscrm_normalize_date_format( $element['value'] );
