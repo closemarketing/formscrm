@@ -239,6 +239,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = 4.3.1 =
+*  Enhanced: Support for GravityPDF merge tags in GravityForms.
 *  Fixed: File upload field not sending correctly in GravityForms.
 *  Fixed: Brevo duplicate contact error when email already exists. Contacts are now updated instead of returning an error.
 *  Fixed: PHP warning when Brevo returns 204 No Content response for updated contacts.

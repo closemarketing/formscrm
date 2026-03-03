@@ -150,7 +150,51 @@ class GFCRM extends GFFeedAddOn {
 			add_filter( 'gform_form_list_columns', array( $this, 'add_feeds_column' ), 10 );
 			add_action( 'gform_form_list_column_formscrm_feeds', array( $this, 'display_feeds_column' ), 10, 1 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_forms_list_styles' ) );
+			add_filter( 'gform_field_map_choices', array( $this, 'add_gravitypdf_field_map_choices' ), 10, 4 );
 		}
+	}
+
+	/**
+	 * Adds GravityPDF generated PDFs as selectable choices in the field map.
+	 *
+	 * @param array $field_groups       Current field groups.
+	 * @param array $form               Current form object.
+	 * @param array $field_filter       Field filters being applied.
+	 * @param array $exclude_field_types Field types to exclude.
+	 * @return array Modified field groups.
+	 */
+	public function add_gravitypdf_field_map_choices( $field_groups, $form, $field_filter, $exclude_field_types ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Required by WordPress filter hook.
+		if ( ! class_exists( 'GPDFAPI' ) || empty( $form['id'] ) ) {
+			return $field_groups;
+		}
+
+		$pdfs = GPDFAPI::get_form_pdfs( $form['id'] );
+
+		if ( is_wp_error( $pdfs ) || empty( $pdfs ) ) {
+			return $field_groups;
+		}
+
+		$pdf_choices = array();
+		foreach ( $pdfs as $pdf_id => $pdf ) {
+			if ( empty( $pdf['active'] ) ) {
+				continue;
+			}
+			$pdf_choices[] = array(
+				// Value uses GravityPDF's own merge tag format: {Name:pdf:ID}.
+				'value' => '{' . $pdf['name'] . ':pdf:' . $pdf_id . '}',
+				'label' => esc_html( $pdf['name'] ),
+			);
+		}
+
+		if ( ! empty( $pdf_choices ) ) {
+			$field_groups[] = array(
+				'name'   => 'gravitypdf',
+				'label'  => __( 'GravityPDF', 'formscrm' ),
+				'fields' => $pdf_choices,
+			);
+		}
+
+		return $field_groups;
 	}
 
 	/**
@@ -916,6 +960,35 @@ class GFCRM extends GFFeedAddOn {
 	 * @return array Field value array with name and value.
 	 */
 	public function get_value_from_field( $var_key, $field_id, $entry, $form ) {
+		// GravityPDF merge tag format: {PDF_Name:pdf:PDF_ID} — handle before RGFormsModel lookup.
+		if ( is_string( $field_id ) && false !== strpos( $field_id, ':pdf:' ) ) {
+			$value  = '';
+			$pdf_id = '';
+
+			// Extract PDF ID from merge tag {Name:pdf:ID}.
+			if ( preg_match( '/\{[^:]+:pdf:([^}]+)\}/', $field_id, $matches ) ) {
+				$pdf_id = $matches[1];
+			}
+
+			if ( class_exists( 'GPDFAPI' ) && ! empty( $pdf_id ) && ! empty( $entry['id'] ) ) {
+				// get_pdf_url is an instance method on Model_PDF, not a static GPDFAPI method.
+				$model_pdf = GPDFAPI::get_pdf_class( 'model' );
+
+				if ( ! is_wp_error( $model_pdf ) && method_exists( $model_pdf, 'get_pdf_url' ) ) {
+					$pdf_url = $model_pdf->get_pdf_url( $pdf_id, $entry['id'] );
+
+					if ( ! empty( $pdf_url ) ) {
+						$value = $pdf_url;
+					}
+				}
+			}
+
+			return array(
+				'name'  => $var_key,
+				'value' => apply_filters( 'formscrm_field_value_gravitypdf', $value, $form['id'], $pdf_id, $entry ),
+			);
+		}
+
 		$field = RGFormsModel::get_field( $form, $field_id );
 		if ( isset( $field['type'] ) && GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
 			$ary          = explode( '|', $entry[ $field_id ] );
