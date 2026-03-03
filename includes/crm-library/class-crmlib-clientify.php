@@ -2,12 +2,13 @@
 /**
  * Clientify connect library
  *
- * Has functions to login, list fields and create lead
+ * Has functions to login, list fields and create lead.
+ * Uses Clientify API v2: https://newapi.clientify.com/
  *
  * @author   closemarketing
  * @category Functions
  * @package  Gravityforms CRM
- * @version  1.0.0
+ * @version  2.0.0
  *
  * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
@@ -17,10 +18,18 @@
  */
 class CRMLIB_Clientify {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+
+	/**
+	 * Clientify API v2 base URL.
+	 *
+	 * @var string
+	 */
+	private $api_url = 'https://api-plus.clientify.com/v2/';
+
 	/**
 	 * Gets information from Clientify CRM
 	 *
-	 * @param string $url URL for module.
+	 * @param string $url    URL for module.
 	 * @param string $apikey API Authentication.
 	 *
 	 * @return array
@@ -38,20 +47,21 @@ class CRMLIB_Clientify {
 			),
 			'timeout' => 120,
 		);
-		// Loop.
+
 		$next          = true;
 		$results_value = array();
-		$url           = 'https://api.clientify.net/v1/' . $url;
+		$url           = $this->api_url . $url;
 
 		while ( $next ) {
 			$result_api  = wp_remote_get( $url, $args );
-			$results     = json_decode( wp_remote_retrieve_body( $result_api ), true );
+			$body_raw    = wp_remote_retrieve_body( $result_api );
+			$results     = json_decode( $body_raw, true );
 			$code_status = (int) wp_remote_retrieve_response_code( $result_api );
 			$code        = (int) round( $code_status / 100, 0 );
 
 			if ( 2 !== $code ) {
-				$message = implode( ' ', $result_api['response'] ) . ' ';
-				$body    = json_decode( $result_api['body'], true );
+				$message = $code_status . ' ';
+				$body    = json_decode( $body_raw, true );
 
 				if ( is_array( $body ) ) {
 					foreach ( $body as $key => $value ) {
@@ -81,17 +91,19 @@ class CRMLIB_Clientify {
 			'data'   => $results,
 		);
 	}
+
 	/**
-	 * Posts information from Holded CRM
+	 * Sends a request to Clientify API.
 	 *
 	 * @param string $module   URL for module.
-	 * @param string $bodypost Params to send to API.
+	 * @param array  $bodypost Params to send to API.
 	 * @param string $apikey   API Authentication.
-	 * @param string $method   Method to use.
+	 * @param string $method   HTTP method to use.
 	 * @return array
 	 */
 	private function request( $module, $bodypost, $apikey, $method = 'POST' ) {
-		$args   = array(
+		$url  = $this->api_url . strtolower( $module );
+		$args = array(
 			'headers' => array(
 				'Authorization' => 'Token ' . $apikey,
 				'Content-Type'  => 'application/json',
@@ -100,13 +112,14 @@ class CRMLIB_Clientify {
 			'timeout' => 120,
 			'body'    => wp_json_encode( $bodypost ),
 		);
-		$url    = 'https://api.clientify.net/v1/' . strtolower( $module );
-		$result = wp_remote_post( $url, $args );
-		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
+
+		$result   = wp_remote_request( $url, $args );
+		$body_raw = wp_remote_retrieve_body( $result );
+		$code     = (int) round( (int) wp_remote_retrieve_response_code( $result ) / 100, 0 );
 
 		if ( 2 !== $code ) {
-			$message = implode( ' ', $result['response'] ) . ' ';
-			$body    = json_decode( $result['body'], true );
+			$message = wp_remote_retrieve_response_code( $result ) . ' ';
+			$body    = json_decode( $body_raw, true );
 			if ( is_array( $body ) ) {
 				foreach ( $body as $key => $value ) {
 					$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
@@ -121,10 +134,9 @@ class CRMLIB_Clientify {
 				'query'  => wp_json_encode( $bodypost ),
 			);
 		} else {
-			$body = wp_remote_retrieve_body( $result );
 			return array(
 				'status' => 'ok',
-				'data'   => json_decode( $body, true ),
+				'data'   => json_decode( $body_raw, true ),
 			);
 		}
 	}
@@ -136,14 +148,27 @@ class CRMLIB_Clientify {
 	 * @return false or id     returns false if cannot login and string if gets token
 	 */
 	public function login( $settings ) {
-		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$get_result = $this->get( 'settings/my-account/', $apikey );
-
-		if ( $apikey && isset( $get_result['data']['count'] ) && $get_result['data']['count'] > 0 ) {
-			return true;
-		} else {
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		if ( ! $apikey ) {
 			return false;
 		}
+
+		$args = array(
+			'headers' => array(
+				'Authorization' => 'Token ' . $apikey,
+			),
+			'timeout' => 120,
+		);
+
+		$result      = wp_remote_get( $this->api_url . 'me/', $args );
+		$body        = json_decode( wp_remote_retrieve_body( $result ), true );
+		$code_status = (int) wp_remote_retrieve_response_code( $result );
+
+		if ( 200 === $code_status && ! empty( $body['id'] ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -380,15 +405,17 @@ class CRMLIB_Clientify {
 	 */
 	private function get_fields_email_phones() {
 		$fields = array();
-		$types  = array(
+
+		// Email types: 1=Work, 2=Personal, 3=Other, 4=Main.
+		$email_types = array(
 			1 => __( 'Work', 'formscrm' ),
 			2 => __( 'Personal', 'formscrm' ),
 			3 => __( 'Other', 'formscrm' ),
+			4 => __( 'Main', 'formscrm' ),
 		);
 
-		// Emails.
 		array_walk(
-			$types,
+			$email_types,
 			function ( $type, $key ) use ( &$fields ) {
 				$fields[] = array(
 					'name'     => 'emails|' . $key,
@@ -398,7 +425,9 @@ class CRMLIB_Clientify {
 			}
 		);
 
-		$types = array(
+		// Phone types from Clientify API: Main, Mobile, Work, Home, Fax, Other.
+		$phone_types = array(
+			1 => __( 'Main', 'formscrm' ),
 			2 => __( 'Mobile', 'formscrm' ),
 			3 => __( 'Work', 'formscrm' ),
 			4 => __( 'Home', 'formscrm' ),
@@ -406,9 +435,8 @@ class CRMLIB_Clientify {
 			6 => __( 'Other', 'formscrm' ),
 		);
 
-		// Phones.
 		array_walk(
-			$types,
+			$phone_types,
 			function ( $type, $key ) use ( &$fields ) {
 				$fields[] = array(
 					'name'     => 'phones|' . $key,
@@ -726,6 +754,21 @@ class CRMLIB_Clientify {
 			$fields[] = array(
 				'name'     => 'deal|pipeline_desc',
 				'label'    => __( 'Pipeline Name', 'formscrm' ),
+				'tooltip'  => __( 'Name of the pipeline (pipeline_desc).', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
+				'name'     => 'deal|pipeline_id',
+				'label'    => __( 'Pipeline ID', 'formscrm' ),
+				'tooltip'  => __( 'Numeric ID of the pipeline.', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
+				'name'     => 'deal|pipeline_stage_desc',
+				'label'    => __( 'Pipeline Stage Name', 'formscrm' ),
+				'tooltip'  => __( 'Name of the pipeline stage.', 'formscrm' ),
 				'required' => false,
 			);
 
@@ -748,36 +791,35 @@ class CRMLIB_Clientify {
 			);
 		}
 
-		// Get Custom Fields.
-		$equivalent_module = array(
-			'contacts'        => array( 'contact', 'contacts | contact' ),
-			'companies'       => array( 'company', 'companies | company' ),
-			'contacts-deals'  => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
-			'companies-deals' => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
+		// Fetch custom fields by object_type.
+		$object_types_map = array(
+			'contacts'        => array( 'contacts' ),
+			'companies'       => array( 'companies' ),
+			'contacts-deals'  => array( 'contacts', 'deals' ),
+			'companies-deals' => array( 'companies', 'deals' ),
 		);
-		$label_module      = array(
-			'contact'             => __( 'Contact', 'formscrm' ),
-			'company'             => __( 'Company', 'formscrm' ),
-			'deal'                => __( 'Deal', 'formscrm' ),
-			'contacts | contact'  => __( 'Contact', 'formscrm' ),
-			'companies | company' => __( 'Company', 'formscrm' ),
-			'deals | deal'        => __( 'Deal', 'formscrm' ),
+		$label_map        = array(
+			'contacts'  => __( 'Contact', 'formscrm' ),
+			'companies' => __( 'Company', 'formscrm' ),
+			'deals'     => __( 'Deal', 'formscrm' ),
 		);
 
-		$result_api = $this->get( 'custom-fields/', $apikey );
-		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
-			foreach ( $result_api['data']['results'] as $custom_field ) {
-				if ( isset( $equivalent_module[ $module_slug ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module_slug ], true ) ) {
-					$key  = 'deals | deal' === $custom_field['content_type'] ? 'deal|' : '';
-					$key .= 'custom_fields|' . $custom_field['name'];
+		if ( isset( $object_types_map[ $module_slug ] ) ) {
+			foreach ( $object_types_map[ $module_slug ] as $object_type ) {
+				$result_api = $this->get( 'custom-fields/?object_type=' . $object_type, $apikey );
+				if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
+					foreach ( $result_api['data']['results'] as $custom_field ) {
+						$key  = 'deals' === $object_type ? 'deal|' : '';
+						$key .= 'custom_fields|' . $custom_field['name'];
 
-					$label = isset( $label_module[ $custom_field['content_type'] ] ) ? $label_module[ $custom_field['content_type'] ] . ': ' : '';
+						$label = isset( $label_map[ $object_type ] ) ? $label_map[ $object_type ] . ': ' : '';
 
-					$fields[] = array(
-						'name'     => $key,
-						'label'    => $label . $custom_field['name'],
-						'required' => false,
-					);
+						$fields[] = array(
+							'name'     => $key,
+							'label'    => $label . $custom_field['name'],
+							'required' => false,
+						);
+					}
 				}
 			}
 		}
@@ -820,12 +862,12 @@ class CRMLIB_Clientify {
 					$deal_tags = $element['value'];
 				} elseif ( 'deal|expected_closed_date_days' === $element['name'] ) {
 					$deal['expected_closed_date'] = gmdate( 'Y-m-d', strtotime( '+' . (int) $element['value'] . ' days' ) );
-				} elseif ( 'deal|pipeline_name' === $element['name'] ) {
-					// Pipeline URL functionality not yet implemented.
-					// For now, use the pipeline name directly if provided.
-					if ( ! empty( $element['value'] ) ) {
-						$deal['pipeline'] = $element['value'];
-					}
+				} elseif ( 'deal|pipeline_id' === $element['name'] ) {
+					$deal['pipeline_id'] = (int) $element['value'];
+				} elseif ( 'deal|pipeline_desc' === $element['name'] ) {
+					$deal['pipeline_desc'] = $element['value'];
+				} elseif ( 'deal|pipeline_stage_desc' === $element['name'] ) {
+					$deal['pipeline_stage_desc'] = $element['value'];
 				} else {
 					$deal_field             = explode( '|', $element['name'] );
 					$deal[ $deal_field[1] ] = $element['value'];
@@ -890,7 +932,7 @@ class CRMLIB_Clientify {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
-		$result = $this->request( $module, $contact, $apikey );
+		$result = $this->request( $module . '/', $contact, $apikey );
 		if ( 'ok' === $result['status'] ) {
 			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
 			$response_result = array(
@@ -899,30 +941,24 @@ class CRMLIB_Clientify {
 				'id'      => $contact_id,
 			);
 
-			// Crea ahora la oportunidad.
+			// Create deal linked to the contact/company.
 			if ( ! empty( $deal ) ) {
-				$deal_products = array();
 				if ( ! empty( $deal_product_skus ) ) {
 					$res_products = $this->extract_deal_products( $deal_product_skus, $apikey );
 					if ( ! empty( $res_products['data'] ) ) {
-						$deal_products  = $res_products['data'];
-						$deal['amount'] = ! empty( $res_products['total'] ) ? $res_products['total'] : 0;
+						$deal['products'] = $res_products['data'];
+						$deal['amount']   = ! empty( $res_products['total'] ) ? $res_products['total'] : 0;
 					}
 				}
-				// Set default values for key and slug.
-				$key  = 'contact';
-				$slug = 'contacts';
 
+				// V2 uses ID-based references instead of URL-based.
 				if ( 'contacts' === $module ) {
-					$key  = 'contact';
-					$slug = 'contacts';
+					$deal['contact_id'] = (int) $contact_id;
 				} elseif ( 'companies' === $module ) {
-					$key  = 'company';
-					$slug = 'companies';
+					$deal['company_id'] = (int) $contact_id;
 				}
-				$deal[ $key ]   = "https://api.clientify.net/v1/$slug/$contact_id/";
 				$deal['amount'] = isset( $deal['amount'] ) ? $deal['amount'] : 0;
-				$result         = $this->request( 'deals', $deal, $apikey );
+				$result         = $this->request( 'deals/', $deal, $apikey );
 				if ( 'ok' === $result['status'] ) {
 					$response_result['id'] = sprintf(
 						/* translators: %1$s: Contact ID, %2$s: Deal ID */
@@ -933,7 +969,7 @@ class CRMLIB_Clientify {
 				}
 
 				// Add tags to deal.
-				if ( ! empty( $deal_tags ) ) {
+				if ( ! empty( $deal_tags ) && isset( $result['data']['id'] ) ) {
 					$deal_tags_raw = explode( ',', $deal_tags );
 					$deal_id       = $result['data']['id'];
 
@@ -960,13 +996,6 @@ class CRMLIB_Clientify {
 						$response_result['message'] .= ' ' . $result_deal_tag;
 					}
 				}
-
-				// Add products to deal.
-				if ( ! empty( $deal_products ) && isset( $res_products['data'] ) ) {
-					$result = $this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
-
-					$response_result['message'] .= ' ' . $result['message'] . '.';
-				}
 				$last_module = 'deal';
 			}
 		} else {
@@ -984,26 +1013,29 @@ class CRMLIB_Clientify {
 	}
 
 	/**
-	 * Extracts deal products from a string of SKUs and get Clientify schema
+	 * Extracts deal products from a string of SKUs and get Clientify schema.
 	 *
 	 * @param string $deal_product_skus The string of SKUs separated by commas.
 	 * @param string $apikey            The API key.
-	 * @return array The array of deal products
+	 * @return array The array of deal products in v2 format.
 	 */
 	private function extract_deal_products( $deal_product_skus, $apikey ) {
 		$skus          = explode( ',', $deal_product_skus );
 		$deal_products = array();
 		$deal_total    = 0;
 		foreach ( $skus as $sku ) {
+			$sku         = trim( $sku );
 			$res_product = $this->get( 'products/?sku=' . $sku, $apikey );
 			if ( 'ok' === $res_product['status'] && isset( $res_product['data']['results'][0]['id'] ) ) {
+				$product       = $res_product['data']['results'][0];
+				$product_price = ! empty( $product['price'] ) ? (float) $product['price'] : 0;
+
 				$deal_products[] = array(
-					'product'  => $res_product['data']['results'][0]['id'],
-					'quantity' => 1,
+					'product_id' => $product['id'],
+					'price'      => $product_price,
+					'quantity'   => 1,
 				);
-				if ( ! empty( $res_product['data']['results'][0]['price'] ) ) {
-					$deal_total += $res_product['data']['results'][0]['price'];
-				}
+				$deal_total     += $product_price;
 			}
 		}
 		return array(

@@ -1,18 +1,25 @@
 {
-	"count": 1,
-	"next": null,
-	"previous": null,
-	"results": [
-			{
-					"language": "es",
-					"country": "ES",
-					"time_zone": "Europe/Madrid",
-					"currency": "EUR",
-					"currency_symbol": "€",
-					"currency_format": 1,
-					"hour_format": 1,
-					"date_format": 1,
-					"sub_brand": ""
-			}
-	]
+	"id": 83428,
+	"username": "desarrollo@clientify.com",
+	"last_name": "Zaraki",
+	"company": "PRUEBA CLOSE",
+	"permissions_profile": "Administrador",
+	"permissions_profile_id": 1008,
+	"is_tester": false,
+	"is_partner_admin": false,
+	"inbox_user": true,
+	"sales_user": true,
+	"language": "es",
+	"full_name": "Kenpachi Zaraki",
+	"role": "nivel 1",
+	"role_id": 1518,
+	"is_company_admin": true,
+	"company_id": 14800,
+	"is_partner": false,
+	"picture": "",
+	"sales_status": 2,
+	"inbox_status": 2,
+	"have_marketing_active": true,
+	"have_communication_active": true,
+	"have_sales_active": true
 }

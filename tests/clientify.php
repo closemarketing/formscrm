@@ -1,6 +1,7 @@
 <?php
-/** 
- * API DOCS: https://developer.clientify.com/
+/**
+ * API DOCS: https://newapi.clientify.com/
+ * API v2 Base URL: https://api-plus.clientify.com/v2/
  * TEST: http://formscrm.local/wp-content/plugins/formscrm/tests/clientify.php
  */
 
