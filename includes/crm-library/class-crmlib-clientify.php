@@ -19,133 +19,13 @@
 class CRMLIB_Clientify {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 
-	/**
-	 * Clientify API v2 base URL.
-	 *
-	 * @var string
-	 */
-	private $api_url = 'https://api-plus.clientify.com/v2/';
 
-	/**
-	 * Gets information from Clientify CRM
-	 *
-	 * @param string $url    URL for module.
-	 * @param string $apikey API Authentication.
-	 *
-	 * @return array
-	 */
-	private function get( $url, $apikey ) {
-		if ( ! $apikey ) {
-			return array(
-				'status' => 'error',
-				'data'   => 'No API Key',
-			);
-		}
-		$args = array(
-			'headers' => array(
-				'Authorization' => 'Token ' . $apikey,
-			),
-			'timeout' => 120,
-		);
-
-		$next          = true;
-		$results_value = array();
-		$url           = $this->api_url . $url;
-
-		while ( $next ) {
-			$result_api  = wp_remote_get( $url, $args );
-			$body_raw    = wp_remote_retrieve_body( $result_api );
-			$results     = json_decode( $body_raw, true );
-			$code_status = (int) wp_remote_retrieve_response_code( $result_api );
-			$code        = (int) round( $code_status / 100, 0 );
-
-			if ( 2 !== $code ) {
-				$message = $code_status . ' ';
-				$body    = json_decode( $body_raw, true );
-
-				if ( is_array( $body ) ) {
-					foreach ( $body as $key => $value ) {
-						$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
-						$message      .= $key . ': ' . $message_value;
-					}
-				}
-				formscrm_error_admin_message( 'ERROR', $message );
-				return array(
-					'status' => 'error',
-					'data'   => $message,
-				);
-			} elseif ( isset( $results['results'] ) ) {
-				$results_value = array_merge( $results_value, $results['results'] );
-			}
-
-			if ( isset( $results['next'] ) && $results['next'] ) {
-				$url = $results['next'];
-			} else {
-				$next = false;
-			}
-		}
-
-		$results['results'] = $results_value;
-		return array(
-			'status' => 'ok',
-			'data'   => $results,
-		);
-	}
-
-	/**
-	 * Sends a request to Clientify API.
-	 *
-	 * @param string $module   URL for module.
-	 * @param array  $bodypost Params to send to API.
-	 * @param string $apikey   API Authentication.
-	 * @param string $method   HTTP method to use.
-	 * @return array
-	 */
-	private function request( $module, $bodypost, $apikey, $method = 'POST' ) {
-		$url  = $this->api_url . strtolower( $module );
-		$args = array(
-			'headers' => array(
-				'Authorization' => 'Token ' . $apikey,
-				'Content-Type'  => 'application/json',
-			),
-			'method'  => $method,
-			'timeout' => 120,
-			'body'    => wp_json_encode( $bodypost ),
-		);
-
-		$result   = wp_remote_request( $url, $args );
-		$body_raw = wp_remote_retrieve_body( $result );
-		$code     = (int) round( (int) wp_remote_retrieve_response_code( $result ) / 100, 0 );
-
-		if ( 2 !== $code ) {
-			$message = wp_remote_retrieve_response_code( $result ) . ' ';
-			$body    = json_decode( $body_raw, true );
-			if ( is_array( $body ) ) {
-				foreach ( $body as $key => $value ) {
-					$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
-					$message      .= $key . ': ' . $message_value;
-				}
-			}
-			formscrm_error_admin_message( 'ERROR', $message );
-			return array(
-				'status' => 'error',
-				'data'   => $message,
-				'url'    => $url,
-				'query'  => wp_json_encode( $bodypost ),
-			);
-		} else {
-			return array(
-				'status' => 'ok',
-				'data'   => json_decode( $body_raw, true ),
-			);
-		}
-	}
 
 	/**
 	 * Logins to a CRM
 	 *
 	 * @param  array $settings settings from Gravity Forms options.
-	 * @return false or id     returns false if cannot login and string if gets token
+	 * @return bool  True if login succeeded, false otherwise.
 	 */
 	public function login( $settings ) {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
@@ -153,22 +33,12 @@ class CRMLIB_Clientify {
 			return false;
 		}
 
-		$args = array(
-			'headers' => array(
-				'Authorization' => 'Token ' . $apikey,
-			),
-			'timeout' => 120,
-		);
-
-		$result      = wp_remote_get( $this->api_url . 'me/', $args );
-		$body        = json_decode( wp_remote_retrieve_body( $result ), true );
-		$code_status = (int) wp_remote_retrieve_response_code( $result );
-
-		if ( 200 === $code_status && ! empty( $body['id'] ) ) {
-			return true;
+		$result = $this->request( 'me/', array(), $apikey, 'GET' );
+		if ( 'ok' !== $result['status'] || empty( $result['data']['id'] ) ) {
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
@@ -813,7 +683,7 @@ class CRMLIB_Clientify {
 
 		if ( isset( $object_types_map[ $module_slug ] ) ) {
 			foreach ( $object_types_map[ $module_slug ] as $object_type ) {
-				$result_api = $this->get( 'custom-fields/?object_type=' . $object_type, $apikey );
+				$result_api = $this->request( 'custom-fields/?object_type=' . $object_type, array(), $apikey, 'GET' );
 				if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
 					foreach ( $result_api['data']['results'] as $custom_field ) {
 						$key  = 'deals' === $object_type ? 'deal|' : '';
@@ -1034,7 +904,7 @@ class CRMLIB_Clientify {
 		$deal_total    = 0;
 		foreach ( $skus as $sku ) {
 			$sku         = trim( $sku );
-			$res_product = $this->get( 'products/?sku=' . $sku, $apikey );
+			$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET' );
 			if ( 'ok' === $res_product['status'] && isset( $res_product['data']['results'][0]['id'] ) ) {
 				$product       = $res_product['data']['results'][0];
 				$product_price = ! empty( $product['price'] ) ? (float) $product['price'] : 0;
@@ -1053,4 +923,105 @@ class CRMLIB_Clientify {
 			'total'  => $deal_total,
 		);
 	}
-} //from Class
+
+	/**
+	 * Sends a request to Clientify API (GET with optional pagination, POST, PUT, etc.).
+	 *
+	 * @param string $module URL path for the API endpoint (e.g. 'me/', 'contacts/').
+	 * @param array  $params Params to send. In GET requests, are fields.
+	 * @param string $apikey API authentication token.
+	 * @param string $method HTTP method: GET, POST, PUT, etc.
+	 * @return array           'status' => 'ok'|'error', 'data' => response or error message.
+	 */
+	private function request( $module, $params = array(), $apikey = '', $method = 'POST' ) {
+		if ( ! $apikey ) {
+			return array(
+				'status' => 'error',
+				'data'   => 'No API Key',
+			);
+		}
+
+		$api_url = 'https://api-plus.clientify.com/v2/';
+		$url     = $api_url . strtolower( $module );
+		$args    = array(
+			'headers' => array(
+				'Authorization' => 'Token ' . $apikey,
+			),
+			'method'  => $method,
+			'timeout' => 120,
+		);
+
+		if ( 'GET' !== $method && ! empty( $params ) ) {
+			$args['headers']['Content-Type'] = 'application/json';
+			$args['body']                    = wp_json_encode( $params );
+		}
+
+		if ( 'GET' === $method ) {
+			if ( empty( $params ) ) {
+				$params = array( 'fields' => 'id' );
+			}
+			$url .= '?' . http_build_query( $params );
+		}
+
+		$next          = true;
+		$results_value = array();
+
+		while ( $next ) {
+			$result   = wp_remote_request( $url, $args );
+			$body_raw = wp_remote_retrieve_body( $result );
+			$results  = json_decode( $body_raw, true );
+			$code     = (int) round( (int) wp_remote_retrieve_response_code( $result ) / 100, 0 );
+
+			if ( 2 !== $code ) {
+				$message = $this->request_error_message( $result, $body_raw );
+				formscrm_error_admin_message( 'ERROR', $message );
+				$out = array(
+					'status' => 'error',
+					'data'   => $message,
+				);
+				if ( 'GET' !== $method ) {
+					$out['url']   = $url;
+					$out['query'] = wp_json_encode( $params );
+				}
+				return $out;
+			}
+
+			if ( 'GET' === $method && isset( $results['results'] ) ) {
+				$results_value = array_merge( $results_value, $results['results'] );
+			}
+
+			if ( 'GET' === $method && ! empty( $results['next'] ) ) {
+				$url = $results['next'];
+			} else {
+				$next = false;
+				if ( 'GET' === $method && ! empty( $results_value ) ) {
+					$results['results'] = $results_value;
+				}
+			}
+		}
+
+		return array(
+			'status' => 'ok',
+			'data'   => 'GET' === $method ? $results : json_decode( $body_raw, true ),
+		);
+	}
+
+	/**
+	 * Builds error message string from API response.
+	 *
+	 * @param array|\WP_Error $result   wp_remote_* result.
+	 * @param string          $body_raw Raw response body.
+	 * @return string
+	 */
+	private function request_error_message( $result, $body_raw ) {
+		$message = (int) wp_remote_retrieve_response_code( $result ) . ' ';
+		$body    = json_decode( $body_raw, true );
+		if ( is_array( $body ) ) {
+			foreach ( $body as $key => $value ) {
+				$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
+				$message      .= $key . ': ' . $message_value;
+			}
+		}
+		return $message;
+	}
+}

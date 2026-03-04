@@ -245,17 +245,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = 4.4.0 =
-*  Migrated: Clientify integration from API v1 to API v2 (new base URL: api-plus.clientify.com/v2).
-*  Migrated: Login endpoint from settings/my-account/ to me/.
-*  Migrated: Custom fields endpoint now uses object_type filter for better performance.
-*  Migrated: Deal creation uses ID-based references (contact_id, company_id) instead of URL-based references.
-*  Migrated: Deal products included inline in deal creation payload (v2 schema with product_id and price).
-*  Added: New field marketing_status for Clientify contacts (1=Sales Contact, 2=Marketing Contact).
-*  Added: Pipeline ID and Pipeline Stage Name fields for Clientify deals.
-*  Added: Email Main (type 4) and Phone Main (type 1) field types for Clientify contacts.
-*  Fixed: HTTP PUT requests now use wp_remote_request() instead of wp_remote_post() for correct method support.
-*  Fixed: Error response body access now consistently uses wp_remote_retrieve_body().
-*  Fixed: Pipeline field mapping (pipeline_desc) now maps correctly to the API field.
+*  Migrated: Clientify to API v2 (api-plus.clientify.com/v2): login me/, custom fields object_type filter, deal creation with ID-based refs and inline products (v2 schema).
+*  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types.
+*  Fixed: HTTP PUT via wp_remote_request(), consistent wp_remote_retrieve_body() for errors, pipeline_desc mapping.
+*  Fixed: GravityForms widget sending leads twice when viewing or editing an entry.
 
 = 4.3.1 =
 *  Fixed: File upload field not sending correctly in GravityForms.
