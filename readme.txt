@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 4.4.0
-Version: 4.4.0
+Stable tag: 4.3.2
+Version: 4.3.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -244,7 +244,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
-= 4.4.0 =
+= 4.3.2 =
 *  Migrated: Clientify to API v2 (api-plus.clientify.com/v2): login me/, custom fields object_type filter, deal creation with ID-based refs and inline products (v2 schema).
 *  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types.
 *  Fixed: HTTP PUT via wp_remote_request(), consistent wp_remote_retrieve_body() for errors, pipeline_desc mapping.
