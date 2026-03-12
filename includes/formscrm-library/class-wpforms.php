@@ -695,7 +695,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		printf(
 			'<select id="%1$s" name="fc_crm_type" class="fc_crm_type">%2$s</select>',
 			esc_attr( $select_id ),
-			wp_kses_post( $select_page )
+			$select_page // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Option HTML is built with escaped value/label parts.
 		);
 
 		// CRM URL.
