@@ -564,16 +564,16 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		$options_crm  = formscrm_get_choices();
 		$option_saved = '';
 		foreach ( $options_crm as $option_crm ) {
-			$select_page .= '<option value="' . $option_crm['value'] . '"';
+			$select_page .= '<option value="' . esc_attr( $option_crm['value'] ) . '"';
 			if ( $option_saved === $option_crm['value'] ) {
 				$select_page .= ' selected';
 			}
-			$select_page .= '>' . $option_crm['label'] . '</option>';
+			$select_page .= '>' . esc_html( $option_crm['label'] ) . '</option>';
 		}
 
 		printf(
 			'<select id="fc_crm_type" name="fc_crm_type">%s</select>',
-			wp_kses_post( $select_page )
+			$select_page // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		);
 
 		// CRM URL.
