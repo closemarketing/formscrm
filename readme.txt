@@ -238,6 +238,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.3.2 =
+*  Fixed: WPForms > Connections was not working correctly.
+
 = 4.3.1 =
 *  Enhanced: Support for GravityPDF merge tags in GravityForms.
 *  Fixed: File upload field not sending correctly in GravityForms.
