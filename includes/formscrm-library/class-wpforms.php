@@ -48,6 +48,43 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		$this->slug     = 'formscrm';
 		$this->priority = 14;
 		$this->icon     = plugins_url( '../assets/addon-icon-wpforms.png', __FILE__ );
+
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+	}
+
+	/**
+	 * Enqueue WPForms admin assets.
+	 *
+	 * @param string $hook_suffix Current admin hook suffix.
+	 * @return void
+	 */
+	public function enqueue_admin_assets( $hook_suffix ) {
+		if ( false === strpos( $hook_suffix, 'wpforms' ) ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'formscrm-wpforms-provider',
+			plugins_url( '../assets/js/wpforms-provider.js', __FILE__ ),
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
+
+		wp_localize_script(
+			'formscrm-wpforms-provider',
+			'formscrmWpformsProvider',
+			array(
+				'dependencies' => array(
+					'.fc_crm_url'         => $this->normalize_dependency_values( formscrm_get_dependency_url() ),
+					'.fc_crm_username'    => $this->normalize_dependency_values( formscrm_get_dependency_username() ),
+					'.fc_crm_password'    => $this->normalize_dependency_values( formscrm_get_dependency_password() ),
+					'.fc_crm_apipassword' => $this->normalize_dependency_values( formscrm_get_dependency_apipassword() ),
+					'.fc_crm_apisales'    => $this->normalize_dependency_values( formscrm_get_dependency_apisales() ),
+					'.fc_crm_odoodb'      => $this->normalize_dependency_values( formscrm_get_dependency_odoodb() ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -555,24 +592,109 @@ class FormsCRM_WPForms extends WPForms_Provider {
 	 *************************************************************************/
 
 	/**
+	 * Normalize CRM choices for provider integrations forms.
+	 *
+	 * @param mixed $crm_choices Raw CRM choices.
+	 * @return array<int, array{label:string,value:string}>
+	 */
+	private function normalize_crm_choices( $crm_choices ) {
+		$normalized_choices = array();
+		if ( ! is_array( $crm_choices ) ) {
+			return $normalized_choices;
+		}
+
+		foreach ( $crm_choices as $choice ) {
+			if ( ! is_array( $choice ) ) {
+				continue;
+			}
+
+			$value = '';
+			if ( isset( $choice['value'] ) ) {
+				$value = (string) $choice['value'];
+			} elseif ( isset( $choice['id'] ) ) {
+				$value = (string) $choice['id'];
+			} elseif ( isset( $choice['slug'] ) ) {
+				$value = (string) $choice['slug'];
+			} elseif ( isset( $choice['name'] ) ) {
+				$value = sanitize_title( (string) $choice['name'] );
+			}
+
+			$label = '';
+			if ( isset( $choice['label'] ) ) {
+				$label = (string) $choice['label'];
+			} elseif ( isset( $choice['name'] ) ) {
+				$label = (string) $choice['name'];
+			} elseif ( isset( $choice['title'] ) ) {
+				$label = (string) $choice['title'];
+			}
+
+			$value = trim( sanitize_text_field( $value ) );
+			$label = trim( sanitize_text_field( $label ) );
+			if ( '' === $value || '' === $label ) {
+				continue;
+			}
+
+			$normalized_choices[] = array(
+				'label' => $label,
+				'value' => $value,
+			);
+		}
+
+		return $normalized_choices;
+	}
+
+	/**
+	 * Normalize dependency values to array of strings.
+	 *
+	 * @param mixed $dependency_values Dependency values.
+	 * @return array<int, string>
+	 */
+	private function normalize_dependency_values( $dependency_values ) {
+		$normalized_values = array();
+		if ( ! is_array( $dependency_values ) ) {
+			return $normalized_values;
+		}
+
+		foreach ( $dependency_values as $dependency_value ) {
+			if ( ! is_scalar( $dependency_value ) ) {
+				continue;
+			}
+
+			$dependency_value = trim( sanitize_text_field( (string) $dependency_value ) );
+			if ( '' === $dependency_value ) {
+				continue;
+			}
+
+			$normalized_values[] = $dependency_value;
+		}
+
+		return array_values( array_unique( $normalized_values ) );
+	}
+
+	/**
 	 * Form fields to add a new provider account.
 	 *
 	 * @since 1.0.0
 	 */
 	public function integrations_tab_new_form() {
-		$select_page  = '';
-		$options_crm  = formscrm_get_choices();
-		$option_saved = '';
+		$select_id   = 'fc_crm_type_' . wp_rand( 1000, 999999 );
+		$select_page = sprintf(
+			'<option value="">%s</option>',
+			esc_html__( 'Select CRM', 'formscrm' )
+		);
+		$options_crm = $this->normalize_crm_choices( formscrm_get_choices() );
+
 		foreach ( $options_crm as $option_crm ) {
-			$select_page .= '<option value="' . $option_crm['value'] . '"';
-			if ( $option_saved === $option_crm['value'] ) {
-				$select_page .= ' selected';
-			}
-			$select_page .= '>' . $option_crm['label'] . '</option>';
+			$select_page .= sprintf(
+				'<option value="%1$s">%2$s</option>',
+				esc_attr( $option_crm['value'] ),
+				esc_html( $option_crm['label'] )
+			);
 		}
 
 		printf(
-			'<select id="fc_crm_type" name="fc_crm_type">%s</select>',
+			'<select id="%1$s" name="fc_crm_type" class="fc_crm_type">%2$s</select>',
+			esc_attr( $select_id ),
 			wp_kses_post( $select_page )
 		);
 
@@ -616,66 +738,6 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			'<input type="checkbox" name="fc_crm_mode_expert" class="fc_crm_mode_expert" value="on" /><label for="fc_crm_mode_expert">%s</label>',
 			esc_html__( 'Enable Expert Mode', 'formscrm' )
 		);
-
-		$js_dependency = '';
-		foreach ( formscrm_get_choices() as $crm ) {
-			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_html( $crm['value'] ) . "') {";
-
-			// URL dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_url(), true ) ) {
-				$js_dependency .= '$(".fc_crm_url").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_url").hide();';
-			}
-
-			// Username dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_username(), true ) ) {
-				$js_dependency .= '$(".fc_crm_username").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_username").hide();';
-			}
-
-			// Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_password(), true ) ) {
-				$js_dependency .= '$(".fc_crm_password").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_password").hide();';
-			}
-
-			// API Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apipassword(), true ) ) {
-				$js_dependency .= '$(".fc_crm_apipassword").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_apipassword").hide();';
-			}
-
-			// API Sales dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apisales(), true ) ) {
-				$js_dependency .= '$(".fc_crm_apisales").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_apisales").hide();';
-			}
-
-			// API Odoo DB dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_odoodb(), true ) ) {
-				$js_dependency .= '$(".fc_crm_odoodb").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_odoodb").hide();';
-			}
-
-			$js_dependency .= '}';
-		}
-
-		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- JavaScript code generated from sanitized values.
-		printf(
-			'<script>
-				jQuery( function($) {
-					' . $js_dependency . "
-					$('#fc_crm_type').change(function () { " . $js_dependency . ' });
-				});
-			</script>'
-		);
-		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 
