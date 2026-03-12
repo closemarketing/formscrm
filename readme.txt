@@ -139,7 +139,7 @@ When a form submission fails to send to your CRM:
 
 **How to Use:**
 
-1. Go to **WordPress Admin → FormsCRM → Error Log tab**
+1. Go to **WordPress Admin → Settings → FormsCRM → Error Log tab**
 2. View all form submission errors in an organized table
 3. Filter by status or CRM type to find specific errors
 4. Click **Details** to view complete error information including retry schedule
