@@ -39,8 +39,9 @@ At this time, FormsCRM supports in free version:
 - [Brevo](https://brevo.com/)
 
 And you will find, that there are Premium Addons to support:
-- [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
 - [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/)
+- [RedSys](https://close.technology/en/wordpress-plugins/formscrm-redsys/)
+- [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
 - [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/)
 - [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/)
 - [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/)
@@ -52,6 +53,9 @@ You can use multiple feed connector in GravityForms, WPForms PRO, Elementor Form
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
+
+**RedSys**
+RedSys is a payment gateway that allows you to accept payments from your WordPress forms. It is a Spanish payment gateway that is compatible with all Spanish banks.
 
 **Dynamic values in GravityForms and WPForms**
 We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
