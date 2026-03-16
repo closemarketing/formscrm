@@ -85,7 +85,8 @@ class CRMLIB_Mailerlite {
 		$api_data    = json_decode( $body, true );
 
 		if ( is_wp_error( $result ) || 200 !== $result_code ) {
-			$message = 'Error: ' . $result->get_error_message() . ' ';
+			$message  = __( 'Error: ', 'formscrm' );
+			$message .= $api_data['error']['message'] ?? __( 'Unknown error', 'formscrm' ) . ' ';
 			if ( ! empty( $api_data['error'] ) && is_array( $api_data['error'] ) ) {
 				foreach ( $api_data['error'] as $key => $value ) {
 					$message .= $key . ': ' . $value . ' ';

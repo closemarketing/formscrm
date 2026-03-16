@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 4.3.1
-Version: 4.3.1
+Stable tag: 4.3.2
+Version: 4.3.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -213,14 +213,20 @@ Each Markdown file includes:
 * Integrate with static site generators (Jekyll, Hugo, etc.)
 
 == Settings for Clientify ==
+**Important: API v2 Migration**
+Since version 4.3.2, FormsCRM uses the Clientify API v2 (api-plus.clientify.com). Your existing API key will continue to work without changes. The migration is fully backward compatible with existing feed configurations.
+
 **Instructions for adding Clientify cookie in the forms**
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
-**Add Pipeline name in Opportunities**
-You can add a new field that fits with the Pipeline name in Opportunities in Clientify. You will need to use the same name as the Pipeline in Clientify.
+**Add Pipeline name or ID in Opportunities**
+You can add a new field that fits with the Pipeline name (pipeline_desc) or Pipeline ID (pipeline_id) in Opportunities in Clientify. You can also specify the Pipeline Stage Name (pipeline_stage_desc). You will need to use the same name or ID as the Pipeline in Clientify.
 
 **Add expected closure date for Deals in Clientify**
 You can add a new field that fits with expected closure date for Deals in Clientify. This field is optional, and you need to add a number of days to the expected closure date. The plugin will calculate the date from today and will add it to the Deal in Clientify.
+
+**Marketing Status in Clientify**
+You can set the marketing status for contacts using the marketing_status field. Use value 1 for Sales Contact or value 2 for Marketing Contact.
 
 **Autoassignment in Clientify**
 Field that applies the autoassignment to the contact. You can add a string with the list of usernames (property emails) separated by comma (,) to apply the autoassignment.
@@ -239,6 +245,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = 4.3.2 =
+*  Migrated: Clientify to API v2 (api-plus.clientify.com/v2): login me/, custom fields object_type filter, deal creation with ID-based refs and inline products (v2 schema).
+*  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types. It defaults to Marketing Contact (2).
+*  Fixed: HTTP PUT via wp_remote_request(), consistent wp_remote_retrieve_body() for errors, pipeline_desc mapping.
+*  Fixed: GravityForms widget sending leads twice when viewing or editing an entry.
 *  Fixed: WPForms > Connections was not working correctly.
 
 = 4.3.1 =
