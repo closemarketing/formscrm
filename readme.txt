@@ -139,7 +139,7 @@ When a form submission fails to send to your CRM:
 
 **How to Use:**
 
-1. Go to **WordPress Admin → FormsCRM → Error Log tab**
+1. Go to **WordPress Admin → Settings → FormsCRM → Error Log tab**
 2. View all form submission errors in an organized table
 3. Filter by status or CRM type to find specific errors
 4. Click **Details** to view complete error information including retry schedule
@@ -249,6 +249,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 *  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types. It defaults to Marketing Contact (2).
 *  Fixed: HTTP PUT via wp_remote_request(), consistent wp_remote_retrieve_body() for errors, pipeline_desc mapping.
 *  Fixed: GravityForms widget sending leads twice when viewing or editing an entry.
+*  Fixed: WPForms > Connections was not working correctly.
 
 = 4.3.1 =
 *  Enhanced: Support for GravityPDF merge tags in GravityForms.
