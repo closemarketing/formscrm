@@ -214,7 +214,7 @@ Each Markdown file includes:
 
 == Settings for Clientify ==
 **Important: API v2 Migration**
-Since version 4.4.0, FormsCRM uses the Clientify API v2 (api-plus.clientify.com). Your existing API key will continue to work without changes. The migration is fully backward compatible with existing feed configurations.
+Since version 4.3.2, FormsCRM uses the Clientify API v2 (api-plus.clientify.com). Your existing API key will continue to work without changes. The migration is fully backward compatible with existing feed configurations.
 
 **Instructions for adding Clientify cookie in the forms**
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
