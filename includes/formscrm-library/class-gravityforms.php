@@ -231,76 +231,29 @@ class GFCRM extends GFFeedAddOn {
 			return array();
 		}
 
-		$crm_fields = array(
-			array(
-				'name'          => $prefix . 'url',
-				'label'         => __( 'CRM URL', 'formscrm' ),
-				'type'          => 'text',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_url(),
-				),
-			),
-			array(
-				'name'       => $prefix . 'username',
-				'label'      => __( 'Username', 'formscrm' ),
-				'type'       => 'text',
+		$crm_fields = array();
+		$definitions = formscrm_get_crm_field_definitions();
+		foreach ( $definitions as $def ) {
+			$gf_field = array(
+				'name'       => $prefix . $def['name'],
+				'label'      => $def['label'],
+				'type'       => $def['type'],
 				'class'      => 'medium',
 				'dependency' => array(
 					'field'  => $field_name,
-					'values' => formscrm_get_dependency_username(),
+					'values' => call_user_func( $def['dependency'] ),
 				),
-			),
-			array(
-				'name'          => $prefix . 'password',
-				'label'         => __( 'Password', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Use the password of the actual user.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_password(),
-				),
-			),
-			array(
-				'name'          => $prefix . 'apipassword',
-				'label'         => __( 'API Password for User', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_apipassword(),
-				),
-			),
-			array(
-				'name'          => $prefix . 'apisales',
-				'label'         => __( 'Password and Security Key', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_apisales(),
-				),
-			),
-			array(
-				'name'       => $prefix . 'odoodb',
-				'label'      => __( 'Odoo DB Name', 'formscrm' ),
-				'type'       => 'text',
-				'class'      => 'medium',
-				'dependency' => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_odoodb(),
-				),
-			),
-		);
+			);
+			if ( ! empty( $def['tooltip'] ) ) {
+				$gf_field['tooltip']       = $def['tooltip'];
+				$gf_field['tooltip_class'] = 'tooltipclass';
+			}
+			if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+				$gf_field['choices'] = $def['choices'];
+			}
+			$crm_fields[] = $gf_field;
+		}
+
 		if ( $select_crm_type ) {
 			$crm_fields = array_merge(
 				array(

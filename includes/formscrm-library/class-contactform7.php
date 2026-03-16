@@ -86,48 +86,39 @@ class FORMSCRM_CF7_Settings {
 				</p>
 				<?php if ( isset( $cf7_crm['fc_crm_type'] ) && $cf7_crm['fc_crm_type'] ) { ?>
 
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_url(), true ) ) { ?>
+					<?php
+					foreach ( formscrm_get_crm_field_definitions() as $def ) {
+						$dependency = call_user_func( $def['dependency'] );
+						if ( ! in_array( $cf7_crm['fc_crm_type'], $dependency, true ) ) {
+							continue;
+						}
+						$field_name = 'fc_crm_' . $def['name'];
+						$field_id   = 'wpcf7-crm-' . $field_name;
+						$value      = isset( $cf7_crm[ $field_name ] ) ? $cf7_crm[ $field_name ] : '';
+						?>
 					<p>
-						<label for="wpcf7-crm-fc_crm_url"><?php esc_html_e( 'URL:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_url" name="wpcf7-crm[fc_crm_url]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM URL', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_url'] ) ) ? esc_attr( $cf7_crm['fc_crm_url'] ) : ''; ?>" />
+						<label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $def['label'] ); ?>:</label><br />
+						<?php
+						if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+							?>
+						<select id="<?php echo esc_attr( $field_id ); ?>" name="wpcf7-crm[<?php echo esc_attr( $field_name ); ?>]" class="wide" size="1">
+							<?php
+							foreach ( $def['choices'] as $choice ) {
+								echo '<option value="' . esc_attr( $choice['value'] ) . '" ' . selected( $value, $choice['value'], false ) . '>' . esc_html( $choice['label'] ) . '</option>';
+							}
+							?>
+						</select>
+							<?php
+						} else {
+							$input_type = 'api_key' === $def['type'] ? 'password' : 'text';
+							?>
+						<input type="<?php echo esc_attr( $input_type ); ?>" id="<?php echo esc_attr( $field_id ); ?>" name="wpcf7-crm[<?php echo esc_attr( $field_name ); ?>]" class="wide" size="70" placeholder="<?php echo esc_attr( $def['label'] ); ?>" value="<?php echo esc_attr( $value ); ?>" />
+							<?php
+						}
+						?>
 					</p>
 					<?php } ?>
 
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_username(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_username"><?php esc_html_e( 'Username:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_username" name="wpcf7-crm[fc_crm_username]" class="wide" size="70" placeholder="<?php esc_html_e( 'Username', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_username'] ) ) ? esc_attr( $cf7_crm['fc_crm_username'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_password(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_password"><?php esc_html_e( 'Password:', 'formscrm' ); ?></label><br />
-						<input type="password" id="wpcf7-crm-fc_crm_password" name="wpcf7-crm[fc_crm_password]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM Password', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_password'] ) ) ? esc_attr( $cf7_crm['fc_crm_password'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apipassword(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_apipassword"><?php esc_html_e( 'API Password:', 'formscrm' ); ?></label><br />
-						<input type="password" id="wpcf7-crm-fc_crm_apipassword" name="wpcf7-crm[fc_crm_apipassword]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM API Password', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_apipassword'] ) ) ? esc_attr( $cf7_crm['fc_crm_apipassword'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apisales(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_apisales"><?php esc_html_e( 'API Sales:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_apisales" name="wpcf7-crm[fc_crm_apisales]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM Sales', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_apisales'] ) ) ? esc_attr( $cf7_crm['fc_crm_apisales'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_odoodb(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_odoodb"><?php esc_html_e( 'Odoo DB:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_odoodb" name="wpcf7-crm[fc_crm_odoodb]" class="wide" size="70" placeholder="<?php esc_html_e( 'Odoo DB', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_odoodb'] ) ) ? esc_attr( $cf7_crm['fc_crm_odoodb'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-					
 					<?php
 					$this->crmlib = formscrm_get_api_class( $cf7_crm['fc_crm_type'] );
 					?>

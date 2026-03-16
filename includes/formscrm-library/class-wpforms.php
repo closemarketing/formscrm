@@ -576,41 +576,26 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			$select_page // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		);
 
-		// CRM URL.
-		printf(
-			'<input type="text" name="fc_crm_url" class="fc_crm_url" placeholder="%s">',
-			esc_html__( 'CRM URL', 'formscrm' )
-		);
-
-		// CRM Username.
-		printf(
-			'<input type="text" name="fc_crm_username" class="fc_crm_username" placeholder="%s">',
-			esc_html__( 'CRM Username', 'formscrm' )
-		);
-
-		// CRM Password.
-		printf(
-			'<input type="text" name="fc_crm_password" class="fc_crm_password" placeholder="%s">',
-			esc_html__( 'CRM Password', 'formscrm' )
-		);
-
-		// CRM API Password.
-		printf(
-			'<input type="text" name="fc_crm_apipassword" class="fc_crm_apipassword" placeholder="%s">',
-			esc_html__( 'CRM API Password', 'formscrm' )
-		);
-
-		// CRM API Sales.
-		printf(
-			'<input type="text" name="fc_crm_apisales" class="fc_crm_apisales" placeholder="%s">',
-			esc_html__( 'CRM API Sales', 'formscrm' )
-		);
-
-		// CRM Odoo DB.
-		printf(
-			'<input type="text" name="fc_crm_odoodb" class="fc_crm_odoodb" placeholder="%s">',
-			esc_html__( 'CRM Odoo DB', 'formscrm' )
-		);
+		foreach ( formscrm_get_crm_field_definitions() as $def ) {
+			$input_name = 'fc_crm_' . $def['name'];
+			$css_class  = 'fc_crm_' . $def['name'];
+			if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+				echo '<select name="' . esc_attr( $input_name ) . '" class="' . esc_attr( $css_class ) . '" placeholder="' . esc_attr( $def['label'] ) . '">';
+				foreach ( $def['choices'] as $choice ) {
+					echo '<option value="' . esc_attr( $choice['value'] ) . '">' . esc_html( $choice['label'] ) . '</option>';
+				}
+				echo '</select>';
+			} else {
+				$input_type = 'api_key' === $def['type'] ? 'password' : 'text';
+				printf(
+					'<input type="%s" name="%s" class="%s" placeholder="%s">',
+					esc_attr( $input_type ),
+					esc_attr( $input_name ),
+					esc_attr( $css_class ),
+					esc_attr( $def['label'] )
+				);
+			}
+		}
 
 		printf(
 			'<input type="checkbox" name="fc_crm_mode_expert" class="fc_crm_mode_expert" value="on" /><label for="fc_crm_mode_expert">%s</label>',
@@ -619,50 +604,16 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 		$js_dependency = '';
 		foreach ( formscrm_get_choices() as $crm ) {
-			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_html( $crm['value'] ) . "') {";
-
-			// URL dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_url(), true ) ) {
-				$js_dependency .= '$(".fc_crm_url").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_url").hide();';
+			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_js( $crm['value'] ) . "') {";
+			foreach ( formscrm_get_crm_field_definitions() as $def ) {
+				$css_class   = 'fc_crm_' . $def['name'];
+				$dependency = call_user_func( $def['dependency'] );
+				if ( in_array( $crm['value'], $dependency, true ) ) {
+					$js_dependency .= '$(".' . esc_js( $css_class ) . '").show();';
+				} else {
+					$js_dependency .= '$(".' . esc_js( $css_class ) . '").hide();';
+				}
 			}
-
-			// Username dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_username(), true ) ) {
-				$js_dependency .= '$(".fc_crm_username").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_username").hide();';
-			}
-
-			// Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_password(), true ) ) {
-				$js_dependency .= '$(".fc_crm_password").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_password").hide();';
-			}
-
-			// API Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apipassword(), true ) ) {
-				$js_dependency .= '$(".fc_crm_apipassword").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_apipassword").hide();';
-			}
-
-			// API Sales dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apisales(), true ) ) {
-				$js_dependency .= '$(".fc_crm_apisales").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_apisales").hide();';
-			}
-
-			// API Odoo DB dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_odoodb(), true ) ) {
-				$js_dependency .= '$(".fc_crm_odoodb").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_odoodb").hide();';
-			}
-
 			$js_dependency .= '}';
 		}
 

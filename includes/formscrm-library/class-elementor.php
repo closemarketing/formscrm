@@ -87,89 +87,32 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			)
 		);
 
-		// URL field.
-		$widget->add_control(
-			'fc_crm_url',
-			array(
-				'label'       => __( 'URL:', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::URL,
-				'placeholder' => 'https://domain.com',
-				'label_block' => true,
-				'description' => __( 'CRM URL', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_url(),
-				),
-			)
-		);
-
-		// Username field.
-		$widget->add_control(
-			'fc_crm_username',
-			array(
-				'label'       => __( 'Username', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Username for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_username(),
-				),
-			)
-		);
-
-		// Password field.
-		$widget->add_control(
-			'fc_crm_password',
-			array(
-				'label'       => __( 'Password', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Password for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_password(),
-				),
-			)
-		);
-
-		// API Password field.
-		$widget->add_control(
-			'fc_crm_apipassword',
-			array(
-				'label'       => __( 'API Password', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'API Password for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
-			)
-		);
-
-		// API Sales field.
-		$widget->add_control(
-			'fc_crm_apisales',
-			array(
-				'label'       => __( 'API Sales', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
+		foreach ( formscrm_get_crm_field_definitions() as $def ) {
+			$control_name = 'fc_crm_' . $def['name'];
+			$control_args = array(
+				'label'       => $def['label'],
 				'label_block' => true,
 				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apisales(),
+					'fc_crm_type' => call_user_func( $def['dependency'] ),
 				),
-			)
-		);
-
-		// Odoo DB field.
-		$widget->add_control(
-			'fc_crm_odoodb',
-			array(
-				'label'       => __( 'Odoo DB', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Odoo DB to connect this form.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_odoodb(),
-				),
-			)
-		);
+			);
+			if ( ! empty( $def['tooltip'] ) ) {
+				$control_args['description'] = $def['tooltip'];
+			}
+			if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+				$control_args['type']    = \Elementor\Controls_Manager::SELECT;
+				$control_args['options'] = array();
+				foreach ( $def['choices'] as $choice ) {
+					$control_args['options'][ $choice['value'] ] = $choice['label'];
+				}
+			} else {
+				$control_args['type'] = \Elementor\Controls_Manager::TEXT;
+				if ( 'url' === $def['name'] ) {
+					$control_args['placeholder'] = 'https://domain.com';
+				}
+			}
+			$widget->add_control( $control_name, $control_args );
+		}
 
 		// Expert Mode.
 		$widget->add_control(
