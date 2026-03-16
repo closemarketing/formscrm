@@ -3,7 +3,7 @@ Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasque
 Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
-Tested up to: 6.9
+Tested up to: 7.0
 Stable tag: 4.3.2
 Version: 4.3.2
 License: GPL2
