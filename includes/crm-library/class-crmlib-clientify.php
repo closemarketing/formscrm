@@ -18,9 +18,6 @@
  */
 class CRMLIB_Clientify {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
-
-
-
 	/**
 	 * Logins to a CRM
 	 *
@@ -803,6 +800,11 @@ class CRMLIB_Clientify {
 			} else {
 				$contact[ $element['name'] ] = $element['value'];
 			}
+		}
+
+		// Default marketing status to 2 (Marketing Contact) if not set.
+		if ( ! isset( $contact['marketing_status'] ) ) {
+			$contact['marketing_status'] = 2;
 		}
 
 		// Clean tags blank.

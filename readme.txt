@@ -246,7 +246,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 = 4.3.2 =
 *  Migrated: Clientify to API v2 (api-plus.clientify.com/v2): login me/, custom fields object_type filter, deal creation with ID-based refs and inline products (v2 schema).
-*  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types.
+*  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types. It defaults to Marketing Contact (2).
 *  Fixed: HTTP PUT via wp_remote_request(), consistent wp_remote_retrieve_body() for errors, pipeline_desc mapping.
 *  Fixed: GravityForms widget sending leads twice when viewing or editing an entry.
 
