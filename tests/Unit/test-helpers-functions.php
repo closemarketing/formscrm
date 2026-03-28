@@ -573,4 +573,21 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 		$result = formscrm_normalize_date_format( '25/13/1990' );
 		$this->assertFalse( $result );
 	}
+
+	/**
+	 * Test formscrm_parse_field_mapping.
+	 */
+	public function test_parse_field_mapping() {
+		$raw_mapping = "email = {field:email}\n# comment line\nfirst_name={field:first_name}\ninvalid\n";
+
+		$result = formscrm_parse_field_mapping( $raw_mapping );
+
+		$this->assertEquals(
+			array(
+				'email'      => '{field:email}',
+				'first_name' => '{field:first_name}',
+			),
+			$result
+		);
+	}
 }
