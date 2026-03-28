@@ -576,23 +576,6 @@ class GFCRM extends GFFeedAddOn {
 				);
 			}
 
-			$update_by_choices = array();
-			foreach ( formscrm_get_update_by_choices() as $choice ) {
-				$update_by_choices[] = array(
-					'label' => $choice['label'],
-					'value' => $choice['value'],
-				);
-			}
-			$crm_feed_fields[] = array(
-				'name'       => 'fc_crm_update_by',
-				'label'      => __( 'Contact Update Strategy', 'formscrm' ),
-				'type'       => 'select',
-				'class'      => 'medium',
-				'dependency' => 'fc_crm_module',
-				'tooltip'    => '<h6>' . __( 'Contact Update Strategy', 'formscrm' ) . '</h6>' . __( 'Choose whether to search for an existing contact before creating a new one. If a match is found, the record will be updated instead.', 'formscrm' ),
-				'choices'    => $update_by_choices,
-			);
-
 			$crm_feed_fields[] = array(
 				'name'       => 'listFields',
 				'label'      => __( 'Map Fields', 'formscrm' ),
