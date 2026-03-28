@@ -712,3 +712,32 @@ if ( ! class_exists( 'ElementorPro\Plugin' ) ) {
 	}
 	class_alias( 'ElementorPro_Plugin', 'ElementorPro\Plugin' );
 }
+
+// Ninja Forms abstract class stub.
+if ( ! class_exists( 'NF_Abstracts_Action' ) ) {
+	class NF_Abstracts_Action {
+		/**
+		 * Action settings.
+		 *
+		 * @var array
+		 */
+		protected $_settings = array();
+
+		/**
+		 * Constructor.
+		 */
+		public function __construct() {}
+
+		/**
+		 * Process action.
+		 *
+		 * @param array $action_settings Action settings.
+		 * @param int   $form_id Form ID.
+		 * @param array $data Submission data.
+		 * @return array
+		 */
+		public function process( $action_settings, $form_id, $data ) {
+			return $data;
+		}
+	}
+}

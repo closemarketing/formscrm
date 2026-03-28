@@ -851,8 +851,8 @@ if ( ! function_exists( 'formscrm_parse_field_mapping' ) ) {
 			return array();
 		}
 
-		$lines      = preg_split( '/\r\n|\r|\n/', $raw_mapping );
-		$mapping    = array();
+		$lines   = preg_split( '/\r\n|\r|\n/', $raw_mapping );
+		$mapping = array();
 
 		foreach ( $lines as $line ) {
 			$line = trim( $line );

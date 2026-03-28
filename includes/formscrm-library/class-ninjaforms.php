@@ -81,7 +81,7 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 			$this->_nicename = __( 'FormsCRM', 'formscrm' );
 
 			$custom_settings = array(
-				'fc_crm_type'       => array(
+				'fc_crm_type'        => array(
 					'name'        => 'fc_crm_type',
 					'type'        => 'select',
 					'group'       => 'primary',
@@ -90,16 +90,16 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 					'options'     => $this->get_crm_options(),
 					'placeholder' => __( 'Choose the CRM to connect', 'formscrm' ),
 				),
-				'fc_crm_module'     => array(
-					'name'        => 'fc_crm_module',
-					'type'        => 'textbox',
-					'group'       => 'primary',
-					'label'       => __( 'Module', 'formscrm' ),
-					'width'       => 'full',
+				'fc_crm_module'      => array(
+					'name'           => 'fc_crm_module',
+					'type'           => 'textbox',
+					'group'          => 'primary',
+					'label'          => __( 'Module', 'formscrm' ),
+					'width'          => 'full',
 					'use_merge_tags' => false,
-					'help'        => __( 'Exact module or list name inside your CRM.', 'formscrm' ),
+					'help'           => __( 'Exact module or list name inside your CRM.', 'formscrm' ),
 				),
-				'fc_crm_url'        => array(
+				'fc_crm_url'         => array(
 					'name'        => 'fc_crm_url',
 					'type'        => 'textbox',
 					'group'       => 'advanced',
@@ -107,49 +107,49 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 					'width'       => 'full',
 					'placeholder' => 'https://example.com/',
 				),
-				'fc_crm_username'   => array(
+				'fc_crm_username'    => array(
 					'name'  => 'fc_crm_username',
 					'type'  => 'textbox',
 					'group' => 'advanced',
 					'label' => __( 'Username', 'formscrm' ),
 					'width' => 'one-half',
 				),
-				'fc_crm_password'   => array(
+				'fc_crm_password'    => array(
 					'name'  => 'fc_crm_password',
 					'type'  => 'textbox',
 					'group' => 'advanced',
 					'label' => __( 'Password', 'formscrm' ),
 					'width' => 'one-half',
 				),
-				'fc_crm_apipassword'=> array(
+				'fc_crm_apipassword' => array(
 					'name'  => 'fc_crm_apipassword',
 					'type'  => 'textbox',
 					'group' => 'advanced',
 					'label' => __( 'API Password / Token', 'formscrm' ),
 					'width' => 'one-half',
 				),
-				'fc_crm_apisales'   => array(
+				'fc_crm_apisales'    => array(
 					'name'  => 'fc_crm_apisales',
 					'type'  => 'textbox',
 					'group' => 'advanced',
 					'label' => __( 'API Sales Key', 'formscrm' ),
 					'width' => 'one-half',
 				),
-				'fc_crm_odoodb'     => array(
+				'fc_crm_odoodb'      => array(
 					'name'  => 'fc_crm_odoodb',
 					'type'  => 'textbox',
 					'group' => 'advanced',
 					'label' => __( 'Odoo Database', 'formscrm' ),
 					'width' => 'one-half',
 				),
-				'fc_crm_mode_expert'=> array(
+				'fc_crm_mode_expert' => array(
 					'name'  => 'fc_crm_mode_expert',
 					'type'  => 'toggle',
 					'group' => 'advanced',
 					'label' => __( 'Expert Mode', 'formscrm' ),
 					'width' => 'one-half',
 				),
-				'fc_crm_webhook'    => array(
+				'fc_crm_webhook'     => array(
 					'name'        => 'fc_crm_webhook',
 					'type'        => 'textbox',
 					'group'       => 'advanced',
@@ -158,15 +158,15 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 					'placeholder' => 'https://example.com/webhook',
 					'help'        => __( 'Optional URL to forward CRM confirmation payloads.', 'formscrm' ),
 				),
-				'fc_crm_field_map'  => array(
-					'name'          => 'fc_crm_field_map',
-					'type'          => 'textarea',
-					'group'         => 'advanced',
-					'label'         => __( 'Field Mapping', 'formscrm' ),
-					'width'         => 'full',
-					'use_merge_tags'=> true,
-					'help'          => __( 'One mapping per line. Example: email = {field:email}', 'formscrm' ),
-					'placeholder'   => "email = {field:email}\nfirst_name = {field:first_name}",
+				'fc_crm_field_map'   => array(
+					'name'           => 'fc_crm_field_map',
+					'type'           => 'textarea',
+					'group'          => 'advanced',
+					'label'          => __( 'Field Mapping', 'formscrm' ),
+					'width'          => 'full',
+					'use_merge_tags' => true,
+					'help'           => __( 'One mapping per line. Example: email = {field:email}', 'formscrm' ),
+					'placeholder'    => "email = {field:email}\nfirst_name = {field:first_name}",
 				),
 			);
 
@@ -220,9 +220,7 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 			$message         = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 			if ( 'error' === $status ) {
-				$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
-				$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
-				formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query );
+				formscrm_debug_email_lead( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars );
 
 				return $this->add_status_to_data( $data, 'error', $message );
 			}
@@ -311,12 +309,14 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 				}
 			}
 
-			if ( ! empty( $_POST['visitor_key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			// phpcs:disable WordPress.Security.NonceVerification.Missing
+			if ( ! empty( $_POST['visitor_key'] ) ) {
 				$merge_vars[] = array(
 					'name'  => 'visitor_key',
 					'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),
 				);
 			}
+			// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 			return $merge_vars;
 		}
@@ -330,7 +330,7 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 		 */
 		private function resolve_field_value( $template, $data ) {
 			if ( false !== strpos( $template, '{' ) ) {
-				return apply_filters( 'ninja_forms_merge_tags', $template );
+				return apply_filters( 'ninja_forms_merge_tags', $template ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			}
 
 			if ( empty( $data['fields'] ) ) {
@@ -433,7 +433,7 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 		private function normalize_field_value( $value ) {
 			if ( is_array( $value ) ) {
 				$sanitized = array_map(
-					static function( $item ) {
+					static function ( $item ) {
 						return is_scalar( $item ) ? (string) $item : '';
 					},
 					$value
@@ -498,6 +498,7 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 	}
 }
 
+// phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed
 if ( ! function_exists( 'formscrm_register_ninja_forms_action' ) ) {
 	/**
 	 * Register the FormsCRM action within Ninja Forms.
