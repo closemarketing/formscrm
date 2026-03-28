@@ -33,6 +33,11 @@ if ( ! file_exists( "{$_tests_dir}/includes/functions.php" ) ) {
 	exit( 1 );
 }
 
+// Point the test lib bootstrap to the config file in the tests dir (needed when includes/ is symlinked).
+if ( file_exists( "{$_tests_dir}/wp-tests-config.php" ) ) {
+	define( 'WP_TESTS_CONFIG_FILE_PATH', "{$_tests_dir}/wp-tests-config.php" );
+}
+
 // Give access to tests_add_filter() function.
 require_once "{$_tests_dir}/includes/functions.php";
 

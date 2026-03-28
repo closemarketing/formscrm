@@ -165,6 +165,15 @@ class FORMSCRM_CF7_Settings {
 						</span>
 					</p>
 					<p>
+						<label for="wpcf7-crm-fc_crm_update_by"><?php esc_html_e( 'Contact Update Strategy:', 'formscrm' ); ?></label><br />
+						<select name="wpcf7-crm[fc_crm_update_by]" id="wpcf7-crm-fc_crm_update_by" class="medium">
+							<?php foreach ( formscrm_get_update_by_choices() as $choice ) { ?>
+								<option value="<?php echo esc_attr( $choice['value'] ); ?>" <?php selected( isset( $cf7_crm['fc_crm_update_by'] ) ? $cf7_crm['fc_crm_update_by'] : 'none', $choice['value'] ); ?>><?php echo esc_html( $choice['label'] ); ?></option>
+							<?php } ?>
+						</select>
+						<span class="description"><?php esc_html_e( 'Search for an existing contact before creating. If found, it will be updated instead.', 'formscrm' ); ?></span>
+					</p>
+					<p>
 						<label for="wpcf7-crm-fc_crm_mode_expert"><?php esc_html_e( 'Expert Mode', 'formscrm' ); ?></label><br />
 						<input type="checkbox" id="wpcf7-crm-fc_crm_mode_expert" name="wpcf7-crm[fc_crm_mode_expert]" class="medium" value="on" <?php checked( $cf7_crm['fc_crm_mode_expert'], 'on' ); ?> /><?php esc_html_e( 'Enable this option to show all fields of the CRM.', 'formscrm' ); ?>
 					</p>

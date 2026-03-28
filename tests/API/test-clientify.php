@@ -64,6 +64,115 @@ class ClientifyTests extends WP_UnitTestCase {
 			$response_file = 'clientify-custom-fields.json';
 		}
 
+		// V2 contact search by email: existing contact.
+		if ( str_contains( $url, '/v2/contacts/' ) && 'GET' === $r['method'] && str_contains( $url, 'email=existing' ) ) {
+			return array(
+				'body'     => wp_json_encode(
+					array(
+						'count'   => 1,
+						'next'    => null,
+						'results' => array(
+							array( 'id' => 99999 ),
+						),
+					)
+				),
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			);
+		}
+
+		// V2 contact/company search by tax_id: existing record.
+		if ( str_contains( $url, '/v2/contacts/' ) && 'GET' === $r['method'] && str_contains( $url, 'taxpayer_identification_number' ) ) {
+			return array(
+				'body'     => wp_json_encode(
+					array(
+						'count'   => 1,
+						'next'    => null,
+						'results' => array(
+							array( 'id' => 99999 ),
+						),
+					)
+				),
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			);
+		}
+
+		// V2 company search by email: existing company.
+		if ( str_contains( $url, '/v2/companies/' ) && 'GET' === $r['method'] && str_contains( $url, 'email=existing' ) ) {
+			return array(
+				'body'     => wp_json_encode(
+					array(
+						'count'   => 1,
+						'next'    => null,
+						'results' => array(
+							array( 'id' => 88888 ),
+						),
+					)
+				),
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			);
+		}
+
+		// V2 contact/company search: no match.
+		if ( ( str_contains( $url, '/v2/contacts/' ) || str_contains( $url, '/v2/companies/' ) ) && 'GET' === $r['method'] ) {
+			return array(
+				'body'     => wp_json_encode(
+					array(
+						'count'   => 0,
+						'next'    => null,
+						'results' => array(),
+					)
+				),
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			);
+		}
+
+		// V2 contact update via PATCH.
+		if ( str_contains( $url, '/v2/contacts/' ) && 'PATCH' === $r['method'] ) {
+			return array(
+				'body'     => wp_json_encode(
+					array(
+						'id'         => 99999,
+						'first_name' => 'Test',
+						'last_name'  => 'User',
+						'email'      => 'existing@example.com',
+					)
+				),
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			);
+		}
+
+		// V2 company update via PATCH.
+		if ( str_contains( $url, '/v2/companies/' ) && 'PATCH' === $r['method'] ) {
+			return array(
+				'body'     => wp_json_encode(
+					array(
+						'id'    => 88888,
+						'name'  => 'Existing Company',
+						'email' => 'existing@company.com',
+					)
+				),
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			);
+		}
+
 		// V2 contact creation.
 		if ( str_contains( $url, '/v2/contacts/' ) && 'POST' === $r['method'] ) {
 			return array(
@@ -74,6 +183,22 @@ class ClientifyTests extends WP_UnitTestCase {
 						'last_name'  => 'User',
 						'email'      => 'test@example.com',
 						'status'     => 'cold-lead',
+					)
+				),
+				'response' => array(
+					'code'    => 201,
+					'message' => 'Created',
+				),
+			);
+		}
+
+		// V2 company creation.
+		if ( str_contains( $url, '/v2/companies/' ) && 'POST' === $r['method'] ) {
+			return array(
+				'body'     => wp_json_encode(
+					array(
+						'id'   => 200001,
+						'name' => 'New Company',
 					)
 				),
 				'response' => array(
@@ -260,5 +385,134 @@ class ClientifyTests extends WP_UnitTestCase {
 		$result = $this->crm_clientify->create_entry( $this->settings, $merge_vars );
 		$this->assertEquals( 'ok', $result['status'] );
 		$this->assertEquals( 'deal', $result['module'] );
+	}
+
+	/**
+	 * Test update_by = 'none': always creates new contact via POST.
+	 */
+	public function test_create_entry_update_by_none_always_creates() {
+		$this->settings['fc_crm_update_by'] = 'none';
+
+		$merge_vars = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Test',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'test@example.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $merge_vars );
+		$this->assertEquals( 'ok', $result['status'] );
+		$this->assertEquals( 100597402, $result['id'] );
+	}
+
+	/**
+	 * Test update_by = 'email': updates existing contact via PATCH when match found.
+	 */
+	public function test_create_entry_update_by_email_found() {
+		$this->settings['fc_crm_update_by'] = 'email';
+
+		$merge_vars = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Test',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'existing@example.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $merge_vars );
+		$this->assertEquals( 'ok', $result['status'] );
+		$this->assertEquals( 99999, $result['id'] );
+	}
+
+	/**
+	 * Test update_by = 'email': creates new contact via POST when no match found.
+	 */
+	public function test_create_entry_update_by_email_not_found() {
+		$this->settings['fc_crm_update_by'] = 'email';
+
+		$merge_vars = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'New',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'new@example.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $merge_vars );
+		$this->assertEquals( 'ok', $result['status'] );
+		$this->assertEquals( 100597402, $result['id'] );
+	}
+
+	/**
+	 * Test update_by = 'email': creates new contact when email field is missing.
+	 */
+	public function test_create_entry_update_by_email_empty_value() {
+		$this->settings['fc_crm_update_by'] = 'email';
+
+		$merge_vars = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Test',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $merge_vars );
+		$this->assertEquals( 'ok', $result['status'] );
+		$this->assertEquals( 100597402, $result['id'] );
+	}
+
+	/**
+	 * Test update_by = 'tax_id': updates existing contact via PATCH when match found.
+	 */
+	public function test_create_entry_update_by_tax_id_found() {
+		$this->settings['fc_crm_update_by'] = 'tax_id';
+
+		$merge_vars = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Test',
+			),
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '12345678A',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $merge_vars );
+		$this->assertEquals( 'ok', $result['status'] );
+		$this->assertEquals( 99999, $result['id'] );
+	}
+
+	/**
+	 * Test update_by = 'email' on companies module: updates existing company via PATCH.
+	 */
+	public function test_create_entry_update_by_email_companies_found() {
+		$this->settings['fc_crm_module']     = 'Companies';
+		$this->settings['fc_crm_update_by']  = 'email';
+
+		$merge_vars = array(
+			array(
+				'name'  => 'name',
+				'value' => 'Existing Company',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'existing@company.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $merge_vars );
+		$this->assertEquals( 'ok', $result['status'] );
+		$this->assertEquals( 88888, $result['id'] );
 	}
 }

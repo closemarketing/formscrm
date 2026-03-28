@@ -701,6 +701,80 @@ class CRMLIB_Clientify {
 	}
 
 	/**
+	 * Searches for an existing contact or company by a given field.
+	 *
+	 * @param string $module    CRM module: 'contacts' or 'companies'.
+	 * @param string $update_by Strategy key: 'email', 'phone', or 'tax_id'.
+	 * @param string $value     Value to search for.
+	 * @param string $apikey    API authentication token.
+	 * @return int|false CRM record ID if found, false otherwise.
+	 */
+	private function search_contact( $module, $update_by, $value, $apikey ) {
+		if ( empty( $value ) ) {
+			return false;
+		}
+
+		$field_map = array(
+			'email'  => 'email',
+			'phone'  => 'phone',
+			'tax_id' => 'taxpayer_identification_number',
+		);
+
+		if ( ! isset( $field_map[ $update_by ] ) ) {
+			return false;
+		}
+
+		$result = $this->request(
+			$module . '/',
+			array(
+				$field_map[ $update_by ] => $value,
+				'fields'                 => 'id',
+			),
+			$apikey,
+			'GET'
+		);
+
+		if ( 'ok' !== $result['status'] ) {
+			return false;
+		}
+
+		$results = isset( $result['data']['results'] ) ? $result['data']['results'] : array();
+		if ( ! empty( $results[0]['id'] ) ) {
+			return (int) $results[0]['id'];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Extracts the search value from merge_vars for the given update-by strategy.
+	 *
+	 * @param array  $merge_vars Array of mapped form field values.
+	 * @param string $update_by  Strategy key: 'email', 'phone', or 'tax_id'.
+	 * @return string The value to search by, or empty string if not found.
+	 */
+	private function extract_update_by_value( $merge_vars, $update_by ) {
+		$field_map = array(
+			'email'  => 'email',
+			'phone'  => 'phone',
+			'tax_id' => 'taxpayer_identification_number',
+		);
+
+		if ( ! isset( $field_map[ $update_by ] ) ) {
+			return '';
+		}
+
+		$target = $field_map[ $update_by ];
+		foreach ( $merge_vars as $element ) {
+			if ( isset( $element['name'] ) && $target === $element['name'] && ! empty( $element['value'] ) ) {
+				return (string) $element['value'];
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Creates an entry for given module of a CRM
 	 *
 	 * @param  array $settings settings from Gravity Forms options.
@@ -813,9 +887,25 @@ class CRMLIB_Clientify {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
-		$result = $this->request( $module . '/', $contact, $apikey );
+		$update_by   = isset( $settings['fc_crm_update_by'] ) ? $settings['fc_crm_update_by'] : 'none';
+		$http_method = 'POST';
+		$endpoint    = $module . '/';
+		$found_id    = false;
+
+		if ( 'none' !== $update_by ) {
+			$search_value = $this->extract_update_by_value( $merge_vars, $update_by );
+			if ( ! empty( $search_value ) ) {
+				$found_id = $this->search_contact( $module, $update_by, $search_value, $apikey );
+				if ( $found_id ) {
+					$http_method = 'PATCH';
+					$endpoint    = $module . '/' . $found_id . '/';
+				}
+			}
+		}
+
+		$result = $this->request( $endpoint, $contact, $apikey, $http_method );
 		if ( 'ok' === $result['status'] ) {
-			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
+			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : ( $found_id ? $found_id : '' );
 			$response_result = array(
 				'status'  => 'ok',
 				'message' => 'success',

@@ -170,6 +170,34 @@ if ( ! function_exists( 'formscrm_get_dependency_odoodb' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_get_update_by_choices' ) ) {
+	/**
+	 * Returns the choices for the update-by contact strategy setting.
+	 *
+	 * @return array
+	 */
+	function formscrm_get_update_by_choices() {
+		return array(
+			array(
+				'value' => 'none',
+				'label' => __( 'Always create new', 'formscrm' ),
+			),
+			array(
+				'value' => 'email',
+				'label' => __( 'Update by Email', 'formscrm' ),
+			),
+			array(
+				'value' => 'phone',
+				'label' => __( 'Update by Phone', 'formscrm' ),
+			),
+			array(
+				'value' => 'tax_id',
+				'label' => __( 'Update by Tax ID', 'formscrm' ),
+			),
+		);
+	}
+}
+
 // Visitor Key.
 add_action( 'init', 'formscrm_visitorkey_session', 1 );
 if ( ! function_exists( 'formscrm_visitorkey_session' ) ) {
