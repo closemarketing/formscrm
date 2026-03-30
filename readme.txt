@@ -244,6 +244,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.3.3 =
+*  Fixed: Details button in error log not working when plugin is registered under Settings menu (settings_page_formscrm hook).
+
 = 4.3.2 =
 *  Migrated: Clientify to API v2 (api-plus.clientify.com/v2): login me/, custom fields object_type filter, deal creation with ID-based refs and inline products (v2 schema).
 *  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types. It defaults to Marketing Contact (2).

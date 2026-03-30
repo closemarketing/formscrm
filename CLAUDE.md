@@ -72,12 +72,14 @@ Enforced by `.phpcs.xml.dist` (WordPress Coding Standards):
 
 - **Tabs** for indentation (never spaces)
 - **Yoda conditions** always (`if ( 'value' === $var )`)
-- PHP inline comments start with capital letter, end with period
+- PHP inline comments start with capital letter, end with period; keep them concise
 - Global prefixes: `formscrm_`, `FormsCRM_`, `CRMLIB_`, `GFCRM`, `fcrm_`, `FCRM_`
 - Text domain: `formscrm`
-- Align consecutive `=` assignments vertically with spaces
+- Align consecutive `=` assignments vertically — use the minimum spaces needed to reach column alignment, one space on each side of the operator
 - **JavaScript**: Vanilla JS only — no jQuery
 - PHPStan runs at level 1 against `includes/` using bootstrap at `tests/phpstan-bootstrap.php`
+- Ensure lint tests pass before considering a change complete
+- Create unit tests for new functions/code when applicable
 
 ## Tests
 
@@ -103,3 +105,29 @@ Enforced by `.phpcs.xml.dist` (WordPress Coding Standards):
 - `.github/workflows/deploy.yml` — Deploy to WordPress.org SVN
 - Update `readme.txt` changelog for notable changes
 - Documentation goes in `/docs/` and must be listed in `.distignore`
+
+## Plugin Objective
+
+FormsCRM is designed to be the **most native complement** for form managers to connect with CRM/ERP and Email Marketing systems.
+
+### Core Principles
+
+1. **Native Integration** — Follow each form plugin's architecture and hooks; use official APIs
+2. **Maximum Reliability** — Never lose form submissions even if CRM connection fails; log errors, queue retries, degrade gracefully
+3. **Modular Design** — Each CRM integration is independent; new integrations must not break existing ones
+
+### Resilience Requirements
+
+When developing, always consider:
+- **CRM is down** → form still submits; data queued for retry; end users see no errors
+- **Timeout** → async processing where possible; proper timeout handling
+- **Wrong credentials** → clear admin error messages; don't break form submissions
+- **API changes** → version API calls; implement fallbacks
+
+### Development Guidelines
+
+1. Always test failure scenarios (CRM down, timeout, wrong credentials)
+2. Never block form submissions due to CRM issues
+3. Log errors comprehensively for debugging
+4. Use caching for expensive operations (field listings, etc.)
+5. Provide clear user feedback in admin interfaces
