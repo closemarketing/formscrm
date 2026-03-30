@@ -68,14 +68,13 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 		// Fire for each connection.
 		foreach ( $form_data['providers'][ $this->slug ] as $connection ) {
-			$account_id                   = $connection['account_id'];
-			$settings                     = $this->api_connect( $account_id );
-			$settings['fc_crm_module']    = $connection['list_id'];
-			$settings['fc_crm_update_by'] = isset( $connection['fc_crm_update_by'] ) ? $connection['fc_crm_update_by'] : 'none';
-			$merge_vars                   = array();
-			$entry_meta                   = wpforms()->get( 'entry_meta' );
-			$form_id                      = (int) $form_data['id'];
-			$title                        = '<strong>FormsCRM Log</strong><br/>';
+			$account_id                = $connection['account_id'];
+			$settings                  = $this->api_connect( $account_id );
+			$settings['fc_crm_module'] = $connection['list_id'];
+			$merge_vars                = array();
+			$entry_meta                = wpforms()->get( 'entry_meta' );
+			$form_id                   = (int) $form_data['id'];
+			$title                     = '<strong>FormsCRM Log</strong><br/>';
 
 			// Check for credentials.
 			if ( empty( $settings['fc_crm_type'] ) ) {
@@ -544,19 +543,6 @@ class FormsCRM_WPForms extends WPForms_Provider {
 				}
 
 				$html .= '</div>';
-				$html .= '</div>';
-
-				// Contact Update Strategy select.
-				$saved_update_by = isset( $connection['fc_crm_update_by'] ) ? $connection['fc_crm_update_by'] : 'none';
-				$html           .= '<div style="margin: 10px 0;">';
-				$html           .= '<label for="wpforms-provider-formscrm-update-by-' . esc_attr( $connection_id ) . '" style="display:block; font-weight:600; margin-bottom:5px;">' . esc_html__( 'Contact Update Strategy', 'formscrm' ) . '</label>';
-				$html           .= '<select id="wpforms-provider-formscrm-update-by-' . esc_attr( $connection_id ) . '" name="providers[' . esc_attr( $this->slug ) . '][' . esc_attr( $connection_id ) . '][fc_crm_update_by]">';
-				foreach ( formscrm_get_update_by_choices() as $choice ) {
-					$selected = selected( $saved_update_by, $choice['value'], false );
-					$html    .= '<option value="' . esc_attr( $choice['value'] ) . '"' . $selected . '>' . esc_html( $choice['label'] ) . '</option>';
-				}
-				$html .= '</select>';
-				$html .= '<p style="margin: 5px 0 0; color: #666; font-size: 12px;">' . esc_html__( 'Search for an existing contact before creating. If found, it will be updated instead.', 'formscrm' ) . '</p>';
 				$html .= '</div>';
 			}
 		}

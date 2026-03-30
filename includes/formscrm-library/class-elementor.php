@@ -171,23 +171,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			)
 		);
 
-		// Contact Update Strategy.
-		$update_by_options = array();
-		foreach ( formscrm_get_update_by_choices() as $choice ) {
-			$update_by_options[ $choice['value'] ] = $choice['label'];
-		}
-		$widget->add_control(
-			'fc_crm_update_by',
-			array(
-				'label'       => __( 'Contact Update Strategy', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::SELECT,
-				'label_block' => true,
-				'description' => __( 'Search for an existing contact before creating. If found, it will be updated instead.', 'formscrm' ),
-				'options'     => $update_by_options,
-				'default'     => 'none',
-			)
-		);
-
 		// Expert Mode.
 		$widget->add_control(
 			'fc_crm_mode_expert',

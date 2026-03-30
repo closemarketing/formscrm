@@ -189,18 +189,6 @@ class FormsCRM_WooCommerce {
 			);
 		}
 
-		$options_update_by = array();
-		foreach ( formscrm_get_update_by_choices() as $choice ) {
-			$options_update_by[ $choice['value'] ] = $choice['label'];
-		}
-		$settings_crm[] = array(
-			'name'    => __( 'Contact Update Strategy', 'formscrm' ),
-			'type'    => 'select',
-			'desc'    => __( 'Search for an existing contact before creating. If found, it will be updated instead.', 'formscrm' ),
-			'options' => $options_update_by,
-			'id'      => 'wc_formscrm[fc_crm_update_by]',
-		);
-
 		$settings_crm[] = array(
 			'type' => 'sectionend',
 			'id'   => 'wc_settings_formscrm_section_end',
