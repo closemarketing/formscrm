@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 4.3.2
-Version: 4.3.2
+Stable tag: 4.3.2.1
+Version: 4.3.2.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -245,6 +245,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = 4.3.2.1 =
+*  Hotfix: revert Clientify API v2 migration due to critical issues with field mapping configuration.
 *  Fixed: CF7 GDPR checkbox value sent as field name instead of boolean when unchecked, causing gdpr_accept to always be true in Clientify.
 
 = 4.3.2 =
