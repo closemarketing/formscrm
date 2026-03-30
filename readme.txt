@@ -244,6 +244,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.3.2.1 =
+*  Fixed: CF7 GDPR checkbox value sent as field name instead of boolean when unchecked, causing gdpr_accept to always be true in Clientify.
+
 = 4.3.2 =
 *  Migrated: Clientify to API v2 (api-plus.clientify.com/v2): login me/, custom fields object_type filter, deal creation with ID-based refs and inline products (v2 schema).
 *  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types. It defaults to Marketing Contact (2).
