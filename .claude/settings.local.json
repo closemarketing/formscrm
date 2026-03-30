@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(jq -e '.hooks.PostToolUse[] | select\\(.matcher == \"\"Edit|Write\"\"\\) | .hooks[] | select\\(.type == \"\"prompt\"\"\\) | .prompt' /Users/davidperez/Web/formscrm/app/public/wp-content/plugins/formscrm/.claude/settings.json)"
+      "Bash(jq -e '.hooks.PostToolUse[] | select\\(.matcher == \"\"Edit|Write\"\"\\) | .hooks[] | select\\(.type == \"\"prompt\"\"\\) | .prompt' /Users/davidperez/Web/formscrm/app/public/wp-content/plugins/formscrm/.claude/settings.json)",
+      "Bash(composer lint:*)",
+      "Bash(git stash:*)",
+      "Bash(composer format:*)"
     ]
   }
 }

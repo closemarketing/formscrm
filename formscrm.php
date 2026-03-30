@@ -38,13 +38,8 @@ add_filter(
 		);
 
 		$choices[] = array(
-			'label' => 'Clientify v1',
+			'label' => 'Clientify',
 			'value' => 'clientify',
-		);
-
-		$choices[] = array(
-			'label' => 'Clientify v2',
-			'value' => 'clientify_v2',
 		);
 
 		$choices[] = array(
@@ -71,7 +66,6 @@ add_filter(
 	function ( $choices ) {
 
 		$choices[] = 'clientify';
-		$choices[] = 'clientify_v2';
 		$choices[] = 'acumbamail';
 		$choices[] = 'holded';
 		$choices[] = 'mailerlite';
@@ -85,12 +79,11 @@ add_filter(
 	'formscrm_crmlib_path',
 	function ( $choices ) {
 
-		$choices['holded']       = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
-		$choices['clientify']    = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
-		$choices['clientify_v2'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify_v2.php';
-		$choices['acumbamail']   = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
-		$choices['mailerlite']   = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite.php';
-		$choices['brevo']        = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-brevo.php';
+		$choices['holded']     = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
+		$choices['clientify']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
+		$choices['acumbamail'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
+		$choices['mailerlite'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite.php';
+		$choices['brevo']      = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-brevo.php';
 
 		return $choices;
 	}
