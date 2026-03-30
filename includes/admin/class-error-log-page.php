@@ -34,7 +34,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 		 * @return void
 		 */
 		public function enqueue_scripts( $hook ) {
-			if ( 'toplevel_page_formscrm' !== $hook ) {
+			if ( 'settings_page_formscrm' !== $hook ) {
 				return;
 			}
 

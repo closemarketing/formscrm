@@ -247,6 +247,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 = 4.3.2.1 =
 *  Hotfix: revert Clientify API v2 migration due to critical issues with field mapping configuration.
 *  Fixed: CF7 GDPR checkbox value sent as field name instead of boolean when unchecked, causing gdpr_accept to always be true in Clientify.
+* Fixed: Error logs page not working properly.
 
 = 4.3.2 =
 *  Migrated: Clientify to API v2 (api-plus.clientify.com/v2): login me/, custom fields object_type filter, deal creation with ID-based refs and inline products (v2 schema).
