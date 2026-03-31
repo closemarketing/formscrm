@@ -238,6 +238,29 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	}
 
 	/**
+	 * Get Merge Vars
+	 *
+	 * Builds the merge vars array from CRM field settings and submitted raw fields.
+	 *
+	 * @access public
+	 * @param array $formscrm_settings Decoded hidden settings (field_crm => field_form_id).
+	 * @param array $raw_fields        Submitted form fields keyed by field id.
+	 * @return array
+	 */
+	public static function get_merge_vars( $formscrm_settings, $raw_fields ) {
+		$merge_vars = array();
+		foreach ( $formscrm_settings as $field_crm => $field_form ) {
+			$field_crm    = str_replace( 'fc_crm_field-', '', $field_crm );
+			$field_value  = $raw_fields[ $field_form ]['value'] ?? '';
+			$merge_vars[] = array(
+				'name'  => $field_crm,
+				'value' => is_array( $field_value ) ? implode( ', ', $field_value ) : $field_value,
+			);
+		}
+		return $merge_vars;
+	}
+
+	/**
 	 * Run
 	 *
 	 * Runs the action after submit
@@ -273,15 +296,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 
 		// Normalize the Form data.
-		$merge_vars = array();
-		foreach ( $formscrm_settings as $field_crm => $field_form ) {
-			$field_crm    = str_replace( 'fc_crm_field-', '', $field_crm );
-			$field_value  = $raw_fields[ $field_form ]['value'] ?? '';
-			$merge_vars[] = array(
-				'name'  => $field_crm,
-				'value' => is_array( $field_value ) ? implode( ', ', $field_value ) : $field_value,
-			);
-		}
+		$merge_vars = self::get_merge_vars( $formscrm_settings, $raw_fields );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
 		if ( ! empty( $_POST['visitor_key'] ) ) {

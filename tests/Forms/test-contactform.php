@@ -8,10 +8,6 @@
  */
 
 class ContactFormsTest extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
-		$this->contact_form = WPCF7_ContactForm::create();
-	}
 
 	public function test_get_merge_vars() {
 		$cf7_crm = array(
@@ -37,7 +33,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 			'clientify_cookie' => '',
 		);
 
-		$merge_vars = $this->contact_form->get_merge_vars( $cf7_crm, $submitted_data );
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals( $merge_vars, array(
 			array( 'name' => 'first_name', 'value' => 'david' ),
 			array( 'name' => 'email', 'value' => 'david@close.marketing' ),
@@ -62,7 +58,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 			'extra-info' => array(), // Unchecked checkbox returns empty array in CF7.
 		);
 
-		$merge_vars = $this->contact_form->get_merge_vars( $cf7_crm, $submitted_data );
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals(
 			array( array( 'name' => 'gdpr_accept', 'value' => '' ) ),
 			$merge_vars
@@ -84,7 +80,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 			'extra-info' => array( 'Me gustaría estar al tanto de las novedades de Ipace' ),
 		);
 
-		$merge_vars = $this->contact_form->get_merge_vars( $cf7_crm, $submitted_data );
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals(
 			array( array( 'name' => 'gdpr_accept', 'value' => 'Me gustaría estar al tanto de las novedades de Ipace' ) ),
 			$merge_vars
