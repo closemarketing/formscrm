@@ -248,32 +248,38 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 */
 	public function run( $record, $ajax_handler ) {
 		$settings = $record->get( 'form_settings' );
+		$crm_type = $settings['fc_crm_type'] ?? '';
+		$module   = '';
+
+		if ( empty( $crm_type ) ) {
+			formscrm_alert_error( $crm_type, __( 'Invalid CRM type.', 'formscrm' ), array() );
+			return;
+		}
 
 		// Get submitted Form data.
 		$raw_fields = $record->get( 'fields' );
 
 		// Unpack hidden settings for the form.
-		$hidden_settings = array();
+		$formscrm_settings = array();
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
-			$hidden_settings = json_decode( $settings['formscrm_settings_hidden'], true );
-			$settings        = array_merge( $settings, $hidden_settings );
-
-			if ( isset( $settings['fc_crm_type'] ) && ! empty( $hidden_settings[ $settings['fc_crm_type'] ] ) ) {
-				$settings['fc_crm_module'] = $hidden_settings[ $settings['fc_crm_type'] ] ?? '';
-			}
+			$formscrm_settings = json_decode( $settings['formscrm_settings_hidden'], true );
+			$module            = $formscrm_settings[ $crm_type ] ?? '';
+			unset( $formscrm_settings[ $crm_type ] );
 		}
 
-		// Normalize the Form Data.
+		if ( empty( $module ) ) {
+			formscrm_alert_error( $module, __( 'Module not found.', 'formscrm' ), array() );
+			return;
+		}
+
+		// Normalize the Form data.
 		$merge_vars = array();
-		foreach ( $raw_fields as $id => $field ) {
-			$key = array_search( $id, $hidden_settings, true );
-			if ( false === $key ) {
-				continue;
-			}
-			$field_id     = str_replace( 'fc_crm_field-', '', $key );
+		foreach ( $formscrm_settings as $field_crm => $field_form ) {
+			$field_crm    = str_replace( 'fc_crm_field-', '', $field_crm );
+			$field_value  = $raw_fields[ $field_form ]['value'] ?? '';
 			$merge_vars[] = array(
-				'name'  => $field_id,
-				'value' => $field['value'] ?? '',
+				'name'  => $field_crm,
+				'value' => is_array( $field_value ) ? implode( ', ', $field_value ) : $field_value,
 			);
 		}
 
