@@ -46,4 +46,48 @@ class ContactFormsTest extends WP_UnitTestCase {
 			array( 'name' => 'custom_fields|info_chat', 'value' => 'Autónomo' ),
 		) );
 	}
+
+	/**
+	 * GDPR checkbox unchecked: CF7 submits empty array, value must be '' not the field name.
+	 */
+	public function test_get_merge_vars_gdpr_unchecked() {
+		$cf7_crm = array(
+			'fc_crm_type'              => 'clientify',
+			'fc_crm_apipassword'       => 'api-password',
+			'fc_crm_module'            => 'Contacts',
+			'fc_crm_field-gdpr_accept' => 'extra-info',
+		);
+
+		$submitted_data = array(
+			'extra-info' => array(), // Unchecked checkbox returns empty array in CF7.
+		);
+
+		$merge_vars = $this->contact_form->get_merge_vars( $cf7_crm, $submitted_data );
+		$this->assertEquals(
+			array( array( 'name' => 'gdpr_accept', 'value' => '' ) ),
+			$merge_vars
+		);
+	}
+
+	/**
+	 * GDPR checkbox checked: CF7 submits the label string, value must be non-empty.
+	 */
+	public function test_get_merge_vars_gdpr_checked() {
+		$cf7_crm = array(
+			'fc_crm_type'              => 'clientify',
+			'fc_crm_apipassword'       => 'api-password',
+			'fc_crm_module'            => 'Contacts',
+			'fc_crm_field-gdpr_accept' => 'extra-info',
+		);
+
+		$submitted_data = array(
+			'extra-info' => array( 'Me gustaría estar al tanto de las novedades de Ipace' ),
+		);
+
+		$merge_vars = $this->contact_form->get_merge_vars( $cf7_crm, $submitted_data );
+		$this->assertEquals(
+			array( array( 'name' => 'gdpr_accept', 'value' => 'Me gustaría estar al tanto de las novedades de Ipace' ) ),
+			$merge_vars
+		);
+	}
 }

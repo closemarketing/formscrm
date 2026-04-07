@@ -1,3 +1,18 @@
 {
-	"id": 57672
+	"count": 1,
+	"next": null,
+	"previous": null,
+	"results": [
+			{
+					"language": "es",
+					"country": "ES",
+					"time_zone": "Europe/Madrid",
+					"currency": "EUR",
+					"currency_symbol": "€",
+					"currency_format": 1,
+					"hour_format": 1,
+					"date_format": 1,
+					"sub_brand": ""
+			}
+	]
 }

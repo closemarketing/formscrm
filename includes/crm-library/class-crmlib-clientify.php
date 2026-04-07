@@ -35,13 +35,17 @@ class CRMLIB_Clientify {
 	 * @return bool  True if login succeeded, false otherwise.
 	 */
 	public function login( $settings ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		if ( ! $apikey ) {
+		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$get_result = $this->get( 'settings/my-account/', $apikey );
+
+		if ( $apikey && isset( $get_result['data']['count'] ) && $get_result['data']['count'] > 0 ) {
+			return true;
+		} else {
 			return false;
 		}
 
 		// Try v2 first.
-		$result = $this->request( 'me/', array(), $apikey, 'GET' );
+		$result = $this->request( 'me/', array( 'id', 'account_status' ), $apikey, 'GET' );
 		if ( 'ok' === $result['status'] && ! empty( $result['data']['id'] ) ) {
 			$this->api_version = 'v2';
 			return true;
@@ -615,28 +619,29 @@ class CRMLIB_Clientify {
 			'contacts-deals'  => array( 'contacts', 'deals' ),
 			'companies-deals' => array( 'companies', 'deals' ),
 		);
-		$label_map        = array(
-			'contacts'  => __( 'Contact', 'formscrm' ),
-			'companies' => __( 'Company', 'formscrm' ),
-			'deals'     => __( 'Deal', 'formscrm' ),
+		$label_module      = array(
+			'contact'             => __( 'Contact', 'formscrm' ),
+			'company'             => __( 'Company', 'formscrm' ),
+			'deal'                => __( 'Deal', 'formscrm' ),
+			'contacts | contact'  => __( 'Contact', 'formscrm' ),
+			'companies | company' => __( 'Company', 'formscrm' ),
+			'deals | deal'        => __( 'Deal', 'formscrm' ),
 		);
 
-		if ( isset( $object_types_map[ $module_slug ] ) ) {
-			foreach ( $object_types_map[ $module_slug ] as $object_type ) {
-				$result_api = $this->request( 'custom-fields/?object_type=' . $object_type, array(), $apikey, 'GET' );
-				if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
-					foreach ( $result_api['data']['results'] as $custom_field ) {
-						$key  = 'deals' === $object_type ? 'deal|' : '';
-						$key .= 'custom_fields|' . $custom_field['name'];
+		$result_api = $this->get( 'custom-fields/', $apikey );
+		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
+			foreach ( $result_api['data']['results'] as $custom_field ) {
+				if ( isset( $equivalent_module[ $module_slug ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module_slug ], true ) ) {
+					$key  = 'deals | deal' === $custom_field['content_type'] ? 'deal|' : '';
+					$key .= 'custom_fields|' . $custom_field['name'];
 
-						$label = isset( $label_map[ $object_type ] ) ? $label_map[ $object_type ] . ': ' : '';
+					$label = isset( $label_module[ $custom_field['content_type'] ] ) ? $label_module[ $custom_field['content_type'] ] . ': ' : '';
 
-						$fields[] = array(
-							'name'     => $key,
-							'label'    => $label . $custom_field['name'],
-							'required' => false,
-						);
-					}
+					$fields[] = array(
+						'name'     => $key,
+						'label'    => $label . $custom_field['name'],
+						'required' => false,
+					);
 				}
 			}
 		}
@@ -801,8 +806,6 @@ class CRMLIB_Clientify {
 				$contact[ $element['name'] ] = array( $element['value'] );
 			} elseif ( 'gdpr_accept' === $element['name'] || 'disclaimer' === $element['name'] ) {
 				$contact[ $element['name'] ] = empty( $element['value'] ) ? false : true;
-			} elseif ( 'marketing_status' === $element['name'] ) {
-				$contact['marketing_status'] = (int) $element['value'];
 			} elseif ( 'birthday' === $element['name'] ) {
 				// Normalize birthday date format to YYYY-MM-DD.
 				$normalized_date = formscrm_normalize_date_format( $element['value'] );

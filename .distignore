@@ -3,6 +3,7 @@
 composer.json
 composer.lock
 
+
 # Version Control
 .github
 .gitignore
@@ -11,8 +12,16 @@ composer.lock
 .git
 .gitignore
 
+
+# Develop
+node_modules/
+package.json
+package-lock.json
+
+
 # WordPress
 .wordpress-org
+
 
 # Testing
 .travis.yml
@@ -25,6 +34,8 @@ phpcs.xml.dist
 phpstan.neon.dist
 tests/
 bin/
+.wp-env.json
+
 
 # AI
 AGENTS.md
