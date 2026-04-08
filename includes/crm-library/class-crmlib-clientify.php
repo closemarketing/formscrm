@@ -35,27 +35,38 @@ class CRMLIB_Clientify {
 	 * @return bool  True if login succeeded, false otherwise.
 	 */
 	public function login( $settings ) {
-		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$get_result = $this->get( 'settings/my-account/', $apikey );
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 
-		if ( $apikey && isset( $get_result['data']['count'] ) && $get_result['data']['count'] > 0 ) {
-			return true;
-		} else {
-			return false;
+		if ( empty( $apikey ) || ! is_string( $apikey ) ) {
+			return array(
+				'status'  => 'error',
+				'data'    => 0,
+				'message' => __( 'Invalid API key.', 'formscrm-odoo' ),
+			);
 		}
 
 		// Try v2 first.
 		$result = $this->request( 'me/', array( 'id', 'account_status' ), $apikey, 'GET' );
 		if ( 'ok' === $result['status'] && ! empty( $result['data']['id'] ) ) {
 			$this->api_version = 'v2';
-			return true;
+
+			return array(
+				'status'  => 'ok',
+				'data'    => isset( $results['result'] ) ? $results['result'] : 0,
+				'message' => __( 'Logged correctly in Clientify API v2.', 'formscrm-odoo' ),
+			);
 		}
 
 		// Fall back to v1.
 		$result_v1 = $this->get_v1( 'settings/my-account/', $apikey );
 		if ( $apikey && isset( $result_v1['data']['count'] ) && $result_v1['data']['count'] > 0 ) {
 			$this->api_version = 'v1';
-			return true;
+
+			return array(
+				'status'  => 'ok',
+				'data'    => isset( $results['result'] ) ? $results['result'] : 0,
+				'message' => __( 'Logged correctly in Clientify API v1.', 'formscrm-odoo' ),
+			);
 		}
 
 		return false;
@@ -470,6 +481,15 @@ class CRMLIB_Clientify {
 
 		$module = sanitize_title( $module );
 		$module = str_replace( '-deals', '', $module );
+
+		// Login.
+		$login = $this->login( $settings );
+		if ( false === $login || ( is_array( $login ) && 'error' === $login['status'] ) ) {
+			return array(
+				'status'  => 'error',
+				'message' => is_array( $login ) ? $login['message'] : __( 'Login failed.', 'formscrm' ),
+			);
+		}
 
 		$this->parse_merge_vars( $merge_vars, $contact, $deal, $deal_product_skus, $deal_tags );
 
