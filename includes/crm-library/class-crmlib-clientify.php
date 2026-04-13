@@ -1012,4 +1012,50 @@ class CRMLIB_Clientify {
 			'total'  => $deal_total,
 		);
 	}
+
+	/**
+	 * List fields for search entry for given module of a CRM
+	 *
+	 * @param  string $module   module to get fields from.
+	 *
+	 * @return array           returns an array of mudules
+	 */
+	public function list_fields_search_entry( string $module = 'Contacts' ): array {
+		$module = sanitize_title( $module );
+		$fields = array();
+
+		if ( 'contacts' === $module || 'contacts-deals' === $module ) {
+			$fields['email'] = array(
+				'name'     => 'email',
+				'label'    => __( 'Email Main', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
+				'name'     => 'taxpayer_identification_number',
+				'label'    => __( 'Taxpayer identification number', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
+				'name'     => 'phone',
+				'label'    => __( 'Phone Main', 'formscrm' ),
+				'required' => false,
+			);
+		} elseif ( 'companies' === $module || 'companies-deals' === $module ) {
+			$fields[] = array(
+				'name'     => 'email',
+				'label'    => __( 'Email of company', 'formscrm' ),
+				'required' => false,
+			);
+
+			$fields[] = array(
+				'name'     => 'phone',
+				'label'    => __( 'Phone of company', 'formscrm' ),
+				'required' => false,
+			);
+		}
+
+		return $fields;
+	}
 } //from Class
