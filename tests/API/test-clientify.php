@@ -72,13 +72,15 @@ class ClientifyTests extends WP_UnitTestCase {
 
 	public function test_login_without_errors() {
 		$login = $this->crm_clientify->login( $this->settings );
-		$this->assertTrue( $login );
+		$this->assertIsArray( $login );
+		$this->assertSame( 'ok', $login['status'] );
 	}
 
 	public function test_login_with_errors() {
 		$this->settings['fc_crm_apipassword'] = '';
 		$login = $this->crm_clientify->login( $this->settings );
-		$this->assertFalse( $login );
+		$this->assertIsArray( $login );
+		$this->assertSame( 'error', $login['status'] );
 	}
 
 	public function test_list_modules_without_errors() {
