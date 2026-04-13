@@ -51,7 +51,7 @@ class ClientifyTests extends WP_UnitTestCase {
 					$response_file .= 'login.json';
 				}
 				if ( str_contains( $url, 'custom-fields/' ) ) {
-					$response_file .= 'custom-fields.json';
+					$response_file .= str_contains( $url, 'api-plus.clientify.com' ) ? 'v2-custom-fields.json' : 'custom-fields.json';
 				}
 
 				$response_file = UNIT_TESTS_DATA_PLUGIN_DIR . $response_file;
@@ -90,6 +90,7 @@ class ClientifyTests extends WP_UnitTestCase {
 
 	public function test_list_fields_without_errors() {
 		$fields = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
+
 		$this->assertTrue( is_array( $fields ) );
 		$fields = array_column( $fields, 'name' );
 		$this->assertTrue( in_array( 'first_name', $fields ) );
