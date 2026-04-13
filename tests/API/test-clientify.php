@@ -42,7 +42,11 @@ class ClientifyTests extends WP_UnitTestCase {
 				$body_query    = ! empty( $r['body'] ) ? json_decode( $r['body'], true ) : array();
 				$response_file = 'clientify-';
 
-				// Login.
+				// Login v2.
+				if ( str_contains( $url, 'api-plus.clientify.com' ) && str_contains( $url, 'me/' ) ) {
+					$response_file .= 'v2-login.json';
+				}
+				// Login v1 fallback.
 				if ( str_contains( $url, 'settings/my-account/' ) ) {
 					$response_file .= 'login.json';
 				}

@@ -32,9 +32,9 @@ class CRMLIB_Clientify {
 	 * Tries v2 first; falls back to v1 if v2 is not available.
 	 *
 	 * @param  array $settings Settings from Gravity Forms options.
-	 * @return bool  True if login succeeded, false otherwise.
+	 * @return array  Login result array.
 	 */
-	public function login( $settings ) {
+	public function login( array $settings ): array {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 
 		if ( empty( $apikey ) || ! is_string( $apikey ) ) {
@@ -46,9 +46,13 @@ class CRMLIB_Clientify {
 		}
 
 		// Try v2 first.
-		$result = $this->request( 'me/', array( 'id', 'account_status' ), $apikey, 'GET' );
+		$result = $this->request( 'me/', array( 'fields' => 'id,username,account_status' ), $apikey, 'GET' );
 		if ( 'ok' === $result['status'] && ! empty( $result['data']['id'] ) ) {
-			$this->api_version = 'v2';
+			if ( isset( $result['data']['account_status'] ) && 'client_1_0' === $result['data']['account_status'] ) {
+				$this->api_version = 'v1';
+			} else {
+				$this->api_version = 'v2';
+			}
 
 			return array(
 				'status'  => 'ok',
@@ -58,7 +62,7 @@ class CRMLIB_Clientify {
 		}
 
 		// Fall back to v1.
-		$result_v1 = $this->get_v1( 'settings/my-account/', $apikey );
+		$result_v1 = $this->request( 'settings/my-account/', array(), $apikey, 'GET', 'v1' );
 		if ( $apikey && isset( $result_v1['data']['count'] ) && $result_v1['data']['count'] > 0 ) {
 			$this->api_version = 'v1';
 
@@ -69,7 +73,11 @@ class CRMLIB_Clientify {
 			);
 		}
 
-		return false;
+		return array(
+			'status'  => 'error',
+			'data'    => isset( $results['result'] ) ? $results['result'] : 0,
+			'message' => __( 'Failed to login in Clientify API.', 'formscrm-odoo' ),
+		);
 	}
 
 	/**
@@ -78,7 +86,7 @@ class CRMLIB_Clientify {
 	 * @param  array $settings Settings from Gravity Forms options.
 	 * @return array           Returns an array of modules.
 	 */
-	public function list_modules( $settings ) {
+	public function list_modules( array $settings ) {
 		return array(
 			array(
 				'name'  => 'contacts',
@@ -506,7 +514,7 @@ class CRMLIB_Clientify {
 			}
 			$result = $this->request( $module . '/', $contact, $apikey );
 		} else {
-			$result = $this->request_v1( $module, $contact, $apikey );
+			$result = $this->request( $module, $contact, $apikey );
 		}
 
 		if ( 'ok' === $result['status'] ) {
@@ -543,7 +551,7 @@ class CRMLIB_Clientify {
 
 					$deal[ $key ]   = "https://api.clientify.net/v1/$slug/$contact_id/";
 					$deal['amount'] = isset( $deal['amount'] ) ? $deal['amount'] : 0;
-					$result         = $this->request_v1( 'deals', $deal, $apikey );
+					$result         = $this->request('deals', $deal, $apikey );
 				}
 
 				if ( 'ok' === $result['status'] ) {
@@ -568,7 +576,7 @@ class CRMLIB_Clientify {
 						if ( 'v2' === $this->api_version ) {
 							$result_tag = $this->request( 'deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
 						} else {
-							$result_tag = $this->request_v1( 'deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
+							$result_tag = $this->request('deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
 						}
 
 						if ( 'ok' !== $result_tag['status'] ) {
@@ -590,7 +598,7 @@ class CRMLIB_Clientify {
 
 				// Add products to deal (v1 only — v2 sends products in the deal payload).
 				if ( 'v1' === $this->api_version && ! empty( $res_products['data'] ) && isset( $result['data']['id'] ) ) {
-					$result                      = $this->request_v1( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
+					$result                      = $this->request('deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
 					$response_result['message'] .= ' ' . ( isset( $result['message'] ) ? $result['message'] : '' ) . '.';
 				}
 
@@ -618,28 +626,21 @@ class CRMLIB_Clientify {
 	 * @return array
 	 */
 	private function get_custom_fields( $module_slug, $apikey ) {
-		if ( 'v2' === $this->api_version ) {
-			return $this->get_custom_fields_v2( $module_slug, $apikey );
-		}
-		return $this->get_custom_fields_v1( $module_slug, $apikey );
-	}
-
-	/**
-	 * Returns custom fields from Clientify API v2 using object_type filter.
-	 *
-	 * @param string $module_slug Sanitized module slug.
-	 * @param string $apikey      API key.
-	 * @return array
-	 */
-	private function get_custom_fields_v2( $module_slug, $apikey ) {
-		$fields           = array();
-		$object_types_map = array(
-			'contacts'        => array( 'contacts' ),
-			'companies'       => array( 'companies' ),
-			'contacts-deals'  => array( 'contacts', 'deals' ),
-			'companies-deals' => array( 'companies', 'deals' ),
-		);
-		$label_module      = array(
+		$fields       = array();
+		$module_types = 'v2' === $this->api_version
+			? array(
+				'contacts'        => array( 'contacts' ),
+				'companies'       => array( 'companies' ),
+				'contacts-deals'  => array( 'contacts', 'deals' ),
+				'companies-deals' => array( 'companies', 'deals' ),
+			)
+			: array(
+				'contacts'        => array( 'contact', 'contacts | contact' ),
+				'companies'       => array( 'company', 'companies | company' ),
+				'contacts-deals'  => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
+				'companies-deals' => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
+			);
+		$label_module = array(
 			'contact'             => __( 'Contact', 'formscrm' ),
 			'company'             => __( 'Company', 'formscrm' ),
 			'deal'                => __( 'Deal', 'formscrm' ),
@@ -648,54 +649,11 @@ class CRMLIB_Clientify {
 			'deals | deal'        => __( 'Deal', 'formscrm' ),
 		);
 
-		$result_api = $this->get( 'custom-fields/', $apikey );
+		$api_version = $this->api_version;
+		$result_api  = $this->request( 'custom-fields/', array(), $apikey, 'GET', $api_version );
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
 			foreach ( $result_api['data']['results'] as $custom_field ) {
-				if ( isset( $equivalent_module[ $module_slug ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module_slug ], true ) ) {
-					$key  = 'deals | deal' === $custom_field['content_type'] ? 'deal|' : '';
-					$key .= 'custom_fields|' . $custom_field['name'];
-
-					$label = isset( $label_module[ $custom_field['content_type'] ] ) ? $label_module[ $custom_field['content_type'] ] . ': ' : '';
-
-					$fields[] = array(
-						'name'     => $key,
-						'label'    => $label . $custom_field['name'],
-						'required' => false,
-					);
-				}
-			}
-		}
-		return $fields;
-	}
-
-	/**
-	 * Returns custom fields from Clientify API v1.
-	 *
-	 * @param string $module_slug Sanitized module slug.
-	 * @param string $apikey      API key.
-	 * @return array
-	 */
-	private function get_custom_fields_v1( $module_slug, $apikey ) {
-		$fields            = array();
-		$equivalent_module = array(
-			'contacts'        => array( 'contact', 'contacts | contact' ),
-			'companies'       => array( 'company', 'companies | company' ),
-			'contacts-deals'  => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
-			'companies-deals' => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
-		);
-		$label_module      = array(
-			'contact'             => __( 'Contact', 'formscrm' ),
-			'company'             => __( 'Company', 'formscrm' ),
-			'deal'                => __( 'Deal', 'formscrm' ),
-			'contacts | contact'  => __( 'Contact', 'formscrm' ),
-			'companies | company' => __( 'Company', 'formscrm' ),
-			'deals | deal'        => __( 'Deal', 'formscrm' ),
-		);
-
-		$result_api = $this->get_v1( 'custom-fields/', $apikey );
-		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
-			foreach ( $result_api['data']['results'] as $custom_field ) {
-				if ( isset( $equivalent_module[ $module_slug ] ) && in_array( $custom_field['content_type'], $equivalent_module[ $module_slug ], true ) ) {
+				if ( isset( $module_types[ $module_slug ] ) && in_array( $custom_field['content_type'], $module_types[ $module_slug ], true ) ) {
 					$key  = 'deals | deal' === $custom_field['content_type'] ? 'deal|' : '';
 					$key .= 'custom_fields|' . $custom_field['name'];
 
@@ -740,7 +698,7 @@ class CRMLIB_Clientify {
 					$deal_total     += $product_price;
 				}
 			} else {
-				$res_product = $this->get_v1( 'products/?sku=' . $sku, $apikey );
+				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET', 'v1' );
 				if ( 'ok' === $res_product['status'] && isset( $res_product['data']['results'][0]['id'] ) ) {
 					$product       = $res_product['data']['results'][0];
 					$product_price = ! empty( $product['price'] ) ? (float) $product['price'] : 0;
@@ -1083,15 +1041,16 @@ class CRMLIB_Clientify {
 	}
 
 	/**
-	 * Sends a request to Clientify API v2.
+	 * Sends a request to Clientify API.
 	 *
-	 * @param string $module URL path for the API endpoint (e.g. 'me/', 'contacts/').
-	 * @param array  $params Params to send. In GET requests, used as query string fields.
-	 * @param string $apikey API authentication token.
-	 * @param string $method HTTP method: GET, POST, PUT, etc.
+	 * @param string $module      URL path for the API endpoint (e.g. 'me/', 'contacts/').
+	 * @param array  $params      Params to send. In GET requests, used as query string fields.
+	 * @param string $apikey      API authentication token.
+	 * @param string $method      HTTP method: GET, POST, PUT, etc.
+	 * @param string $api_version API version: 'v2' or 'v1'.
 	 * @return array 'status' => 'ok'|'error', 'data' => response or error message.
 	 */
-	private function request( $module, $params = array(), $apikey = '', $method = 'POST' ) {
+	private function request( $module, $params = array(), $apikey = '', $method = 'POST', $api_version = 'v2' ) {
 		if ( ! $apikey ) {
 			return array(
 				'status' => 'error',
@@ -1099,7 +1058,8 @@ class CRMLIB_Clientify {
 			);
 		}
 
-		$url  = 'https://api-plus.clientify.com/v2/' . strtolower( $module );
+		$base_url = 'v1' === $api_version ? 'https://api.clientify.net/v1/' : 'https://api-plus.clientify.com/v2/';
+		$url      = $base_url . strtolower( $module );
 		$args = array(
 			'headers' => array(
 				'Authorization' => 'Token ' . $apikey,
@@ -1113,11 +1073,15 @@ class CRMLIB_Clientify {
 			$args['body']                    = wp_json_encode( $params );
 		}
 
-		if ( 'GET' === $method ) {
+		// Fields in query.
+		if ( 'GET' === $method && 'v2' === $api_version ) {
 			if ( empty( $params ) ) {
 				$params = array( 'fields' => 'id' );
 			}
-			$url .= '?' . http_build_query( $params );
+			$url .= '?';
+			foreach ( $params as $key => $value ) {
+				$url .= $key . '=' . $value;
+			}
 		}
 
 		$next          = true;
@@ -1160,102 +1124,6 @@ class CRMLIB_Clientify {
 		return array(
 			'status' => 'ok',
 			'data'   => 'GET' === $method ? $results : json_decode( $body_raw, true ),
-		);
-	}
-
-	/**
-	 * Gets information from Clientify API v1 (GET with pagination).
-	 *
-	 * @param string $url    URL path for the endpoint.
-	 * @param string $apikey API authentication token.
-	 * @return array 'status' => 'ok'|'error', 'data' => response or error message.
-	 */
-	private function get_v1( $url, $apikey ) {
-		if ( ! $apikey ) {
-			return array(
-				'status' => 'error',
-				'data'   => 'No API Key',
-			);
-		}
-
-		$args = array(
-			'headers' => array(
-				'Authorization' => 'Token ' . $apikey,
-			),
-			'timeout' => 120,
-		);
-
-		$next          = true;
-		$results_value = array();
-		$url           = 'https://api.clientify.net/v1/' . $url;
-
-		while ( $next ) {
-			$result_api = wp_remote_get( $url, $args );
-			$results    = json_decode( wp_remote_retrieve_body( $result_api ), true );
-			$code       = (int) round( (int) wp_remote_retrieve_response_code( $result_api ) / 100, 0 );
-
-			if ( 2 !== $code ) {
-				$message = $this->build_error_message( $result_api, wp_remote_retrieve_body( $result_api ) );
-				formscrm_error_admin_message( 'ERROR', $message );
-				return array(
-					'status' => 'error',
-					'data'   => $message,
-				);
-			} elseif ( isset( $results['results'] ) ) {
-				$results_value = array_merge( $results_value, $results['results'] );
-			}
-
-			if ( isset( $results['next'] ) && $results['next'] ) {
-				$url = $results['next'];
-			} else {
-				$next = false;
-			}
-		}
-
-		$results['results'] = $results_value;
-		return array(
-			'status' => 'ok',
-			'data'   => $results,
-		);
-	}
-
-	/**
-	 * Posts/puts information to Clientify API v1.
-	 *
-	 * @param string $module   URL path for the endpoint.
-	 * @param array  $bodypost Params to send.
-	 * @param string $apikey   API authentication token.
-	 * @param string $method   HTTP method: POST, PUT, etc.
-	 * @return array 'status' => 'ok'|'error', 'data' => response or error message.
-	 */
-	private function request_v1( $module, $bodypost, $apikey, $method = 'POST' ) {
-		$args   = array(
-			'headers' => array(
-				'Authorization' => 'Token ' . $apikey,
-				'Content-Type'  => 'application/json',
-			),
-			'method'  => $method,
-			'timeout' => 120,
-			'body'    => wp_json_encode( $bodypost ),
-		);
-		$url    = 'https://api.clientify.net/v1/' . strtolower( $module );
-		$result = wp_remote_post( $url, $args );
-		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
-
-		if ( 2 !== $code ) {
-			$message = $this->build_error_message( $result, wp_remote_retrieve_body( $result ) );
-			formscrm_error_admin_message( 'ERROR', $message );
-			return array(
-				'status' => 'error',
-				'data'   => $message,
-				'url'    => $url,
-				'query'  => wp_json_encode( $bodypost ),
-			);
-		}
-
-		return array(
-			'status' => 'ok',
-			'data'   => json_decode( wp_remote_retrieve_body( $result ), true ),
 		);
 	}
 
