@@ -578,11 +578,12 @@ class GFCRM extends GFFeedAddOn {
 
 			if ( method_exists( $this->crmlib, 'list_fields_search_entry' ) && ! empty( $module ) ) {
 				$crm_feed_fields[] = array(
-					'name'    => 'fc_crm_merge_entry',
-					'label'   => __( 'Merge strategy', 'formscrm' ),
-					'type'    => 'select',
-					'class'   => 'medium',
-					'choices' => $this->crmlib->list_fields_search_entry( $module ),
+					'name'     => 'fc_crm_merge_entry',
+					'label'    => __( 'Merge strategy', 'formscrm' ),
+					'type'     => 'select',
+					'class'    => 'medium',
+					'onchange' => 'jQuery(this).parents("form").submit();',
+					'choices'  => $this->crmlib->list_fields_search_entry( $module ),
 				);
 			}
 
