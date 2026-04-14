@@ -15,7 +15,7 @@
 /**
  * Class for Clientify connection.
  */
-class CRMLIB_Clientify {
+class CRMLIB_Clientify extends CRMLIB_Abstract {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
 	 * Gets information from Clientify CRM
@@ -81,6 +81,7 @@ class CRMLIB_Clientify {
 			'data'   => $results,
 		);
 	}
+
 	/**
 	 * Posts information from Holded CRM
 	 *
@@ -1016,9 +1017,8 @@ class CRMLIB_Clientify {
 	/**
 	 * List fields for search entry for given module of a CRM
 	 *
-	 * @param  string $module   module to get fields from.
-	 *
-	 * @return array           returns an array of mudules
+	 * @param  string $module Module to get fields from.
+	 * @return array Array of mudules
 	 */
 	public function list_fields_search_entry( string $module = 'Contacts' ): array {
 		$module = sanitize_title( $module );
