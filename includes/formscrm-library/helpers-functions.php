@@ -40,6 +40,9 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 				return null;
 			}
 
+			// Include the abstract class.
+			require_once FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-abstract.php';
+			// Include the CRM Class.
 			include_once $file_path;
 			formscrm_debug_message( 'Included CRM library: ' . $file_path );
 		} else {
