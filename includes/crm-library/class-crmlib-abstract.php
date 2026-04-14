@@ -1,0 +1,59 @@
+<?php
+/**
+ * Abstract CRM Library base class
+ *
+ * @package FormsCRM
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Abstract base for all CRM library classes.
+ */
+abstract class CRMLIB_Abstract {
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name.
+
+	/**
+	 * Validate credentials.
+	 *
+	 * @param array $settings CRM settings.
+	 * @return bool
+	 */
+	abstract public function login( $settings );
+
+	/**
+	 * Return available modules/lists.
+	 *
+	 * @param array $settings CRM settings.
+	 * @return array
+	 */
+	abstract public function list_modules( $settings );
+
+	/**
+	 * Return fields for a given module.
+	 *
+	 * @param array  $settings CRM settings.
+	 * @param string $module   Module slug.
+	 * @return array
+	 */
+	abstract public function list_fields( $settings, $module );
+
+	/**
+	 * Push form data to CRM.
+	 *
+	 * @param array  $settings CRM settings.
+	 * @param string $module   Module slug.
+	 * @param array  $data     Form data.
+	 * @return array
+	 */
+	abstract public function create_entry( $settings, $merge_vars );
+
+	/**
+	 * List fields for search entry for given module of a CRM
+	 *
+	 * @param  string $module Module to get fields from.
+	 * @return array Array of mudules
+	 */
+	abstract public function list_fields_search_entry( string $module );
+
+}
