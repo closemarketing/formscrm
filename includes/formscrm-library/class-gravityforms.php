@@ -576,7 +576,14 @@ class GFCRM extends GFFeedAddOn {
 				);
 			}
 
-			if ( method_exists( $this->crmlib, 'list_fields_search_entry' ) && ! empty( $module ) ) {
+			$has_search_entry        = false;
+			$has_search_entry_method = method_exists( $this->crmlib, 'list_fields_search_entry' );
+
+			if ( $has_search_entry_method ) {
+				$has_search_entry = ! empty( $this->crmlib->list_fields_search_entry( $module ) );
+			}
+
+			if ( ! empty( $has_search_entry ) && ! empty( $module ) ) {
 				$crm_feed_fields[] = array(
 					'name'     => 'fc_crm_merge_entry',
 					'label'    => __( 'Merge strategy', 'formscrm' ),
@@ -584,14 +591,14 @@ class GFCRM extends GFFeedAddOn {
 					'class'    => 'medium',
 					'onchange' => 'jQuery(this).parents("form").submit();',
 					'choices'  => array_merge(
-					array(
 						array(
-							'label' => __( 'No strategy (always create)', 'formscrm' ),
-							'value' => '',
+							array(
+								'label' => __( 'No strategy (always create)', 'formscrm' ),
+								'value' => '',
+							),
 						),
+						$this->crmlib->list_fields_search_entry( $module )
 					),
-					$this->crmlib->list_fields_search_entry( $module )
-				),
 				);
 			}
 
