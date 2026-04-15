@@ -54,7 +54,7 @@ abstract class CRMLIB_Abstract {
 	 * @param  string $module Module to get fields from.
 	 * @return array Array of mudules
 	 */
-	abstract public function list_fields_search_entry( string $module );
+	abstract public function list_fields_search_entry( ?string $module = null );
 
 
 	/**
