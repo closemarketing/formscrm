@@ -583,7 +583,15 @@ class GFCRM extends GFFeedAddOn {
 					'type'     => 'select',
 					'class'    => 'medium',
 					'onchange' => 'jQuery(this).parents("form").submit();',
-					'choices'  => $this->crmlib->list_fields_search_entry( $module ),
+					'choices'  => array_merge(
+					array(
+						array(
+							'label' => __( 'No strategy (always create)', 'formscrm' ),
+							'value' => '',
+						),
+					),
+					$this->crmlib->list_fields_search_entry( $module )
+				),
 				);
 			}
 
@@ -592,7 +600,7 @@ class GFCRM extends GFFeedAddOn {
 				'label'      => __( 'Map Fields', 'formscrm' ),
 				'type'       => 'field_map',
 				'dependency' => 'fc_crm_module',
-				'field_map'  => $this->crmlib->list_fields( $settings, $module ),
+				'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
 				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 			);
 
@@ -946,14 +954,28 @@ class GFCRM extends GFFeedAddOn {
 			);
 			$this->add_note( $entry['id'], $response_message, 'error' );
 		} else {
-			$response_message = sprintf(
-				// translators: %1$s CRM name %2$s CRM type %3$s ID number of entry created.
-				__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
-				isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
-				esc_html( $settings['fc_crm_type'] ),
-				$response_result['id'],
-				$response_result['message'] ?? ''
-			);
+			$crm_action   = isset( $response_result['action'] ) ? $response_result['action'] : '';
+			$crm_strategy = isset( $response_result['strategy'] ) ? $response_result['strategy'] : '';
+
+			if ( ! empty( $crm_action ) ) {
+				$response_message = sprintf(
+					// translators: %1$s CRM name %2$s CRM type %3$s ID %4$s action (created/updated) %5$s strategy field.
+					__( 'Success %4$s %1$s (%2$s) Entry ID: %3$s. Strategy: %5$s', 'formscrm' ),
+					isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
+					esc_html( $settings['fc_crm_type'] ),
+					$response_result['id'],
+					esc_html( $crm_action ),
+					'none' === $crm_strategy ? __( 'always create', 'formscrm' ) : esc_html( $crm_strategy )
+				);
+			} else {
+				$response_message = sprintf(
+					// translators: %1$s CRM name %2$s CRM type %3$s ID number of entry created.
+					__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
+					isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
+					esc_html( $settings['fc_crm_type'] ),
+					$response_result['id']
+				);
+			}
 			$this->add_note( $entry['id'], $response_message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
 			formscrm_send_webhook( $settings, $response_result );
