@@ -447,6 +447,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		$apikey      = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module      = ! empty( $module ) ? $module : 'Contacts';
 		$module_slug = sanitize_title( $module );
+		$merge_field = isset( $settings['fc_crm_merge_entry'] ) ? $settings['fc_crm_merge_entry'] : '';
 
 		$fields = array();
 		if ( 'contacts' === $module_slug || 'contacts-deals' === $module_slug ) {
@@ -795,6 +796,18 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 				}
 			}
 		}
+
+		// Mark merge strategy field as required.
+		if ( ! empty( $merge_field ) ) {
+			foreach ( $fields as &$field ) {
+				if ( $merge_field === $field['name'] ) {
+					$field['required'] = true;
+					break;
+				}
+			}
+			unset( $field );
+		}
+
 		return $fields;
 	}
 
