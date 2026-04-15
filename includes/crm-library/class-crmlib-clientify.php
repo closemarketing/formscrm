@@ -1061,22 +1061,22 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 					'value'    => 'phone',
 					'label'    => __( 'Phone Main', 'formscrm' ),
 					'required' => false,
-				)
+				),
 			);
 		} elseif ( 'companies' === $module || 'companies-deals' === $module ) {
 			$fields = array(
 				array(
-					'name'     => 'email',
-					'value'    => 'email',
-					'label'    => __( 'Email of company', 'formscrm' ),
+					'name'     => 'business_name',
+					'value'    => 'business_name',
+					'label'    => __( 'Company Name', 'formscrm' ),
 					'required' => false,
 				),
 				array(
-					'name'     => 'phone',
-					'value'    => 'phone',
-					'label'    => __( 'Phone of company', 'formscrm' ),
+					'name'     => 'taxpayer_identification_number',
+					'value'    => 'taxpayer_identification_number',
+					'label'    => __( 'Taxpayer Identification Number', 'formscrm' ),
 					'required' => false,
-				)
+				),
 			);
 		}
 
@@ -1125,10 +1125,12 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	 * @return string Query param name to use in the API request.
 	 */
 	public function determine_search_by( string $search_field ): string {
-		if ( 'email' === $search_field ) {
-			return 'query';
-		}
-		return $search_field; // phone, taxpayer_identification_number.
+		$map = array(
+			'email'         => 'query',
+			'business_name' => 'query',
+		);
+
+		return ! empty( $map[ $search_field ] ) ? $map[ $search_field ] : $search_field;
 	}
 
-} //from Class
+}
