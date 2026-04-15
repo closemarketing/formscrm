@@ -56,6 +56,16 @@ abstract class CRMLIB_Abstract {
 	 */
 	abstract public function list_fields_search_entry( string $module );
 
+
+	/**
+	 * Check if an entry exists and create or update it.
+	 *
+	 * @param array  $data   Raw merge vars from form.
+	 * @param string $module CRM module slug (contacts, companies etc).
+	 * @return array
+	 */
+	abstract public function create_or_update_entry( array $data, string $module ): array;
+
 	/**
 	 * Map a search field ID to the API query param name.
 	 *
@@ -63,5 +73,5 @@ abstract class CRMLIB_Abstract {
 	 * @return string Query param name to use in the API request.
 	 */
 	abstract public function determine_search_by( string $search_field ): string;
-
+	
 }
