@@ -18,6 +18,19 @@
 class CRMLIB_Clientify extends CRMLIB_Abstract {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
+	 * CRM settings stored for use in helper methods.
+	 *
+	 * @var array
+	 */
+	private array $settings = array();
+
+	/**
+	 * Processed contact data stored for use in helper methods.
+	 *
+	 * @var array
+	 */
+	private array $contact = array();
+	/**
 	 * Gets information from Clientify CRM
 	 *
 	 * @param string $url URL for module.
@@ -793,6 +806,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
+		$this->settings    = $settings;
 		$apikey            = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module            = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
 		$contact           = array();
@@ -891,7 +905,11 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
-		$result = $this->request( $module, $contact, $apikey );
+		$this->contact = $contact;
+
+		$result = array();
+		$result = $this->create_or_update_entry( $merge_vars, $module );
+
 		if ( 'ok' === $result['status'] ) {
 			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
 			$response_result = array(
@@ -900,7 +918,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 				'id'      => $contact_id,
 			);
 
-			// Crea ahora la oportunidad.
+			// Create now the deal.
 			if ( ! empty( $deal ) ) {
 				$deal_products = array();
 				if ( ! empty( $deal_product_skus ) ) {
@@ -1025,37 +1043,92 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		$fields = array();
 
 		if ( 'contacts' === $module || 'contacts-deals' === $module ) {
-			$fields['email'] = array(
-				'name'     => 'email',
-				'label'    => __( 'Email Main', 'formscrm' ),
-				'required' => false,
-			);
-
-			$fields[] = array(
-				'name'     => 'taxpayer_identification_number',
-				'label'    => __( 'Taxpayer identification number', 'formscrm' ),
-				'required' => false,
-			);
-
-			$fields[] = array(
-				'name'     => 'phone',
-				'label'    => __( 'Phone Main', 'formscrm' ),
-				'required' => false,
+			$fields = array(
+				array(
+					'name'     => 'email',
+					'value'    => 'email',
+					'label'    => __( 'Email Main', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'taxpayer_identification_number',
+					'value'    => 'taxpayer_identification_number',
+					'label'    => __( 'Taxpayer Identification number', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'phone',
+					'value'    => 'phone',
+					'label'    => __( 'Phone Main', 'formscrm' ),
+					'required' => false,
+				)
 			);
 		} elseif ( 'companies' === $module || 'companies-deals' === $module ) {
-			$fields[] = array(
-				'name'     => 'email',
-				'label'    => __( 'Email of company', 'formscrm' ),
-				'required' => false,
-			);
-
-			$fields[] = array(
-				'name'     => 'phone',
-				'label'    => __( 'Phone of company', 'formscrm' ),
-				'required' => false,
+			$fields = array(
+				array(
+					'name'     => 'email',
+					'value'    => 'email',
+					'label'    => __( 'Email of company', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'phone',
+					'value'    => 'phone',
+					'label'    => __( 'Phone of company', 'formscrm' ),
+					'required' => false,
+				)
 			);
 		}
 
 		return $fields;
 	}
+
+	/**
+	 * Check if an entry exists and create or update it.
+	 *
+	 * @param array  $data   Raw merge vars from form.
+	 * @param string $module CRM module slug (contacts, companies).
+	 * @return array
+	 */
+	public function create_or_update_entry( array $data, string $module ): array {
+
+		$apikey       = isset( $this->settings['fc_crm_apipassword'] ) ? $this->settings['fc_crm_apipassword'] : '';
+		$search_field = isset( $this->settings['fc_crm_merge_entry'] ) ? $this->settings['fc_crm_merge_entry'] : '';
+		$endpoint     = $module . '/';
+		$data_array   = array_column( $data, 'value', 'name' );
+
+		// If no merge field configured, just create.
+		if ( empty( $search_field ) || empty( $data_array[ $search_field ] ) ) {
+			return $this->request( $endpoint, $this->contact, $apikey );
+		}
+
+		$search_value = $data_array[ $search_field ];
+		$query_param  = $this->determine_search_by( $search_field );
+
+		// Search existing entry by field.
+		$search_result = $this->get( $endpoint . '?' . $query_param . '=' . rawurlencode( $search_value ), $apikey );
+
+		if ( 'ok' === $search_result['status'] && ! empty( $search_result['data']['results'] ) ) {
+			// Entry exists: update.
+			$entry_id = $search_result['data']['results'][0]['id'];
+			return $this->request( $endpoint . $entry_id . '/', $this->contact, $apikey, 'PATCH' );
+		}
+
+		// Entry not found: create.
+		return $this->request( $endpoint, $this->contact, $apikey );
+	}
+
+	/**
+	 * Map a search field ID to the API query param name.
+	 *
+	 * @param string $search_field Field ID from list_fields_search_entry.
+	 * @return string Query param name to use in the API request.
+	 */
+	public function determine_search_by( string $search_field ): string {
+		if ( 'email' === $search_field ) {
+			return 'query';
+		}
+		return $search_field; // phone, taxpayer_identification_number.
+	}
+
 } //from Class
