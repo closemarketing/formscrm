@@ -913,9 +913,11 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		if ( 'ok' === $result['status'] ) {
 			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
 			$response_result = array(
-				'status'  => 'ok',
-				'message' => 'success',
-				'id'      => $contact_id,
+				'status'   => 'ok',
+				'message'  => 'success',
+				'id'       => $contact_id,
+				'action'   => isset( $result['action'] ) ? $result['action'] : '',
+				'strategy' => isset( $result['strategy'] ) ? $result['strategy'] : '',
 			);
 
 			// Create now the deal.
@@ -1099,7 +1101,10 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 		// If no merge field configured, just create.
 		if ( empty( $search_field ) || empty( $data_array[ $search_field ] ) ) {
-			return $this->request( $endpoint, $this->contact, $apikey );
+			$result             = $this->request( $endpoint, $this->contact, $apikey );
+			$result['action']   = 'created';
+			$result['strategy'] = 'none';
+			return $result;
 		}
 
 		$search_value = $data_array[ $search_field ];
@@ -1110,12 +1115,18 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 		if ( 'ok' === $search_result['status'] && ! empty( $search_result['data']['results'] ) ) {
 			// Entry exists: update.
-			$entry_id = $search_result['data']['results'][0]['id'];
-			return $this->request( $endpoint . $entry_id . '/', $this->contact, $apikey, 'PATCH' );
+			$entry_id           = $search_result['data']['results'][0]['id'];
+			$result             = $this->request( $endpoint . $entry_id . '/', $this->contact, $apikey, 'PATCH' );
+			$result['action']   = 'updated';
+			$result['strategy'] = $search_field . ': ' . $search_value;
+			return $result;
 		}
 
 		// Entry not found: create.
-		return $this->request( $endpoint, $this->contact, $apikey );
+		$result             = $this->request( $endpoint, $this->contact, $apikey );
+		$result['action']   = 'created';
+		$result['strategy'] = $search_field . ': ' . $search_value;
+		return $result;
 	}
 
 	/**
