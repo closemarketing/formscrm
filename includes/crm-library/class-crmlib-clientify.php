@@ -1053,7 +1053,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	 * @param  string $module Module to get fields from.
 	 * @return array Array of mudules
 	 */
-	public function list_fields_search_entry( string $module = 'Contacts' ): array {
+	public function list_fields_search_entry( ?string $module = 'Contacts' ): array {
 		$module = sanitize_title( $module );
 		$fields = array();
 
