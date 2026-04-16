@@ -412,7 +412,7 @@ class CRMLIB_Clientify {
 			);
 		}
 
-		if ( 'contacts-deals' === $module_slug ) {
+		if ( 'contacts-deals' === $module_slug || 'companies-deals' === $module_slug ) {
 			$fields[] = array(
 				'name'     => 'deal|name',
 				'label'    => __( 'Deal Name', 'formscrm' ),
@@ -1069,10 +1069,7 @@ class CRMLIB_Clientify {
 			if ( empty( $params ) ) {
 				$params = array( 'fields' => 'id' );
 			}
-			$url .= '?';
-			foreach ( $params as $key => $value ) {
-				$url .= $key . '=' . $value;
-			}
+			$url .= '?' . http_build_query( $params );
 		}
 
 		$next          = true;
