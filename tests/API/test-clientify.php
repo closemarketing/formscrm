@@ -27,6 +27,13 @@ class ClientifyTests extends WP_UnitTestCase {
 	protected $crm_clientify;
 
 	/**
+	 * Controls which API version the mock simulates: 'v2', 'v1_via_account_status', 'v1_via_fallback', 'fail'.
+	 *
+	 * @var string
+	 */
+	protected $mock_api_mode = 'v2';
+
+	/**
 	 * Set up test environment.
 	 */
 	public function setUp(): void {
@@ -38,42 +45,77 @@ class ClientifyTests extends WP_UnitTestCase {
 			'fc_crm_module'      => 'Contacts',
 		);
 		$this->crm_clientify = formscrm_get_api_class( 'clientify' );
+		$this->mock_api_mode = 'v2';
 
-		// Default mock: v2 login + v2 custom fields.
-		add_filter(
-			'pre_http_request',
-			function ( $pre, $r, $url ) {
-				$response_file = 'clientify-';
+		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
+	}
 
-				if ( str_contains( $url, 'api-plus.clientify.com' ) && str_contains( $url, 'me/' ) ) {
-					$response_file .= 'v2-login.json';
-				} elseif ( str_contains( $url, 'settings/my-account/' ) ) {
-					$response_file .= 'login.json';
-				} elseif ( str_contains( $url, 'custom-fields' ) ) {
-					$response_file .= str_contains( $url, 'api-plus.clientify.com' ) ? 'v2-custom-fields.json' : 'custom-fields.json';
-				}
+	/**
+	 * Tear down: remove the mock filter.
+	 */
+	public function tearDown(): void {
+		remove_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10 );
+		parent::tearDown();
+	}
 
-				$response_file = UNIT_TESTS_DATA_PLUGIN_DIR . $response_file;
-				if ( file_exists( $response_file ) ) {
-					return array(
-						'body'     => file_get_contents( $response_file ),
-						'response' => array(
-							'code'    => 200,
-							'message' => 'OK',
-						),
-					);
-				}
+	/**
+	 * Central HTTP mock. Behaviour controlled by $this->mock_api_mode.
+	 *
+	 * @param mixed  $pre  Pre-empt value.
+	 * @param array  $r    Request args.
+	 * @param string $url  Request URL.
+	 * @return array
+	 */
+	public function mock_http_request( $pre, $r, $url ) {
+		$is_v2_base = str_contains( $url, 'api-plus.clientify.com' );
 
-				return array(
-					'body'     => '',
-					'response' => array(
-						'code'    => 500,
-						'message' => 'Error API',
-					),
-				);
-			},
-			10,
-			3
+		// Login endpoint.
+		if ( str_contains( $url, 'me/' ) ) {
+			if ( 'fail' === $this->mock_api_mode ) {
+				return $this->response( 500 );
+			}
+			if ( 'v1_via_fallback' === $this->mock_api_mode ) {
+				// Simulate v2 me/ endpoint unreachable.
+				return $this->response( 500 );
+			}
+			if ( 'v1_via_account_status' === $this->mock_api_mode ) {
+				return $this->response( 200, '{"id":57672,"username":"test@example.com","account_status":"client_1_0"}' );
+			}
+			// v2 default.
+			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . 'clientify-v2-login.json' ) );
+		}
+
+		// v1 fallback login.
+		if ( str_contains( $url, 'settings/my-account/' ) ) {
+			if ( 'fail' === $this->mock_api_mode ) {
+				return $this->response( 500 );
+			}
+			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . 'clientify-login.json' ) );
+		}
+
+		// Custom fields endpoint.
+		if ( str_contains( $url, 'custom-fields' ) ) {
+			$file = $is_v2_base ? 'clientify-v2-custom-fields.json' : 'clientify-custom-fields.json';
+			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . $file ) );
+		}
+
+		return $this->response( 500 );
+	}
+
+	/**
+	 * Builds a mock HTTP response array.
+	 *
+	 * @param int    $code HTTP status code.
+	 * @param string $body Response body.
+	 * @return array
+	 */
+	private function response( $code, $body = '' ) {
+		return array(
+			'body'     => $body,
+			'response' => array(
+				'code'    => $code,
+				'message' => 200 === $code ? 'OK' : 'Error',
+			),
 		);
 	}
 
@@ -95,23 +137,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	 * account_status = client_1_0 in v2 response sets version to v1.
 	 */
 	public function test_login_v1_account_status_detects_v1() {
-		add_filter(
-			'pre_http_request',
-			function ( $pre, $r, $url ) {
-				if ( str_contains( $url, 'api-plus.clientify.com' ) && str_contains( $url, 'me/' ) ) {
-					return array(
-						'body'     => '{"id":57672,"username":"test@example.com","account_status":"client_1_0"}',
-						'response' => array(
-							'code'    => 200,
-							'message' => 'OK',
-						),
-					);
-				}
-				return false;
-			},
-			5,
-			3
-		);
+		$this->mock_api_mode = 'v1_via_account_status';
 
 		$login = $this->crm_clientify->login( $this->settings );
 		$this->assertIsArray( $login );
@@ -123,23 +149,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	 * When v2 me/ fails, login falls back to v1 settings/my-account/.
 	 */
 	public function test_login_fallback_to_v1_when_v2_fails() {
-		add_filter(
-			'pre_http_request',
-			function ( $pre, $r, $url ) {
-				if ( str_contains( $url, 'api-plus.clientify.com' ) && str_contains( $url, 'me/' ) ) {
-					return array(
-						'body'     => '',
-						'response' => array(
-							'code'    => 500,
-							'message' => 'Server Error',
-						),
-					);
-				}
-				return false;
-			},
-			5,
-			3
-		);
+		$this->mock_api_mode = 'v1_via_fallback';
 
 		$login = $this->crm_clientify->login( $this->settings );
 		$this->assertIsArray( $login );
@@ -151,20 +161,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	 * Both v2 and v1 endpoints failing returns error.
 	 */
 	public function test_login_both_endpoints_fail_returns_error() {
-		add_filter(
-			'pre_http_request',
-			function ( $pre, $r, $url ) {
-				return array(
-					'body'     => '',
-					'response' => array(
-						'code'    => 500,
-						'message' => 'Server Error',
-					),
-				);
-			},
-			5,
-			3
-		);
+		$this->mock_api_mode = 'fail';
 
 		$login = $this->crm_clientify->login( $this->settings );
 		$this->assertIsArray( $login );
@@ -207,76 +204,67 @@ class ClientifyTests extends WP_UnitTestCase {
 	 * Deal fields and deal custom fields must NOT appear.
 	 */
 	public function test_list_fields_contacts_v2() {
+		$this->crm_clientify->login( $this->settings );
+
 		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
 		$field_names = array_column( $fields, 'name' );
 
 		$this->assertIsArray( $fields );
-
-		// Standard contact fields.
 		$this->assertContains( 'first_name', $field_names );
 		$this->assertContains( 'last_name', $field_names );
 		$this->assertContains( 'email', $field_names );
 		$this->assertContains( 'phone', $field_names );
 		$this->assertContains( 'company', $field_names );
-
-		// Website subfields.
 		$this->assertContains( 'websites|corporate', $field_names );
 		$this->assertContains( 'websites|personal', $field_names );
-
 		// v2-only field.
 		$this->assertContains( 'marketing_status', $field_names );
-
-		// v2 contact custom fields (content_type: "contacts | contacto").
+		// v2 contact custom fields.
 		$this->assertContains( 'custom_fields|verified', $field_names );
 		$this->assertContains( 'custom_fields|social_lead_1', $field_names );
 		$this->assertContains( 'custom_fields|interes2', $field_names );
-
-		// Deal fields must NOT appear in plain Contacts module.
+		// Deal fields must NOT appear.
 		$this->assertNotContains( 'deal|name', $field_names );
 		$this->assertNotContains( 'deal|custom_fields|campo_oportunidades', $field_names );
 	}
 
 	/**
-	 * Contacts-Deals module: includes deal static fields (with v2-only pipeline_id/stage),
-	 * contact custom fields and deal custom fields with deal| prefix.
+	 * Contacts-Deals module: deal static fields + v2-only pipeline fields + deal custom fields.
 	 */
 	public function test_list_fields_contacts_deals_v2() {
+		$this->crm_clientify->login( $this->settings );
+
 		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Contacts-Deals' );
 		$field_names = array_column( $fields, 'name' );
 
-		// Contact fields present.
 		$this->assertContains( 'first_name', $field_names );
 		$this->assertContains( 'custom_fields|verified', $field_names );
-
-		// Deal static fields.
 		$this->assertContains( 'deal|name', $field_names );
 		$this->assertContains( 'deal|amount', $field_names );
 		$this->assertContains( 'deal|pipeline_desc', $field_names );
 		$this->assertContains( 'deal|product_skus', $field_names );
 		$this->assertContains( 'deal|tags', $field_names );
 		$this->assertContains( 'deal|expected_closed_date_days', $field_names );
-
 		// v2-only deal fields.
 		$this->assertContains( 'deal|pipeline_id', $field_names );
 		$this->assertContains( 'deal|pipeline_stage_desc', $field_names );
-
-		// Deal custom field with deal| prefix (content_type: "deals | oportunidad").
+		// Deal custom field with deal| prefix.
 		$this->assertContains( 'deal|custom_fields|campo_oportunidades', $field_names );
-
 		// Company custom field must NOT appear.
 		$this->assertNotContains( 'custom_fields|campo_empresas', $field_names );
 	}
 
 	/**
-	 * Companies module: company fields, company custom fields, no deal fields.
+	 * Companies module: company fields + company custom fields, no deal fields.
 	 */
 	public function test_list_fields_companies_v2() {
+		$this->crm_clientify->login( $this->settings );
+
 		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Companies' );
 		$field_names = array_column( $fields, 'name' );
 
 		$this->assertContains( 'sector', $field_names );
 		$this->assertContains( 'custom_fields|campo_empresas', $field_names );
-
 		$this->assertNotContains( 'deal|name', $field_names );
 		$this->assertNotContains( 'deal|custom_fields|campo_oportunidades', $field_names );
 	}
@@ -285,18 +273,15 @@ class ClientifyTests extends WP_UnitTestCase {
 	 * Companies-Deals module: deal static fields + deal custom fields with deal| prefix.
 	 */
 	public function test_list_fields_companies_deals_v2() {
+		$this->crm_clientify->login( $this->settings );
+
 		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Companies-Deals' );
 		$field_names = array_column( $fields, 'name' );
 
-		// Company fields present.
 		$this->assertContains( 'sector', $field_names );
 		$this->assertContains( 'custom_fields|campo_empresas', $field_names );
-
-		// Deal static fields must be present.
 		$this->assertContains( 'deal|name', $field_names );
 		$this->assertContains( 'deal|amount', $field_names );
-
-		// Deal custom fields with deal| prefix.
 		$this->assertContains( 'deal|custom_fields|campo_oportunidades', $field_names );
 	}
 
@@ -305,26 +290,10 @@ class ClientifyTests extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Force v1 login then check Contacts module: no marketing_status, no v2-only deal fields,
-	 * v1 contact custom fields present.
+	 * Contacts module with v1: no marketing_status, no deal fields, v1 custom fields present.
 	 */
 	public function test_list_fields_contacts_v1() {
-		add_filter(
-			'pre_http_request',
-			function ( $pre, $r, $url ) {
-				if ( str_contains( $url, 'api-plus.clientify.com' ) && str_contains( $url, 'me/' ) ) {
-					return array(
-						'body'     => '{"id":57672,"username":"test@example.com","account_status":"client_1_0"}',
-						'response' => array( 'code' => 200, 'message' => 'OK' ),
-					);
-				}
-				return false;
-			},
-			5,
-			3
-		);
-
-		// Login to set api_version = v1.
+		$this->mock_api_mode = 'v1_via_account_status';
 		$this->crm_clientify->login( $this->settings );
 
 		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
@@ -333,48 +302,28 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertContains( 'first_name', $field_names );
 		$this->assertContains( 'custom_fields|verified', $field_names );
 		$this->assertContains( 'custom_fields|social_lead_1', $field_names );
-
 		// v2-only field must NOT appear.
 		$this->assertNotContains( 'marketing_status', $field_names );
-
 		// Deal fields must NOT appear.
 		$this->assertNotContains( 'deal|name', $field_names );
 	}
 
 	/**
-	 * Contacts-Deals module with v1: deal custom fields appear with deal| prefix,
-	 * no v2-only pipeline_id or pipeline_stage_desc.
+	 * Contacts-Deals with v1: no v2-only pipeline fields, v1 deal custom fields with deal| prefix.
 	 */
 	public function test_list_fields_contacts_deals_v1() {
-		add_filter(
-			'pre_http_request',
-			function ( $pre, $r, $url ) {
-				if ( str_contains( $url, 'api-plus.clientify.com' ) && str_contains( $url, 'me/' ) ) {
-					return array(
-						'body'     => '{"id":57672,"username":"test@example.com","account_status":"client_1_0"}',
-						'response' => array( 'code' => 200, 'message' => 'OK' ),
-					);
-				}
-				return false;
-			},
-			5,
-			3
-		);
-
+		$this->mock_api_mode = 'v1_via_account_status';
 		$this->crm_clientify->login( $this->settings );
 
 		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Contacts-Deals' );
 		$field_names = array_column( $fields, 'name' );
 
-		// Deal static fields.
 		$this->assertContains( 'deal|name', $field_names );
 		$this->assertContains( 'deal|amount', $field_names );
 		$this->assertContains( 'deal|pipeline_desc', $field_names );
-
-		// v2-only deal fields must NOT appear in v1.
+		// v2-only deal fields must NOT appear.
 		$this->assertNotContains( 'deal|pipeline_id', $field_names );
 		$this->assertNotContains( 'deal|pipeline_stage_desc', $field_names );
-
 		// v1 deal custom field (content_type: "deals | deal").
 		$this->assertContains( 'deal|custom_fields|campo_deal_v1', $field_names );
 	}
