@@ -516,7 +516,7 @@ class CRMLIB_Clientify {
 			}
 			$result = $this->request( $module . '/', $contact, $apikey );
 		} else {
-			$result = $this->request( $module, $contact, $apikey );
+			$result = $this->request( $module, $contact, $apikey, 'POST', 'v1' );
 		}
 
 		if ( 'ok' === $result['status'] ) {
@@ -553,7 +553,7 @@ class CRMLIB_Clientify {
 
 					$deal[ $key ]   = "https://api.clientify.net/v1/$slug/$contact_id/";
 					$deal['amount'] = isset( $deal['amount'] ) ? $deal['amount'] : 0;
-					$result         = $this->request('deals', $deal, $apikey );
+					$result         = $this->request( 'deals', $deal, $apikey, 'POST', 'v1' );
 				}
 
 				if ( 'ok' === $result['status'] ) {
@@ -596,7 +596,7 @@ class CRMLIB_Clientify {
 
 				// Add products to deal (v1 only — v2 sends products in the deal payload).
 				if ( 'v1' === $this->api_version && ! empty( $res_products['data'] ) && isset( $result['data']['id'] ) ) {
-					$result                      = $this->request('deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
+					$result                      = $this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT', 'v1' );
 					$response_result['message'] .= ' ' . ( isset( $result['message'] ) ? $result['message'] : '' ) . '.';
 				}
 
