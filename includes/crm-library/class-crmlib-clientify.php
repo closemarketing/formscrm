@@ -47,7 +47,7 @@ class CRMLIB_Clientify {
 
 		// Try v2 first.
 		$result = $this->request( 'me/', array( 'fields' => 'id,username,account_status' ), $apikey, 'GET' );
-		if ( 'ok' === $result['status'] && ! empty( $result['data']['id'] ) ) {
+		if ( 'ok' === strtolower( $result['status'] ) && ! empty( $result['data']['id'] ) ) {
 			if ( isset( $result['data']['account_status'] ) && 'client_1_0' === $result['data']['account_status'] ) {
 				$this->api_version = 'v1';
 			} else {
@@ -56,26 +56,27 @@ class CRMLIB_Clientify {
 
 			return array(
 				'status'  => 'ok',
-				'data'    => isset( $results['result'] ) ? $results['result'] : 0,
+				'data'    => 'ok' === strtolower( $result['status'] ) ? 1 : 0,
 				'message' => __( 'Logged correctly in Clientify API v2.', 'formscrm-odoo' ),
 			);
 		}
 
 		// Fall back to v1.
 		$result_v1 = $this->request( 'settings/my-account/', array(), $apikey, 'GET', 'v1' );
+
 		if ( $apikey && isset( $result_v1['data']['count'] ) && $result_v1['data']['count'] > 0 ) {
 			$this->api_version = 'v1';
 
 			return array(
 				'status'  => 'ok',
-				'data'    => isset( $results['result'] ) ? $results['result'] : 0,
+				'data'    => isset( $results['data']['result'] ) ? $results['data']['result'] : 0,
 				'message' => __( 'Logged correctly in Clientify API v1.', 'formscrm-odoo' ),
 			);
 		}
 
 		return array(
 			'status'  => 'error',
-			'data'    => isset( $results['result'] ) ? $results['result'] : 0,
+			'data'    => isset( $results['data']['result'] ) ? $results['data']['result'] : 0,
 			'message' => __( 'Failed to login in Clientify API.', 'formscrm-odoo' ),
 		);
 	}
