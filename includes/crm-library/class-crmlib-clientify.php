@@ -575,11 +575,7 @@ class CRMLIB_Clientify {
 							'name' => sanitize_text_field( $deal_tag ),
 						);
 
-						if ( 'v2' === $this->api_version ) {
-							$result_tag = $this->request( 'deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
-						} else {
-							$result_tag = $this->request('deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
-						}
+						$result_tag = $this->request( 'deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey, 'POST', $this->api_version );
 
 						if ( 'ok' !== $result_tag['status'] ) {
 							$result_deal_tag = sprintf(
