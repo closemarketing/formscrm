@@ -624,45 +624,38 @@ class CRMLIB_Clientify {
 	 * @return array
 	 */
 	private function get_custom_fields( $module_slug, $apikey ) {
-		$fields       = array();
-		$module_types = 'v2' === $this->api_version
-			? array(
-				'contacts'        => array( 'contacts' ),
-				'companies'       => array( 'companies' ),
-				'contacts-deals'  => array( 'contacts', 'deals' ),
-				'companies-deals' => array( 'companies', 'deals' ),
-			)
-			: array(
-				'contacts'        => array( 'contact', 'contacts | contact' ),
-				'companies'       => array( 'company', 'companies | company' ),
-				'contacts-deals'  => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
-				'companies-deals' => array( 'deal', 'contact', 'deals | deal', 'contacts | contact' ),
-			);
-		$label_module = array(
-			'contact'             => __( 'Contact', 'formscrm' ),
-			'company'             => __( 'Company', 'formscrm' ),
-			'deal'                => __( 'Deal', 'formscrm' ),
-			'contacts | contact'  => __( 'Contact', 'formscrm' ),
-			'companies | company' => __( 'Company', 'formscrm' ),
-			'deals | deal'        => __( 'Deal', 'formscrm' ),
+		$fields = array();
+
+		// Module type slugs matched against the content_type prefix (before " | ").
+		$module_type_slugs = array(
+			'contacts'        => array( 'contacts' ),
+			'companies'       => array( 'companies' ),
+			'contacts-deals'  => array( 'contacts', 'deals' ),
+			'companies-deals' => array( 'companies', 'deals' ),
 		);
 
 		$api_version = $this->api_version;
 		$result_api  = $this->request( 'custom-fields/', array(), $apikey, 'GET', $api_version );
 		if ( isset( $result_api['status'] ) && 'ok' === $result_api['status'] && isset( $result_api['data']['results'] ) ) {
 			foreach ( $result_api['data']['results'] as $custom_field ) {
-				if ( isset( $module_types[ $module_slug ] ) && in_array( $custom_field['content_type'], $module_types[ $module_slug ], true ) ) {
-					$key  = 'deals | deal' === $custom_field['content_type'] ? 'deal|' : '';
-					$key .= 'custom_fields|' . $custom_field['name'];
+				// Extract the type slug from content_type (e.g. "deals | oportunidad" → "deals").
+				$type_slug = trim( explode( '|', $custom_field['content_type'] )[0] );
 
-					$label = isset( $label_module[ $custom_field['content_type'] ] ) ? $label_module[ $custom_field['content_type'] ] . ': ' : '';
-
-					$fields[] = array(
-						'name'     => $key,
-						'label'    => $label . $custom_field['name'],
-						'required' => false,
-					);
+				if ( ! isset( $module_type_slugs[ $module_slug ] ) || ! in_array( $type_slug, $module_type_slugs[ $module_slug ], true ) ) {
+					continue;
 				}
+
+				$key  = 'deals' === $type_slug ? 'deal|' : '';
+				$key .= 'custom_fields|' . $custom_field['name'];
+
+				$label  = 'deals' === $type_slug ? __( 'Deal', 'formscrm' ) . ': ' : '';
+				$label .= $custom_field['name'];
+
+				$fields[] = array(
+					'name'     => $key,
+					'label'    => $label,
+					'required' => false,
+				);
 			}
 		}
 		return $fields;
@@ -1058,7 +1051,7 @@ class CRMLIB_Clientify {
 
 		$base_url = 'v1' === $api_version ? 'https://api.clientify.net/v1/' : 'https://api-plus.clientify.com/v2/';
 		$url      = $base_url . strtolower( $module );
-		$args = array(
+		$args     = array(
 			'headers' => array(
 				'Authorization' => 'Token ' . $apikey,
 			),
