@@ -41,7 +41,7 @@ class CRMLIB_Clientify {
 			return array(
 				'status'  => 'error',
 				'data'    => 0,
-				'message' => __( 'Invalid API key.', 'formscrm-odoo' ),
+				'message' => __( 'Invalid API key.', 'formscrm' ),
 			);
 		}
 
@@ -56,8 +56,9 @@ class CRMLIB_Clientify {
 
 			return array(
 				'status'  => 'ok',
-				'data'    => 'ok' === strtolower( $result['status'] ) ? 1 : 0,
-				'message' => __( 'Logged correctly in Clientify API v2.', 'formscrm-odoo' ),
+				'data'    => $result['data']['id'],
+				/* translators: %s: API version detected (v1 or v2) */
+				'message' => sprintf( __( 'Logged correctly in Clientify API %s.', 'formscrm' ), $this->api_version ),
 			);
 		}
 
@@ -69,15 +70,15 @@ class CRMLIB_Clientify {
 
 			return array(
 				'status'  => 'ok',
-				'data'    => isset( $results['data']['result'] ) ? $results['data']['result'] : 0,
-				'message' => __( 'Logged correctly in Clientify API v1.', 'formscrm-odoo' ),
+				'data'    => 0,
+				'message' => __( 'Logged correctly in Clientify API v1.', 'formscrm' ),
 			);
 		}
 
 		return array(
 			'status'  => 'error',
-			'data'    => isset( $results['data']['result'] ) ? $results['data']['result'] : 0,
-			'message' => __( 'Failed to login in Clientify API.', 'formscrm-odoo' ),
+			'data'    => 0,
+			'message' => __( 'Failed to login in Clientify API.', 'formscrm' ),
 		);
 	}
 
