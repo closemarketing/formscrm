@@ -182,6 +182,10 @@ class FORMSCRM_CF7_Settings {
 					return;
 				}
 
+				if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
+					echo '<p style="color: red;">' . esc_html( $login_crm['message'] ) . '</p>';
+					return;
+				}
 				if ( false === $login_crm ) {
 					return;
 				}

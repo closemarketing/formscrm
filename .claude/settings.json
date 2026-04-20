@@ -1,0 +1,16 @@
+{
+	"hooks": {
+		"PostToolUse": [
+			{
+				"matcher": "Edit|Write",
+				"hooks": [
+					{
+						"type": "prompt",
+						"prompt": "A code file was just modified. Check if the change is notable (bug fix, new feature, enhancement). If yes, and if readme.txt changelog does not already have an entry for this change, add a bullet point under the latest version in the '== Changelog ==' section of /Users/davidperez/Web/formscrm/app/public/wp-content/plugins/formscrm/readme.txt. Use format: '*  Fixed/Added/Enhanced: brief description.' Skip if: the file modified is readme.txt itself, CLAUDE.md, a test file, a config file, or a doc file.",
+						"statusMessage": "Checking if changelog needs updating..."
+					}
+				]
+			}
+		]
+	}
+}
