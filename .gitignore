@@ -7,3 +7,4 @@ node_modules/
 .wp-env.json
 .idea/
 tests/Data/credentials/*
+.claude/settings.local.json
