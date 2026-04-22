@@ -455,5 +455,4 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	public function create_or_update_entry( array $data, string $module ): array {
 		return array();
 	}
-
 } //from Class

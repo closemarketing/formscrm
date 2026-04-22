@@ -41,9 +41,8 @@ abstract class CRMLIB_Abstract {
 	/**
 	 * Push form data to CRM.
 	 *
-	 * @param array  $settings CRM settings.
-	 * @param string $module   Module slug.
-	 * @param array  $data     Form data.
+	 * @param array $settings   CRM settings.
+	 * @param array $merge_vars Form data in merge_vars format.
 	 * @return array
 	 */
 	abstract public function create_entry( $settings, $merge_vars );
@@ -73,5 +72,4 @@ abstract class CRMLIB_Abstract {
 	 * @return string Query param name to use in the API request.
 	 */
 	abstract public function determine_search_by( string $search_field ): string;
-	
 }
