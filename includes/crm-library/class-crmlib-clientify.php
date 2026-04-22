@@ -524,15 +524,13 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
-		if ( 'v2' === $this->api_version ) {
-			// Default marketing status to 2 (Marketing Contact) if not set.
-			if ( ! isset( $contact['marketing_status'] ) ) {
-				$contact['marketing_status'] = 2;
-			}
-			$result = $this->request( $module . '/', $contact, $apikey );
-		} else {
-			$result = $this->request( $module, $contact, $apikey, 'POST', 'v1' );
+		// Default marketing status to 2 (Marketing Contact) if not set (v2 only).
+		if ( 'v2' === $this->api_version && ! isset( $contact['marketing_status'] ) ) {
+			$contact['marketing_status'] = 2;
 		}
+
+		$this->contact = $contact;
+		$result        = $this->create_or_update_entry( $merge_vars, $module );
 
 		if ( 'ok' === $result['status'] ) {
 			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
@@ -561,7 +559,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 						$deal['company_id'] = (int) $contact_id;
 					}
 					$deal['amount'] = isset( $deal['amount'] ) ? $deal['amount'] : 0;
-					$result         = $this->request( 'deals/', $deal, $apikey );
+					$result         = $this->request( 'deals/', $deal, $apikey, 'POST', $this->api_version );
 				} else {
 					$key  = 'contacts' === $module ? 'contact' : 'company';
 					$slug = 'contacts' === $module ? 'contacts' : 'companies';
@@ -691,7 +689,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		foreach ( $skus as $sku ) {
 			$sku = trim( $sku );
 			if ( 'v2' === $this->api_version ) {
-				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET' );
+				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET', $this->api_version );
 				if ( 'ok' === $res_product['status'] && isset( $res_product['data']['results'][0]['id'] ) ) {
 					$product       = $res_product['data']['results'][0];
 					$product_price = ! empty( $product['price'] ) ? (float) $product['price'] : 0;
@@ -704,7 +702,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 					$deal_total     += $product_price;
 				}
 			} else {
-				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET', 'v1' );
+				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET', $this->api_version );
 				if ( 'ok' === $res_product['status'] && isset( $res_product['data']['results'][0]['id'] ) ) {
 					$product       = $res_product['data']['results'][0];
 					$product_price = ! empty( $product['price'] ) ? (float) $product['price'] : 0;
@@ -808,102 +806,6 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		}
 
 		$this->contact = $contact;
-
-		$result = array();
-		$result = $this->create_or_update_entry( $merge_vars, $module );
-
-		if ( 'ok' === $result['status'] ) {
-			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
-			$response_result = array(
-				'status'   => 'ok',
-				'message'  => 'success',
-				'id'       => $contact_id,
-				'action'   => isset( $result['action'] ) ? $result['action'] : '',
-				'strategy' => isset( $result['strategy'] ) ? $result['strategy'] : '',
-			);
-
-			// Create now the deal.
-			if ( ! empty( $deal ) ) {
-				$deal_products = array();
-				if ( ! empty( $deal_product_skus ) ) {
-					$res_products = $this->extract_deal_products( $deal_product_skus, $apikey );
-					if ( ! empty( $res_products['data'] ) ) {
-						$deal_products  = $res_products['data'];
-						$deal['amount'] = ! empty( $res_products['total'] ) ? $res_products['total'] : 0;
-					}
-				}
-				// Set default values for key and slug.
-				$key  = 'contact';
-				$slug = 'contacts';
-
-				if ( 'contacts' === $module ) {
-					$key  = 'contact';
-					$slug = 'contacts';
-				} elseif ( 'companies' === $module ) {
-					$key  = 'company';
-					$slug = 'companies';
-				}
-				$deal[ $key ]   = "https://api.clientify.net/v1/$slug/$contact_id/";
-				$deal['amount'] = isset( $deal['amount'] ) ? $deal['amount'] : 0;
-				$result         = $this->request( 'deals', $deal, $apikey );
-				if ( 'ok' === $result['status'] ) {
-					$response_result['id'] = sprintf(
-						/* translators: %1$s: Contact ID, %2$s: Deal ID */
-						__( 'Contact %1$s | Deal %2$s', 'formscrm' ),
-						$contact_id,
-						$result['data']['id']
-					);
-				}
-
-				// Add tags to deal.
-				if ( ! empty( $deal_tags ) ) {
-					$deal_tags_raw = explode( ',', $deal_tags );
-					$deal_id       = $result['data']['id'];
-
-					foreach ( $deal_tags_raw as $deal_tag ) {
-						$deal_tags_api = array(
-							'name' => sanitize_text_field( $deal_tag ),
-						);
-
-						$result_tag = $this->request( 'deals/' . $deal_id . '/tags/', $deal_tags_api, $apikey );
-
-						if ( 'ok' !== $result_tag['status'] ) {
-							$result_deal_tag = sprintf(
-								/* translators: %s: Tag name */
-								__( 'Tag %s not added to deal', 'formscrm' ),
-								$deal_tag,
-							);
-						} else {
-							$result_deal_tag = sprintf(
-								/* translators: %s: Tag name */
-								__( 'Tag %s added to deal', 'formscrm' ),
-								$deal_tag,
-							);
-						}
-						$response_result['message'] .= ' ' . $result_deal_tag;
-					}
-				}
-
-				// Add products to deal.
-				if ( ! empty( $deal_products ) && isset( $res_products['data'] ) ) {
-					$result = $this->request( 'deals/' . $result['data']['id'] . '/products/', $res_products['data'], $apikey, 'PUT' );
-
-					$response_result['message'] .= ' ' . $result['message'] . '.';
-				}
-				$last_module = 'deal';
-			}
-		} else {
-			$message         = isset( $result['data'] ) ? $result['data'] : '';
-			$response_result = array(
-				'status'  => 'error',
-				'message' => $message,
-				'url'     => isset( $result['url'] ) ? $result['url'] : '',
-				'query'   => isset( $result['query'] ) ? $result['query'] : '',
-			);
-		}
-
-		$response_result['module'] = $last_module;
-		return $response_result;
 	}
 
 	/**
@@ -1184,11 +1086,13 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		}
 
 		// Fields in query.
-		if ( 'GET' === $method && 'v2' === $api_version ) {
-			if ( empty( $params ) ) {
+		if ( 'GET' === $method ) {
+			if ( 'v2' === $api_version && empty( $params ) ) {
 				$params = array( 'fields' => 'id' );
 			}
-			$url .= '?' . http_build_query( $params );
+			if ( ! empty( $params ) ) {
+				$url .= '?' . http_build_query( $params );
+			}
 		}
 
 		$next          = true;
@@ -1301,7 +1205,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 		// If no merge field configured, just create.
 		if ( empty( $search_field ) || empty( $data_array[ $search_field ] ) ) {
-			$result             = $this->request( $endpoint, $this->contact, $apikey );
+			$result             = $this->request( $endpoint, $this->contact, $apikey, 'POST', $this->api_version );
 			$result['action']   = 'created';
 			$result['strategy'] = 'none';
 			return $result;
@@ -1311,19 +1215,20 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		$query_param  = $this->determine_search_by( $search_field );
 
 		// Search existing entry by field.
-		$search_result = $this->get( $endpoint . '?' . $query_param . '=' . rawurlencode( $search_value ), $apikey );
+		$search_params = array( $query_param => $search_value );
+		$search_result = $this->request( $endpoint, $search_params, $apikey, 'GET', $this->api_version );
 
 		if ( 'ok' === $search_result['status'] && ! empty( $search_result['data']['results'] ) ) {
 			// Entry exists: update.
 			$entry_id           = $search_result['data']['results'][0]['id'];
-			$result             = $this->request( $endpoint . $entry_id . '/', $this->contact, $apikey, 'PATCH' );
+			$result             = $this->request( $endpoint . $entry_id . '/', $this->contact, $apikey, 'PATCH', $this->api_version );
 			$result['action']   = 'updated';
 			$result['strategy'] = $search_field . ': ' . $search_value;
 			return $result;
 		}
 
 		// Entry not found: create.
-		$result             = $this->request( $endpoint, $this->contact, $apikey );
+		$result             = $this->request( $endpoint, $this->contact, $apikey, 'POST', $this->api_version );
 		$result['action']   = 'created';
 		$result['strategy'] = $search_field . ': ' . $search_value;
 		return $result;
