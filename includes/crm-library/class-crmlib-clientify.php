@@ -1248,4 +1248,30 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 		return ! empty( $map[ $search_field ] ) ? $map[ $search_field ] : $search_field;
 	}
+
+	/**
+	 * Build a human-readable error message from a WP HTTP response.
+	 *
+	 * @param  array|\WP_Error $result   WP HTTP response.
+	 * @param  string          $body_raw Raw response body.
+	 * @return string
+	 */
+	private function build_error_message( $result, string $body_raw ): string {
+		if ( is_wp_error( $result ) ) {
+			return $result->get_error_message();
+		}
+
+		$code    = (int) wp_remote_retrieve_response_code( $result );
+		$decoded = json_decode( $body_raw, true );
+
+		if ( is_array( $decoded ) ) {
+			foreach ( array( 'error', 'detail', 'message' ) as $key ) {
+				if ( ! empty( $decoded[ $key ] ) && is_string( $decoded[ $key ] ) ) {
+					return sprintf( 'HTTP %d: %s', $code, $decoded[ $key ] );
+				}
+			}
+		}
+
+		return sprintf( 'HTTP %d: %s', $code, wp_remote_retrieve_response_message( $result ) );
+	}
 }
