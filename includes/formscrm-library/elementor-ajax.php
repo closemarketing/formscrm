@@ -14,9 +14,10 @@ defined( 'ABSPATH' ) || exit;
  * Process post data for Elementor forms
  *
  * @param array $post_data Post data from form.
+ * @param string $module CRM module.
  * @return array Processed settings data.
  */
-function formscrm_elementor_process_settings( $post_data ) {
+function formscrm_elementor_process_settings( $post_data, $module ) {
 	if ( isset( $post_data['fc_crm_url'] ) && is_array( $post_data['fc_crm_url'] ) ) {
 		// If the URL is an array, we assume it has a 'url' key.
 		$post_data['fc_crm_url'] = isset( $post_data['fc_crm_url']['url'] ) ? sanitize_text_field( $post_data['fc_crm_url']['url'] ) : '';
@@ -24,6 +25,7 @@ function formscrm_elementor_process_settings( $post_data ) {
 		// If it's not an array, sanitize it directly.
 		$post_data['fc_crm_url'] = sanitize_text_field( $post_data['fc_crm_url'] );
 	}
+	$post_data['fc_crm_module'] = $module;
 	return $post_data;
 }
 

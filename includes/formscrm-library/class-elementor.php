@@ -283,11 +283,11 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$raw_fields = $record->get( 'fields' );
 
 		// Unpack hidden settings for the form.
-		$formscrm_settings = array();
+		$formscrm_fields = array();
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
-			$formscrm_settings = json_decode( $settings['formscrm_settings_hidden'], true );
-			$module            = $formscrm_settings[ $crm_type ] ?? '';
-			unset( $formscrm_settings[ $crm_type ] );
+			$formscrm_fields = json_decode( $settings['formscrm_settings_hidden'], true );
+			$module          = $formscrm_fields[ $crm_type ] ?? '';
+			unset( $formscrm_fields[ $crm_type ] );
 		}
 
 		if ( empty( $module ) ) {
@@ -296,7 +296,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 
 		// Normalize the Form data.
-		$merge_vars = self::get_merge_vars( $formscrm_settings, $raw_fields );
+		$merge_vars = self::get_merge_vars( $formscrm_fields, $raw_fields );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
 		if ( ! empty( $_POST['visitor_key'] ) ) {
@@ -307,7 +307,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		// Create contact in CRM.
-		$settings        = formscrm_elementor_process_settings( $settings );
+		$settings        = formscrm_elementor_process_settings( $settings, $module );
 		$this->crmlib    = formscrm_get_api_class( $settings['fc_crm_type'] );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
