@@ -248,10 +248,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 * Enhanced: Added support to GravityForms and Clientify to update strategy in the feed. You can choose between update if contact exists or create new contact always.
 
 = 4.3.3 =
+* Added: Smart support for Clientify API v2 and v1 with enhanced login response handling and error messages. 
 * Fixed: Elementor Forms field mapping only processed the first occurrence when multiple CRM fields mapped to the same form field; now all mappings are applied correctly.
 * Tests: Added unit tests for Elementor and Contact Form 7 merge vars field mapping.
-*  Hotfix: revert Clientify API v2 migration due to critical issues with field mapping configuration.
-*  Fixed: CF7 GDPR checkbox value sent as field name instead of boolean when unchecked, causing gdpr_accept to always be true in Clientify.
+* Fixed: CF7 GDPR checkbox value sent as field name instead of boolean when unchecked, causing gdpr_accept to always be true in Clientify.
 * Fixed: Error logs page not working properly.
 
 = 4.3.2 =
