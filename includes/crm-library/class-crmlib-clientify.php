@@ -38,7 +38,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	 *
 	 * @var string
 	 */
-	private $api_version = 'v2';
+	protected $api_version = 'v2';
 
 	/**
 	 * Logins to a CRM and detects API version.
@@ -101,7 +101,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	 * @param  array $settings Settings from Gravity Forms options.
 	 * @return array           Returns an array of modules.
 	 */
-	public function list_modules( array $settings ) {
+	public function list_modules( array $settings ): array {
 		return array(
 			array(
 				'name'  => 'contacts',

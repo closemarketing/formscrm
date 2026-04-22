@@ -19,7 +19,7 @@ abstract class CRMLIB_Abstract {
 	 * @param array $settings CRM settings.
 	 * @return bool
 	 */
-	abstract public function login( $settings );
+	abstract public function login( array $settings ): array;
 
 	/**
 	 * Return available modules/lists.
@@ -27,7 +27,7 @@ abstract class CRMLIB_Abstract {
 	 * @param array $settings CRM settings.
 	 * @return array
 	 */
-	abstract public function list_modules( $settings );
+	abstract public function list_modules( array $settings ): array;
 
 	/**
 	 * Return fields for a given module.
