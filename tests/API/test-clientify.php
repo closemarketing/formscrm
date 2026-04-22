@@ -99,6 +99,47 @@ class ClientifyTests extends WP_UnitTestCase {
 			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . $file ) );
 		}
 
+		// Search endpoint (GET contacts/companies with query).
+		if ( str_contains( $url, 'contacts/' ) && 'GET' === $r['method'] && ! str_contains( $url, 'contacts/deals' ) ) {
+			// Search found existing contact (v1 and v2 format).
+			if ( str_contains( $url, 'query=test%40example.com' ) ) {
+				return $this->response( 200, '{"id":"contact-123","first_name":"John","email":"test@example.com"}' );
+			}
+			// Search not found.
+			return $this->response( 200, '[]' );
+		}
+
+		if ( str_contains( $url, 'companies/' ) && 'GET' === $r['method'] ) {
+			// Search found existing company.
+			if ( str_contains( $url, 'query=ACME' ) ) {
+				return $this->response( 200, '{"id":"company-456","name":"ACME Corp"}' );
+			}
+			// Search not found.
+			return $this->response( 200, '[]' );
+		}
+
+		// Create/update endpoints.
+		if ( str_contains( $url, 'contacts/' ) && 'POST' === $r['method'] ) {
+			return $this->response( 201, '{"id":"contact-new","first_name":"Jane","email":"new@example.com"}' );
+		}
+
+		if ( str_contains( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
+			return $this->response( 200, '{"id":"contact-123","first_name":"John","email":"test@example.com","updated":true}' );
+		}
+
+		if ( str_contains( $url, 'companies/' ) && 'POST' === $r['method'] ) {
+			return $this->response( 201, '{"id":"company-new","name":"New Corp"}' );
+		}
+
+		if ( str_contains( $url, 'companies/' ) && 'PATCH' === $r['method'] ) {
+			return $this->response( 200, '{"id":"company-456","name":"ACME Corp Updated"}' );
+		}
+
+		// Deals creation.
+		if ( str_contains( $url, 'deals/' ) && 'POST' === $r['method'] ) {
+			return $this->response( 201, '{"id":"deal-789","name":"New Deal","amount":5000}' );
+		}
+
 		return $this->response( 500 );
 	}
 
@@ -326,5 +367,159 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertNotContains( 'deal|pipeline_stage_desc', $field_names );
 		// v1 deal custom field (content_type: "deals | deal").
 		$this->assertContains( 'deal|custom_fields|campo_deal_v1', $field_names );
+	}
+
+	// -------------------------------------------------------------------------
+	// create_or_update_entry tests — v2 (no merge, direct POST).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * v2: No merge field configured. Contact created via POST directly.
+	 */
+	public function test_create_entry_v2_no_merge_post_directly() {
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			'first_name' => 'Jane',
+			'email'      => 'new@example.com',
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, 'Contacts', $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-new', $result['id'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// create_or_update_entry tests — v2 (with merge field, search then POST/PATCH).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * v2: Merge by email. Contact found — updated via PATCH.
+	 */
+	public function test_create_entry_v2_merge_email_found_patched() {
+		$this->settings['fc_crm_merge_field'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			'first_name' => 'John',
+			'email'      => 'test@example.com',
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, 'Contacts', $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-123', $result['id'] );
+		$this->assertArrayHasKey( 'updated', $result );
+		$this->assertTrue( $result['updated'] );
+	}
+
+	/**
+	 * v2: Merge by email. Contact not found — created via POST.
+	 */
+	public function test_create_entry_v2_merge_email_not_found_posted() {
+		$this->settings['fc_crm_merge_field'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			'first_name' => 'Alice',
+			'email'      => 'alice@example.com',
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, 'Contacts', $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-new', $result['id'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// create_or_update_entry tests — v1 (with merge field, search then POST/PATCH).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * v1: Merge by email. Contact found — updated via PATCH.
+	 */
+	public function test_create_entry_v1_merge_email_found_patched() {
+		$this->mock_api_mode               = 'v1_via_account_status';
+		$this->settings['fc_crm_merge_field'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			'first_name' => 'John',
+			'email'      => 'test@example.com',
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, 'Contacts', $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-123', $result['id'] );
+		$this->assertArrayHasKey( 'updated', $result );
+		$this->assertTrue( $result['updated'] );
+	}
+
+	/**
+	 * v1: Merge by email. Contact not found — created via POST.
+	 */
+	public function test_create_entry_v1_merge_email_not_found_posted() {
+		$this->mock_api_mode               = 'v1_via_account_status';
+		$this->settings['fc_crm_merge_field'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			'first_name' => 'Bob',
+			'email'      => 'bob@example.com',
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, 'Contacts', $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-new', $result['id'] );
+	}
+
+	/**
+	 * v1: Merge by business_name (companies). Company found — updated via PATCH.
+	 */
+	public function test_create_entry_v1_merge_business_name_found_patched() {
+		$this->mock_api_mode                = 'v1_via_account_status';
+		$this->settings['fc_crm_module']     = 'Companies';
+		$this->settings['fc_crm_merge_field'] = 'business_name';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			'name'         => 'ACME Corp',
+			'business_name' => 'ACME',
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, 'Companies', $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'company-456', $result['id'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// API version compatibility tests.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * v2: Verify $this->api_version is set to 'v2' after login.
+	 */
+	public function test_api_version_set_to_v2_after_login() {
+		$this->crm_clientify->login( $this->settings );
+		$this->assertSame( 'v2', $this->crm_clientify->api_version );
+	}
+
+	/**
+	 * v1: Verify $this->api_version is set to 'v1' after login.
+	 */
+	public function test_api_version_set_to_v1_after_login() {
+		$this->mock_api_mode = 'v1_via_account_status';
+		$this->crm_clientify->login( $this->settings );
+		$this->assertSame( 'v1', $this->crm_clientify->api_version );
 	}
 }
