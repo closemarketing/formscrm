@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Process post data for Elementor forms
  *
- * @param array $post_data Post data from form.
+ * @param array  $post_data Post data from form.
  * @param string $module CRM module.
  * @return array Processed settings data.
  */
