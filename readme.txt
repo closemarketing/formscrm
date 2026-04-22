@@ -244,6 +244,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.3.4 =
+* Enhanced: Added support to GravityForms and Clientify to update strategy in the feed. You can choose between update if contact exists or create new contact always.
+
 = 4.3.3 =
 * Fixed: Elementor Forms field mapping only processed the first occurrence when multiple CRM fields mapped to the same form field; now all mappings are applied correctly.
 * Tests: Added unit tests for Elementor and Contact Form 7 merge vars field mapping.
