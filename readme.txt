@@ -244,6 +244,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.3.4 =
+* Fixed: Elementor not getting correctly the module from settings.
+
 = 4.3.3 =
 * Added: Smart support for Clientify API v2 and v1 with enhanced login response handling and error messages. 
 * Fixed: Elementor Forms field mapping only processed the first occurrence when multiple CRM fields mapped to the same form field; now all mappings are applied correctly.
