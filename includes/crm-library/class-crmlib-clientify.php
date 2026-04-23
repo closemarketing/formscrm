@@ -1205,6 +1205,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 		// If no merge field configured, just create.
 		if ( empty( $search_field ) || empty( $data_array[ $search_field ] ) ) {
+			$endpoint          .= '?force_insert=true';
 			$result             = $this->request( $endpoint, $this->contact, $apikey, 'POST', $this->api_version );
 			$result['action']   = 'created';
 			$result['strategy'] = 'none';
