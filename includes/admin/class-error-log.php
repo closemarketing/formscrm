@@ -347,6 +347,11 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				wp_send_json_error( array( 'message' => __( 'Log entry not found', 'formscrm' ) ) );
 			}
 
+			// Check if we've reached max attempts.
+			if ( $log->resend_attempts >= 3 ) {
+				wp_send_json_error( array( 'message' => __( 'Max attempts reached', 'formscrm' ) ) );
+			}
+
 			// Decode lead data.
 			$lead_data = json_decode( $log->lead_data, true );
 
@@ -397,10 +402,11 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			}
 
 			$this->increment_resend_attempts( $log_id );
-			try {
-				$response = $api_class->create_entry( $settings, $lead_data );
 
-				if ( isset( $response['success'] ) && $response['success'] ) {
+			try {
+				$response = $api_class->create_entry( $settings, $lead_data, $log_id );
+
+				if ( isset( $response['status'] ) && 'ok' === strtolower( $response['status'] ) ) {
 					$this->update_status( $log_id, 'success' );
 
 					// Clear any scheduled retries.
