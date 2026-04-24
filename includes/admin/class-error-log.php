@@ -516,16 +516,8 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				wp_send_json_error( array( 'message' => __( 'No logs found for the selected date range', 'formscrm' ) ) );
 			}
 
-			// Generate CSV content.
-			$csv_output = fopen( 'php://memory', 'r+' );
-
-			foreach ( $csv_data as $row ) {
-				fputcsv( $csv_output, $row );
-			}
-
-			rewind( $csv_output );
-			$csv_content = stream_get_contents( $csv_output );
-			fclose( $csv_output );
+			// Generate CSV content in memory.
+			$csv_content = $this->generate_csv_content( $csv_data );
 
 			// Return CSV content to client for download.
 			wp_send_json_success(
@@ -537,13 +529,51 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		}
 
 		/**
+		 * Generate CSV content from array data
+		 *
+		 * @param array $csv_data Array of rows to export.
+		 * @return string CSV formatted string.
+		 */
+		private function generate_csv_content( $csv_data ) {
+			$output = '';
+
+			foreach ( $csv_data as $row ) {
+				$output .= $this->escape_csv_row( $row ) . "\n";
+			}
+
+			return $output;
+		}
+
+		/**
+		 * Escape and format a single CSV row
+		 *
+		 * @param array $row Row data.
+		 * @return string Formatted CSV row.
+		 */
+		private function escape_csv_row( $row ) {
+			$escaped = array();
+
+			foreach ( $row as $field ) {
+				if ( null === $field ) {
+					$escaped[] = '';
+				} elseif ( strpos( $field, '"' ) !== false || strpos( $field, ',' ) !== false || strpos( $field, "\n" ) !== false ) {
+					$escaped[] = '"' . str_replace( '"', '""', $field ) . '"';
+				} else {
+					$escaped[] = $field;
+				}
+			}
+
+			return implode( ',', $escaped );
+		}
+
+		/**
 		 * Schedule automatic retry for failed entry
 		 *
 		 * @param int $log_id Log ID.
 		 * @return void
 		 */
 		private function schedule_retry( $log_id ) {
-			$log = $this->get_log( $log_id );
+			$log       = $this->get_log( $log_id );
 
 			if ( ! $log ) {
 				return;
