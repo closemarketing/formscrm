@@ -573,7 +573,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		 * @return void
 		 */
 		private function schedule_retry( $log_id ) {
-			$log       = $this->get_log( $log_id );
+			$log = $this->get_log( $log_id );
 
 			if ( ! $log ) {
 				return;
@@ -621,7 +621,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 
 			// Convert dates to MySQL datetime format (start and end of day).
 			$from_datetime = $date_from . ' 00:00:00';
-			$to_datetime    = $date_to . ' 23:59:59';
+			$to_datetime   = $date_to . ' 23:59:59';
 
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$query = $wpdb->prepare(
