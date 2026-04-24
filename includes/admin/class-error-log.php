@@ -37,6 +37,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			add_action( 'wp_ajax_formscrm_resend_entry', array( $this, 'ajax_resend_entry' ) );
 			add_action( 'wp_ajax_formscrm_delete_log', array( $this, 'ajax_delete_log' ) );
 			add_action( 'wp_ajax_formscrm_clear_all_logs', array( $this, 'ajax_clear_all_logs' ) );
+			add_action( 'wp_ajax_formscrm_export_csv', array( $this, 'ajax_export_csv' ) );
 
 			// Hook for automatic retry cron.
 			add_action( 'formscrm_retry_failed_entry', array( $this, 'retry_failed_entry' ), 10, 1 );
@@ -486,6 +487,56 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		}
 
 		/**
+		 * AJAX handler for exporting logs to CSV
+		 *
+		 * @return void
+		 */
+		public function ajax_export_csv() {
+			check_ajax_referer( 'formscrm_error_log_nonce', 'nonce' );
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_send_json_error( array( 'message' => __( 'Permission denied', 'formscrm' ) ) );
+			}
+
+			$date_from = isset( $_POST['date_from'] ) ? sanitize_text_field( wp_unslash( $_POST['date_from'] ) ) : '';
+			$date_to   = isset( $_POST['date_to'] ) ? sanitize_text_field( wp_unslash( $_POST['date_to'] ) ) : '';
+
+			if ( empty( $date_from ) || empty( $date_to ) ) {
+				wp_send_json_error( array( 'message' => __( 'Please select start and end dates', 'formscrm' ) ) );
+			}
+
+			// Validate date format (YYYY-MM-DD).
+			if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_from ) || ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_to ) ) {
+				wp_send_json_error( array( 'message' => __( 'Invalid date format', 'formscrm' ) ) );
+			}
+
+			$csv_data = $this->export_csv( $date_from, $date_to );
+
+			if ( ! $csv_data ) {
+				wp_send_json_error( array( 'message' => __( 'No logs found for the selected date range', 'formscrm' ) ) );
+			}
+
+			// Generate CSV content.
+			$csv_output = fopen( 'php://memory', 'r+' );
+
+			foreach ( $csv_data as $row ) {
+				fputcsv( $csv_output, $row );
+			}
+
+			rewind( $csv_output );
+			$csv_content = stream_get_contents( $csv_output );
+			fclose( $csv_output );
+
+			// Return CSV content to client for download.
+			wp_send_json_success(
+				array(
+					'csv_content' => $csv_content,
+					'filename'    => 'formscrm-error-logs-' . $date_from . '-to-' . $date_to . '.csv',
+				)
+			);
+		}
+
+		/**
 		 * Schedule automatic retry for failed entry
 		 *
 		 * @param int $log_id Log ID.
@@ -525,6 +576,77 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		}
 
 		/**
+		 * Export logs to CSV within date range
+		 *
+		 * @param string $date_from Start date (Y-m-d format).
+		 * @param string $date_to   End date (Y-m-d format).
+		 * @return array|false CSV data or false on failure.
+		 */
+		public function export_csv( $date_from, $date_to ) {
+			global $wpdb;
+
+			if ( empty( $date_from ) || empty( $date_to ) ) {
+				return false;
+			}
+
+			// Convert dates to MySQL datetime format (start and end of day).
+			$from_datetime = $date_from . ' 00:00:00';
+			$to_datetime    = $date_to . ' 23:59:59';
+
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$query = $wpdb->prepare(
+				"SELECT id, error_date, crm_type, form_type, form_type_title, form_name, entry_id, error_message, status, resend_attempts, last_resend_date
+				 FROM {$this->table_name}
+				 WHERE error_date >= %s AND error_date <= %s
+				 ORDER BY error_date DESC",
+				$from_datetime,
+				$to_datetime
+			);
+			// phpcs:enable
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$logs = $wpdb->get_results( $query );
+
+			if ( empty( $logs ) ) {
+				return false;
+			}
+
+			// Prepare CSV headers.
+			$headers = array(
+				'ID',
+				'Date',
+				'CRM Type',
+				'Form Type',
+				'Form Name',
+				'Entry ID',
+				'Error Message',
+				'Status',
+				'Resend Attempts',
+				'Last Resend Date',
+			);
+
+			$csv_data = array( $headers );
+
+			// Add rows.
+			foreach ( $logs as $log ) {
+				$csv_data[] = array(
+					$log->id,
+					$log->error_date,
+					$log->crm_type,
+					$log->form_type,
+					$log->form_name ?? '',
+					$log->entry_id ?? '',
+					$log->error_message,
+					$log->status,
+					$log->resend_attempts,
+					$log->last_resend_date ?? '',
+				);
+			}
+
+			return $csv_data;
+		}
+
+		/**
 		 * Retry failed entry automatically (called by cron)
 		 *
 		 * @param int $log_id Log ID.
@@ -534,18 +656,23 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$log = $this->get_log( $log_id );
 
 			if ( ! $log || 'failed' !== $log->status ) {
+				formscrm_debug_message( "Retry skipped for log {$log_id}: log not found or not in failed status" );
 				return;
 			}
 
 			// Check if we've reached max attempts.
 			if ( $log->resend_attempts >= 3 ) {
+				formscrm_debug_message( "Retry skipped for log {$log_id}: max attempts reached ({$log->resend_attempts}/3)" );
 				return;
 			}
+
+			formscrm_debug_message( "Starting auto-retry for log {$log_id} (attempt {$log->resend_attempts}/3)" );
 
 			// Decode lead data.
 			$lead_data = json_decode( $log->lead_data, true );
 
 			if ( ! $lead_data ) {
+				formscrm_debug_message( "Retry failed for log {$log_id}: invalid lead data" );
 				return;
 			}
 
@@ -553,6 +680,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$settings = formscrm_get_crm_settings( $log->form_type );
 
 			if ( empty( $settings ) ) {
+				formscrm_debug_message( "Retry failed for log {$log_id}: no CRM settings found for form type {$log->form_type}" );
 				return;
 			}
 
@@ -560,6 +688,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$api_class = formscrm_get_api_class( $log->crm_type );
 
 			if ( ! $api_class || ! method_exists( $api_class, 'create_entry' ) ) {
+				formscrm_debug_message( "Retry failed for log {$log_id}: CRM API class not found or missing create_entry method" );
 				return;
 			}
 
@@ -572,21 +701,33 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				if ( isset( $response['success'] ) && $response['success'] ) {
 					// Success - update status.
 					$this->update_status( $log_id, 'success' );
+					formscrm_debug_message( "Auto-retry SUCCESS for log {$log_id}: status updated to 'success'" );
 
 					// Clear any scheduled retries.
 					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 				} else {
+					$error_msg = isset( $response['message'] ) ? $response['message'] : 'Unknown error';
+					formscrm_debug_message( "Auto-retry FAILED for log {$log_id}: {$error_msg}" );
+
 					// Failed - check if we should schedule another retry.
 					$log = $this->get_log( $log_id );
 					if ( $log && $log->resend_attempts < 3 ) {
 						$this->schedule_retry( $log_id );
+						formscrm_debug_message( "Scheduled next retry for log {$log_id}" );
+					} else {
+						formscrm_debug_message( "No more retries scheduled for log {$log_id}: max attempts reached" );
 					}
 				}
 			} catch ( Exception $e ) {
+				formscrm_debug_message( "Auto-retry EXCEPTION for log {$log_id}: {$e->getMessage()}" );
+
 				// Failed - check if we should schedule another retry.
 				$log = $this->get_log( $log_id );
 				if ( $log && $log->resend_attempts < 3 ) {
 					$this->schedule_retry( $log_id );
+					formscrm_debug_message( "Scheduled next retry for log {$log_id}" );
+				} else {
+					formscrm_debug_message( "No more retries scheduled for log {$log_id}: max attempts reached" );
 				}
 			}
 		}
