@@ -57,7 +57,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			if ( function_exists( 'as_schedule_single_action' ) ) {
 				try {
 					as_schedule_single_action( $timestamp, 'formscrm_retry_failed_entry', array( $log_id ) );
-					formscrm_debug_message( 'Scheduled retry via Action Scheduler for log ' . $log_id . ' at ' . date( 'Y-m-d H:i:s', $timestamp ) );
+					formscrm_debug_message( 'Scheduled retry via Action Scheduler for log ' . $log_id . ' at ' . wp_date( 'Y-m-d H:i:s',  ) );
 					return;
 				} catch ( Exception $e ) {
 					formscrm_debug_message( 'Action Scheduler failed for log ' . $log_id . ': ' . $e->getMessage() . '. Fallback to WP-Cron.' );
@@ -66,7 +66,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 
 			// Fallback to WP-Cron.
 			wp_schedule_single_event( $timestamp, 'formscrm_retry_failed_entry', array( $log_id ) );
-			formscrm_debug_message( 'Scheduled retry via WP-Cron for log ' . $log_id . ' at ' . date( 'Y-m-d H:i:s', $timestamp ) );
+			formscrm_debug_message( 'Scheduled retry via WP-Cron for log ' . $log_id . ' at ' . wp_date( 'Y-m-d H:i:s',  ) );
 		}
 
 		/**
@@ -621,8 +621,3 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 // Initialize error log.
 global $formscrm_error_log;
 $formscrm_error_log = new FORMSCRM_Error_Log();
-
-// Enqueue scripts only in admin.
-if ( is_admin() ) {
-	// Scripts are handled by FORMSCRM_Error_Log_Page class.
-}
