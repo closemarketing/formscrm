@@ -57,16 +57,16 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			if ( function_exists( 'as_schedule_single_action' ) ) {
 				try {
 					as_schedule_single_action( $timestamp, 'formscrm_retry_failed_entry', array( $log_id ) );
-					formscrm_debug_message( 'Scheduled retry via Action Scheduler for log ' . $log_id . ' at ' . wp_date( 'Y-m-d H:i:s' ) );
 					return;
 				} catch ( Exception $e ) {
-					formscrm_debug_message( 'Action Scheduler failed for log ' . $log_id . ': ' . $e->getMessage() . '. Fallback to WP-Cron.' );
+					// Fallback to WP-Cron.
+					wp_schedule_single_event( $timestamp, 'formscrm_retry_failed_entry', array( $log_id ) );
+					return;
 				}
 			}
 
-			// Fallback to WP-Cron.
+			// Fallback to WP-Cron if Action Scheduler not available.
 			wp_schedule_single_event( $timestamp, 'formscrm_retry_failed_entry', array( $log_id ) );
-			formscrm_debug_message( 'Scheduled retry via WP-Cron for log ' . $log_id . ' at ' . wp_date( 'Y-m-d H:i:s' ) );
 		}
 
 		/**
@@ -385,7 +385,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$settings = formscrm_get_crm_settings( $log->form_type );
 
 			if ( empty( $settings ) ) {
-				formscrm_debug_message( 'ERROR: CRM settings not found for form type: ' . $log->form_type );
+
 				wp_send_json_error(
 					array(
 						'message' => __( 'CRM settings not found. Please configure the CRM connection in FormsCRM settings.', 'formscrm' ),
@@ -539,20 +539,19 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		 * @return void
 		 */
 		public function retry_failed_entry( $log_id ) {
-			formscrm_debug_message( 'retry_failed_entry called for log ' . $log_id );
+
 
 			$log = $this->get_log( $log_id );
 
 			if ( ! $log || 'failed' !== $log->status ) {
-				formscrm_debug_message( 'Log ' . $log_id . ' not found or not failed status. Status: ' . ( $log ? $log->status : 'N/A' ) );
 				return;
 			}
 
-			formscrm_debug_message( 'Log ' . $log_id . ' status is failed. Attempts: ' . $log->resend_attempts . '/3' );
+
 
 			// Check if we've reached max attempts.
 			if ( $log->resend_attempts >= 3 ) {
-				formscrm_debug_message( 'Log ' . $log_id . ' max attempts reached, stopping retries' );
+
 				return;
 			}
 
@@ -560,7 +559,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$lead_data = json_decode( $log->lead_data, true );
 
 			if ( ! $lead_data ) {
-				formscrm_debug_message( 'Log ' . $log_id . ' lead data decode failed' );
+
 				return;
 			}
 
@@ -568,7 +567,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$settings = formscrm_get_crm_settings( $log->form_type );
 
 			if ( empty( $settings ) ) {
-				formscrm_debug_message( 'Log ' . $log_id . ' CRM settings not found' );
+
 				return;
 			}
 
@@ -576,41 +575,38 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$api_class = formscrm_get_api_class( $log->crm_type );
 
 			if ( ! $api_class || ! method_exists( $api_class, 'create_entry' ) ) {
-				formscrm_debug_message( 'Log ' . $log_id . ' API class not found or missing create_entry method' );
+
 				return;
 			}
 
 			// Increment attempts before trying.
 			$this->increment_resend_attempts( $log_id );
-			formscrm_debug_message( 'Log ' . $log_id . ' incremented attempts' );
+
 
 			try {
 				$response = $api_class->create_entry( $settings, $lead_data, $log_id );
 
-				formscrm_debug_message( 'Log ' . $log_id . ' create_entry response: ' . wp_json_encode( $response ) );
-
 				if ( isset( $response['status'] ) && 'ok' === strtolower( $response['status'] ) ) {
 					// Success - update status.
-					formscrm_debug_message( 'Log ' . $log_id . ' response is success, updating status' );
+
 					$this->update_status( $log_id, 'success' );
 
 					// Clear any scheduled retries.
 					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 				} else {
 					// Failed - check if we should schedule another retry.
-					formscrm_debug_message( 'Log ' . $log_id . ' response is failure, checking for next retry' );
+
 					$log = $this->get_log( $log_id );
 					if ( $log && $log->resend_attempts < 3 ) {
-						formscrm_debug_message( 'Log ' . $log_id . ' scheduling next retry. Current attempts: ' . $log->resend_attempts . '/3' );
+
 						$this->schedule_retry( $log_id );
 					}
 				}
 			} catch ( Exception $e ) {
 				// Failed - check if we should schedule another retry.
-				formscrm_debug_message( 'Log ' . $log_id . ' exception: ' . $e->getMessage() );
 				$log = $this->get_log( $log_id );
 				if ( $log && $log->resend_attempts < 3 ) {
-					formscrm_debug_message( 'Log ' . $log_id . ' scheduling next retry after exception. Current attempts: ' . $log->resend_attempts . '/3' );
+
 					$this->schedule_retry( $log_id );
 				}
 			}
