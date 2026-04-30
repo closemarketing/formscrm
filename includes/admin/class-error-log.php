@@ -573,7 +573,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			// Increment attempts before trying.
 			$this->increment_resend_attempts( $log_id );
 
-
 			try {
 				$response = $api_class->create_entry( $settings, $lead_data, $log_id );
 
