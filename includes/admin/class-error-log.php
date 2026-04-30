@@ -385,7 +385,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$settings = formscrm_get_crm_settings( $log->form_type );
 
 			if ( empty( $settings ) ) {
-
 				wp_send_json_error(
 					array(
 						'message' => __( 'CRM settings not found. Please configure the CRM connection in FormsCRM settings.', 'formscrm' ),
@@ -539,19 +538,14 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		 * @return void
 		 */
 		public function retry_failed_entry( $log_id ) {
-
-
 			$log = $this->get_log( $log_id );
 
 			if ( ! $log || 'failed' !== $log->status ) {
 				return;
 			}
 
-
-
 			// Check if we've reached max attempts.
 			if ( $log->resend_attempts >= 3 ) {
-
 				return;
 			}
 
@@ -559,7 +553,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$lead_data = json_decode( $log->lead_data, true );
 
 			if ( ! $lead_data ) {
-
 				return;
 			}
 
@@ -567,7 +560,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$settings = formscrm_get_crm_settings( $log->form_type );
 
 			if ( empty( $settings ) ) {
-
 				return;
 			}
 
@@ -575,7 +567,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$api_class = formscrm_get_api_class( $log->crm_type );
 
 			if ( ! $api_class || ! method_exists( $api_class, 'create_entry' ) ) {
-
 				return;
 			}
 
@@ -588,17 +579,14 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 
 				if ( isset( $response['status'] ) && 'ok' === strtolower( $response['status'] ) ) {
 					// Success - update status.
-
 					$this->update_status( $log_id, 'success' );
 
 					// Clear any scheduled retries.
 					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 				} else {
 					// Failed - check if we should schedule another retry.
-
 					$log = $this->get_log( $log_id );
 					if ( $log && $log->resend_attempts < 3 ) {
-
 						$this->schedule_retry( $log_id );
 					}
 				}
@@ -606,7 +594,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				// Failed - check if we should schedule another retry.
 				$log = $this->get_log( $log_id );
 				if ( $log && $log->resend_attempts < 3 ) {
-
 					$this->schedule_retry( $log_id );
 				}
 			}
