@@ -30,7 +30,14 @@
 
 		// Add change event listener to each select.
 		autoSubmitSelects.forEach( function( select ) {
+			// Store the server-rendered value so browser form restoration doesn't trigger a save.
+			var serverValue = select.value;
+
 			select.addEventListener( 'change', function( event ) {
+				// Ignore if the value hasn't actually changed from what the server rendered.
+				if ( event.target.value === serverValue ) {
+					return;
+				}
 				handleAutoSubmit( event.target );
 			});
 		});
@@ -62,38 +69,21 @@
 		// Show saving indicator.
 		var savingIndicator = selectElement.parentElement.querySelector( '.formscrm-saving-indicator' );
 		if ( savingIndicator ) {
-			savingIndicator.style.display = 'inline-flex';
+			savingIndicator.classList.add( 'is-active' );
 		}
 
 		// Add visual feedback class.
 		selectElement.classList.add( 'formscrm-submitting' );
 
-		// Disable browser "unsaved changes" warning.
-		disableUnsavedChangesWarning();
-
 		// Add a small delay to ensure user sees the feedback.
 		setTimeout( function() {
-			// Submit the form.
-			form.submit();
+			// Click the CF7 save button so CF7 clears its own beforeunload listener.
+			var saveButton = form.querySelector( '[name="wpcf7-save"]' );
+			if ( saveButton ) {
+				saveButton.click();
+			} else {
+				form.submit();
+			}
 		}, 300 );
 	}
-
-	/**
-	 * Disable "unsaved changes" warning
-	 *
-	 * Removes beforeunload event listeners to prevent the browser from
-	 * showing a confirmation dialog when the form is auto-submitted.
-	 *
-	 * @return void
-	 */
-	function disableUnsavedChangesWarning() {
-		// Clear the main beforeunload handler.
-		window.onbeforeunload = null;
-
-		// Remove jQuery beforeunload handlers (WordPress often uses jQuery).
-		if ( typeof jQuery !== 'undefined' ) {
-			jQuery( window ).off( 'beforeunload' );
-		}
-	}
 })();
-

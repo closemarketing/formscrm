@@ -246,6 +246,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 = 4.3.4 =
 * Fixed: Elementor not getting correctly the module from settings.
+* Fixed: Normalize boolean CRM fields to standardized values for Clientify.
+* Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
 
 = 4.3.3 =
 * Added: Smart support for Clientify API v2 and v1 with enhanced login response handling and error messages. 

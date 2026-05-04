@@ -86,4 +86,50 @@ class ContactFormsTest extends WP_UnitTestCase {
 			$merge_vars
 		);
 	}
+
+	/**
+	 * Data provider with falsy submitted values for gdpr_accept.
+	 *
+	 * @return array
+	 */
+	public function gdpr_falsy_values_provider() {
+		return array(
+			// Scalar strings — CF7 hidden/text fields.
+			'empty string'     => array( '',        '' ),
+			'zero string'      => array( '0',       '0' ),
+			'false string'     => array( 'false',   'false' ),
+			// Arrays — CF7 checkbox fields (unchecked = empty array, checked = array of labels).
+			'empty array'      => array( array(),           '' ),
+			'array with 0'     => array( array( '0' ),      '0' ),
+			'array with false' => array( array( 'false' ),  'false' ),
+		);
+	}
+
+	/**
+	 * GDPR field with various falsy submitted values: none should produce the field name as value.
+	 *
+	 * @dataProvider gdpr_falsy_values_provider
+	 * @param mixed  $submitted_value Raw value as CF7 would submit it.
+	 * @param string $expected_value  Expected string value in merge vars.
+	 */
+	public function test_get_merge_vars_gdpr_falsy_values( $submitted_value, $expected_value ) {
+		$cf7_crm = array(
+			'fc_crm_type'              => 'clientify',
+			'fc_crm_apipassword'       => 'api-password',
+			'fc_crm_module'            => 'Contacts',
+			'fc_crm_field-gdpr_accept' => 'extra-info',
+		);
+
+		$submitted_data = array(
+			'extra-info' => $submitted_value,
+		);
+
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
+
+		$this->assertCount( 1, $merge_vars );
+		$this->assertEquals( 'gdpr_accept', $merge_vars[0]['name'] );
+		$this->assertEquals( $expected_value, $merge_vars[0]['value'] );
+		// Value must never equal the form field name ('extra-info').
+		$this->assertNotEquals( 'extra-info', $merge_vars[0]['value'] );
+	}
 }

@@ -79,8 +79,8 @@ class FORMSCRM_CF7_Settings {
 						}
 						?>
 					</select>
-					<span class="formscrm-saving-indicator" style="display:none; margin-left:10px; color:#46b450;">
-						<span class="dashicons dashicons-update-alt" style="animation: rotation 1s infinite linear;"></span>
+					<span class="formscrm-saving-indicator">
+						<span class="dashicons dashicons-update-alt"></span>
 						<?php esc_html_e( 'Saving...', 'formscrm' ); ?>
 					</span>
 				</p>
@@ -159,8 +159,8 @@ class FORMSCRM_CF7_Settings {
 							}
 							?>
 						</select>
-						<span class="formscrm-saving-indicator" style="display:none; margin-left:10px; color:#46b450;">
-							<span class="dashicons dashicons-update-alt" style="animation: rotation 1s infinite linear;"></span>
+						<span class="formscrm-saving-indicator">
+							<span class="dashicons dashicons-update-alt"></span>
 							<?php esc_html_e( 'Saving...', 'formscrm' ); ?>
 						</span>
 					</p>
@@ -326,7 +326,7 @@ class FORMSCRM_CF7_Settings {
 			}
 			$crm_key = str_replace( 'fc_crm_field-', '', $key );
 
-			if ( isset( $submitted_data[ $value ] ) ) {
+			if ( array_key_exists( $value, $submitted_data ) ) {
 				$value = $submitted_data[ $value ];
 			}
 
