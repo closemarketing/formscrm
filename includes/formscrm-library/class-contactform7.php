@@ -334,10 +334,9 @@ class FORMSCRM_CF7_Settings {
 				$value = implode( ',', $value );
 			}
 
-			// Normalize boolean CRM fields to '1' (accepted) or '' (not accepted),
-			// regardless of the checkbox label language used in the CF7 form.
+			// Normalize boolean CRM fields to true/false as required by the API.
 			if ( in_array( $crm_key, array( 'gdpr_accept', 'disclaimer' ), true ) ) {
-				$value = ! empty( $value ) ? '1' : '';
+				$value = ! empty( $value );
 			}
 
 			// Process dynamic values (shortcodes).
