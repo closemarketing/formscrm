@@ -82,7 +82,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 
 		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals(
-			array( array( 'name' => 'gdpr_accept', 'value' => 'Me gustaría estar al tanto de las novedades de Ipace' ) ),
+			array( array( 'name' => 'gdpr_accept', 'value' => '1' ) ),
 			$merge_vars
 		);
 	}
