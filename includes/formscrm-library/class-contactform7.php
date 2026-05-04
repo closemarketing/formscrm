@@ -326,7 +326,7 @@ class FORMSCRM_CF7_Settings {
 			}
 			$crm_key = str_replace( 'fc_crm_field-', '', $key );
 
-			if ( isset( $submitted_data[ $value ] ) ) {
+			if ( array_key_exists( $value, $submitted_data ) ) {
 				$value = $submitted_data[ $value ];
 			}
 
