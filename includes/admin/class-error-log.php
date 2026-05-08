@@ -60,7 +60,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				try {
 					as_schedule_single_action( $timestamp, 'formscrm_retry_failed_entry', array( $log_id ) );
 					return;
-				} catch ( Exception ) {
+				} catch ( Exception $e ) {
 					// Fallback to WP-Cron.
 					wp_schedule_single_event( $timestamp, 'formscrm_retry_failed_entry', array( $log_id ) );
 					return;
@@ -656,7 +656,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				if ( function_exists( 'as_schedule_single_action' ) ) {
 					try {
 						as_schedule_single_action( $scheduled_time, 'formscrm_retry_failed_entry', array( $log_id ) );
-					} catch ( Exception ) {
+					} catch ( Exception $e ) {
 						wp_schedule_single_event( $scheduled_time, 'formscrm_retry_failed_entry', array( $log_id ) );
 					}
 				} else {
