@@ -662,7 +662,6 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				} else {
 					wp_schedule_single_event( $scheduled_time, 'formscrm_retry_failed_entry', array( $log_id ) );
 				}
-
 				$index++;
 			}
 
