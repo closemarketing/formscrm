@@ -67,7 +67,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 					'successText'          => __( 'Success', 'formscrm' ),
 					'selectActionMessage'  => __( 'Please select an action', 'formscrm' ),
 					'selectLogsMessage'    => __( 'Please select at least one log', 'formscrm' ),
+					/* translators: %d: Number of logs to delete */
 					'confirmBulkDelete'    => __( 'Are you sure you want to delete %d selected logs? This action cannot be undone.', 'formscrm' ),
+					/* translators: %d: Number of logs to resend */
 					'confirmBulkResend'    => __( 'Are you sure you want to resend %d selected logs?', 'formscrm' ),
 					'bulkDeleteSuccess'    => __( 'Logs deleted successfully', 'formscrm' ),
 					'bulkDeleteError'      => __( 'Failed to delete logs', 'formscrm' ),
