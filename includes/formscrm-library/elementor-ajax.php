@@ -98,6 +98,9 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 			<div class="elementor-control-field ">
 				<label for="fc_crm_module" class="elementor-control-title"><?php esc_html_e( 'CRM Module', 'formscrm' ); ?></label>
 				<div class="elementor-control-input-wrapper elementor-control-unit-5">
+					<?php if ( empty( $modules ) ) { ?>
+						<p style="color: red;"><?php esc_html_e( 'No modules found. Check your API credentials and try reconnecting.', 'formscrm' ); ?></p>
+					<?php } else { ?>
 					<select id="fc_crm_module">
 					<?php
 					foreach ( $modules as $module ) {
@@ -120,6 +123,7 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 					}
 					?>
 					</select>
+					<?php } ?>
 				</div>
 			</div>
 			<div class="elementor-control-field-description"></div>
