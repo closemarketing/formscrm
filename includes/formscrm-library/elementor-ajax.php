@@ -102,26 +102,26 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 						<p style="color: red;"><?php esc_html_e( 'No modules found. Check your API credentials and try reconnecting.', 'formscrm' ); ?></p>
 					<?php } else { ?>
 					<select id="fc_crm_module">
-					<?php
-					foreach ( $modules as $module ) {
-						$value = '';
-						if ( ! empty( $module['value'] ) ) {
-							$value = $module['value'];
-						} elseif ( ! empty( $module['name'] ) ) {
-							$value = $module['name'];
-						}
-						if ( empty( $value ) || ! isset( $module['label'] ) ) {
-							continue;
-						}
-						echo '<option value="' . esc_html( $value ) . '" ';
+						<?php
+						foreach ( $modules as $module ) {
+							$value = '';
+							if ( ! empty( $module['value'] ) ) {
+								$value = $module['value'];
+							} elseif ( ! empty( $module['name'] ) ) {
+								$value = $module['name'];
+							}
+							if ( empty( $value ) || ! isset( $module['label'] ) ) {
+								continue;
+							}
+							echo '<option value="' . esc_html( $value ) . '" ';
 
-						if ( $value ) {
-							selected( $settings_module, $value );
-						}
+							if ( $value ) {
+								selected( $settings_module, $value );
+							}
 
-						echo '>' . esc_html( $module['label'] ) . '</option>';
-					}
-					?>
+							echo '>' . esc_html( $module['label'] ) . '</option>';
+						}
+						?>
 					</select>
 					<?php } ?>
 				</div>
