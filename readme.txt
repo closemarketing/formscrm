@@ -248,6 +248,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 * Fixed: Elementor not getting correctly the module from settings.
 * Fixed: Normalize boolean CRM fields to standardized values for Clientify.
 * Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
+* Fixed: Brevo list_modules pagination now returns all lists instead of only 10 by properly sending limit/offset parameters and accumulating paginated results.
 
 = 4.3.3 =
 * Added: Smart support for Clientify API v2 and v1 with enhanced login response handling and error messages. 
