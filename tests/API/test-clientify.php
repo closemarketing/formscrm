@@ -59,6 +59,13 @@ class ClientifyTests extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Last body sent to a contacts/ POST endpoint.
+	 *
+	 * @var array|null
+	 */
+	protected $last_contact_body = null;
+
+	/**
 	 * Central HTTP mock. Behaviour controlled by $this->mock_api_mode.
 	 *
 	 * @param mixed  $pre  Pre-empt value.
@@ -138,6 +145,10 @@ class ClientifyTests extends WP_UnitTestCase {
 		// Deals creation.
 		if ( str_contains( $url, 'deals/' ) && 'POST' === $r['method'] ) {
 			return $this->response( 201, '{"id":"deal-789","name":"New Deal","amount":5000}' );
+		// Contacts create endpoint — capture body for assertions.
+		if ( 'POST' === $r['method'] && str_contains( $url, '/contacts/' ) ) {
+			$this->last_contact_body = json_decode( $r['body'], true );
+			return $this->response( 201, '{"id":999}' );
 		}
 
 		return $this->response( 500 );
@@ -539,4 +550,49 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertSame( 'company-456', $result['id'] );
 	}
 
+	// gdpr_accept bool normalization tests.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Data provider: merge_vars value => expected bool sent to Clientify API.
+	 *
+	 * @return array
+	 */
+	public function gdpr_accept_provider() {
+		return array(
+			// Falsy values — must send false.
+			'empty string'     => array( '',        false ),
+			'zero string'      => array( '0',       false ),
+			'null'             => array( null,       false ),
+			// Truthy values — must send true.
+			'label string'     => array( 'Acepto',  true ),
+			'one string'       => array( '1',       true ),
+			'on string'        => array( 'on',      true ),
+		);
+	}
+
+	/**
+	 * gdpr_accept must arrive at the Clientify API as a PHP bool, not a string.
+	 *
+	 * @dataProvider gdpr_accept_provider
+	 * @param mixed $merge_value  Value from get_merge_vars (already a string after CF7 processing).
+	 * @param bool  $expected     Expected bool in the JSON body sent to the API.
+	 */
+	public function test_create_entry_gdpr_accept_sent_as_bool( $merge_value, $expected ) {
+		$this->last_contact_body = null;
+
+		$merge_vars = array(
+			array( 'name' => 'email',       'value' => 'test@example.com' ),
+			array( 'name' => 'gdpr_accept', 'value' => $merge_value ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		/** @var array $body */
+		$body = $this->last_contact_body ?? array();
+		$this->assertNotEmpty( $body, 'No POST was made to the contacts endpoint.' );
+		$this->assertArrayHasKey( 'gdpr_accept', $body );
+		$this->assertIsBool( $body['gdpr_accept'] );
+		$this->assertSame( $expected, $body['gdpr_accept'] );
+	}
 }
