@@ -1,0 +1,85 @@
+{
+	"lists": [
+		{
+			"id": 10,
+			"name": "Test List A",
+			"folderId": 1,
+			"uniqueSubscribers": 300,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 11,
+			"name": "Test List B",
+			"folderId": 1,
+			"uniqueSubscribers": 1500,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 12,
+			"name": "Test List C",
+			"folderId": 1,
+			"uniqueSubscribers": 1800,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 13,
+			"name": "Test List D",
+			"folderId": 1,
+			"uniqueSubscribers": 900,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 14,
+			"name": "Test List E",
+			"folderId": 1,
+			"uniqueSubscribers": 2000,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 15,
+			"name": "Test List F",
+			"folderId": 1,
+			"uniqueSubscribers": 4300,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 16,
+			"name": "Test List G",
+			"folderId": 1,
+			"uniqueSubscribers": 14000,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 17,
+			"name": "Test List H",
+			"folderId": 1,
+			"uniqueSubscribers": 1100,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 18,
+			"name": "Test List I",
+			"folderId": 1,
+			"uniqueSubscribers": 2500,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		},
+		{
+			"id": 19,
+			"name": "Test List J",
+			"folderId": 2,
+			"uniqueSubscribers": 1400,
+			"totalBlacklisted": 0,
+			"totalSubscribers": 0
+		}
+	],
+	"count": 64
+}
