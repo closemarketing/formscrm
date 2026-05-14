@@ -296,7 +296,8 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 
 		// Normalize the Form data.
-		$merge_vars = self::get_merge_vars( $formscrm_fields, $raw_fields );
+		$formscrm_fields = apply_filters( 'formscrm_elementor_field_settings', $formscrm_fields, $raw_fields );
+		$merge_vars      = self::get_merge_vars( $formscrm_fields, $raw_fields );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
 		if ( ! empty( $_POST['visitor_key'] ) ) {
@@ -306,6 +307,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			);
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$merge_vars = apply_filters( 'formscrm_elementor_merge_vars', $merge_vars, $settings, $record );
 		// Create contact in CRM.
 		$settings        = formscrm_elementor_process_settings( $settings, $module );
 		$this->crmlib    = formscrm_get_api_class( $settings['fc_crm_type'] );
