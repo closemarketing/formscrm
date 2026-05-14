@@ -244,6 +244,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= next =
+* Fixed: Clientify GDPR checkbox value in Contact Form 7 now normalized to '1' (accepted) or '' (not accepted), regardless of the checkbox label language.
+
 = 4.3.4 =
 * Fixed: Elementor not getting correctly the module from settings.
 * Fixed: Normalize boolean CRM fields to standardized values for Clientify.
