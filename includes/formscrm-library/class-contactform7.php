@@ -199,6 +199,7 @@ class FORMSCRM_CF7_Settings {
 				$crm_fields  = $this->crmlib->list_fields( $cf7_crm, $settings_module );
 				$cf7_form    = WPCF7_ContactForm::get_instance( $args->id() );
 				$form_fields = ! empty( $cf7_form ) ? $cf7_form->scan_form_tags() : array();
+				$form_fields = apply_filters( 'formscrm_cf7_form_fields', $form_fields, $args->id() );
 
 				if ( ! empty( $crm_fields ) && is_array( $crm_fields ) ) {
 					?>
@@ -234,11 +235,13 @@ class FORMSCRM_CF7_Settings {
 											<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 											<?php
 											foreach ( $form_fields as $form_field ) {
-												echo '<option value="' . esc_html( $form_field['name'] ) . '" ';
+												$field_name  = is_array( $form_field ) ? $form_field['name'] : $form_field->name;
+												$field_label = is_array( $form_field ) ? ( $form_field['label'] ?? $field_name ) : ( $form_field->label ?? $field_name );
+												echo '<option value="' . esc_html( $field_name ) . '" ';
 												if ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] ) ) {
-													selected( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ], $form_field['name'] );
+													selected( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ], $field_name );
 												}
-												echo '>' . esc_html( $form_field['name'] ) . '</option>';
+												echo '>' . esc_html( $field_label ) . '</option>';
 											}
 											?>
 										</select>

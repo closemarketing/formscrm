@@ -53,6 +53,10 @@ You can use multiple feed connector in GravityForms, WPForms PRO, Elementor Form
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
 
+**UTM Tracker Addon**
+FormsCRM UTM Tracker Addon is a WordPress plugin that captures UTM parameters from the URL and injects them as field values into FormsCRM form integrations. This allows you to track the source, medium, campaign, and other UTM parameters of your form submissions in your CRM for better marketing attribution and analysis.
+[UTM Tracker Addon](https://close.technology/en/wordpress-plugins/formscrm-utm-tracker/)
+
 **Dynamic values in GravityForms and WPForms**
 We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
 {id:N} in order to get the value from field N
@@ -243,6 +247,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= next =
+* Added support to addon FormsCRM UTM Tracker Addon.
 
 = 4.3.4 =
 * Fixed: Elementor not getting correctly the module from settings.

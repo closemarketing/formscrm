@@ -164,6 +164,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 						break;
 				}
 			}
+			$merge_vars = apply_filters( 'formscrm_wpforms_merge_vars', $merge_vars, $connection, $form_data, $entry_id );
 			// Submit to API.
 			$message = '';
 			try {
@@ -471,7 +472,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 					'field_type' => 'text',
 				);
 			}
-			return $fields_wpforms;
+			return apply_filters( 'formscrm_wpforms_form_fields', $fields_wpforms, $account_id, $module );
 		} catch ( Exception $e ) {
 			wpforms_log(
 				'FormsCRM API error',
