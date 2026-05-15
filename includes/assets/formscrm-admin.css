@@ -1092,3 +1092,13 @@
 		width: 100% !important;
 	}
 }
+
+.formscrm-saving-indicator {
+	display: none;
+	margin-left: 10px;
+	color: #46b450;
+}
+
+.formscrm-saving-indicator.is-active {
+	display: inline-flex;
+}

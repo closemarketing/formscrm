@@ -44,7 +44,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * GDPR checkbox unchecked: CF7 submits empty array, value must be '' not the field name.
+	 * GDPR checkbox unchecked: CF7 submits empty array, value must be false.
 	 */
 	public function test_get_merge_vars_gdpr_unchecked() {
 		$cf7_crm = array(
@@ -60,13 +60,13 @@ class ContactFormsTest extends WP_UnitTestCase {
 
 		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals(
-			array( array( 'name' => 'gdpr_accept', 'value' => '' ) ),
+			array( array( 'name' => 'gdpr_accept', 'value' => false ) ),
 			$merge_vars
 		);
 	}
 
 	/**
-	 * GDPR checkbox checked: CF7 submits the label string, value must be non-empty.
+	 * GDPR checkbox checked: CF7 submits the label string, value must be true.
 	 */
 	public function test_get_merge_vars_gdpr_checked() {
 		$cf7_crm = array(
@@ -82,8 +82,53 @@ class ContactFormsTest extends WP_UnitTestCase {
 
 		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals(
-			array( array( 'name' => 'gdpr_accept', 'value' => 'Me gustaría estar al tanto de las novedades de Ipace' ) ),
+			array( array( 'name' => 'gdpr_accept', 'value' => true ) ),
 			$merge_vars
 		);
+	}
+
+	/**
+	 * Data provider for gdpr_accept bool normalization.
+	 *
+	 * @return array
+	 */
+	public function gdpr_falsy_values_provider() {
+		return array(
+			// PHP empty() → false (not accepted).
+			'empty string' => array( '',      false ),
+			'zero string'  => array( '0',     false ),  // empty('0') === true in PHP.
+			'empty array'  => array( array(), false ),
+			// Non-empty → true (accepted), regardless of label language.
+			'label string' => array( 'Acepto términos',       true ),
+			'false string' => array( 'false',                 true ),  // non-empty string.
+			'array label'  => array( array( 'Me gustaría' ),  true ),
+		);
+	}
+
+	/**
+	 * gdpr_accept must be normalized to bool, never left as the field name.
+	 *
+	 * @dataProvider gdpr_falsy_values_provider
+	 * @param mixed $submitted_value Raw value as CF7 would submit it.
+	 * @param bool  $expected_value  Expected bool value in merge vars.
+	 */
+	public function test_get_merge_vars_gdpr_falsy_values( $submitted_value, $expected_value ) {
+		$cf7_crm = array(
+			'fc_crm_type'              => 'clientify',
+			'fc_crm_apipassword'       => 'api-password',
+			'fc_crm_module'            => 'Contacts',
+			'fc_crm_field-gdpr_accept' => 'extra-info',
+		);
+
+		$submitted_data = array(
+			'extra-info' => $submitted_value,
+		);
+
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
+
+		$this->assertCount( 1, $merge_vars );
+		$this->assertSame( 'gdpr_accept', $merge_vars[0]['name'] );
+		$this->assertIsBool( $merge_vars[0]['value'] );
+		$this->assertSame( $expected_value, $merge_vars[0]['value'] );
 	}
 }

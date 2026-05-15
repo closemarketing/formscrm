@@ -554,11 +554,21 @@ class GFCRM extends GFFeedAddOn {
 			return $crm_feed_fields;
 		}
 
-		if ( false === $login_crm ) {
+		if ( true !== $login_crm && false !== $login_crm ) {
 			// Connection status field already added above, no additional fields needed.
 			return $crm_feed_fields;
 		} else {
-			$module = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
+			$module          = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
+			$modules_choices = $this->crmlib->list_modules( $settings );
+
+			if ( empty( $modules_choices ) ) {
+				$modules_choices = array(
+					array(
+						'label' => esc_html__( 'No modules found. Check your API credentials.', 'formscrm' ),
+						'value' => '',
+					),
+				);
+			}
 
 			$crm_feed_fields[] = array(
 				'name'     => 'fc_crm_module',
@@ -566,7 +576,7 @@ class GFCRM extends GFFeedAddOn {
 				'type'     => 'select',
 				'class'    => 'medium',
 				'onchange' => 'jQuery(this).parents("form").submit();',
-				'choices'  => $this->crmlib->list_modules( $settings ),
+				'choices'  => $modules_choices,
 			);
 			if ( empty( $module ) ) {
 				$crm_feed_fields[] = array(

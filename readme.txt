@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 4.3.3
-Version: 4.3.3
+Stable tag: 4.3.4
+Version: 4.3.4
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -244,8 +244,14 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= next =
+* Fixed: Clientify GDPR checkbox value in Contact Form 7 now normalized to '1' (accepted) or '' (not accepted), regardless of the checkbox label language.
+
 = 4.3.4 =
 * Fixed: Elementor not getting correctly the module from settings.
+* Fixed: Normalize boolean CRM fields to standardized values for Clientify.
+* Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
+* Fixed: Brevo list_modules pagination now returns all lists instead of only 10 by properly sending limit/offset parameters and accumulating paginated results.
 
 = 4.3.3 =
 * Added: Smart support for Clientify API v2 and v1 with enhanced login response handling and error messages. 

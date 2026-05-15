@@ -1,0 +1,400 @@
+{
+	"attributes": [
+		{
+			"name": "PS_LAST_30_DAYS_CA",
+			"category": "calculated",
+			"type": "float",
+			"calculatedValue": "SUM[ORDER_PRICE,ORDER_DATE,>,NOW(-30)]"
+		},
+		{
+			"name": "PS_CA_USER",
+			"category": "calculated",
+			"type": "float",
+			"calculatedValue": "SUM[ORDER_PRICE]"
+		},
+		{
+			"name": "PS_ORDER_TOTAL",
+			"category": "calculated",
+			"type": "float",
+			"calculatedValue": "COUNT[ORDER_ID]"
+		},
+		{
+			"name": "WC_LAST_30_DAYS_CA",
+			"category": "calculated",
+			"type": "float",
+			"calculatedValue": "SUM[ORDER_PRICE,ORDER_DATE,>,NOW(-30)]"
+		},
+		{
+			"name": "WC_CA_USER",
+			"category": "calculated",
+			"type": "float",
+			"calculatedValue": "SUM[ORDER_PRICE]"
+		},
+		{
+			"name": "WC_ORDER_TOTAL",
+			"category": "calculated",
+			"type": "float",
+			"calculatedValue": "COUNT[ORDER_ID]"
+		},
+		{
+			"name": "BLACKLIST",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "COUNT[BLACKLISTED,BLACKLISTED,<,NOW()]"
+		},
+		{
+			"name": "READERS",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "COUNT[READERS,READERS,<,NOW()]"
+		},
+		{
+			"name": "CLICKERS",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "COUNT[CLICKERS,CLICKERS,<,NOW()]"
+		},
+		{
+			"name": "PS_CA_LAST_30DAYS",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "SUM[PS_LAST_30_DAYS_CA]"
+		},
+		{
+			"name": "PS_CA_TOTAL",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "SUM[PS_CA_USER]"
+		},
+		{
+			"name": "PS_ORDERS_COUNT",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "SUM[PS_ORDER_TOTAL]"
+		},
+		{
+			"name": "PROXY_OPENS",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "SUM[ORDER_PRICE,ORDER_DATE,>,NOW(-30)]"
+		},
+		{
+			"name": "DELIVERED",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "SUM[ORDER_PRICE]"
+		},
+		{
+			"name": "RETURN_PATH",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "COUNT[ORDER_ID]"
+		},
+		{
+			"name": "WC_CA_LAST_30DAYS",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "SUM[WC_LAST_30_DAYS_CA]"
+		},
+		{
+			"name": "WC_CA_TOTAL",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "SUM[WC_CA_USER]"
+		},
+		{
+			"name": "WC_ORDERS_COUNT",
+			"category": "global",
+			"type": "float",
+			"calculatedValue": "SUM[WC_ORDER_TOTAL]"
+		},
+		{
+			"name": "ORDER_ID",
+			"category": "transactional",
+			"type": "id"
+		},
+		{
+			"name": "ORDER_DATE",
+			"category": "transactional",
+			"type": "date"
+		},
+		{
+			"name": "ORDER_PRICE",
+			"category": "transactional",
+			"type": "float"
+		},
+		{
+			"name": "ENCUESTA_QUE_TE_FALTO",
+			"category": "transactional",
+			"type": "text"
+		},
+		{
+			"name": "NUMERO_DE_PEDIDOS",
+			"category": "transactional",
+			"type": "float"
+		},
+		{
+			"name": "NOMBRE",
+			"category": "normal",
+			"type": "text",
+			"field_key": "lastname"
+		},
+		{
+			"name": "SURNAME",
+			"category": "normal",
+			"type": "text",
+			"field_key": "firstname"
+		},
+		{
+			"name": "SMS",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CIV",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "NAME",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "BIRTHDAY",
+			"category": "normal",
+			"type": "date"
+		},
+		{
+			"name": "PS_LANG",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "GROUP_ID",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "STORE_ID",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CLIENT",
+			"category": "normal",
+			"type": "float"
+		},
+		{
+			"name": "DEFAULT_GROUP_ID",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "DOUBLE_OPT-IN",
+			"category": "category",
+			"enumeration": [
+				{
+					"value": 2,
+					"valueStr": "2",
+					"label": "No"
+				},
+				{
+					"value": 1,
+					"valueStr": "1",
+					"label": "Yes"
+				}
+			]
+		},
+		{
+			"name": "OPT_IN",
+			"category": "normal",
+			"type": "boolean"
+		},
+		{
+			"name": "GENDER",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "PHONE",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "SUBSCRIBED",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "EXT_ID",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CONTACT_TIMEZONE",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "JOB_TITLE",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "LINKEDIN",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "PRODUCTO",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CIUDAD",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "PROVINCIA",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "PAIS",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "WC_USER_ID",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "LANDLINE_NUMBER",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "WC_SUBSCRIPTION_STATUS",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "WC_DOUBLE_OPTED",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "WC_SUBSCRIPTION_LOCATION",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "WC_SHOP_URL",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CONTACT_SOURCE",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CONTACTO",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "ETAPA",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CODIGO_POSTAL",
+			"category": "normal",
+			"type": "float"
+		},
+		{
+			"name": "CANTIDAD_PEDIDOS",
+			"category": "normal",
+			"type": "float"
+		},
+		{
+			"name": "RFM_SEGMENT",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "RFM_RECENCY_DAYS",
+			"category": "normal",
+			"type": "float"
+		},
+		{
+			"name": "RFM_FREQUENCY",
+			"category": "normal",
+			"type": "float"
+		},
+		{
+			"name": "RFM_MONETARY",
+			"category": "normal",
+			"type": "float"
+		},
+		{
+			"name": "RFM_LAST_ORDER_DATE",
+			"category": "normal",
+			"type": "date"
+		},
+		{
+			"name": "RFM_UPDATED_AT",
+			"category": "normal",
+			"type": "date"
+		},
+		{
+			"name": "CRM_LIFECYCLE_STAGE",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CRM_LIFECYCLE_UPDATED_AT",
+			"category": "normal",
+			"type": "date"
+		},
+		{
+			"name": "CRM_FIRST_ORDER_DATE",
+			"category": "normal",
+			"type": "date"
+		},
+		{
+			"name": "CRM_ORDER_COUNT",
+			"category": "normal",
+			"type": "float"
+		},
+		{
+			"name": "CRM_TOTAL_SPENT",
+			"category": "normal",
+			"type": "float"
+		},
+		{
+			"name": "CRM_CAN_EMAIL",
+			"category": "normal",
+			"type": "boolean"
+		},
+		{
+			"name": "CRM_CONTACTABILITY_STATUS",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CRM_CONTACTABILITY_REASON",
+			"category": "normal",
+			"type": "text"
+		},
+		{
+			"name": "CRM_LAST_CONTACTABILITY_CHECK",
+			"category": "normal",
+			"type": "date"
+		}
+	]
+}

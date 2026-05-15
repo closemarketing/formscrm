@@ -79,8 +79,8 @@ class FORMSCRM_CF7_Settings {
 						}
 						?>
 					</select>
-					<span class="formscrm-saving-indicator" style="display:none; margin-left:10px; color:#46b450;">
-						<span class="dashicons dashicons-update-alt" style="animation: rotation 1s infinite linear;"></span>
+					<span class="formscrm-saving-indicator">
+						<span class="dashicons dashicons-update-alt"></span>
 						<?php esc_html_e( 'Saving...', 'formscrm' ); ?>
 					</span>
 				</p>
@@ -133,9 +133,14 @@ class FORMSCRM_CF7_Settings {
 					?>
 					<p>
 						<label for="fc_crm_module"><?php esc_html_e( 'CRM Module:', 'formscrm' ); ?></label><br />
+						<?php
+						$modules = $this->crmlib->list_modules( $cf7_crm );
+						if ( empty( $modules ) ) {
+							echo '<p style="color: red;">' . esc_html__( 'No modules found. Check your API credentials and try reconnecting.', 'formscrm' ) . '</p>';
+						} else {
+							?>
 						<select name="wpcf7-crm[fc_crm_module]" class="medium formscrm-autosubmit" id="fc_crm_module" data-formscrm-autosubmit="true">
 							<?php
-							$modules = $this->crmlib->list_modules( $cf7_crm );
 							foreach ( $modules as $module ) {
 								$value = '';
 								if ( ! empty( $module['value'] ) ) {
@@ -159,10 +164,13 @@ class FORMSCRM_CF7_Settings {
 							}
 							?>
 						</select>
-						<span class="formscrm-saving-indicator" style="display:none; margin-left:10px; color:#46b450;">
-							<span class="dashicons dashicons-update-alt" style="animation: rotation 1s infinite linear;"></span>
+						<span class="formscrm-saving-indicator">
+							<span class="dashicons dashicons-update-alt"></span>
 							<?php esc_html_e( 'Saving...', 'formscrm' ); ?>
 						</span>
+							<?php
+						}
+						?>
 					</p>
 					<p>
 						<label for="wpcf7-crm-fc_crm_mode_expert"><?php esc_html_e( 'Expert Mode', 'formscrm' ); ?></label><br />
@@ -179,14 +187,10 @@ class FORMSCRM_CF7_Settings {
 			if ( ! empty( $this->crmlib ) ) {
 				$login_crm = $this->crmlib->login( $cf7_crm );
 				if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
-					return;
-				}
-
-				if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
 					echo '<p style="color: red;">' . esc_html( $login_crm['message'] ) . '</p>';
 					return;
 				}
-				if ( false === $login_crm ) {
+				if ( true !== $login_crm && false !== $login_crm ) {
 					return;
 				}
 			}
@@ -326,12 +330,17 @@ class FORMSCRM_CF7_Settings {
 			}
 			$crm_key = str_replace( 'fc_crm_field-', '', $key );
 
-			if ( isset( $submitted_data[ $value ] ) ) {
+			if ( array_key_exists( $value, $submitted_data ) ) {
 				$value = $submitted_data[ $value ];
 			}
 
 			if ( is_array( $value ) ) {
 				$value = implode( ',', $value );
+			}
+
+			// Normalize boolean CRM fields to true/false as required by the API.
+			if ( in_array( $crm_key, array( 'gdpr_accept', 'disclaimer' ), true ) ) {
+				$value = ! empty( $value );
 			}
 
 			// Process dynamic values (shortcodes).

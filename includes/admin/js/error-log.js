@@ -69,22 +69,7 @@
 				success: function(response) {
 					if (response.success) {
 						alert(response.data.message || 'Entry resent successfully');
-						
-						// Update status in table.
-						const $row = $button.closest('tr');
-						$row.find('.fcrm-status')
-							.removeClass('fcrm-status-error')
-							.addClass('fcrm-status-success')
-							.css({
-								'background': '#e8f5e9',
-								'color': '#2e7d32'
-							})
-							.text(formscrmErrorLog.successText || 'Success');
-						
-						// Update attempts count.
-						const $attemptsCell = $row.find('td').eq(5);
-						const currentAttempts = parseInt($attemptsCell.text());
-						$attemptsCell.text(currentAttempts + 1);
+						location.reload();
 					} else {
 						alert('Error: ' + (response.data.message || 'Failed to resend entry'));
 					}
