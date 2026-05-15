@@ -76,7 +76,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		 */
 		public function check_database_version() {
 			$installed_version = get_option( 'formscrm_error_log_db_version', '0' );
-			$current_version   = '1.1';
+			$current_version   = '1.2';
 
 			if ( version_compare( $installed_version, $current_version, '<' ) ) {
 				$this->create_table();
@@ -513,29 +513,35 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			$date_from = isset( $_POST['date_from'] ) ? sanitize_text_field( wp_unslash( $_POST['date_from'] ) ) : '';
 			$date_to   = isset( $_POST['date_to'] ) ? sanitize_text_field( wp_unslash( $_POST['date_to'] ) ) : '';
 
-			if ( empty( $date_from ) || empty( $date_to ) ) {
-				wp_send_json_error( array( 'message' => __( 'Please select start and end dates', 'formscrm' ) ) );
+			// Validate date format (YYYY-MM-DD) only when provided.
+			if ( ! empty( $date_from ) && ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_from ) ) {
+				wp_send_json_error( array( 'message' => __( 'Invalid date format', 'formscrm' ) ) );
 			}
-
-			// Validate date format (YYYY-MM-DD).
-			if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_from ) || ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_to ) ) {
+			if ( ! empty( $date_to ) && ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_to ) ) {
 				wp_send_json_error( array( 'message' => __( 'Invalid date format', 'formscrm' ) ) );
 			}
 
 			$csv_data = $this->export_csv( $date_from, $date_to );
 
 			if ( ! $csv_data ) {
-				wp_send_json_error( array( 'message' => __( 'No logs found for the selected date range', 'formscrm' ) ) );
+				wp_send_json_error( array( 'message' => __( 'No logs found', 'formscrm' ) ) );
 			}
 
 			// Generate CSV content in memory.
 			$csv_content = $this->generate_csv_content( $csv_data );
 
+			// Build filename based on whether dates were provided.
+			if ( $date_from && $date_to ) {
+				$filename = 'formscrm-error-logs-' . $date_from . '-to-' . $date_to . '.csv';
+			} else {
+				$filename = 'formscrm-error-logs-all.csv';
+			}
+
 			// Return CSV content to client for download.
 			wp_send_json_success(
 				array(
 					'csv_content' => $csv_content,
-					'filename'    => 'formscrm-error-logs-' . $date_from . '-to-' . $date_to . '.csv',
+					'filename'    => $filename,
 				)
 			);
 		}
@@ -621,23 +627,25 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		public function export_csv( $date_from, $date_to ) {
 			global $wpdb;
 
-			if ( empty( $date_from ) || empty( $date_to ) ) {
-				return false;
-			}
-
-			// Convert dates to MySQL datetime format (start and end of day).
-			$from_datetime = $date_from . ' 00:00:00';
-			$to_datetime   = $date_to . ' 23:59:59';
-
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$query = $wpdb->prepare(
-				"SELECT id, error_date, crm_type, form_type, form_type_title, form_name, entry_id, error_message, status, resend_attempts, last_resend_date
-				 FROM {$this->table_name}
-				 WHERE error_date >= %s AND error_date <= %s
-				 ORDER BY error_date DESC",
-				$from_datetime,
-				$to_datetime
-			);
+			if ( ! empty( $date_from ) && ! empty( $date_to ) ) {
+				// Convert dates to MySQL datetime format (start and end of day).
+				$from_datetime = $date_from . ' 00:00:00';
+				$to_datetime   = $date_to . ' 23:59:59';
+
+				$query = $wpdb->prepare(
+					"SELECT id, error_date, crm_type, form_type, form_type_title, form_name, entry_id, error_message, status, resend_attempts, last_resend_date
+					 FROM {$this->table_name}
+					 WHERE error_date >= %s AND error_date <= %s
+					 ORDER BY error_date DESC",
+					$from_datetime,
+					$to_datetime
+				);
+			} else {
+				$query = "SELECT id, error_date, crm_type, form_type, form_type_title, form_name, entry_id, error_message, status, resend_attempts, last_resend_date
+					 FROM {$this->table_name}
+					 ORDER BY error_date DESC";
+			}
 			// phpcs:enable
 
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

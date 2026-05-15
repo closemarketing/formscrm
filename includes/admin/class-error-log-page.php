@@ -62,19 +62,10 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 
 			// Localize datepicker if not English.
 			$lang = substr( get_locale(), 0, 2 );
-			if ( 'es' === $lang ) {
+			if ( in_array( $lang, array( 'es', 'fr' ), true ) ) {
 				wp_enqueue_script(
-					'jquery-ui-datepicker-es',
-					'https://code.jquery.com/ui/1.13.2/i18n/datepicker-es.min.js',
-					array( 'jquery-ui-datepicker' ),
-					'1.13.2',
-					true
-				);
-			}
-			if ( 'fr' === $lang ) {
-				wp_enqueue_script(
-					'jquery-ui-datepicker-fr',
-					'https://code.jquery.com/ui/1.13.2/i18n/datepicker-fr.min.js',
+					'jquery-ui-datepicker-' . $lang,
+					FORMSCRM_PLUGIN_URL . 'includes/assets/js/datepicker-' . $lang . '.js',
 					array( 'jquery-ui-datepicker' ),
 					'1.13.2',
 					true

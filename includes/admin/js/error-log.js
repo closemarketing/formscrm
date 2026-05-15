@@ -162,11 +162,6 @@
 			const dateFrom = $('#fcrm-export-date-from').val();
 			const dateTo = $('#fcrm-export-date-to').val();
 
-			if (!dateFrom || !dateTo) {
-				alert('Please select both start and end dates');
-				return;
-			}
-
 			const originalText = $button.text();
 			$button.prop('disabled', true).text(formscrmErrorLog.exporting || 'Exporting...');
 
