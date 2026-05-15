@@ -7,6 +7,29 @@
 	'use strict';
 
 	$(document).ready(function() {
+		// Date picker initialization.
+		const datePickerOptions = {
+			dateFormat: 'yy-mm-dd',
+			changeMonth: true,
+			changeYear: true,
+			yearRange: '-10:+0'
+		};
+
+		// Add locale if available.
+		if ($.datepicker && typeof $.datepicker.regional !== 'undefined') {
+			const lang = document.documentElement.lang || 'en';
+			const langCode = lang.substring(0, 2);
+			if ($.datepicker.regional[langCode]) {
+				$.extend(datePickerOptions, $.datepicker.regional[langCode]);
+			}
+		}
+
+		$('#fcrm-export-date-from').datepicker(datePickerOptions);
+		$('#fcrm-export-date-to').datepicker(datePickerOptions);
+
+		// Fix datepicker layout via CSS (handled in formscrm-admin.css).
+		// No JS manipulation needed, CSS handles all layout.
+
 		// View details toggle.
 		$('.fcrm-view-details-btn').on('click', function() {
 			const logId = $(this).data('log-id');
@@ -129,6 +152,50 @@
 				error: function(xhr, status, error) {
 					alert('AJAX Error: ' + error);
 					$button.prop('disabled', false).text(formscrmErrorLog.clearAll || 'Clear All Logs');
+				}
+			});
+		});
+
+		// Export CSV.
+		$('#fcrm-export-csv').on('click', function() {
+			const $button = $(this);
+			const dateFrom = $('#fcrm-export-date-from').val();
+			const dateTo = $('#fcrm-export-date-to').val();
+
+			const originalText = $button.text();
+			$button.prop('disabled', true).text(formscrmErrorLog.exporting || 'Exporting...');
+
+			$.ajax({
+				url: formscrmErrorLog.ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'formscrm_export_csv',
+					date_from: dateFrom,
+					date_to: dateTo,
+					nonce: formscrmErrorLog.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						// Create blob and download.
+						const csvContent = response.data.csv_content;
+						const filename = response.data.filename;
+						const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+						const link = document.createElement('a');
+						link.setAttribute('href', URL.createObjectURL(blob));
+						link.setAttribute('download', filename);
+						link.style.visibility = 'hidden';
+						document.body.appendChild(link);
+						link.click();
+						document.body.removeChild(link);
+					} else {
+						alert('Error: ' + (response.data.message || 'Failed to export CSV'));
+					}
+				},
+				error: function(xhr, status, error) {
+					alert('AJAX Error: ' + error);
+				},
+				complete: function() {
+					$button.prop('disabled', false).text(originalText);
 				}
 			});
 		});

@@ -51,6 +51,27 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 				true
 			);
 
+			wp_enqueue_script( 'jquery-ui-datepicker' );
+			wp_enqueue_style( 'jquery-ui' );
+			wp_enqueue_style(
+				'formscrm-admin',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-admin.css',
+				array(),
+				FORMSCRM_VERSION
+			);
+
+			// Localize datepicker if not English.
+			$lang = substr( get_locale(), 0, 2 );
+			if ( in_array( $lang, array( 'es', 'fr' ), true ) ) {
+				wp_enqueue_script(
+					'jquery-ui-datepicker-' . $lang,
+					FORMSCRM_PLUGIN_URL . 'includes/assets/js/datepicker-' . $lang . '.js',
+					array( 'jquery-ui-datepicker' ),
+					'1.13.2',
+					true
+				);
+			}
+
 			wp_localize_script(
 				'formscrm-error-log',
 				'formscrmErrorLog',
@@ -65,6 +86,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 					'viewDetails'   => __( 'Details', 'formscrm' ),
 					'hideDetails'   => __( 'Hide', 'formscrm' ),
 					'successText'   => __( 'Success', 'formscrm' ),
+					'exporting'     => __( 'Exporting...', 'formscrm' ),
 				)
 			);
 		}
@@ -150,7 +172,15 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 							</a>
 						</form>
 
-						<button type="button" class="fcrm-button fcrm-button-danger" id="fcrm-clear-all-logs">
+						<div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+							<input type="text" id="fcrm-export-date-from" class="fcrm-form-input" placeholder="<?php esc_attr_e( 'From', 'formscrm' ); ?>" style="width: 150px;">
+							<input type="text" id="fcrm-export-date-to" class="fcrm-form-input" placeholder="<?php esc_attr_e( 'To', 'formscrm' ); ?>" style="width: 150px;">
+							<button type="button" class="fcrm-button fcrm-button-secondary" id="fcrm-export-csv">
+								<?php esc_html_e( 'Export CSV', 'formscrm' ); ?>
+							</button>
+						</div>
+
+						<button type="button" class="fcrm-button fcrm-button-danger" id="fcrm-clear-all-logs" style="margin-top: 10px;">
 							<?php esc_html_e( 'Clear All Logs', 'formscrm' ); ?>
 						</button>
 					</div>
