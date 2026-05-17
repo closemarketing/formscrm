@@ -22,6 +22,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
+- [JetForms](https://wordpress.org/plugins/jetformbuilder/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
