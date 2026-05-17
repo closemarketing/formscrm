@@ -246,6 +246,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = 4.3.4 =
+* Added: Support for JetFormBuilder forms plugin with full field mapping and global settings integration.
 * Fixed: Elementor not getting correctly the module from settings.
 * Fixed: Normalize boolean CRM fields to standardized values for Clientify.
 * Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
