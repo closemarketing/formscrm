@@ -22,6 +22,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
+- [JetForms](https://wordpress.org/plugins/jetformbuilder/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -248,6 +249,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 * Fixed: Clientify GDPR checkbox value in Contact Form 7 now normalized to '1' (accepted) or '' (not accepted), regardless of the checkbox label language.
 
 = 4.3.4 =
+* Added: Support for JetFormBuilder forms plugin with full field mapping and global settings integration.
 * Fixed: Elementor not getting correctly the module from settings.
 * Fixed: Normalize boolean CRM fields to standardized values for Clientify.
 * Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
