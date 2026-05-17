@@ -166,13 +166,17 @@ function formscrm_jfb_settings_assets() {
 /**
  * Merge global saved credentials into $settings when use_global is set.
  *
- * @param array $settings
- * @return array
+ * @param array $settings Request settings, may include use_global flag.
+ * @return array Settings with global credentials merged in when applicable.
  */
 function formscrm_jfb_resolve_settings( array $settings ): array {
 	if ( ! empty( $settings['use_global'] ) ) {
-		$global   = get_option( \Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler::PREFIX . FORMSCRM_JFB_Tab_Handler::SLUG, '{}' );
-		$global   = json_decode( $global, true ) ?: array();
+		$option_name = \Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler::PREFIX . FORMSCRM_JFB_Tab_Handler::SLUG;
+		$raw_global  = get_option( $option_name, '{}' );
+		$global      = json_decode( $raw_global, true );
+		if ( ! is_array( $global ) ) {
+			$global = array();
+		}
 		// Global credentials take precedence; per-form values (module, fields_map) are kept.
 		$settings = array_merge( $settings, $global );
 	}
@@ -182,7 +186,7 @@ function formscrm_jfb_resolve_settings( array $settings ): array {
 /**
  * REST: return available modules for the selected CRM type + credentials.
  *
- * @param WP_REST_Request $request
+ * @param WP_REST_Request $request The REST request containing CRM settings as JSON body.
  * @return WP_REST_Response|WP_Error
  */
 function formscrm_jfb_rest_get_modules( $request ) {
@@ -218,7 +222,7 @@ function formscrm_jfb_rest_get_modules( $request ) {
 /**
  * REST: return available CRM fields for a module.
  *
- * @param WP_REST_Request $request
+ * @param WP_REST_Request $request The REST request containing CRM settings and module as JSON body.
  * @return WP_REST_Response|WP_Error
  */
 function formscrm_jfb_rest_get_fields( $request ) {

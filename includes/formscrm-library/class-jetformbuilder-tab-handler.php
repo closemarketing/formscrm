@@ -23,6 +23,11 @@ class FORMSCRM_JFB_Tab_Handler extends Base_Handler {
 
 	const SLUG = 'formscrm-tab';
 
+	/**
+	 * Returns the tab slug, used as the Vue component name and option key.
+	 *
+	 * @return string
+	 */
 	public function slug(): string {
 		return self::SLUG;
 	}

@@ -29,10 +29,20 @@ class FORMSCRM_JFB_Action extends Base {
 	 */
 	public $option_name = FORMSCRM_JFB_Tab_Handler::SLUG;
 
+	/**
+	 * Returns the action type ID.
+	 *
+	 * @return string
+	 */
 	public function get_id(): string {
 		return 'formscrm';
 	}
 
+	/**
+	 * Returns the human-readable action name.
+	 *
+	 * @return string
+	 */
 	public function get_name(): string {
 		return __( 'FormsCRM', 'formscrm' );
 	}
@@ -44,18 +54,18 @@ class FORMSCRM_JFB_Action extends Base {
 	 */
 	public function editor_labels(): array {
 		return array(
-			'use_global'     => __( 'Use Global Settings', 'formscrm' ),
-			'fc_crm_type'    => __( 'CRM Type', 'formscrm' ),
-			'fc_crm_url'     => __( 'URL', 'formscrm' ),
-			'fc_crm_username'=> __( 'Username', 'formscrm' ),
-			'fc_crm_password'=> __( 'Password', 'formscrm' ),
+			'use_global'         => __( 'Use Global Settings', 'formscrm' ),
+			'fc_crm_type'        => __( 'CRM Type', 'formscrm' ),
+			'fc_crm_url'         => __( 'URL', 'formscrm' ),
+			'fc_crm_username'    => __( 'Username', 'formscrm' ),
+			'fc_crm_password'    => __( 'Password', 'formscrm' ),
 			'fc_crm_apipassword' => __( 'API Key / Password', 'formscrm' ),
-			'fc_crm_apisales'=> __( 'API Sales', 'formscrm' ),
-			'fc_crm_odoodb'  => __( 'Odoo DB', 'formscrm' ),
-			'fc_crm_module'  => __( 'CRM Module', 'formscrm' ),
-			'fields_map'     => __( 'Fields Map', 'formscrm' ),
-			'fetch_modules'  => __( 'Fetch Modules', 'formscrm' ),
-			'fetch_fields'   => __( 'Fetch Fields', 'formscrm' ),
+			'fc_crm_apisales'    => __( 'API Sales', 'formscrm' ),
+			'fc_crm_odoodb'      => __( 'Odoo DB', 'formscrm' ),
+			'fc_crm_module'      => __( 'CRM Module', 'formscrm' ),
+			'fields_map'         => __( 'Fields Map', 'formscrm' ),
+			'fetch_modules'      => __( 'Fetch Modules', 'formscrm' ),
+			'fetch_fields'       => __( 'Fetch Fields', 'formscrm' ),
 		);
 	}
 
