@@ -1,18 +1,17 @@
 name: Playground PR Preview
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize]
 
-permissions: {}
+permissions:
+  issues: write
+  pull-requests: write
 
 jobs:
   playground-preview:
     name: Comment with Playground preview link
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
     steps:
       - name: Post Playground preview comment
         uses: actions/github-script@v7

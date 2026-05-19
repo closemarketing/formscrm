@@ -21,6 +21,7 @@ package-lock.json
 
 # WordPress
 .wordpress-org
+.wordpress-playground
 
 
 # Testing
