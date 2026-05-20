@@ -1102,3 +1102,59 @@
 .formscrm-saving-indicator.is-active {
 	display: inline-flex;
 }
+
+.gfcrm-module-search-wrapper {
+	position: relative;
+	display: inline-block;
+	width: 25em;
+}
+
+.gfcrm-module-search-input {
+	width: 100%;
+	padding: 4px 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+	line-height: 2;
+	box-sizing: border-box;
+	background: #fff;
+}
+
+.gfcrm-module-search-input:focus {
+	border-color: #2271b1;
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.gfcrm-module-search-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background: #fff;
+	border: 1px solid #8c8f94;
+	border-top: none;
+	border-radius: 0 0 4px 4px;
+	max-height: 300px;
+	overflow-y: auto;
+	z-index: 9999;
+	box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.gfcrm-module-search-item {
+	padding: 8px 12px;
+	cursor: pointer;
+	font-size: 13px;
+}
+
+.gfcrm-module-search-item:hover,
+.gfcrm-module-search-item.selected {
+	background: #2271b1;
+	color: #fff;
+}
+
+.gfcrm-module-search-no-results {
+	padding: 8px 12px;
+	color: #646970;
+	font-size: 13px;
+}
