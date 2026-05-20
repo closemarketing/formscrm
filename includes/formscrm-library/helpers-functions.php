@@ -31,30 +31,32 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 		// Log available CRM paths for debugging.
 		formscrm_debug_message( 'Available CRM paths: ' . wp_json_encode( array_keys( $array_path ) ) );
 
+		$instance = null;
+
 		if ( isset( $array_path[ $crmname ] ) ) {
 			$file_path = $array_path[ $crmname ];
 
 			// Verify file exists before including.
-			if ( ! file_exists( $file_path ) ) {
+			if ( file_exists( $file_path ) ) {
+				include_once $file_path;
+				formscrm_debug_message( 'Included CRM library: ' . $file_path );
+			} else {
 				formscrm_debug_message( 'ERROR: CRM library file not found: ' . $file_path );
-				return null;
 			}
-
-			include_once $file_path;
-			formscrm_debug_message( 'Included CRM library: ' . $file_path );
 		} else {
 			formscrm_debug_message( 'ERROR: CRM path not registered for: ' . $crmname );
-			return null;
 		}
 
 		// Verify class exists after including file.
 		if ( class_exists( $crmclassname ) ) {
 			formscrm_debug_message( 'Successfully created instance of: ' . $crmclassname );
-			return new $crmclassname();
+			$instance = new $crmclassname();
+		} else {
+			formscrm_debug_message( 'ERROR: CRM class not found: ' . $crmclassname );
 		}
 
-		formscrm_debug_message( 'ERROR: CRM class not found: ' . $crmclassname );
-		return null;
+		// Allow tests and extensions to override the resolved instance.
+		return apply_filters( 'formscrm_get_api_class', $instance, $crm_type );
 	}
 }
 
@@ -85,7 +87,7 @@ if ( ! function_exists( 'formscrm_get_crm_settings' ) ) {
 
 		formscrm_debug_message( 'Retrieved CRM settings for form type: ' . $form_type );
 
-		return $settings;
+		return apply_filters( 'formscrm_get_crm_settings', $settings, $form_type );
 	}
 }
 
