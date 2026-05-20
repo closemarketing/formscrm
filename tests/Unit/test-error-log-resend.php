@@ -150,8 +150,19 @@ class ErrorLogResendTest extends WP_UnitTestCase {
 
 		delete_option( 'formscrm_error_log_db_version' );
 
+		// Clear all scheduled retry hooks so they don't bleed between tests.
+		$crons = _get_cron_array();
+		foreach ( $crons as $timestamp => $hooks ) {
+			if ( isset( $hooks['formscrm_retry_failed_entry'] ) ) {
+				foreach ( $hooks['formscrm_retry_failed_entry'] as $key => $event ) {
+					wp_unschedule_event( $timestamp, 'formscrm_retry_failed_entry', $event['args'] );
+				}
+			}
+		}
+
 		remove_all_filters( 'pre_http_request' );
 		remove_all_filters( 'formscrm_get_crm_settings' );
+		remove_all_filters( 'formscrm_get_api_class' );
 
 		parent::tearDown();
 	}
