@@ -286,6 +286,53 @@ class CRMLIB_Odoo {
 	}
 
 	/**
+	 * Resolves a UTM name to its Odoo record ID, creating it if it does not exist.
+	 *
+	 * @param string $model Odoo UTM model (e.g. 'utm.source').
+	 * @param string $name  UTM value name (e.g. 'google').
+	 * @return int|false Record ID or false on failure.
+	 */
+	private function resolve_utm_id( $model, $name ) {
+		$search = $this->json_rpc(
+			'object',
+			'execute_kw',
+			array(
+				$this->db,
+				$this->uid,
+				$this->password,
+				$model,
+				'search_read',
+				array( array( array( 'name', '=', $name ) ) ),
+				array( 'fields' => array( 'id' ), 'limit' => 1 ),
+			)
+		);
+
+		if ( ! empty( $search['result'][0]['id'] ) ) {
+			return intval( $search['result'][0]['id'] );
+		}
+
+		$create = $this->json_rpc(
+			'object',
+			'execute_kw',
+			array(
+				$this->db,
+				$this->uid,
+				$this->password,
+				$model,
+				'create',
+				array( array( 'name' => $name ) ),
+				new stdClass(),
+			)
+		);
+
+		if ( ! empty( $create['result'] ) && is_int( $create['result'] ) ) {
+			return intval( $create['result'] );
+		}
+
+		return false;
+	}
+
+	/**
 	 * Sends a JSON-RPC request to Odoo.
 	 *
 	 * @param string $service Odoo service name.
@@ -343,53 +390,6 @@ class CRMLIB_Odoo {
 	}
 
 	/**
-	 * Resolves a UTM name to its Odoo record ID, creating it if it does not exist.
-	 *
-	 * @param string $model Odoo UTM model (e.g. 'utm.source').
-	 * @param string $name  UTM value name (e.g. 'google').
-	 * @return int|false Record ID or false on failure.
-	 */
-	private function resolve_utm_id( $model, $name ) {
-		$search = $this->json_rpc(
-			'object',
-			'execute_kw',
-			array(
-				$this->db,
-				$this->uid,
-				$this->password,
-				$model,
-				'search_read',
-				array( array( array( 'name', '=', $name ) ) ),
-				array( 'fields' => array( 'id' ), 'limit' => 1 ),
-			)
-		);
-
-		if ( ! empty( $search['result'][0]['id'] ) ) {
-			return intval( $search['result'][0]['id'] );
-		}
-
-		$create = $this->json_rpc(
-			'object',
-			'execute_kw',
-			array(
-				$this->db,
-				$this->uid,
-				$this->password,
-				$model,
-				'create',
-				array( array( 'name' => $name ) ),
-				new stdClass(),
-			)
-		);
-
-		if ( ! empty( $create['result'] ) && is_int( $create['result'] ) ) {
-			return intval( $create['result'] );
-		}
-
-		return false;
-	}
-
-	/**
 	 * Logs debug messages when WP_DEBUG is active.
 	 *
 	 * @param string $message Message to log.
@@ -399,7 +399,7 @@ class CRMLIB_Odoo {
 		if ( function_exists( 'formscrm_debug_message' ) ) {
 			formscrm_debug_message( $message );
 		} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'FORMSCRM ODOO: ' . $message );
+			error_log( 'FORMSCRM ODOO: ' . $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 }

@@ -899,19 +899,6 @@ class GFCRM extends GFFeedAddOn {
 			$merge_vars = $this->remove_blank_custom_fields( $merge_vars );
 		}
 
-		$utm_vars = formscrm_get_utm_merge_vars();
-		$merge_vars = array_merge( $merge_vars, $utm_vars );
-
-		// Save last-touch and first-touch UTM values to entry meta.
-		if ( ! empty( $entry['id'] ) ) {
-			foreach ( $utm_vars as $utm ) {
-				gform_update_meta( $entry['id'], 'formscrm_' . $utm['name'], $utm['value'] );
-			}
-			foreach ( formscrm_get_utm_first_values() as $param => $value ) {
-				gform_update_meta( $entry['id'], 'formscrm_first_' . $param, $value );
-			}
-		}
-
 		formscrm_debug_message( $settings );
 		formscrm_debug_message( $merge_vars );
 
