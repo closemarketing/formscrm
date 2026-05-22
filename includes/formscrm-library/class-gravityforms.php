@@ -151,6 +151,7 @@ class GFCRM extends GFFeedAddOn {
 			add_action( 'gform_form_list_column_formscrm_feeds', array( $this, 'display_feeds_column' ), 10, 1 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_forms_list_styles' ) );
 			add_filter( 'gform_field_map_choices', array( $this, 'add_gravitypdf_field_map_choices' ), 10, 4 );
+			add_action( 'gform_entry_detail', array( $this, 'display_utm_entry_detail' ), 10, 2 );
 		}
 	}
 
@@ -898,7 +899,18 @@ class GFCRM extends GFFeedAddOn {
 			$merge_vars = $this->remove_blank_custom_fields( $merge_vars );
 		}
 
-		$merge_vars = array_merge( $merge_vars, formscrm_get_utm_merge_vars() );
+		$utm_vars = formscrm_get_utm_merge_vars();
+		$merge_vars = array_merge( $merge_vars, $utm_vars );
+
+		// Save last-touch and first-touch UTM values to entry meta.
+		if ( ! empty( $entry['id'] ) ) {
+			foreach ( $utm_vars as $utm ) {
+				gform_update_meta( $entry['id'], 'formscrm_' . $utm['name'], $utm['value'] );
+			}
+			foreach ( formscrm_get_utm_first_values() as $param => $value ) {
+				gform_update_meta( $entry['id'], 'formscrm_first_' . $param, $value );
+			}
+		}
 
 		formscrm_debug_message( $settings );
 		formscrm_debug_message( $merge_vars );
@@ -1202,5 +1214,52 @@ class GFCRM extends GFFeedAddOn {
 		formscrm_testserver();
 
 		return $login_result;
+	}
+
+	/**
+	 * Displays UTM data in the Gravity Forms entry detail page.
+	 *
+	 * @param array $form  Form data.
+	 * @param array $entry Entry data.
+	 * @return void
+	 */
+	public function display_utm_entry_detail( $form, $entry ) {
+		$utm_params = array( 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content' );
+		$utm_labels = array(
+			'utm_source'   => __( 'Source', 'formscrm' ),
+			'utm_medium'   => __( 'Medium', 'formscrm' ),
+			'utm_campaign' => __( 'Campaign', 'formscrm' ),
+			'utm_term'     => __( 'Term', 'formscrm' ),
+			'utm_content'  => __( 'Content', 'formscrm' ),
+		);
+
+		$has_utm = false;
+		foreach ( $utm_params as $param ) {
+			if ( ! empty( gform_get_meta( $entry['id'], 'formscrm_' . $param ) ) ) {
+				$has_utm = true;
+				break;
+			}
+		}
+
+		if ( ! $has_utm ) {
+			return;
+		}
+
+		echo '<div class="postbox">';
+		echo '<h3 class="hndle" style="padding:10px 12px;">' . esc_html__( 'UTM Parameters', 'formscrm' ) . '</h3>';
+		echo '<div class="inside"><table class="widefat" style="border:0;">';
+
+		foreach ( $utm_params as $param ) {
+			$value = gform_get_meta( $entry['id'], 'formscrm_' . $param );
+			if ( empty( $value ) ) {
+				continue;
+			}
+			echo '<tr>';
+			echo '<td style="width:40%;font-weight:bold;">' . esc_html( $utm_labels[ $param ] ) . '</td>';
+			echo '<td>' . esc_html( $value ) . '</td>';
+			echo '</tr>';
+		}
+
+		echo '</table></div></div>';
 	}
 } //from main class

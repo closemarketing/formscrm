@@ -117,9 +117,6 @@ class CRMLIB_Odoo {
 					array( 'name' => 'email_from', 'label' => __( 'Email', 'formscrm' ), 'required' => false ),
 					array( 'name' => 'phone', 'label' => __( 'Phone', 'formscrm' ), 'required' => false ),
 					array( 'name' => 'description', 'label' => __( 'Description', 'formscrm' ), 'required' => false ),
-					array( 'name' => 'utm_source', 'label' => __( 'UTM Source', 'formscrm' ), 'required' => false ),
-					array( 'name' => 'utm_medium', 'label' => __( 'UTM Medium', 'formscrm' ), 'required' => false ),
-					array( 'name' => 'utm_campaign', 'label' => __( 'UTM Campaign', 'formscrm' ), 'required' => false ),
 				);
 				break;
 			case 'sale.order':

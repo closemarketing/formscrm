@@ -170,6 +170,87 @@ if ( ! function_exists( 'formscrm_get_dependency_odoodb' ) ) {
 	}
 }
 
+// Register UTM First/Last as columns in the Gravity Forms entries list.
+add_filter( 'gform_entry_meta', 'formscrm_register_utm_entry_meta', 10, 2 );
+if ( ! function_exists( 'formscrm_register_utm_entry_meta' ) ) {
+	/**
+	 * Registers UTM First and Last as entry meta columns in Gravity Forms.
+	 *
+	 * @param array $entry_meta Existing entry meta.
+	 * @param int   $form_id    Form ID.
+	 * @return array
+	 */
+	function formscrm_register_utm_entry_meta( $entry_meta, $form_id ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		$entry_meta['formscrm_utm_last'] = array(
+			'label'                      => __( 'UTM (Last)', 'formscrm' ),
+			'is_numeric'                 => false,
+			'is_default_column'          => false,
+			'filter'                     => array( 'operators' => array( 'is', 'isnot', 'contains' ) ),
+			'update_entry_meta_callback' => 'formscrm_update_utm_last_meta',
+		);
+		$entry_meta['formscrm_utm_first'] = array(
+			'label'                      => __( 'UTM (First)', 'formscrm' ),
+			'is_numeric'                 => false,
+			'is_default_column'          => false,
+			'filter'                     => array( 'operators' => array( 'is', 'isnot', 'contains' ) ),
+			'update_entry_meta_callback' => 'formscrm_update_utm_first_meta',
+		);
+		return $entry_meta;
+	}
+}
+
+if ( ! function_exists( 'formscrm_format_utm_for_column' ) ) {
+	/**
+	 * Formats UTM values for display in the entries list column.
+	 *
+	 * @param string $prefix Cookie prefix ('' for last, 'first_' for first).
+	 * @return string
+	 */
+	function formscrm_format_utm_for_column( $prefix ) {
+		$parts  = array();
+		$map    = array(
+			'utm_source'   => 'src',
+			'utm_medium'   => 'mdm',
+			'utm_campaign' => 'cmp',
+		);
+		foreach ( $map as $param => $short ) {
+			$cookie_key = 'fcrm_' . $prefix . $param;
+			if ( ! empty( $_COOKIE[ $cookie_key ] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$parts[] = $short . ': ' . sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_key ] ) );
+			}
+		}
+		return implode( ' / ', $parts );
+	}
+}
+
+if ( ! function_exists( 'formscrm_update_utm_last_meta' ) ) {
+	/**
+	 * Callback to populate formscrm_utm_last entry meta on submission.
+	 *
+	 * @param string $key      Meta key.
+	 * @param array  $lead     Entry data.
+	 * @param array  $form     Form data.
+	 * @return string
+	 */
+	function formscrm_update_utm_last_meta( $key, $lead, $form ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		return formscrm_format_utm_for_column( '' );
+	}
+}
+
+if ( ! function_exists( 'formscrm_update_utm_first_meta' ) ) {
+	/**
+	 * Callback to populate formscrm_utm_first entry meta on submission.
+	 *
+	 * @param string $key      Meta key.
+	 * @param array  $lead     Entry data.
+	 * @param array  $form     Form data.
+	 * @return string
+	 */
+	function formscrm_update_utm_first_meta( $key, $lead, $form ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		return formscrm_format_utm_for_column( 'first_' );
+	}
+}
+
 // UTM fields for WPForms and Elementor via their existing merge_vars filters.
 add_filter( 'formscrm_wpforms_merge_vars', 'formscrm_append_utm_to_merge_vars', 10, 1 );
 add_filter( 'formscrm_elementor_merge_vars', 'formscrm_append_utm_to_merge_vars', 10, 1 );

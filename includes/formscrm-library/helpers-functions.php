@@ -839,19 +839,43 @@ if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 
 if ( ! function_exists( 'formscrm_get_utm_merge_vars' ) ) {
 	/**
-	 * Returns UTM cookie values as merge_vars entries.
-	 *
-	 * Reads cookies set by formscrm-utm.js and returns them as an array
-	 * of name/value pairs ready to append to any $merge_vars array.
+	 * Returns last-touch UTM cookie values as merge_vars entries.
 	 *
 	 * @return array
 	 */
 	function formscrm_get_utm_merge_vars() {
+		return formscrm_read_utm_cookies( '' );
+	}
+}
+
+if ( ! function_exists( 'formscrm_get_utm_first_values' ) ) {
+	/**
+	 * Returns first-touch UTM cookie values keyed by param name.
+	 *
+	 * @return array e.g. ['utm_source' => 'google', ...]
+	 */
+	function formscrm_get_utm_first_values() {
+		$result = array();
+		foreach ( formscrm_read_utm_cookies( 'first_' ) as $item ) {
+			$result[ $item['name'] ] = $item['value'];
+		}
+		return $result;
+	}
+}
+
+if ( ! function_exists( 'formscrm_read_utm_cookies' ) ) {
+	/**
+	 * Reads UTM cookies with the given prefix and returns merge_vars array.
+	 *
+	 * @param string $prefix Cookie prefix after 'fcrm_' (e.g. '' or 'first_').
+	 * @return array
+	 */
+	function formscrm_read_utm_cookies( $prefix ) {
 		$utm_params = array( 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content' );
 		$merge_vars = array();
 
 		foreach ( $utm_params as $param ) {
-			$cookie_key = 'fcrm_' . $param;
+			$cookie_key = 'fcrm_' . $prefix . $param;
 			if ( ! empty( $_COOKIE[ $cookie_key ] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$merge_vars[] = array(
 					'name'  => $param,
