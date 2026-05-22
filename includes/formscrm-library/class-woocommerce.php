@@ -263,25 +263,37 @@ class FormsCRM_WooCommerce {
 		$wc_formscrm = get_option( 'wc_formscrm' );
 		$order       = new WC_Order( $order_id );
 
-		if ( $wc_formscrm && ! empty( $wc_formscrm['fc_crm_type'] ) ) {
-			$this->crmlib = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
-			$merge_vars   = $this->get_merge_vars( $wc_formscrm, $order );
+		formscrm_debug_message( 'WooCommerce CRM process start for order: ' . $order_id );
 
-			$response_result = $this->crmlib->create_entry( $wc_formscrm, $merge_vars );
+		if ( empty( $wc_formscrm ) || empty( $wc_formscrm['fc_crm_type'] ) ) {
+			formscrm_debug_message( 'WooCommerce CRM is not configured or no CRM type selected.' );
+			return;
+		}
 
-			if ( 'error' === $response_result['status'] ) {
-				$form_info = array(
-					'form_type'       => 'woocommerce',
-					'form_type_title' => 'WooCommerce',
-					'form_id'         => 'checkout',
-					'form_name'       => 'WooCommerce Checkout',
-					'entry_id'        => $order_id,
-				);
+		$this->crmlib = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
+		if ( empty( $this->crmlib ) ) {
+			formscrm_debug_message( 'WooCommerce CRM class could not be loaded for type: ' . $wc_formscrm['fc_crm_type'] );
+			return;
+		}
 
-				formscrm_alert_error( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
-			} else {
-				error_log( $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
-			}
+		$merge_vars = $this->get_merge_vars( $wc_formscrm, $order );
+		formscrm_debug_message( array( 'order_id' => $order_id, 'merge_vars' => $merge_vars ) );
+
+		$response_result = $this->crmlib->create_entry( $wc_formscrm, $merge_vars );
+		formscrm_debug_message( array( 'order_id' => $order_id, 'crm_response' => $response_result ) );
+
+		if ( 'error' === $response_result['status'] ) {
+			$form_info = array(
+				'form_type'       => 'woocommerce',
+				'form_type_title' => 'WooCommerce',
+				'form_id'         => 'checkout',
+				'form_name'       => 'WooCommerce Checkout',
+				'entry_id'        => $order_id,
+			);
+
+			formscrm_alert_error( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
+		} else {
+			formscrm_debug_message( 'WooCommerce CRM entry created successfully: ' . ( isset( $response_result['id'] ) ? $response_result['id'] : 'unknown' ) );
 		}
 	}
 
@@ -316,6 +328,8 @@ class FormsCRM_WooCommerce {
 			);
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$merge_vars = array_merge( $merge_vars, formscrm_get_utm_merge_vars() );
 
 		return $merge_vars;
 	}

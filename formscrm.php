@@ -57,6 +57,21 @@ add_filter(
 			'value' => 'mailerlite',
 		);
 
+		$choices[] = array(
+			'label' => 'Odoo',
+			'value' => 'odoo',
+		);
+
+		return $choices;
+	}
+);
+
+add_filter(
+	'formscrm_crmlib_path',
+	function ( $choices ) {
+
+		$choices['odoo'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-odoo.php';
+
 		return $choices;
 	}
 );

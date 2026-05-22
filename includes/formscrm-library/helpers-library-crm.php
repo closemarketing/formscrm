@@ -170,6 +170,21 @@ if ( ! function_exists( 'formscrm_get_dependency_odoodb' ) ) {
 	}
 }
 
+// UTM fields for WPForms and Elementor via their existing merge_vars filters.
+add_filter( 'formscrm_wpforms_merge_vars', 'formscrm_append_utm_to_merge_vars', 10, 1 );
+add_filter( 'formscrm_elementor_merge_vars', 'formscrm_append_utm_to_merge_vars', 10, 1 );
+if ( ! function_exists( 'formscrm_append_utm_to_merge_vars' ) ) {
+	/**
+	 * Appends UTM cookie values to merge_vars via filter.
+	 *
+	 * @param array $merge_vars Existing merge vars.
+	 * @return array
+	 */
+	function formscrm_append_utm_to_merge_vars( $merge_vars ) {
+		return array_merge( $merge_vars, formscrm_get_utm_merge_vars() );
+	}
+}
+
 // Visitor Key.
 add_action( 'init', 'formscrm_visitorkey_session', 1 );
 if ( ! function_exists( 'formscrm_visitorkey_session' ) ) {

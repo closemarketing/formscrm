@@ -898,6 +898,8 @@ class GFCRM extends GFFeedAddOn {
 			$merge_vars = $this->remove_blank_custom_fields( $merge_vars );
 		}
 
+		$merge_vars = array_merge( $merge_vars, formscrm_get_utm_merge_vars() );
+
 		formscrm_debug_message( $settings );
 		formscrm_debug_message( $merge_vars );
 
