@@ -102,6 +102,11 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'FormsCRM_WPFo
 	}
 }
 
+// JetFormBuilder.
+if ( is_plugin_active( 'jetformbuilder/jet-form-builder.php' ) && ! class_exists( 'FORMSCRM_JetFormBuilder' ) ) {
+	require_once 'class-jetformbuilder.php';
+}
+
 // Elementor.
 if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 	require_once 'elementor-ajax.php';

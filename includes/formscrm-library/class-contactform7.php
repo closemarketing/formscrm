@@ -341,6 +341,11 @@ class FORMSCRM_CF7_Settings {
 				$value = implode( ',', $value );
 			}
 
+			// Normalize boolean CRM fields to true/false as required by the API.
+			if ( in_array( $crm_key, array( 'gdpr_accept', 'disclaimer' ), true ) ) {
+				$value = ! empty( $value );
+			}
+
 			// Process dynamic values (shortcodes).
 			$value = self::fill_dynamic_value( $value, $submitted_data );
 
