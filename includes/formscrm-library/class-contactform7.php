@@ -350,6 +350,8 @@ class FORMSCRM_CF7_Settings {
 			);
 		}
 
+		$merge_vars = array_merge( $merge_vars, formscrm_get_utm_merge_vars() );
+
 		return $merge_vars;
 	}
 
