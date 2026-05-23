@@ -31,7 +31,7 @@ jobs:
           BRANCH_NAME: ${{ github.ref_name }}
         run: |
           mkdir -p .wordpress-playground
-          cat > .wordpress-playground/blueprint.json << EOF
+          cat > .github/pr-blueprint.json << EOF
           {
             "\$schema": "https://playground.wordpress.net/blueprint-schema.json",
             "landingPage": "/wp-admin/options-general.php?page=formscrm",

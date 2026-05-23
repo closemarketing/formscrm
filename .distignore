@@ -3,7 +3,6 @@
 composer.json
 composer.lock
 
-
 # Version Control
 .github
 .gitignore
@@ -21,7 +20,6 @@ package-lock.json
 
 # WordPress
 .wordpress-org
-.wordpress-playground
 
 
 # Testing
