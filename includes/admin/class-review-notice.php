@@ -55,6 +55,8 @@ if ( ! class_exists( 'FORMSCRM_Review_Notice' ) ) {
 		 * @return void
 		 */
 		public function review_notice() {
+			$debug = defined( 'FORMSCRM_DEBUG_NOTICES' ) && FORMSCRM_DEBUG_NOTICES;
+
 			if ( ! current_user_can( 'manage_options' ) ) {
 				return;
 			}
@@ -64,26 +66,31 @@ if ( ! class_exists( 'FORMSCRM_Review_Notice' ) ) {
 				return;
 			}
 
-			$allowed_screens = array( 'settings_page_formscrm', 'dashboard' );
-			if ( ! in_array( $screen->id, $allowed_screens, true ) && false === strpos( $screen->id, 'formscrm' ) ) {
-				return;
+			if ( ! $debug ) {
+				$allowed_screens = array( 'settings_page_formscrm', 'dashboard' );
+				if ( ! in_array( $screen->id, $allowed_screens, true ) && false === strpos( $screen->id, 'formscrm' ) ) {
+					return;
+				}
 			}
 
 			$dismissed = get_user_meta( get_current_user_id(), 'formscrm_review_notice_dismissed', true );
-			if ( $dismissed ) {
+			if ( ! $debug && $dismissed ) {
 				return;
 			}
 
 			$activation_date = get_option( 'formscrm_activation_date' );
 			if ( ! $activation_date ) {
-				// Plugin was installed before this feature; store now so the timer starts.
 				update_option( 'formscrm_activation_date', time(), false );
-				return;
+				if ( ! $debug ) {
+					return;
+				}
 			}
 
-			$days_active = ( time() - (int) $activation_date ) / DAY_IN_SECONDS;
-			if ( $days_active < self::DAYS_UNTIL_NOTICE ) {
-				return;
+			if ( ! $debug ) {
+				$days_active = ( time() - (int) $activation_date ) / DAY_IN_SECONDS;
+				if ( $days_active < self::DAYS_UNTIL_NOTICE ) {
+					return;
+				}
 			}
 
 			$review_url = 'https://wordpress.org/support/plugin/formscrm/reviews/#new-post';
