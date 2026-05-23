@@ -3,7 +3,7 @@
  * Plugin Name: FormsCRM
  * Plugin URI : https://close.technology/wordpress-plugins/formscrm/
  * Description: Connects Forms with CRM, ERP and Email Marketing.
- * Version: 4.3.4-beta.3
+ * Version: 4.3.4-beta.4
  * Author: CloseTechnology
  * Author URI: https://close.technology
  * Text Domain: formscrm
@@ -93,4 +93,7 @@ add_filter(
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log-page.php';
+require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-review-notice.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
+
+new FORMSCRM_Review_Notice();

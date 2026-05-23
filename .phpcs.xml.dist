@@ -7,6 +7,8 @@
 	<exclude-pattern>/tests/</exclude-pattern>
 	<exclude-pattern>/vendor/</exclude-pattern>
 	<exclude-pattern>/node_modules/</exclude-pattern>
+	<!-- Exclude compiled JS build output — generated files, not hand-written -->
+	<exclude-pattern>*/assets/build/*</exclude-pattern>
 
 	<!-- How to scan -->
 	<!-- Usage instructions: https://github.com/squizlabs/PHP_CodeSniffer/wiki/Usage -->
@@ -56,6 +58,11 @@
 	<!-- Exclude legacy file name errors for compatibility with external integrations -->
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<severity>0</severity>
+	</rule>
+
+	<!-- Asset manifest files use dot notation (e.g. jfb-editor.asset.php) as required by @wordpress/scripts -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude-pattern>*.asset.php</exclude-pattern>
 	</rule>
 	
 	<!-- Allow underscore prefix in properties for framework compatibility -->
