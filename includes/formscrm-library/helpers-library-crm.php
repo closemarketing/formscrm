@@ -170,11 +170,11 @@ if ( ! function_exists( 'formscrm_get_dependency_odoodb' ) ) {
 	}
 }
 
-// Register UTM First/Last as columns in the Gravity Forms entries list.
+// Register UTM First/Last, Website Referrer, Click Identifier and Conversion Lag as columns in the Gravity Forms entries list.
 add_filter( 'gform_entry_meta', 'formscrm_register_utm_entry_meta', 10, 2 );
 if ( ! function_exists( 'formscrm_register_utm_entry_meta' ) ) {
 	/**
-	 * Registers UTM First and Last as entry meta columns in Gravity Forms.
+	 * Registers UTM and tracking columns as entry meta in Gravity Forms.
 	 *
 	 * @param array $entry_meta Existing entry meta.
 	 * @param int   $form_id    Form ID.
@@ -194,6 +194,26 @@ if ( ! function_exists( 'formscrm_register_utm_entry_meta' ) ) {
 			'is_default_column'          => false,
 			'filter'                     => array( 'operators' => array( 'is', 'isnot', 'contains' ) ),
 			'update_entry_meta_callback' => 'formscrm_update_utm_first_meta',
+		);
+		$entry_meta['formscrm_referrer'] = array(
+			'label'                      => __( 'Website Referrer', 'formscrm' ),
+			'is_numeric'                 => false,
+			'is_default_column'          => false,
+			'filter'                     => array( 'operators' => array( 'is', 'isnot', 'contains' ) ),
+			'update_entry_meta_callback' => 'formscrm_update_referrer_meta',
+		);
+		$entry_meta['formscrm_click_id'] = array(
+			'label'                      => __( 'Click Identifier', 'formscrm' ),
+			'is_numeric'                 => false,
+			'is_default_column'          => false,
+			'filter'                     => array( 'operators' => array( 'is', 'isnot', 'contains' ) ),
+			'update_entry_meta_callback' => 'formscrm_update_click_id_meta',
+		);
+		$entry_meta['formscrm_conversion_lag'] = array(
+			'label'                      => __( 'Conversion Lag', 'formscrm' ),
+			'is_numeric'                 => false,
+			'is_default_column'          => false,
+			'update_entry_meta_callback' => 'formscrm_update_conversion_lag_meta',
 		);
 		return $entry_meta;
 	}
@@ -251,6 +271,58 @@ if ( ! function_exists( 'formscrm_update_utm_first_meta' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_update_referrer_meta' ) ) {
+	/**
+	 * Callback to populate formscrm_referrer entry meta on submission.
+	 *
+	 * @param string $key  Meta key.
+	 * @param array  $lead Entry data.
+	 * @param array  $form Form data.
+	 * @return string
+	 */
+	function formscrm_update_referrer_meta( $key, $lead, $form ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! empty( $_COOKIE['fcrm_referrer'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			return sanitize_text_field( wp_unslash( $_COOKIE['fcrm_referrer'] ) );
+		}
+		return '';
+	}
+}
+
+if ( ! function_exists( 'formscrm_update_click_id_meta' ) ) {
+	/**
+	 * Callback to populate formscrm_click_id entry meta on submission.
+	 *
+	 * @param string $key  Meta key.
+	 * @param array  $lead Entry data.
+	 * @param array  $form Form data.
+	 * @return string
+	 */
+	function formscrm_update_click_id_meta( $key, $lead, $form ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! empty( $_COOKIE['fcrm_click_id'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			return sanitize_text_field( wp_unslash( $_COOKIE['fcrm_click_id'] ) );
+		}
+		return '';
+	}
+}
+
+if ( ! function_exists( 'formscrm_update_conversion_lag_meta' ) ) {
+	/**
+	 * Callback to populate formscrm_conversion_lag entry meta on submission.
+	 *
+	 * @param string $key  Meta key.
+	 * @param array  $lead Entry data.
+	 * @param array  $form Form data.
+	 * @return string
+	 */
+	function formscrm_update_conversion_lag_meta( $key, $lead, $form ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( empty( $_COOKIE['fcrm_first_visit'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			return '';
+		}
+		$first_visit = intval( $_COOKIE['fcrm_first_visit'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		return max( 0, time() - $first_visit );
+	}
+}
+
 // UTM fields for WPForms and Elementor via their existing merge_vars filters.
 add_filter( 'formscrm_wpforms_merge_vars', 'formscrm_append_utm_to_merge_vars', 10, 1 );
 add_filter( 'formscrm_elementor_merge_vars', 'formscrm_append_utm_to_merge_vars', 10, 1 );
@@ -263,6 +335,65 @@ if ( ! function_exists( 'formscrm_append_utm_to_merge_vars' ) ) {
 	 */
 	function formscrm_append_utm_to_merge_vars( $merge_vars ) {
 		return array_merge( $merge_vars, formscrm_get_utm_merge_vars() );
+	}
+}
+
+// Fallback: populate AFL UTM Gravity Forms column data from FormsCRM entry meta when AFL UTM has no data.
+add_filter( 'afl_wc_utm_gravityforms_get_conversion_attribution', 'formscrm_afl_utm_fallback_attribution', 10, 3 );
+if ( ! function_exists( 'formscrm_afl_utm_fallback_attribution' ) ) {
+	/**
+	 * When AFL UTM has no UTM data for an entry, populate its column attribution
+	 * from FormsCRM's stored UTM entry meta so the entry list columns are not empty.
+	 *
+	 * @param array  $meta_whitelist AFL UTM attribution array keyed by meta slug.
+	 * @param int    $entry_id       Gravity Forms entry ID.
+	 * @param string $scope          Attribution scope (e.g. 'converted').
+	 * @return array
+	 */
+	function formscrm_afl_utm_fallback_attribution( $meta_whitelist, $entry_id, $scope ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! empty( $meta_whitelist['utm_source']['value'] ) ) {
+			return $meta_whitelist;
+		}
+
+		$utm_map = array( 'src' => 'utm_source', 'mdm' => 'utm_medium', 'cmp' => 'utm_campaign' );
+
+		$utm_last = gform_get_meta( $entry_id, 'formscrm_utm_last' );
+		if ( ! empty( $utm_last ) ) {
+			foreach ( explode( ' / ', $utm_last ) as $part ) {
+				$kv = explode( ': ', $part, 2 );
+				if ( 2 === count( $kv ) && isset( $utm_map[ $kv[0] ], $meta_whitelist[ $utm_map[ $kv[0] ] ] ) ) {
+					$meta_whitelist[ $utm_map[ $kv[0] ] ]['value'] = $kv[1];
+				}
+			}
+		}
+
+		$utm_first = gform_get_meta( $entry_id, 'formscrm_utm_first' );
+		if ( ! empty( $utm_first ) ) {
+			$first_map = array( 'src' => 'utm_source_1st', 'mdm' => 'utm_medium_1st', 'cmp' => 'utm_campaign_1st' );
+			foreach ( explode( ' / ', $utm_first ) as $part ) {
+				$kv = explode( ': ', $part, 2 );
+				if ( 2 === count( $kv ) && isset( $first_map[ $kv[0] ], $meta_whitelist[ $first_map[ $kv[0] ] ] ) ) {
+					$meta_whitelist[ $first_map[ $kv[0] ] ]['value'] = $kv[1];
+				}
+			}
+		}
+
+		$conversion_lag = gform_get_meta( $entry_id, 'formscrm_conversion_lag' );
+		if ( '' !== $conversion_lag && false !== $conversion_lag && isset( $meta_whitelist['conversion_lag'] ) ) {
+			$lag_int = (int) $conversion_lag;
+			if ( ! is_numeric( $conversion_lag ) && preg_match( '/^(\d+)\s*(\w+)/', trim( (string) $conversion_lag ), $m ) ) {
+				$multipliers = array( 'day' => 86400, 'hour' => 3600, 'minute' => 60, 'second' => 1 );
+				foreach ( $multipliers as $unit => $mult ) {
+					if ( false !== strpos( strtolower( $m[2] ), $unit ) ) {
+						$lag_int = (int) $m[1] * $mult;
+						break;
+					}
+				}
+			}
+			$meta_whitelist['conversion_lag']['value'] = $lag_int;
+		}
+
+		return $meta_whitelist;
 	}
 }
 

@@ -152,9 +152,20 @@ class FormsCRM_UTM_Builder {
 			document.getElementById( 'fcrm-utm-copy' ).addEventListener( 'click', function () {
 				var output = document.getElementById( 'fcrm-utm-output' );
 				output.select();
-				navigator.clipboard.writeText( output.value ).then( function () {
-					document.getElementById( 'fcrm-utm-copied' ).style.display = 'block';
-				} );
+				output.setSelectionRange( 0, 99999 );
+				var copied = false;
+				if ( navigator.clipboard && window.isSecureContext ) {
+					navigator.clipboard.writeText( output.value ).then( function () {
+						document.getElementById( 'fcrm-utm-copied' ).style.display = 'block';
+					} );
+					copied = true;
+				}
+				if ( ! copied ) {
+					try {
+						document.execCommand( 'copy' );
+						document.getElementById( 'fcrm-utm-copied' ).style.display = 'block';
+					} catch ( e ) {}
+				}
 			} );
 		}() );
 		</script>
