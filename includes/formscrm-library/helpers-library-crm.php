@@ -182,16 +182,16 @@ if ( ! function_exists( 'formscrm_register_utm_entry_meta' ) ) {
 	 */
 	function formscrm_register_utm_entry_meta( $entry_meta, $form_id ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		$entry_meta['formscrm_utm_last'] = array(
-			'label'                      => __( 'UTM (Last)', 'formscrm' ),
+			'label'                      => __( 'UTM Last', 'formscrm' ),
 			'is_numeric'                 => false,
-			'is_default_column'          => false,
+			'is_default_column'          => true,
 			'filter'                     => array( 'operators' => array( 'is', 'isnot', 'contains' ) ),
 			'update_entry_meta_callback' => 'formscrm_update_utm_last_meta',
 		);
 		$entry_meta['formscrm_utm_first'] = array(
-			'label'                      => __( 'UTM (First)', 'formscrm' ),
+			'label'                      => __( 'UTM First', 'formscrm' ),
 			'is_numeric'                 => false,
-			'is_default_column'          => false,
+			'is_default_column'          => true,
 			'filter'                     => array( 'operators' => array( 'is', 'isnot', 'contains' ) ),
 			'update_entry_meta_callback' => 'formscrm_update_utm_first_meta',
 		);

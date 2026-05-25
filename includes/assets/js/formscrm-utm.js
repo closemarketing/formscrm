@@ -12,18 +12,23 @@
 		document.cookie = name + '=' + encodeURIComponent( value ) + expires + '; path=/; SameSite=Lax';
 	}
 
+	function getCookie( name ) {
+		var match = document.cookie.match( new RegExp( '(?:^|; )' + name.replace( /([.$?*|{}()[\]\\/+^])/g, '\\$1' ) + '=([^;]*)' ) );
+		return match ? decodeURIComponent( match[ 1 ] ) : '';
+	}
+
 	function captureUtms() {
 		var params = new URLSearchParams( window.location.search );
-		var found = false;
 
 		UTM_PARAMS.forEach( function ( param ) {
 			if ( params.has( param ) ) {
-				setCookie( 'fcrm_' + param, params.get( param ), COOKIE_DAYS );
-				found = true;
+				var value = params.get( param );
+				setCookie( 'fcrm_' + param, value, COOKIE_DAYS );
+				if ( ! getCookie( 'fcrm_first_' + param ) ) {
+					setCookie( 'fcrm_first_' + param, value, COOKIE_DAYS );
+				}
 			}
 		} );
-
-		return found;
 	}
 
 	captureUtms();
