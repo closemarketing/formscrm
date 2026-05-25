@@ -241,7 +241,7 @@ function formscrm_jfb_rest_get_fields( $request ) {
 	}
 
 	$login = $crmlib->login( $settings );
-	if ( is_array( $login ) && isset( $login['status'] ) && 'error' === $login['status'] ) {
+	if ( ! $login || ( is_array( $login ) && isset( $login['status'] ) && 'error' === $login['status'] ) ) {
 		return new WP_Error( 'login_failed', $login['message'], array( 'status' => 400 ) );
 	}
 

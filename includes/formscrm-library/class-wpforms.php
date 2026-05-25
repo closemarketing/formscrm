@@ -331,12 +331,8 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		if ( isset( $this->crmlib ) ) {
 			$login_result = $this->crmlib->login( $data );
 		}
-		if ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) {
+		if ( ! $login_result || ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) ) {
 			return $this->error( esc_html__( 'We could not login to the CRM', 'formscrm' ) . ' ' . esc_html( $login_result['message'] ) );
-		}
-
-		if ( isset( $login_result ) && false === $login_result ) {
-			return $this->error( 'API authorization error: ' . $data['fc_crm_type'] );
 		}
 
 		$id                              = uniqid();
@@ -454,7 +450,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			$login_result = $this->crmlib->login( $settings );
 		}
 
-		if ( ! $login_result ) {
+		if ( ! $login_result || ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) ) {
 			$this->error( __( 'Could not connect to CRM.', 'formscrm' ) );
 		}
 

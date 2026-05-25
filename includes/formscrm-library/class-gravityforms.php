@@ -550,7 +550,7 @@ class GFCRM extends GFFeedAddOn {
 			'type'  => 'feed_connection_status',
 		);
 
-		if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
+		if ( ! $login_crm || ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) ) {
 			return $crm_feed_fields;
 		}
 
