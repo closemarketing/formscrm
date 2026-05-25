@@ -309,6 +309,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		// Create contact in CRM.
 		$settings        = formscrm_elementor_process_settings( $settings, $module );
 		$this->crmlib    = formscrm_get_api_class( $settings['fc_crm_type'] );
+		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
 		$response_message = '';

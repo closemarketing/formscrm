@@ -295,6 +295,7 @@ class FORMSCRM_CF7_Settings {
 			return;
 		}
 		$merge_vars      = self::get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $cf7_crm );
 		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
 		if ( 'error' === $response_result['status'] ) {

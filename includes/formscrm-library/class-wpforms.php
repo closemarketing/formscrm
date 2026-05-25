@@ -167,6 +167,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			// Submit to API.
 			$message = '';
 			try {
+				$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
 				$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
