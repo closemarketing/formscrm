@@ -21,7 +21,7 @@
 		"phpcsstandards/phpcsutils": "^1.x-dev",
 		"phpunit/phpunit": "^9.5",
 		"yoast/phpunit-polyfills": "^4.0",
-		"wp-phpunit/wp-phpunit": "^6.3",
+		"wp-phpunit/wp-phpunit": "^7.0",
 		"phpstan/phpstan": "^1.10",
 		"phpstan/extension-installer": "^1.3",
 		"szepeviktor/phpstan-wordpress": "^1.3"
