@@ -248,9 +248,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 = next =
 * Fixed: Clientify GDPR checkbox value in Contact Form 7 now normalized to '1' (accepted) or '' (not accepted), regardless of the checkbox label language.
 * Add a notice to recall to review the plugin FormsCRM.
-
-= 4.3.4 =
 * Added: Support for JetFormBuilder forms plugin with full field mapping and global settings integration.
+* Fixed: API Clientify error not add null values in custom fields.
+* Fixed: Error in CF7 value expert.
+* Fixed: Login error depending on the CRM, now it shows the error message from the CRM in the settings page.
 * Fixed: Elementor not getting correctly the module from settings.
 * Fixed: Normalize boolean CRM fields to standardized values for Clientify.
 * Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
