@@ -912,7 +912,7 @@ class GFCRM extends GFFeedAddOn {
 		$settings['entry'] = $entry;
 
 		// Filter before send to CRM.
-		$merge_vars = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $field_maps, $entry );
+		$merge_vars = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, $entry );
 
 		// Sends the entry to CRM.
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );

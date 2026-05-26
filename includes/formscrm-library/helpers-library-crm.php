@@ -183,7 +183,7 @@ if ( ! function_exists( 'formscrm_auto_inject_utm_merge_vars' ) ) {
 	 * @param array $entry       GF entry array (only passed by Gravity Forms).
 	 * @return array
 	 */
-	function formscrm_auto_inject_utm_merge_vars( $merge_vars, $extra, $entry = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+	function formscrm_auto_inject_utm_merge_vars( $merge_vars, $extra, $entry = array() ) {
 		$utm_vars = formscrm_get_utm_merge_vars();
 
 		if ( empty( $utm_vars ) && ! empty( $entry['id'] ) && function_exists( 'gform_get_meta' ) ) {
@@ -206,10 +206,39 @@ if ( ! function_exists( 'formscrm_auto_inject_utm_merge_vars' ) ) {
 			return $merge_vars;
 		}
 
+		$crm_type = '';
+		if ( is_array( $extra ) && isset( $extra['fc_crm_type'] ) ) {
+			$crm_type = $extra['fc_crm_type'];
+		}
+
+		/**
+		 * CRM-specific field name map for UTM params.
+		 * Keys: utm_source, utm_medium, utm_campaign, utm_term, utm_content.
+		 * Values: target field name in the CRM, or empty string to skip that param.
+		 * Return an empty array to use the default identity mapping.
+		 *
+		 * @param array  $map      Field name mapping.
+		 * @param string $crm_type Active CRM type slug.
+		 */
+		$utm_field_map  = apply_filters( 'formscrm_utm_field_map', array(), $crm_type );
 		$existing_names = array_column( $merge_vars, 'name' );
+
 		foreach ( $utm_vars as $utm_var ) {
-			if ( ! in_array( $utm_var['name'], $existing_names, true ) ) {
-				$merge_vars[] = $utm_var;
+			$field_name = $utm_var['name'];
+
+			if ( isset( $utm_field_map[ $field_name ] ) ) {
+				if ( '' === $utm_field_map[ $field_name ] ) {
+					continue;
+				}
+				$field_name = $utm_field_map[ $field_name ];
+			}
+
+			if ( ! in_array( $field_name, $existing_names, true ) ) {
+				$merge_vars[]     = array(
+					'name'  => $field_name,
+					'value' => $utm_var['value'],
+				);
+				$existing_names[] = $field_name;
 			}
 		}
 

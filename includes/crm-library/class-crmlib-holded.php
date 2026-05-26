@@ -423,3 +423,26 @@ class CRMLIB_HOLDED {
 		return $response_result;
 	}
 } //from Class
+
+add_filter( 'formscrm_utm_field_map', 'formscrm_utm_field_map_holded', 10, 2 );
+if ( ! function_exists( 'formscrm_utm_field_map_holded' ) ) {
+	/**
+	 * Skips all UTM params for Holded — it has no UTM fields in its contact API.
+	 *
+	 * @param array  $map      Existing field map.
+	 * @param string $crm_type Active CRM type slug.
+	 * @return array
+	 */
+	function formscrm_utm_field_map_holded( $map, $crm_type ) {
+		if ( 'holded' !== $crm_type ) {
+			return $map;
+		}
+		return array(
+			'utm_source'   => '',
+			'utm_medium'   => '',
+			'utm_campaign' => '',
+			'utm_term'     => '',
+			'utm_content'  => '',
+		);
+	}
+}
