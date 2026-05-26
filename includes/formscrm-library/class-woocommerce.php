@@ -208,11 +208,7 @@ class FormsCRM_WooCommerce {
 
 		if ( ! empty( $this->crmlib ) && ! empty( $wc_formscrm ) ) {
 			$login_crm = $this->crmlib->login( $wc_formscrm );
-			if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
-				return $settings_crm;
-			}
-
-			if ( false === $login_crm ) {
+			if ( ! $login_crm || ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) ) {
 				return $settings_crm;
 			}
 		}

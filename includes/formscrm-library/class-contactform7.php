@@ -174,7 +174,7 @@ class FORMSCRM_CF7_Settings {
 					</p>
 					<p>
 						<label for="wpcf7-crm-fc_crm_mode_expert"><?php esc_html_e( 'Expert Mode', 'formscrm' ); ?></label><br />
-						<input type="checkbox" id="wpcf7-crm-fc_crm_mode_expert" name="wpcf7-crm[fc_crm_mode_expert]" class="medium" value="on" <?php checked( $cf7_crm['fc_crm_mode_expert'], 'on' ); ?> /><?php esc_html_e( 'Enable this option to show all fields of the CRM.', 'formscrm' ); ?>
+						<input type="checkbox" id="wpcf7-crm-fc_crm_mode_expert" name="wpcf7-crm[fc_crm_mode_expert]" class="medium" value="on" <?php checked( isset( $cf7_crm['fc_crm_mode_expert'] ) ? $cf7_crm['fc_crm_mode_expert'] : '', 'on' ); ?> /><?php esc_html_e( 'Enable this option to show all fields of the CRM.', 'formscrm' ); ?>
 					</p>
 				<?php } ?>
 			</div>
@@ -186,11 +186,8 @@ class FORMSCRM_CF7_Settings {
 
 			if ( ! empty( $this->crmlib ) ) {
 				$login_crm = $this->crmlib->login( $cf7_crm );
-				if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
+				if ( ! $login_crm || ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) ) {
 					echo '<p style="color: red;">' . esc_html( $login_crm['message'] ) . '</p>';
-					return;
-				}
-				if ( true !== $login_crm && false !== $login_crm ) {
 					return;
 				}
 			}
