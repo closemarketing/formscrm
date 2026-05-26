@@ -12,24 +12,6 @@ defined( 'ABSPATH' ) || exit;
 
 require_once 'helpers-functions.php';
 require_once 'helpers-library-crm.php';
-
-add_action( 'wp_enqueue_scripts', 'formscrm_enqueue_utm_script' );
-if ( ! function_exists( 'formscrm_enqueue_utm_script' ) ) {
-	/**
-	 * Enqueues the UTM capture script on the frontend.
-	 *
-	 * @return void
-	 */
-	function formscrm_enqueue_utm_script() {
-		wp_enqueue_script(
-			'formscrm-utm',
-			FORMSCRM_PLUGIN_URL . 'includes/assets/js/formscrm-utm.js',
-			array(),
-			FORMSCRM_VERSION,
-			true
-		);
-	}
-}
 require_once 'class-forms-clientify.php';
 
 // Prevents fatal error is_plugin_active.
@@ -82,6 +64,11 @@ if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) && ! class_exist
 // WooCommerce.
 if ( is_plugin_active( 'woocommerce/woocommerce.php' ) && ! class_exists( 'FormsCRM_WooCommerce' ) ) {
 	require_once 'class-woocommerce.php';
+}
+
+// JetFormBuilder.
+if ( is_plugin_active( 'jetformbuilder/jet-form-builder.php' ) && ! class_exists( 'FORMSCRM_JetFormBuilder' ) ) {
+	require_once 'class-jetformbuilder.php';
 }
 
 // WPForms.
