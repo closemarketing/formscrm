@@ -295,6 +295,9 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			return;
 		}
 
+		// Allow add-ons to inject virtual field values before merge var resolution (e.g. UTM tracker).
+		$formscrm_fields = apply_filters( 'formscrm_elementor_field_settings', $formscrm_fields, $raw_fields );
+
 		// Normalize the Form data.
 		$merge_vars = self::get_merge_vars( $formscrm_fields, $raw_fields );
 
