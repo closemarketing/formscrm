@@ -836,30 +836,3 @@ if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 		echo wp_kses( formscrm_get_connection_status_html( $settings, $output_type, $help_text ), $allowed_html );
 	}
 }
-
-if ( ! function_exists( 'formscrm_get_utm_merge_vars' ) ) {
-	/**
-	 * Returns UTM cookie values as merge_vars entries.
-	 *
-	 * Reads cookies set by formscrm-utm.js and returns them as an array
-	 * of name/value pairs ready to append to any $merge_vars array.
-	 *
-	 * @return array
-	 */
-	function formscrm_get_utm_merge_vars() {
-		$utm_params = array( 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content' );
-		$merge_vars = array();
-
-		foreach ( $utm_params as $param ) {
-			$cookie_key = 'fcrm_' . $param;
-			if ( ! empty( $_COOKIE[ $cookie_key ] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-				$merge_vars[] = array(
-					'name'  => $param,
-					'value' => sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_key ] ) ),
-				);
-			}
-		}
-
-		return $merge_vars;
-	}
-}

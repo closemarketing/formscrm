@@ -1139,25 +1139,3 @@ class CRMLIB_Clientify {
 	}
 }
 
-add_filter( 'formscrm_utm_field_map', 'formscrm_utm_field_map_clientify', 10, 2 );
-if ( ! function_exists( 'formscrm_utm_field_map_clientify' ) ) {
-	/**
-	 * Maps generic UTM param names to Clientify-specific field names.
-	 *
-	 * @param array  $map      Existing field map.
-	 * @param string $crm_type Active CRM type slug.
-	 * @return array
-	 */
-	function formscrm_utm_field_map_clientify( $map, $crm_type ) {
-		if ( 'clientify' !== $crm_type ) {
-			return $map;
-		}
-		return array(
-			'utm_source'   => 'contact_source',
-			'utm_medium'   => 'medium',
-			'utm_campaign' => '',
-			'utm_term'     => '',
-			'utm_content'  => '',
-		);
-	}
-}
