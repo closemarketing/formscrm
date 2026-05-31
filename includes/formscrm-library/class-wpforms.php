@@ -468,6 +468,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 					'field_type' => 'text',
 				);
 			}
+			$fields_wpforms = apply_filters( 'formscrm_wpforms_form_fields', $fields_wpforms, $account_id, $module );
 			return $fields_wpforms;
 		} catch ( Exception $e ) {
 			wpforms_log(
