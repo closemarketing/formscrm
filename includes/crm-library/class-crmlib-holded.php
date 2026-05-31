@@ -423,4 +423,3 @@ class CRMLIB_HOLDED {
 		return $response_result;
 	}
 } //from Class
-

@@ -1138,4 +1138,3 @@ class CRMLIB_Clientify {
 		return $message;
 	}
 }
-
