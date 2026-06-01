@@ -491,9 +491,9 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		// before the closing </select> tag.
 		$replacements = array();
 		foreach ( $virtual_fields as $vf ) {
-			$saved  = ! empty( $vf['virtual_value'] ) ? $vf['virtual_value'] : '';
-			$label  = ! empty( $vf['label'] ) ? $vf['label'] : $saved;
-			$option = sprintf(
+			$saved          = ! empty( $vf['virtual_value'] ) ? $vf['virtual_value'] : '';
+			$label          = ! empty( $vf['label'] ) ? $vf['label'] : $saved;
+			$option         = sprintf(
 				'<option value="%s"%s>%s</option>',
 				esc_attr( $saved ),
 				'',
