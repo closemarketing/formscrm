@@ -129,9 +129,10 @@ function formscrm_jfb_editor_assets() {
 		'formscrm-jfb-editor',
 		'formsCrmJfb',
 		array(
-			'restUrl' => esc_url_raw( rest_url( 'formscrm/v1/jfb' ) ),
-			'nonce'   => wp_create_nonce( 'wp_rest' ),
-			'choices' => formscrm_get_choices(),
+			'restUrl'       => esc_url_raw( rest_url( 'formscrm/v1/jfb' ) ),
+			'nonce'         => wp_create_nonce( 'wp_rest' ),
+			'choices'       => formscrm_get_choices(),
+			'virtualFields' => apply_filters( 'formscrm_jfb_virtual_fields', array() ),
 		)
 	);
 }
@@ -241,7 +242,7 @@ function formscrm_jfb_rest_get_fields( $request ) {
 	}
 
 	$login = $crmlib->login( $settings );
-	if ( is_array( $login ) && isset( $login['status'] ) && 'error' === $login['status'] ) {
+	if ( ! $login || ( is_array( $login ) && isset( $login['status'] ) && 'error' === $login['status'] ) ) {
 		return new WP_Error( 'login_failed', $login['message'], array( 'status' => 400 ) );
 	}
 

@@ -66,6 +66,11 @@ if ( is_plugin_active( 'woocommerce/woocommerce.php' ) && ! class_exists( 'Forms
 	require_once 'class-woocommerce.php';
 }
 
+// JetFormBuilder.
+if ( is_plugin_active( 'jetformbuilder/jet-form-builder.php' ) && ! class_exists( 'FORMSCRM_JetFormBuilder' ) ) {
+	require_once 'class-jetformbuilder.php';
+}
+
 // WPForms.
 if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'FormsCRM_WPForms' ) ) {
 	add_action( 'wpforms_loaded', 'formscrm_wpforms' );
@@ -82,11 +87,6 @@ if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'FormsCRM_WPFo
 		}
 		require_once 'class-wpforms.php';
 	}
-}
-
-// JetFormBuilder.
-if ( is_plugin_active( 'jetformbuilder/jet-form-builder.php' ) && ! class_exists( 'FORMSCRM_JetFormBuilder' ) ) {
-	require_once 'class-jetformbuilder.php';
 }
 
 // Elementor.
