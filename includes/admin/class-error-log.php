@@ -38,6 +38,8 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			add_action( 'wp_ajax_formscrm_delete_log', array( $this, 'ajax_delete_log' ) );
 			add_action( 'wp_ajax_formscrm_clear_all_logs', array( $this, 'ajax_clear_all_logs' ) );
 			add_action( 'wp_ajax_formscrm_export_csv', array( $this, 'ajax_export_csv' ) );
+			add_action( 'wp_ajax_formscrm_bulk_delete_logs', array( $this, 'ajax_bulk_delete_logs' ) );
+			add_action( 'wp_ajax_formscrm_bulk_resend_logs', array( $this, 'ajax_bulk_resend_logs' ) );
 
 			// Hook for automatic retry via Action Scheduler.
 			add_action( 'formscrm_retry_failed_entry', array( $this, 'retry_failed_entry' ), 10, 1 );
@@ -774,6 +776,79 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					formscrm_debug_message( "No more retries scheduled for log {$log_id}: max attempts reached" );
 				}
 			}
+		}
+
+		/**
+		 * AJAX handler for bulk deleting logs
+		 *
+		 * @return void
+		 */
+		public function ajax_bulk_delete_logs() {
+			check_ajax_referer( 'formscrm_error_log_nonce', 'nonce' );
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_send_json_error( array( 'message' => __( 'Permission denied', 'formscrm' ) ) );
+			}
+
+			$log_ids = isset( $_POST['log_ids'] ) ? array_map( 'intval', wp_unslash( $_POST['log_ids'] ) ) : array();
+
+			if ( empty( $log_ids ) ) {
+				wp_send_json_error( array( 'message' => __( 'No logs selected', 'formscrm' ) ) );
+			}
+
+			foreach ( $log_ids as $log_id ) {
+				$this->delete_log( $log_id );
+			}
+
+			wp_send_json_success( array( 'message' => __( 'Selected logs deleted successfully', 'formscrm' ) ) );
+		}
+
+		/**
+		 * AJAX handler for bulk resending logs
+		 *
+		 * Enqueues all selected logs for resend via Action Scheduler.
+		 * Returns immediately; processing happens in background.
+		 *
+		 * @return void
+		 */
+		public function ajax_bulk_resend_logs() {
+			check_ajax_referer( 'formscrm_error_log_nonce', 'nonce' );
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_send_json_error( array( 'message' => __( 'Permission denied', 'formscrm' ) ) );
+			}
+
+			$log_ids = isset( $_POST['log_ids'] ) ? array_map( 'intval', wp_unslash( $_POST['log_ids'] ) ) : array();
+
+			if ( empty( $log_ids ) ) {
+				wp_send_json_error( array( 'message' => __( 'No logs selected', 'formscrm' ) ) );
+			}
+
+			// Enqueue all logs for resend via Action Scheduler (stagger by 1 second each).
+			$base_time = time();
+			$index     = 0;
+
+			foreach ( $log_ids as $log_id ) {
+				$scheduled_time = $base_time + $index;
+
+				if ( function_exists( 'as_schedule_single_action' ) ) {
+					try {
+						as_schedule_single_action( $scheduled_time, 'formscrm_retry_failed_entry', array( $log_id ) );
+					} catch ( Exception $e ) {
+						wp_schedule_single_event( $scheduled_time, 'formscrm_retry_failed_entry', array( $log_id ) );
+					}
+				} else {
+					wp_schedule_single_event( $scheduled_time, 'formscrm_retry_failed_entry', array( $log_id ) );
+				}
+				++$index;
+			}
+
+			wp_send_json_success(
+				array(
+					'success' => count( $log_ids ),
+					'failed'  => 0,
+				)
+			);
 		}
 	}
 }

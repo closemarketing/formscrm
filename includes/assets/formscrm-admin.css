@@ -1102,3 +1102,62 @@
 .formscrm-saving-indicator.is-active {
 	display: inline-flex;
 }
+
+/* Bulk Actions Bar */
+.fcrm-bulk-actions-bar {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	padding: 15px;
+	background-color: var(--fcrm-gray-100);
+	border: 1px solid var(--fcrm-gray-200);
+	border-radius: 4px;
+	margin-top: 15px;
+}
+
+.fcrm-bulk-actions-bar select {
+	flex: 1;
+	max-width: 300px;
+}
+
+.fcrm-bulk-actions-bar .fcrm-button {
+	white-space: nowrap;
+}
+
+/* Bulk Action Status Container */
+.fcrm-bulk-action-status {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	width: 300px;
+	padding: 15px;
+	background-color: var(--fcrm-gray-100);
+	border: 1px solid var(--fcrm-gray-200);
+	border-radius: 4px;
+	margin-top: 10px;
+}
+
+/* Progress Bar */
+.fcrm-progress-bar {
+	width: 100%;
+	height: 6px;
+	background-color: var(--fcrm-gray-200);
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.fcrm-progress-fill {
+	height: 100%;
+	background: linear-gradient(90deg, var(--fcrm-primary), var(--fcrm-accent));
+	width: 0%;
+	transition: width 0.3s ease;
+	border-radius: 3px;
+}
+
+/* Status Text */
+.fcrm-status-text {
+	margin: 0;
+	font-size: 13px;
+	color: var(--fcrm-gray-700);
+	font-weight: 500;
+}
