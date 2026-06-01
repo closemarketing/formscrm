@@ -12,6 +12,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once dirname( __DIR__ ) . '/formscrm-library/helpers-functions.php';
+
 if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 	/**
 	 * Class FORMSCRM_Error_Log
@@ -431,15 +433,16 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					// Clear any scheduled retries.
 					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 
-					// Add success note to GF entry.
-					if ( ! empty( $log->entry_id ) && class_exists( 'GFFormsModel' ) ) {
-						$note = sprintf(
+					formscrm_add_entry_note(
+						$log->form_type,
+						$log->entry_id,
+						sprintf(
 							/* translators: %s: CRM name */
 							__( 'FormsCRM manual resend success (%s)', 'formscrm' ),
 							esc_html( $log->crm_type )
-						);
-						GFFormsModel::add_note( $log->entry_id, 0, 'FormsCRM', $note, 'formscrm', 'success' );
-					}
+						),
+						'success'
+					);
 
 					wp_send_json_success(
 						array(
@@ -449,16 +452,17 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				} else {
 					$error_message = isset( $response['message'] ) ? $response['message'] : __( 'Unknown error occurred', 'formscrm' );
 
-					// Add error note to GF entry.
-					if ( ! empty( $log->entry_id ) && class_exists( 'GFFormsModel' ) ) {
-						$note = sprintf(
+					formscrm_add_entry_note(
+						$log->form_type,
+						$log->entry_id,
+						sprintf(
 							/* translators: %1$s: CRM name, %2$s: error message */
 							__( 'FormsCRM manual resend failed (%1$s): %2$s', 'formscrm' ),
 							esc_html( $log->crm_type ),
 							esc_html( $error_message )
-						);
-						GFFormsModel::add_note( $log->entry_id, 0, 'FormsCRM', $note, 'formscrm', 'error' );
-					}
+						),
+						'error'
+					);
 
 					wp_send_json_error(
 						array(
@@ -467,16 +471,17 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					);
 				}
 			} catch ( Exception $e ) {
-				// Add exception note to GF entry.
-				if ( ! empty( $log->entry_id ) && class_exists( 'GFFormsModel' ) ) {
-					$note = sprintf(
+				formscrm_add_entry_note(
+					$log->form_type,
+					$log->entry_id,
+					sprintf(
 						/* translators: %1$s: CRM name, %2$s: exception message */
 						__( 'FormsCRM manual resend error (%1$s): %2$s', 'formscrm' ),
 						esc_html( $log->crm_type ),
 						esc_html( $e->getMessage() )
-					);
-					GFFormsModel::add_note( $log->entry_id, 0, 'FormsCRM', $note, 'formscrm', 'error' );
-				}
+					),
+					'error'
+				);
 
 				wp_send_json_error(
 					array(
@@ -779,16 +784,17 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					$this->update_status( $log_id, 'success' );
 					formscrm_debug_message( "Auto-retry SUCCESS for log {$log_id}: status updated to 'success'" );
 
-					// Add success note to GF entry.
-					if ( ! empty( $log->entry_id ) && class_exists( 'GFFormsModel' ) ) {
-						$note = sprintf(
+					formscrm_add_entry_note(
+						$log->form_type,
+						$log->entry_id,
+						sprintf(
 							/* translators: %1$s: CRM name, %2$s: attempt number */
 							__( 'FormsCRM auto-retry success (%1$s) - Attempt %2$s/3', 'formscrm' ),
 							esc_html( $log->crm_type ),
 							esc_html( (string) $log->resend_attempts )
-						);
-						GFFormsModel::add_note( $log->entry_id, 0, 'FormsCRM', $note, 'formscrm', 'success' );
-					}
+						),
+						'success'
+					);
 
 					// Clear any scheduled retries.
 					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
@@ -796,17 +802,18 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					$error_msg = isset( $response['message'] ) ? $response['message'] : 'Unknown error';
 					formscrm_debug_message( "Auto-retry FAILED for log {$log_id}: {$error_msg}" );
 
-					// Add error note to GF entry.
-					if ( ! empty( $log->entry_id ) && class_exists( 'GFFormsModel' ) ) {
-						$note = sprintf(
+					formscrm_add_entry_note(
+						$log->form_type,
+						$log->entry_id,
+						sprintf(
 							/* translators: %1$s: CRM name, %2$s: attempt number, %3$s: error message */
 							__( 'FormsCRM auto-retry failed (%1$s) - Attempt %2$s/3: %3$s', 'formscrm' ),
 							esc_html( $log->crm_type ),
 							esc_html( (string) $log->resend_attempts ),
 							esc_html( $error_msg )
-						);
-						GFFormsModel::add_note( $log->entry_id, 0, 'FormsCRM', $note, 'formscrm', 'error' );
-					}
+						),
+						'error'
+					);
 
 					// Failed - check if we should schedule another retry.
 					$log = $this->get_log( $log_id );
@@ -820,17 +827,18 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			} catch ( Exception $e ) {
 				formscrm_debug_message( "Auto-retry EXCEPTION for log {$log_id}: {$e->getMessage()}" );
 
-				// Add exception note to GF entry.
-				if ( ! empty( $log->entry_id ) && class_exists( 'GFFormsModel' ) ) {
-					$note = sprintf(
+				formscrm_add_entry_note(
+					$log->form_type,
+					$log->entry_id,
+					sprintf(
 						/* translators: %1$s: CRM name, %2$s: attempt number, %3$s: exception message */
 						__( 'FormsCRM auto-retry error (%1$s) - Attempt %2$s/3: %3$s', 'formscrm' ),
 						esc_html( $log->crm_type ),
 						esc_html( (string) $log->resend_attempts ),
 						esc_html( $e->getMessage() )
-					);
-					GFFormsModel::add_note( $log->entry_id, 0, 'FormsCRM', $note, 'formscrm', 'error' );
-				}
+					),
+					'error'
+				);
 
 				// Failed - check if we should schedule another retry.
 				$log = $this->get_log( $log_id );

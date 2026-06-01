@@ -108,6 +108,47 @@ if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_add_entry_note' ) ) {
+	/**
+	 * Adds a note to a form entry in a form-agnostic way.
+	 *
+	 * Supports Gravity Forms and WPForms. Other form plugins do not have
+	 * a native entry notes API, so the call is silently skipped for them.
+	 *
+	 * @param string $form_type Type slug (e.g. 'gravityforms', 'wpforms').
+	 * @param int    $entry_id  Entry ID.
+	 * @param string $note      Note text.
+	 * @param string $type      Note type: 'success' or 'error'.
+	 * @return void
+	 */
+	function formscrm_add_entry_note( $form_type, $entry_id, $note, $type = 'note' ) {
+		if ( empty( $entry_id ) ) {
+			return;
+		}
+
+		if ( 'gravityforms' === $form_type && class_exists( 'GFFormsModel' ) ) {
+			GFFormsModel::add_note( $entry_id, 0, 'FormsCRM', $note, 'formscrm', $type );
+			return;
+		}
+
+		if ( 'wpforms' === $form_type && function_exists( 'wpforms' ) ) {
+			$entry_meta = wpforms()->obj( 'entry_meta' );
+			if ( $entry_meta ) {
+				$entry_meta->add(
+					array(
+						'entry_id' => $entry_id,
+						'form_id'  => 0,
+						'user_id'  => 0,
+						'type'     => 'note',
+						'data'     => $note,
+					),
+					'entry_meta'
+				);
+			}
+		}
+	}
+}
+
 if ( ! function_exists( 'formscrm_get_module' ) ) {
 	/**
 	 * Gets default module in forms
