@@ -26,7 +26,7 @@ const { registerAction, FieldsMapField } = window.jfb.actions;
 const { useFields } = window.jfb.blocksToActions;
 
 // ─── Data provided by wp_localize_script in class-jetformbuilder.php ──────────
-const { restUrl, nonce, choices: crmChoices } = window.formsCrmJfb || {};
+const { restUrl, nonce, choices: crmChoices, virtualFields: extraFields = [] } = window.formsCrmJfb || {};
 
 /**
  * Map the raw formscrm_get_choices() array into WP SelectControl options.
@@ -196,7 +196,10 @@ function FieldsMap( { settings, getMapField, setMapField } ) {
 	const [ loading, setLoading ] = useState( false );
 	const [ error, setError ] = useState( '' );
 
-	const formFields = useFields( { withInner: false, placeholder: '--' } );
+	const formFields = [
+		...useFields( { withInner: false, placeholder: '--' } ),
+		...extraFields,
+	];
 
 	const type   = settings.fc_crm_type || '';
 	const module = settings.fc_crm_module || '';
