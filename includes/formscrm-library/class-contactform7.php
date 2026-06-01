@@ -133,14 +133,9 @@ class FORMSCRM_CF7_Settings {
 					?>
 					<p>
 						<label for="fc_crm_module"><?php esc_html_e( 'CRM Module:', 'formscrm' ); ?></label><br />
-						<?php
-						$modules = $this->crmlib->list_modules( $cf7_crm );
-						if ( empty( $modules ) ) {
-							echo '<p style="color: red;">' . esc_html__( 'No modules found. Check your API credentials and try reconnecting.', 'formscrm' ) . '</p>';
-						} else {
-							?>
 						<select name="wpcf7-crm[fc_crm_module]" class="medium formscrm-autosubmit" id="fc_crm_module" data-formscrm-autosubmit="true">
 							<?php
+							$modules = $this->crmlib->list_modules( $cf7_crm );
 							foreach ( $modules as $module ) {
 								$value = '';
 								if ( ! empty( $module['value'] ) ) {
@@ -168,9 +163,6 @@ class FORMSCRM_CF7_Settings {
 							<span class="dashicons dashicons-update-alt"></span>
 							<?php esc_html_e( 'Saving...', 'formscrm' ); ?>
 						</span>
-							<?php
-						}
-						?>
 					</p>
 					<p>
 						<label for="wpcf7-crm-fc_crm_mode_expert"><?php esc_html_e( 'Expert Mode', 'formscrm' ); ?></label><br />
@@ -289,9 +281,18 @@ class FORMSCRM_CF7_Settings {
 		$submission = WPCF7_Submission::get_instance();
 		$crm_type   = ! empty( $cf7_crm['fc_crm_type'] ) ? sanitize_text_field( $cf7_crm['fc_crm_type'] ) : '';
 
+		$form_info = array(
+			'form_type'       => 'contactform7',
+			'form_type_title' => 'Contact Form 7',
+			'form_id'         => $contact_form->id(),
+			'form_name'       => $contact_form->title(),
+		);
+
 		// Create contact in CRM.
 		$this->crmlib = formscrm_get_api_class( $crm_type );
 		if ( empty( $this->crmlib ) ) {
+			/* translators: %s: CRM type slug */
+			formscrm_alert_error( $crm_type, sprintf( __( 'CRM class not found for type: %s', 'formscrm' ), $crm_type ), array(), '', '', $form_info );
 			return;
 		}
 		$merge_vars      = self::get_merge_vars( $cf7_crm, $submission->get_posted_data() );
@@ -301,13 +302,6 @@ class FORMSCRM_CF7_Settings {
 		if ( 'error' === $response_result['status'] ) {
 			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
-
-			$form_info = array(
-				'form_type'       => 'contactform7',
-				'form_type_title' => 'Contact Form 7',
-				'form_id'         => $contact_form->id(),
-				'form_name'       => $contact_form->title(),
-			);
 
 			formscrm_alert_error( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query, $form_info );
 		}
@@ -339,13 +333,12 @@ class FORMSCRM_CF7_Settings {
 				$value = implode( ',', $value );
 			}
 
-			// Normalize boolean CRM fields to true/false as required by the API.
-			if ( in_array( $crm_key, array( 'gdpr_accept', 'disclaimer' ), true ) ) {
-				$value = ! empty( $value );
-			}
-
 			// Process dynamic values (shortcodes).
 			$value = self::fill_dynamic_value( $value, $submitted_data );
+
+			if ( 'gdpr_accept' === $crm_key ) {
+				$value = ! empty( $value );
+			}
 
 			$merge_vars[] = array(
 				'name'  => $crm_key,
