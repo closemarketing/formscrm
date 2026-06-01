@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * @param string $module CRM module.
  * @return array Processed settings data.
  */
-function formscrm_elementor_process_settings( $post_data, $module ) {
+function formscrm_elementor_process_settings( $post_data, $module = '' ) {
 	if ( isset( $post_data['fc_crm_url'] ) && is_array( $post_data['fc_crm_url'] ) ) {
 		// If the URL is an array, we assume it has a 'url' key.
 		$post_data['fc_crm_url'] = isset( $post_data['fc_crm_url']['url'] ) ? sanitize_text_field( $post_data['fc_crm_url']['url'] ) : '';
@@ -186,16 +186,22 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 						<select class="wide" name="fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>" >
 							<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 							<?php
-							$form_fields = isset( $_POST['formFields'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['formFields'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+							$form_fields     = isset( $_POST['formFields'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['formFields'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+							$saved_field_val = ! empty( $hidden_settings[ 'fc_crm_field-' . $crm_field_name ] ) ? $hidden_settings[ 'fc_crm_field-' . $crm_field_name ] : '';
 							foreach ( $form_fields as $form_name => $form_label ) {
 								echo '<option value="' . esc_html( $form_name ) . '" ';
-
-								if ( ! empty( $hidden_settings[ 'fc_crm_field-' . $crm_field_name ] ) ) {
-									selected( $hidden_settings[ 'fc_crm_field-' . $crm_field_name ], $form_name );
-								}
-
+								selected( $saved_field_val, $form_name );
 								echo '>' . esc_html( $form_label ) . '</option>';
 							}
+
+							/**
+							 * Fires after the form field options in the "Select Form Field" dropdown.
+							 * Use this to append extra option groups (e.g. UTM variables).
+							 *
+							 * @param string $saved_field_val Currently saved value for this CRM field.
+							 * @param string $crm_field_name  CRM field machine name.
+							 */
+							do_action( 'formscrm_elementor_field_select_options', $saved_field_val, $crm_field_name );
 							?>
 						</select>
 					</td>

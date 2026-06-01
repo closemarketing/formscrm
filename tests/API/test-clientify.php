@@ -387,4 +387,89 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertIsBool( $body['gdpr_accept'] );
 		$this->assertSame( $expected, $body['gdpr_accept'] );
 	}
+
+	/**
+	 * Contact custom_fields with an empty string value must NOT be sent to the API.
+	 */
+	public function test_create_entry_contact_custom_field_empty_string_is_skipped() {
+		$this->last_contact_body = null;
+
+		$merge_vars = array(
+			array( 'name' => 'email',                    'value' => 'test@example.com' ),
+			array( 'name' => 'custom_fields|my_field',   'value' => '' ),
+			array( 'name' => 'custom_fields|filled',     'value' => 'hello' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body          = $this->last_contact_body ?? array();
+		$custom_fields = $body['custom_fields'] ?? array();
+		$field_keys    = array_column( $custom_fields, 'field' );
+
+		$this->assertNotContains( 'my_field', $field_keys, 'Empty contact custom_field must not be sent.' );
+		$this->assertContains( 'filled', $field_keys, 'Non-empty contact custom_field must be sent.' );
+	}
+
+	/**
+	 * Contact custom_fields with a non-empty value must be sent to the API.
+	 */
+	public function test_create_entry_contact_custom_field_non_empty_is_sent() {
+		$this->last_contact_body = null;
+
+		$merge_vars = array(
+			array( 'name' => 'email',                  'value' => 'test@example.com' ),
+			array( 'name' => 'custom_fields|interest',  'value' => 'sports' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body          = $this->last_contact_body ?? array();
+		$custom_fields = $body['custom_fields'] ?? array();
+		$field_keys    = array_column( $custom_fields, 'field' );
+
+		$this->assertContains( 'interest', $field_keys );
+		$found = array_filter( $custom_fields, fn( $f ) => 'interest' === $f['field'] );
+		$this->assertSame( 'sports', array_values( $found )[0]['value'] );
+	}
+
+	/**
+	 * Deal custom_fields with an empty string value must NOT be sent to the API.
+	 */
+	public function test_create_entry_deal_custom_field_empty_string_is_skipped() {
+		$this->last_contact_body = null;
+		$this->settings['fc_crm_module'] = 'Contacts-Deals';
+
+		// Capture the deals/ POST body as well.
+		$last_deal_body = null;
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) use ( &$last_deal_body ) {
+				if ( 'POST' === $r['method'] && str_contains( $url, '/deals/' ) ) {
+					$last_deal_body = json_decode( $r['body'], true );
+					return array(
+						'body'     => '{"id":888}',
+						'response' => array( 'code' => 201, 'message' => 'Created' ),
+					);
+				}
+				return false;
+			},
+			5,
+			3
+		);
+
+		$merge_vars = array(
+			array( 'name' => 'email',                             'value' => 'test@example.com' ),
+			array( 'name' => 'deal|name',                         'value' => 'Test deal' ),
+			array( 'name' => 'deal|custom_fields|empty_field',    'value' => '' ),
+			array( 'name' => 'deal|custom_fields|filled_field',   'value' => 'value123' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$deal_custom = $last_deal_body['custom_fields'] ?? array();
+		$field_keys  = array_column( $deal_custom, 'field' );
+
+		$this->assertNotContains( 'empty_field', $field_keys, 'Empty deal custom_field must not be sent.' );
+		$this->assertContains( 'filled_field', $field_keys, 'Non-empty deal custom_field must be sent.' );
+	}
 }
