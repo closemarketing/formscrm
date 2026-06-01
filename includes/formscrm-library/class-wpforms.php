@@ -117,6 +117,11 @@ class FormsCRM_WPForms extends WPForms_Provider {
 					continue;
 				}
 
+				// Virtual fields (e.g. UTM tags) are stored as raw tag values, not field IDs.
+				if ( apply_filters( 'formscrm_wpforms_is_virtual_field', false, $conn_field ) ) {
+					continue;
+				}
+
 				$custom_field = explode( '.', $conn_field );
 				$id           = $custom_field[0];
 				$key          = ! empty( $custom_field[1] ) ? $custom_field[1] : 'value';
@@ -164,9 +169,12 @@ class FormsCRM_WPForms extends WPForms_Provider {
 						break;
 				}
 			}
+			$merge_vars = apply_filters( 'formscrm_wpforms_merge_vars', $merge_vars, $connection, $form_data, $entry_id );
+
 			// Submit to API.
 			$message = '';
 			try {
+				$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
 				$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
@@ -275,42 +283,6 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		}
 
 		return $result_date;
-	}
-
-	/**
-	 * Format a value(s) for `MultiSelectMany` field type.
-	 *
-	 * @since {VERSION}
-	 *
-	 * @param array $field Field attributes.
-	 * @param array $name  Custom Field name.
-	 *
-	 * @return array
-	 */
-	private function format_multi_select_many( $field, $name ) {
-
-		// Firstly, check if submitted field value is empty.
-		if ( empty( $field['value'] ) ) {
-			return array(
-				array(
-					'Key'   => '[' . $name . ']',
-					'Value' => '',
-				),
-			);
-		}
-
-		// "Multiple" field types, like `Checkbox`, use "\n" for delimiter.
-		$values = explode( "\n", $field['value'] );
-
-		return array_map(
-			static function ( $option ) use ( $name ) {
-				return array(
-					'Key'   => '[' . $name . ']',
-					'Value' => $option,
-				);
-			},
-			$values
-		);
 	}
 
 	/************************************************************************
@@ -467,6 +439,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 					'field_type' => 'text',
 				);
 			}
+			$fields_wpforms = apply_filters( 'formscrm_wpforms_form_fields', $fields_wpforms, $account_id, $module );
 			return $fields_wpforms;
 		} catch ( Exception $e ) {
 			wpforms_log(
@@ -485,6 +458,80 @@ class FormsCRM_WPForms extends WPForms_Provider {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Retrieve provider account list fields, extended with virtual field options
+	 * for the Available Form Fields dropdown.
+	 *
+	 * Overrides output_fields to append virtual field <option> elements (e.g. UTM
+	 * fields) via the formscrm_wpforms_virtual_fields filter after the regular
+	 * form fields. Virtual options use their own raw value so that the normal
+	 * {id}.{key}.{type} parsing in process_entry can be bypassed.
+	 *
+	 * @param string $connection_id Connection ID.
+	 * @param array  $connection    Connection data.
+	 * @param mixed  $form          Form data.
+	 * @return string|WP_Error
+	 */
+	public function output_fields( $connection_id = '', $connection = array(), $form = '' ) {
+		$output = parent::output_fields( $connection_id, $connection, $form );
+
+		if ( is_wp_error( $output ) || empty( $output ) ) {
+			return $output;
+		}
+
+		$virtual_fields = apply_filters( 'formscrm_wpforms_virtual_fields', array() );
+
+		if ( empty( $virtual_fields ) ) {
+			return $output;
+		}
+
+		// For each <select> in the output, append virtual field <option> elements
+		// before the closing </select> tag.
+		$replacements = array();
+		foreach ( $virtual_fields as $vf ) {
+			$saved          = ! empty( $vf['virtual_value'] ) ? $vf['virtual_value'] : '';
+			$label          = ! empty( $vf['label'] ) ? $vf['label'] : $saved;
+			$option         = sprintf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( $saved ),
+				'',
+				esc_html( $label )
+			);
+			$replacements[] = $option;
+		}
+
+		$virtual_html = implode( '', $replacements );
+
+		// Inject before every </select> inside the provider fields block.
+		$output = str_replace( '</select>', $virtual_html . '</select>', $output );
+
+		// Re-apply selected state for already-saved virtual values.
+		if ( ! empty( $connection['fields'] ) ) {
+			foreach ( $connection['fields'] as $tag => $saved_value ) {
+				if ( empty( $saved_value ) ) {
+					continue;
+				}
+				foreach ( $virtual_fields as $vf ) {
+					if ( isset( $vf['virtual_value'] ) && $vf['virtual_value'] === $saved_value ) {
+						$unselected = sprintf( 'value="%s">', esc_attr( $saved_value ) );
+						$selected   = sprintf( 'value="%s" selected>', esc_attr( $saved_value ) );
+						// Only mark selected in the <select> for this specific tag.
+						$select_open = sprintf( 'name="providers[%s][%s][fields][%s]"', $this->slug, $connection_id, esc_attr( $tag ) );
+						$pos_select  = strpos( $output, $select_open );
+						if ( false !== $pos_select ) {
+							$pos_end = strpos( $output, '</select>', $pos_select );
+							$segment = substr( $output, $pos_select, $pos_end - $pos_select );
+							$segment = str_replace( $unselected, $selected, $segment );
+							$output  = substr_replace( $output, $segment, $pos_select, $pos_end - $pos_select );
+						}
+					}
+				}
+			}
+		}
+
+		return $output;
 	}
 
 	/*************************************************************************

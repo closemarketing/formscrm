@@ -263,6 +263,7 @@ class FormsCRM_WooCommerce {
 			$this->crmlib = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
 			$merge_vars   = $this->get_merge_vars( $wc_formscrm, $order );
 
+			$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $wc_formscrm );
 			$response_result = $this->crmlib->create_entry( $wc_formscrm, $merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {

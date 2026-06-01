@@ -115,6 +115,7 @@ class FORMSCRM_JFB_Action extends Base {
 		$settings['fc_crm_module'] = $module;
 
 		$merge_vars = $this->build_merge_vars( $request );
+		$merge_vars = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
 		$result     = $crmlib->create_entry( $settings, $merge_vars );
 
 		if ( isset( $result['status'] ) && 'error' === $result['status'] ) {
