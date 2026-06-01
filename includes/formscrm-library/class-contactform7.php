@@ -336,6 +336,10 @@ class FORMSCRM_CF7_Settings {
 			// Process dynamic values (shortcodes).
 			$value = self::fill_dynamic_value( $value, $submitted_data );
 
+			if ( 'gdpr_accept' === $crm_key ) {
+				$value = ! empty( $value );
+			}
+
 			$merge_vars[] = array(
 				'name'  => $crm_key,
 				'value' => $value,
