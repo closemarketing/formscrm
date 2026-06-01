@@ -353,9 +353,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		if (statusText) {
 			if (successCount !== undefined && failCount !== undefined) {
-				statusText.textContent = 'Terminado: ' + successCount + ' ' + formscrmErrorLog.bulkResendSuccessful + ', ' + failCount + ' ' + formscrmErrorLog.bulkResendFailed;
+				statusText.textContent = successCount + ' ' + formscrmErrorLog.bulkResendSuccessful + ', ' + failCount + ' ' + formscrmErrorLog.bulkResendFailed;
 			} else {
-				statusText.textContent = '¡Terminado!';
+				statusText.textContent = formscrmErrorLog.done;
 			}
 		}
 	}
