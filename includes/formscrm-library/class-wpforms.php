@@ -285,42 +285,6 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		return $result_date;
 	}
 
-	/**
-	 * Format a value(s) for `MultiSelectMany` field type.
-	 *
-	 * @since {VERSION}
-	 *
-	 * @param array $field Field attributes.
-	 * @param array $name  Custom Field name.
-	 *
-	 * @return array
-	 */
-	private function format_multi_select_many( $field, $name ) {
-
-		// Firstly, check if submitted field value is empty.
-		if ( empty( $field['value'] ) ) {
-			return array(
-				array(
-					'Key'   => '[' . $name . ']',
-					'Value' => '',
-				),
-			);
-		}
-
-		// "Multiple" field types, like `Checkbox`, use "\n" for delimiter.
-		$values = explode( "\n", $field['value'] );
-
-		return array_map(
-			static function ( $option ) use ( $name ) {
-				return array(
-					'Key'   => '[' . $name . ']',
-					'Value' => $option,
-				);
-			},
-			$values
-		);
-	}
-
 	/************************************************************************
 	 * API methods - these methods interact directly with the provider API. *
 	 ************************************************************************/
@@ -527,9 +491,9 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		// before the closing </select> tag.
 		$replacements = array();
 		foreach ( $virtual_fields as $vf ) {
-			$saved    = ! empty( $vf['virtual_value'] ) ? $vf['virtual_value'] : '';
-			$label    = ! empty( $vf['label'] ) ? $vf['label'] : $saved;
-			$option   = sprintf(
+			$saved  = ! empty( $vf['virtual_value'] ) ? $vf['virtual_value'] : '';
+			$label  = ! empty( $vf['label'] ) ? $vf['label'] : $saved;
+			$option = sprintf(
 				'<option value="%s"%s>%s</option>',
 				esc_attr( $saved ),
 				'',
@@ -554,8 +518,8 @@ class FormsCRM_WPForms extends WPForms_Provider {
 						$unselected = sprintf( 'value="%s">', esc_attr( $saved_value ) );
 						$selected   = sprintf( 'value="%s" selected>', esc_attr( $saved_value ) );
 						// Only mark selected in the <select> for this specific tag.
-						$select_open  = sprintf( 'name="providers[%s][%s][fields][%s]"', $this->slug, $connection_id, esc_attr( $tag ) );
-						$pos_select   = strpos( $output, $select_open );
+						$select_open = sprintf( 'name="providers[%s][%s][fields][%s]"', $this->slug, $connection_id, esc_attr( $tag ) );
+						$pos_select  = strpos( $output, $select_open );
 						if ( false !== $pos_select ) {
 							$pos_end = strpos( $output, '</select>', $pos_select );
 							$segment = substr( $output, $pos_select, $pos_end - $pos_select );
