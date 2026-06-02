@@ -34,7 +34,7 @@
     "@wordpress/scripts": "^32.2.0",
     "@wp-playground/cli": "^3.1.35",
     "fetch-cookie": "^3.1.0",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   },
   "core": "WordPress/WordPress",
   "plugins": [
