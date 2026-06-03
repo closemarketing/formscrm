@@ -8,18 +8,18 @@
 		select.dataset.moduleSearchInit = '1';
 
 		var wrapper = document.createElement( 'div' );
-		wrapper.className = 'gfcrm-module-search-wrapper';
+		wrapper.className = 'formscrm-module-search-wrapper';
 
 		var input = document.createElement( 'input' );
 		input.type = 'text';
-		input.className = 'gfcrm-module-search-input';
+		input.className = 'formscrm-module-search-input';
 		input.placeholder = select.options[ select.selectedIndex ]
 			? select.options[ select.selectedIndex ].text
 			: '';
 		input.setAttribute( 'autocomplete', 'off' );
 
 		var dropdown = document.createElement( 'div' );
-		dropdown.className = 'gfcrm-module-search-dropdown';
+		dropdown.className = 'formscrm-module-search-dropdown';
 		dropdown.style.display = 'none';
 
 		select.parentNode.insertBefore( wrapper, select );
@@ -39,7 +39,7 @@
 				}
 				( function ( option ) {
 					var item = document.createElement( 'div' );
-					item.className = 'gfcrm-module-search-item';
+					item.className = 'formscrm-module-search-item';
 					if ( option.value === select.value ) {
 						item.className += ' selected';
 					}
@@ -61,7 +61,7 @@
 			}
 			if ( 0 === count ) {
 				var noResults = document.createElement( 'div' );
-				noResults.className = 'gfcrm-module-search-no-results';
+				noResults.className = 'formscrm-module-search-no-results';
 				noResults.textContent = 'No results found.';
 				dropdown.appendChild( noResults );
 			}
@@ -90,7 +90,7 @@
 	}
 
 	function init() {
-		var selects = document.querySelectorAll( 'select.gfcrm-module-search-select' );
+		var selects = document.querySelectorAll( 'select.formscrm-module-search-select' );
 		for ( var i = 0; i < selects.length; i++ ) {
 			initModuleSearch( selects[ i ] );
 		}
