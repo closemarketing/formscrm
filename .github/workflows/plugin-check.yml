@@ -1,0 +1,35 @@
+name: Plugin Check
+
+on:
+  push:
+    branches:
+      - trunk
+      - 'release/**'
+  pull_request:
+    branches:
+      - trunk
+      - 'feature/**'
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/trunk' && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
+
+jobs:
+  plugin-check:
+    name: WordPress Plugin Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run plugin check
+        uses: wordpress/plugin-check-action@v1
+        with:
+          exclude-directories: 'vendor,node_modules,tests'
