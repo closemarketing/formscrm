@@ -823,6 +823,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 						$this->schedule_retry( $log_id );
 						formscrm_debug_message( "Scheduled next retry for log {$log_id}" );
 					} else {
+						wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 						formscrm_debug_message( "No more retries scheduled for log {$log_id}: max attempts reached" );
 					}
 				}
@@ -848,6 +849,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					$this->schedule_retry( $log_id );
 					formscrm_debug_message( "Scheduled next retry for log {$log_id}" );
 				} else {
+					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 					formscrm_debug_message( "No more retries scheduled for log {$log_id}: max attempts reached" );
 				}
 			}
