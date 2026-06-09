@@ -42,9 +42,13 @@ jobs:
 
       - name: Setup SQLite for WordPress
         run: |
-          wp plugin install sqlite-database-integration --path=/tmp/wp --allow-root
-          cp /tmp/wp/wp-content/plugins/sqlite-database-integration/db.copy /tmp/wp/wp-content/db.php
+          # Create wp-config.php first (skip DB check; the SQLite drop-in handles the connection).
           wp config create --path=/tmp/wp --dbname=wordpress --dbuser=root --dbpass='' --allow-root --skip-check
+          # Download the SQLite integration plugin directly (wp plugin install needs a bootable WP, which we don't have yet).
+          curl -sL -o /tmp/sqlite.zip https://downloads.wordpress.org/plugin/sqlite-database-integration.zip
+          unzip -q /tmp/sqlite.zip -d /tmp/wp/wp-content/plugins/
+          cp /tmp/wp/wp-content/plugins/sqlite-database-integration/db.copy /tmp/wp/wp-content/db.php
+          # Now WordPress can boot against SQLite and create its tables.
           wp core install --path=/tmp/wp --url=http://localhost --title=Test --admin_user=admin --admin_password=password --admin_email=test@test.com --allow-root
 
       - name: Install Plugin Check
