@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -37,19 +37,8 @@ jobs:
       - name: Install production dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Create wp-env config
-        run: |
-          cat > .wp-env.json << 'EOF'
-          {
-            "phpVersion": "8.2",
-            "plugins": [
-              ".",
-              "https://downloads.wordpress.org/plugin/plugin-check.zip"
-            ]
-          }
-          EOF
-
       - name: Run plugin check
         uses: wordpress/plugin-check-action@v1
         with:
+          build-dir: ./
           exclude-directories: 'vendor,node_modules,tests'
