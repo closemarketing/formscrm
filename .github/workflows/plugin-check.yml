@@ -37,7 +37,13 @@ jobs:
       - name: Install production dependencies
         run: composer install --no-dev --optimize-autoloader
 
+      - name: Start Docker
+        run: |
+          sudo systemctl start docker
+          docker info
+
       - name: Run plugin check
         uses: wordpress/plugin-check-action@v1
         with:
           exclude-directories: 'vendor,node_modules,tests'
+          wp-version: '6.8'
