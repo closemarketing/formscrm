@@ -2,39 +2,43 @@
 /**
  * HOLDED connect library
  *
- * Has functions to login, list fields and create leadº
+ * Has functions to login, list fields and create entry
  *
  * @author    David Perez <david@closemarketing.es>
  * @category  Functions
  * @package   FormsCRM
- * @version   1.0.0
+ * @version   2.0.0
  * @copyright 2021 Closemarketing
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FORMSCRM_MAX_LIMIT_HOLDED_API', 500 );
-
 /**
  * Class for Holded connection.
  */
 class CRMLIB_HOLDED {
+
 	/**
-	 * Gets information from Holded CRM
+	 * Holded API v2 base URL.
+	 */
+	const API_BASE_URL = 'https://api.holded.com/api/v2/';
+
+	/**
+	 * Gets information from Holded API v2
 	 *
-	 * @param string $url      URL for module.
-	 * @param string $apikey   Pass to access.
-	 * @param string $function Holded API function type (invoicing, purchases, etc).
+	 * @param string $url    Endpoint path.
+	 * @param string $apikey API key.
 	 * @return array
 	 */
-	public function get( $url, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.
+	public function get( $url, $apikey ) {
 		$args   = array(
 			'headers' => array(
-				'key' => $apikey,
+				'Authorization' => 'Bearer ' . $apikey,
+				'Accept'        => 'application/json',
 			),
 			'timeout' => 120,
 		);
-		$url    = 'https://api.holded.com/api/' . $function . '/v1/' . $url;
+		$url    = self::API_BASE_URL . $url;
 		$result = wp_remote_get( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
@@ -51,33 +55,34 @@ class CRMLIB_HOLDED {
 				'status' => 'error',
 				'data'   => $message,
 			);
-		} else {
-			$body = wp_remote_retrieve_body( $result );
-
-			return array(
-				'status' => 'ok',
-				'data'   => json_decode( $body, true ),
-			);
 		}
+
+		$body = wp_remote_retrieve_body( $result );
+		return array(
+			'status' => 'ok',
+			'data'   => json_decode( $body, true ),
+		);
 	}
+
 	/**
-	 * Posts information from Holded CRM
+	 * Posts information to Holded API v2
 	 *
-	 * @param string $url      URL for module.
-	 * @param string $bodypost JSON to pass.
-	 * @param string $apikey   Pass to access.
-	 * @param string $function Holded API function type (invoicing, purchases, etc).
+	 * @param string $url      Endpoint path.
+	 * @param array  $bodypost Data to post.
+	 * @param string $apikey   API key.
 	 * @return array
 	 */
-	public function post( $url, $bodypost, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.
+	public function post( $url, $bodypost, $apikey ) {
 		$args   = array(
 			'headers' => array(
-				'key' => $apikey,
+				'Authorization' => 'Bearer ' . $apikey,
+				'Content-Type'  => 'application/json',
+				'Accept'        => 'application/json',
 			),
 			'timeout' => 120,
-			'body'    => $bodypost,
+			'body'    => wp_json_encode( $bodypost ),
 		);
-		$url    = 'https://api.holded.com/api/' . $function . '/v1/' . $url;
+		$url    = self::API_BASE_URL . $url;
 		$result = wp_remote_post( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
@@ -94,45 +99,48 @@ class CRMLIB_HOLDED {
 				'status' => 'error',
 				'data'   => $message,
 			);
-		} else {
-			$body = wp_remote_retrieve_body( $result );
-
-			return array(
-				'status' => 'ok',
-				'data'   => json_decode( $body, true ),
-			);
 		}
+
+		$body = wp_remote_retrieve_body( $result );
+		return array(
+			'status' => 'ok',
+			'data'   => json_decode( $body, true ),
+		);
 	}
 
 	/**
-	 * Search a contact or lead by email
+	 * Search a contact by email using cursor-based pagination
 	 *
 	 * @param string $module contacts or leads.
-	 * @param string $email  email to search.
-	 * @param string $apikey Pass to access.
+	 * @param string $email  Email to search.
+	 * @param string $apikey API key.
 	 * @return string|bool
 	 */
 	public function search_by_email( $module, $email, $apikey ) {
-		$function = 'contacts' === $module ? 'invoicing' : 'crm';
-		$next     = true;
-		$page     = 1;
+		$cursor = '';
 
-		while ( $next ) {
-			$contacts = $this->get( $module . '?page=' . $page, $apikey, $function );
-			if ( 'error' === $contacts['status'] || empty( $contacts['data'] ) ) {
+		while ( true ) {
+			$query_url = $module . '?limit=100';
+			if ( $cursor ) {
+				$query_url .= '&cursor=' . rawurlencode( $cursor );
+			}
+
+			$result = $this->get( $query_url, $apikey );
+			if ( 'error' === $result['status'] || empty( $result['data'] ) ) {
 				return false;
 			}
 
-			foreach ( $contacts['data'] as $contact ) {
+			$items = isset( $result['data']['items'] ) ? $result['data']['items'] : array();
+			foreach ( $items as $contact ) {
 				if ( isset( $contact['email'] ) && $contact['email'] === $email ) {
 					return $contact['id'];
 				}
 			}
 
-			if ( count( $contacts['data'] ) === FORMSCRM_MAX_LIMIT_HOLDED_API ) {
-				++$page;
+			if ( ! empty( $result['data']['has_more'] ) && ! empty( $result['data']['cursor'] ) ) {
+				$cursor = $result['data']['cursor'];
 			} else {
-				$next = false;
+				break;
 			}
 		}
 
@@ -147,7 +155,7 @@ class CRMLIB_HOLDED {
 	 */
 	public function login( $settings ) {
 		$apikey       = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$login_result = $this->get( 'contacts', $apikey );
+		$login_result = $this->get( 'contacts?limit=1', $apikey );
 
 		if ( $apikey && 'error' !== $login_result['status'] ) {
 			return true;
@@ -387,9 +395,8 @@ class CRMLIB_HOLDED {
 	 * @return array           id or false
 	 */
 	public function create_entry( $settings, $merge_vars ) {
-		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
-
+		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 		$contact = array();
 
 		foreach ( $merge_vars as $element ) {
@@ -408,18 +415,16 @@ class CRMLIB_HOLDED {
 		$result = $this->post( $module, $contact, $apikey );
 
 		if ( 'error' === $result['status'] ) {
-			$response_result = array(
+			return array(
 				'status'  => 'error',
 				'message' => $result['data'],
 			);
-		} else {
-			$response_result = array(
-				'status'  => 'ok',
-				'message' => 'success',
-				'id'      => $result['data']['id'],
-			);
 		}
 
-		return $response_result;
+		return array(
+			'status'  => 'ok',
+			'message' => 'success',
+			'id'      => isset( $result['data']['id'] ) ? $result['data']['id'] : '',
+		);
 	}
 } //from Class
