@@ -32,13 +32,33 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          tools: composer
+          tools: composer, wp-cli
 
       - name: Install production dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Run plugin check
-        uses: wordpress/plugin-check-action@v1
-        with:
-          build-dir: ./
-          exclude-directories: 'vendor,node_modules,tests'
+      - name: Download WordPress
+        run: wp core download --path=/tmp/wp --allow-root
+
+      - name: Setup SQLite for WordPress
+        run: |
+          wp plugin install sqlite-database-integration --path=/tmp/wp --allow-root
+          cp /tmp/wp/wp-content/plugins/sqlite-database-integration/db.copy /tmp/wp/wp-content/db.php
+          wp config create --path=/tmp/wp --dbname=wordpress --dbuser=root --dbpass='' --allow-root --skip-check
+          wp core install --path=/tmp/wp --url=http://localhost --title=Test --admin_user=admin --admin_password=password --admin_email=test@test.com --allow-root
+
+      - name: Install Plugin Check
+        run: wp plugin install plugin-check --activate --path=/tmp/wp --allow-root
+
+      - name: Link plugin into WordPress
+        run: |
+          ln -s "$GITHUB_WORKSPACE" /tmp/wp/wp-content/plugins/formscrm
+          wp plugin activate formscrm --path=/tmp/wp --allow-root || true
+
+      - name: Run Plugin Check
+        run: |
+          wp plugin check formscrm \
+            --path=/tmp/wp \
+            --exclude-directories=vendor,node_modules,tests \
+            --format=table \
+            --allow-root
