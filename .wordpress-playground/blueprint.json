@@ -1,21 +1,21 @@
 {
-	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
-	"landingPage": "/wp-admin/options-general.php?page=formscrm",
-	"steps": [
-		{
-			"step": "login",
-			"username": "admin",
-			"password": "password"
-		},
-		{
-			"step": "installPlugin",
-			"pluginZipFile": {
-				"resource": "url",
-				"url": "https://github.com/closemarketing/formscrm/archive/refs/heads/dist/trunk.zip"
-			},
-			"options": {
-				"activate": true
-			}
-		}
-	]
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/options-general.php?page=formscrm",
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "installPlugin",
+      "pluginZipFile": {
+        "resource": "url",
+        "url": "https://github.com/closemarketing/formscrm/archive/refs/heads/dist/fix-playground.zip"
+      },
+      "options": {
+        "activate": true
+      }
+    }
+  ]
 }
