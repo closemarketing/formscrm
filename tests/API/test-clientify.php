@@ -125,32 +125,31 @@ class ClientifyTests extends WP_UnitTestCase {
 			return $this->response( 200, '{"count":0,"results":[]}' );
 		}
 
-		// Create/update endpoints.
+		// Create/update endpoints — capture body for assertions.
 		if ( false !== strpos( $url, 'contacts/' ) && 'POST' === $r['method'] ) {
+			$this->last_contact_body = json_decode( $r['body'], true );
 			return $this->response( 201, '{"id":"contact-new","first_name":"Jane","email":"new@example.com"}' );
 		}
 
 		if ( false !== strpos( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
+			$this->last_contact_body = json_decode( $r['body'], true );
 			return $this->response( 200, '{"id":"contact-123","first_name":"John","email":"test@example.com","updated":true}' );
 		}
 
 		if ( false !== strpos( $url, 'companies/' ) && 'POST' === $r['method'] ) {
+			$this->last_contact_body = json_decode( $r['body'], true );
 			return $this->response( 201, '{"id":"company-new","name":"New Corp"}' );
 		}
 
 		if ( false !== strpos( $url, 'companies/' ) && 'PATCH' === $r['method'] ) {
+			$this->last_contact_body = json_decode( $r['body'], true );
 			return $this->response( 200, '{"id":"company-456","name":"ACME Corp Updated"}' );
 		}
 
 		// Deals creation.
 		if ( false !== strpos( $url, 'deals/' ) && 'POST' === $r['method'] ) {
-			return $this->response( 201, '{"id":"deal-789","name":"New Deal","amount":5000}' );
-		}
-
-		// Contacts create endpoint — capture body for assertions.
-		if ( 'POST' === $r['method'] && false !== strpos( $url, '/contacts/' ) ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
-			return $this->response( 201, '{"id":999}' );
+			return $this->response( 201, '{"id":"deal-789","name":"New Deal","amount":5000}' );
 		}
 
 		return $this->response( 500 );
@@ -163,7 +162,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	 * @param string $body Response body.
 	 * @return array
 	 */
-	private function response( $code, $body = '' ) {
+	public function response( $code, $body = '' ) {
 		return array(
 			'body'     => $body,
 			'response' => array(
