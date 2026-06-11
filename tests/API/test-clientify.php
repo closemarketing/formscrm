@@ -145,6 +145,8 @@ class ClientifyTests extends WP_UnitTestCase {
 		// Deals creation.
 		if ( false !== strpos( $url, 'deals/' ) && 'POST' === $r['method'] ) {
 			return $this->response( 201, '{"id":"deal-789","name":"New Deal","amount":5000}' );
+		}
+
 		// Contacts create endpoint — capture body for assertions.
 		if ( 'POST' === $r['method'] && false !== strpos( $url, '/contacts/' ) ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
