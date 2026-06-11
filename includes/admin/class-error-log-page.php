@@ -100,6 +100,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 					'bulkResendFailed'     => __( 'failed', 'formscrm' ),
 					'bulkResendDetails'    => __( 'Details', 'formscrm' ),
 					'ajaxError'            => __( 'AJAX Error', 'formscrm' ),
+					'confirmCancelRetries' => __( 'Are you sure you want to cancel all pending scheduled retries? Log entries will not be deleted.', 'formscrm' ),
+					'cancellingRetries'    => __( 'Cancelling...', 'formscrm' ),
+					'cancelAllRetries'     => __( 'Cancel All Scheduled Retries', 'formscrm' ),
 				)
 			);
 		}
@@ -195,6 +198,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 
 						<button type="button" class="fcrm-button fcrm-button-danger" id="fcrm-clear-all-logs" style="margin-top: 10px;">
 							<?php esc_html_e( 'Clear All Logs', 'formscrm' ); ?>
+						</button>
+						<button type="button" class="fcrm-button fcrm-button-danger" id="fcrm-cancel-all-retries" style="margin-top: 10px;">
+							<?php esc_html_e( 'Cancel All Scheduled Retries', 'formscrm' ); ?>
 						</button>
 					</div>
 
