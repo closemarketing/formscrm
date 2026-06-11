@@ -311,6 +311,42 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 
+	// Cancel all scheduled retries.
+	const cancelAllRetriesBtn = document.getElementById('fcrm-cancel-all-retries');
+	if (cancelAllRetriesBtn) {
+		cancelAllRetriesBtn.addEventListener('click', function() {
+			if (!confirm(formscrmErrorLog.confirmCancelRetries)) {
+				return;
+			}
+
+			const originalText = this.textContent;
+			this.disabled = true;
+			this.textContent = formscrmErrorLog.cancellingRetries || 'Cancelling...';
+
+			const formData = new FormData();
+			formData.append('action', 'formscrm_cancel_all_retries');
+			formData.append('nonce', formscrmErrorLog.nonce);
+
+			fetch(formscrmErrorLog.ajaxurl, {
+				method: 'POST',
+				body: formData
+			})
+				.then(response => response.json())
+				.then(response => {
+					if (response.success) {
+						alert(response.data.message);
+					} else {
+						alert('Error: ' + (response.data.message || 'Failed to cancel retries'));
+					}
+				})
+				.catch(error => alert(formscrmErrorLog.ajaxError + ': ' + error))
+				.finally(() => {
+					this.disabled = false;
+					this.textContent = formscrmErrorLog.cancelAllRetries || originalText;
+				});
+		});
+	}
+
 	// Show bulk action progress.
 	function showBulkActionProgress(total, action) {
 		const bulkBtn = document.getElementById('fcrm-bulk-action-btn');

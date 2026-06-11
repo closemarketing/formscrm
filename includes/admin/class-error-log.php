@@ -51,6 +51,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			add_action( 'wp_ajax_formscrm_export_csv', array( $this, 'ajax_export_csv' ) );
 			add_action( 'wp_ajax_formscrm_bulk_delete_logs', array( $this, 'ajax_bulk_delete_logs' ) );
 			add_action( 'wp_ajax_formscrm_bulk_resend_logs', array( $this, 'ajax_bulk_resend_logs' ) );
+			add_action( 'wp_ajax_formscrm_cancel_all_retries', array( $this, 'ajax_cancel_all_scheduled_retries' ) );
 
 			// Hook for automatic retry via Action Scheduler.
 			add_action( 'formscrm_retry_failed_entry', array( $this, 'retry_failed_entry' ), 10, 1 );
@@ -986,6 +987,32 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					'failed'  => 0,
 				)
 			);
+		}
+
+		/**
+		 * AJAX handler to cancel all pending scheduled retries
+		 *
+		 * Removes every pending formscrm_retry_failed_entry action from both
+		 * Action Scheduler and WP-Cron without deleting any log entries.
+		 *
+		 * @return void
+		 */
+		public function ajax_cancel_all_scheduled_retries() {
+			check_ajax_referer( 'formscrm_error_log_nonce', 'nonce' );
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_send_json_error( array( 'message' => __( 'Permission denied', 'formscrm' ) ) );
+			}
+
+			// Cancel all pending AS actions for this hook in one call.
+			if ( function_exists( 'as_unschedule_all_actions' ) ) {
+				as_unschedule_all_actions( 'formscrm_retry_failed_entry' );
+			}
+
+			// Clear WP-Cron fallback events (no args = clears all scheduled events for the hook).
+			wp_clear_scheduled_hook( 'formscrm_retry_failed_entry' );
+
+			wp_send_json_success( array( 'message' => __( 'All scheduled retries have been cancelled.', 'formscrm' ) ) );
 		}
 	}
 }
