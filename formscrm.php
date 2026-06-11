@@ -90,7 +90,10 @@ add_filter(
 );
 
 // Include files.
+require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log-page.php';
-require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
+require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-review-notice.php';
+
+new FORMSCRM_Review_Notice();

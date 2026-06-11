@@ -892,20 +892,204 @@
 	font-size: 0.85em;
 }
 
+/* Export CSV Date Picker Styles */
+.fcrm-error-log-filters > div {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-top: 10px;
+	flex-wrap: wrap;
+}
+
+#fcrm-export-date-from,
+#fcrm-export-date-to {
+	width: 150px !important;
+	padding: 8px 12px !important;
+	border: 1px solid var(--fcrm-gray-300) !important;
+	border-radius: 4px !important;
+	font-size: 14px !important;
+}
+
+#fcrm-export-date-from:focus,
+#fcrm-export-date-to:focus {
+	outline: none !important;
+	border-color: var(--fcrm-primary) !important;
+	box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1) !important;
+}
+
+/* jQuery UI Datepicker Customization */
+.ui-datepicker {
+	background: white;
+	border: 1px solid var(--fcrm-gray-300);
+	border-radius: 4px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	font-family: inherit;
+	width: 300px !important;
+	padding: 0 !important;
+}
+
+.ui-datepicker-header {
+	background: linear-gradient(135deg, var(--fcrm-primary) 0%, var(--fcrm-accent) 100%);
+	border-radius: 4px 4px 0 0;
+	padding: 8px 5px !important;
+	color: white;
+	display: grid;
+	grid-template-columns: 1fr auto auto 1fr;
+	grid-template-rows: auto auto;
+	align-items: center;
+	justify-items: center;
+	gap: 0;
+	position: relative;
+	height: auto !important;
+}
+
+.ui-datepicker-prev {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.ui-datepicker-next {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+.ui-datepicker-title {
+	color: white;
+	font-weight: 600;
+	margin: 0 !important;
+	text-align: center;
+	font-size: 14px;
+	grid-column: 1 / -1;
+	grid-row: 2;
+	width: 100%;
+	padding-top: 4px;
+}
+
+.ui-datepicker-prev,
+.ui-datepicker-next {
+	position: static !important;
+	top: auto !important;
+	right: auto !important;
+	left: auto !important;
+	cursor: pointer;
+	color: white !important;
+	background: rgba(255, 255, 255, 0.2) !important;
+	border: none !important;
+	border-radius: 3px !important;
+	padding: 4px 8px !important;
+	margin: 0 2px !important;
+	font-size: 16px !important;
+	width: 32px !important;
+	height: 28px !important;
+	text-align: center !important;
+	line-height: 20px !important;
+	order: 1;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	overflow: hidden !important;
+}
+
+.ui-datepicker-prev-hover,
+.ui-datepicker-next-hover,
+.ui-datepicker-prev:hover,
+.ui-datepicker-next:hover {
+	background: rgba(255, 255, 255, 0.4) !important;
+	border-radius: 3px !important;
+}
+
+.ui-datepicker .ui-icon {
+	display: none !important;
+}
+
+.ui-datepicker-prev::before {
+	content: '‹' !important;
+	font-weight: bold !important;
+	font-size: 20px !important;
+	color: white !important;
+}
+
+.ui-datepicker-next::before {
+	content: '›' !important;
+	font-weight: bold !important;
+	font-size: 20px !important;
+	color: white !important;
+}
+
+.ui-datepicker-calendar th {
+	background: var(--fcrm-gray-100);
+	color: var(--fcrm-gray-700);
+	font-weight: 600;
+	text-align: center;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--fcrm-gray-200);
+}
+
+.ui-datepicker-calendar td {
+	padding: 5px;
+	text-align: center;
+}
+
+.ui-datepicker-calendar a {
+	display: block;
+	padding: 5px 8px;
+	color: var(--fcrm-gray-900);
+	text-decoration: none;
+	border-radius: 3px;
+	transition: all 0.2s ease;
+}
+
+.ui-datepicker-calendar a:hover {
+	background: var(--fcrm-primary);
+	color: white;
+}
+
+.ui-datepicker-calendar .ui-state-highlight {
+	background: var(--fcrm-primary);
+	color: white;
+	border-radius: 3px;
+}
+
+.ui-datepicker-calendar .ui-state-active {
+	background: var(--fcrm-accent);
+	color: white;
+	border-radius: 3px;
+	font-weight: bold;
+}
+
+.ui-datepicker-other-month {
+	color: var(--fcrm-gray-300);
+}
+
 /* Mobile responsive */
 @media screen and (max-width: 782px) {
 	.gform-table .formscrm_feeds,
 	.wp-list-table .formscrm_feeds {
 		min-width: 150px;
 	}
-	
+
 	.formscrm-status-badge {
 		padding: 4px 8px;
 		font-size: 0.85em;
 	}
-	
+
 	.formscrm-feed-item {
 		font-size: 0.9em;
+	}
+
+	#fcrm-export-date-from,
+	#fcrm-export-date-to {
+		width: 120px !important;
+	}
+
+	.fcrm-error-log-filters > div {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	#fcrm-export-date-from,
+	#fcrm-export-date-to {
+		width: 100% !important;
 	}
 }
 
@@ -917,4 +1101,117 @@
 
 .formscrm-saving-indicator.is-active {
 	display: inline-flex;
+}
+
+.formscrm-module-search-wrapper {
+	position: relative;
+	display: inline-block;
+	width: 25em;
+}
+
+.formscrm-module-search-input {
+	width: 100%;
+	padding: 4px 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+	line-height: 2;
+	box-sizing: border-box;
+	background: #fff;
+}
+
+.formscrm-module-search-input:focus {
+	border-color: #2271b1;
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.formscrm-module-search-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background: #fff;
+	border: 1px solid #8c8f94;
+	border-top: none;
+	border-radius: 0 0 4px 4px;
+	max-height: 300px;
+	overflow-y: auto;
+	z-index: 9999;
+	box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.formscrm-module-search-item {
+	padding: 8px 12px;
+	cursor: pointer;
+	font-size: 13px;
+}
+
+.formscrm-module-search-item:hover,
+.formscrm-module-search-item.selected {
+	background: #2271b1;
+	color: #fff;
+}
+
+.formscrm-module-search-no-results {
+	padding: 8px 12px;
+	color: #646970;
+	font-size: 13px;
+/* Bulk Actions Bar */
+.fcrm-bulk-actions-bar {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	padding: 15px;
+	background-color: var(--fcrm-gray-100);
+	border: 1px solid var(--fcrm-gray-200);
+	border-radius: 4px;
+	margin-top: 15px;
+}
+
+.fcrm-bulk-actions-bar select {
+	flex: 1;
+	max-width: 300px;
+}
+
+.fcrm-bulk-actions-bar .fcrm-button {
+	white-space: nowrap;
+}
+
+/* Bulk Action Status Container */
+.fcrm-bulk-action-status {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	width: 300px;
+	padding: 15px;
+	background-color: var(--fcrm-gray-100);
+	border: 1px solid var(--fcrm-gray-200);
+	border-radius: 4px;
+	margin-top: 10px;
+}
+
+/* Progress Bar */
+.fcrm-progress-bar {
+	width: 100%;
+	height: 6px;
+	background-color: var(--fcrm-gray-200);
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.fcrm-progress-fill {
+	height: 100%;
+	background: linear-gradient(90deg, var(--fcrm-primary), var(--fcrm-accent));
+	width: 0%;
+	transition: width 0.3s ease;
+	border-radius: 3px;
+}
+
+/* Status Text */
+.fcrm-status-text {
+	margin: 0;
+	font-size: 13px;
+	color: var(--fcrm-gray-700);
+	font-weight: 500;
 }

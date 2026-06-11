@@ -150,6 +150,7 @@ class GFCRM extends GFFeedAddOn {
 			add_filter( 'gform_form_list_columns', array( $this, 'add_feeds_column' ), 10 );
 			add_action( 'gform_form_list_column_formscrm_feeds', array( $this, 'display_feeds_column' ), 10, 1 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_forms_list_styles' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_module_search_scripts' ) );
 			add_filter( 'gform_field_map_choices', array( $this, 'add_gravitypdf_field_map_choices' ), 10, 4 );
 		}
 	}
@@ -213,6 +214,25 @@ class GFCRM extends GFFeedAddOn {
 				FORMSCRM_VERSION
 			);
 		}
+	}
+
+	/**
+	 * Enqueues searchable module select script for GF feed settings pages.
+	 *
+	 * @param string $hook Current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_module_search_scripts( $hook ) {
+		if ( strpos( $hook, 'gf_' ) === false ) {
+			return;
+		}
+		wp_enqueue_script(
+			'formscrm-module-search',
+			FORMSCRM_PLUGIN_URL . 'includes/formscrm-library/js/module-search.js',
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -550,31 +570,12 @@ class GFCRM extends GFFeedAddOn {
 			'type'  => 'feed_connection_status',
 		);
 
-		if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
+		if ( ! $login_crm || ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) ) {
 			return $crm_feed_fields;
 		}
 
-		if ( false === $login_crm ) {
-			// Connection status field already added above, no additional fields needed.
-			return $crm_feed_fields;
-		} else {
-			$module = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
-
-			$crm_feed_fields[] = array(
-				'name'     => 'fc_crm_module',
-				'label'    => __( 'CRM Module', 'formscrm' ),
-				'type'     => 'select',
-				'class'    => 'medium',
-				'onchange' => 'jQuery(this).parents("form").submit();',
-				'choices'  => $this->crmlib->list_modules( $settings ),
-			);
-			if ( empty( $module ) ) {
-				$crm_feed_fields[] = array(
-					'name'  => 'fc_select_module',
-					'label' => esc_html__( 'Select Module and save to select merge values', 'formscrm' ),
-					'type'  => 'hidden',
-				);
-			}
+		$module          = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
+		$modules_choices = $this->crmlib->list_modules( $settings );
 
 			$has_search_entry        = false;
 			$has_search_entry_method = method_exists( $this->crmlib, 'list_fields_search_entry' );
@@ -610,19 +611,44 @@ class GFCRM extends GFFeedAddOn {
 				'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
 				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 			);
+		}
 
+		$crm_feed_fields[] = array(
+			'name'     => 'fc_crm_module',
+			'label'    => __( 'CRM Module', 'formscrm' ),
+			'type'     => 'select',
+			'class'    => 'medium',
+			'onchange' => 'jQuery(this).parents("form").submit();',
+			'choices'  => $modules_choices,
+		);
+		if ( empty( $module ) ) {
 			$crm_feed_fields[] = array(
-				'name'       => 'optin',
-				'label'      => esc_html__( 'Conditional Logic', 'formscrm' ),
-				'type'       => 'feed_condition',
-				'dependency' => 'fc_crm_module',
-				'tooltip'    => sprintf(
-					'<h6>%s</h6>%s',
-					esc_html__( 'Conditional Logic', 'formscrm' ),
-					esc_html__( 'When conditional logic is enabled, form submissions will only be exported to MailerLite when the condition is met. When disabled all form submissions will be exported.', 'formscrm' )
-				),
+				'name'  => 'fc_select_module',
+				'label' => esc_html__( 'Select Module and save to select merge values', 'formscrm' ),
+				'type'  => 'hidden',
 			);
 		}
+
+		$crm_feed_fields[] = array(
+			'name'       => 'listFields',
+			'label'      => __( 'Map Fields', 'formscrm' ),
+			'type'       => 'field_map',
+			'dependency' => 'fc_crm_module',
+			'field_map'  => $this->crmlib->list_fields( $settings, $module ),
+			'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+		);
+
+		$crm_feed_fields[] = array(
+			'name'       => 'optin',
+			'label'      => esc_html__( 'Conditional Logic', 'formscrm' ),
+			'type'       => 'feed_condition',
+			'dependency' => 'fc_crm_module',
+			'tooltip'    => sprintf(
+				'<h6>%s</h6>%s',
+				esc_html__( 'Conditional Logic', 'formscrm' ),
+				esc_html__( 'When conditional logic is enabled, form submissions will only be exported to MailerLite when the condition is met. When disabled all form submissions will be exported.', 'formscrm' )
+			),
+		);
 
 		return $crm_feed_fields;
 	}
@@ -931,6 +957,9 @@ class GFCRM extends GFFeedAddOn {
 		}
 		// Send info from entry and form filled.
 		$settings['entry'] = $entry;
+
+		// Filter before send to CRM.
+		$merge_vars = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, $entry );
 
 		// Sends the entry to CRM.
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );

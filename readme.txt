@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 4.3.3
-Version: 4.3.3
+Stable tag: 4.3.4
+Version: 4.3.4
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
+- [JetForms](https://wordpress.org/plugins/jetformbuilder/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -52,6 +53,19 @@ You can use multiple feed connector in GravityForms, WPForms PRO, Elementor Form
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
+
+** UTM Tracker Addon **
+
+Know exactly where every lead comes from. The [UTM Tracker Addon](https://close.technology/wordpress-plugins/formscrm-utm-tracker/) captures UTM parameters from the URL and automatically attaches them to every form submission sent to your CRM — no hidden fields required.
+
+When a visitor lands on your site with UTM parameters (e.g. `?utm_source=google&utm_medium=cpc&utm_campaign=spring`), the addon:
+
+1. Reads the UTM values from the URL.
+2. Stores them in a browser cookie that persists for 90 days across page navigation.
+3. Preserves first-touch attribution — if the visitor returns later via a different channel, the original source is kept alongside the latest one.
+4. Injects the values directly into the CRM payload when the form is submitted, using merge tags in the field mapping (e.g. `formscrm_utm:utm_source`).
+
+Supported parameters: `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content` — plus `_first` variants for first-touch attribution.
 
 **Dynamic values in GravityForms and WPForms**
 We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
@@ -250,9 +264,17 @@ WordPress installation and then activate the Plugin from Plugins page.
 * Enhanced: GravityForms entry notes now include the action taken (created/updated) and the merge strategy field used.
 * Fixed: Clientify API version now propagated consistently to deals and products requests instead of using hard-coded strings.
 * Fixed: Improved `build_error_message()` to handle `WP_Error` objects and parse standard API error keys (`error`, `detail`, `message`).
+* Fixed: Clientify GDPR checkbox value in Contact Form 7 now normalized to '1' (accepted) or '' (not accepted), regardless of the checkbox label language.
+* Add a notice to recall to review the plugin FormsCRM.
+* Added: Support for JetFormBuilder forms plugin with full field mapping and global settings integration.
+* Added: Support to FormsCRM UTM Tracker plugin to send UTM parameters from the cookie to the CRM as merge vars.
+* Fixed: API Clientify error not add null values in custom fields.
+* Fixed: Error in CF7 value expert.
+* Fixed: Login error depending on the CRM, now it shows the error message from the CRM in the settings page.
 * Fixed: Elementor not getting correctly the module from settings.
 * Fixed: Normalize boolean CRM fields to standardized values for Clientify.
 * Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
+* Fixed: Brevo list_modules pagination now returns all lists instead of only 10 by properly sending limit/offset parameters and accumulating paginated results.
 
 = 4.3.3 =
 * Added: Smart support for Clientify API v2 and v1 with enhanced login response handling and error messages. 

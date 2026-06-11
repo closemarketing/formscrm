@@ -738,19 +738,23 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 				$element['value'] = implode( ',', $element['value'] );
 			}
 			if ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal|custom_fields' ) ) {
-				$custom_field            = explode( '|', $element['name'] );
-				$deal['custom_fields'][] = array(
-					'field' => $custom_field[2],
-					'value' => $element['value'],
-				);
+				if ( '' !== $element['value'] ) {
+					$custom_field            = explode( '|', $element['name'] );
+					$deal['custom_fields'][] = array(
+						'field' => $custom_field[2],
+						'value' => $element['value'],
+					);
+				}
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'deal' ) ) {
 				$this->parse_deal_field( $element, $deal, $deal_product_skus, $deal_tags );
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'custom_fields' ) ) {
-				$custom_field               = explode( '|', $element['name'] );
-				$contact['custom_fields'][] = array(
-					'field' => $custom_field[1],
-					'value' => $element['value'],
-				);
+				if ( '' !== $element['value'] ) {
+					$custom_field               = explode( '|', $element['name'] );
+					$contact['custom_fields'][] = array(
+						'field' => $custom_field[1],
+						'value' => $element['value'],
+					);
+				}
 			} elseif ( strpos( $element['name'], '|' ) && 0 === strpos( $element['name'], 'emails' ) ) {
 				$email               = explode( '|', $element['name'] );
 				$contact['emails'][] = array(

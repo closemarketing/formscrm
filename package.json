@@ -7,11 +7,13 @@
   },
   "private": true,
   "scripts": {
-		"wp": "npx @wp-playground/cli server --mount=.:/wordpress/wp-content/plugins/ --blueprint=./blueprint.json",
+    "wp": "npx @wp-playground/cli server --mount=.:/wordpress/wp-content/plugins/ --blueprint=./blueprint.json",
     "test": "vitest run --config=tests/integration/vitest.config.ts && npx playwright test --config=tests/end-to-end/playwright.config.ts",
     "test:integration": "vitest --config=tests/integration/vitest.config.ts",
     "test:e2e": "npx playwright test --ui --config=tests/end-to-end/playwright.config.ts",
-    "test:wpe2e": "npx playwright test --config tests/e2e/playwright.config.ts"
+    "test:wpe2e": "npx playwright test --config tests/e2e/playwright.config.ts",
+    "build:jfb": "wp-scripts build includes/formscrm-library/src/jfb-editor.js --output-path=includes/formscrm-library/assets/build && cp includes/formscrm-library/src/jfb-settings.js includes/formscrm-library/assets/build/jfb-settings.js && cp includes/formscrm-library/src/jfb-settings.asset.php includes/formscrm-library/assets/build/jfb-settings.asset.php",
+    "start:jfb": "wp-scripts start includes/formscrm-library/src/jfb-editor.js --output-path=includes/formscrm-library/assets/build"
   },
   "repository": {
     "type": "git",
@@ -24,14 +26,15 @@
   },
   "homepage": "https://github.com/closemarketing/formscrm#readme",
   "dependencies": {
-    "csv-parse": "^5.4.0"
+    "csv-parse": "^6.2.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.1",
-    "@types/node": "^22.14.1",
-    "@wp-playground/cli": "^1.1.1",
+    "@types/node": "^25.9.2",
+    "@wordpress/scripts": "^32.4.0",
+    "@wp-playground/cli": "^3.1.36",
     "fetch-cookie": "^3.1.0",
-    "vitest": "^3.1.1"
+    "vitest": "^4.1.8"
   },
   "core": "WordPress/WordPress",
   "plugins": [

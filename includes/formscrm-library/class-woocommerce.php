@@ -176,8 +176,15 @@ class FormsCRM_WooCommerce {
 			$this->crmlib   = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
 			$options_module = array();
 			if ( ! empty( $this->crmlib ) && method_exists( $this->crmlib, 'list_modules' ) ) {
-				foreach ( $this->crmlib->list_modules( $wc_formscrm ) as $module ) {
-					$options_module[ $module['value'] ] = $module['label'];
+				$modules = $this->crmlib->list_modules( $wc_formscrm );
+				if ( empty( $modules ) ) {
+					$options_module = array(
+						'' => esc_html__( 'No modules found. Check your API credentials.', 'formscrm' ),
+					);
+				} else {
+					foreach ( $modules as $module ) {
+						$options_module[ $module['value'] ] = $module['label'];
+					}
 				}
 			}
 			$settings_crm[] = array(
@@ -201,11 +208,7 @@ class FormsCRM_WooCommerce {
 
 		if ( ! empty( $this->crmlib ) && ! empty( $wc_formscrm ) ) {
 			$login_crm = $this->crmlib->login( $wc_formscrm );
-			if ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) {
-				return $settings_crm;
-			}
-
-			if ( false === $login_crm ) {
+			if ( ! $login_crm || ( is_array( $login_crm ) && isset( $login_crm['status'] ) && 'error' === $login_crm['status'] ) ) {
 				return $settings_crm;
 			}
 		}
@@ -260,6 +263,7 @@ class FormsCRM_WooCommerce {
 			$this->crmlib = formscrm_get_api_class( $wc_formscrm['fc_crm_type'] );
 			$merge_vars   = $this->get_merge_vars( $wc_formscrm, $order );
 
+			$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $wc_formscrm );
 			$response_result = $this->crmlib->create_entry( $wc_formscrm, $merge_vars );
 
 			if ( 'error' === $response_result['status'] ) {
