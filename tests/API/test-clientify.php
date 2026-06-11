@@ -74,10 +74,10 @@ class ClientifyTests extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function mock_http_request( $pre, $r, $url ) {
-		$is_v2_base = str_contains( $url, 'api-plus.clientify.com' );
+		$is_v2_base = false !== strpos( $url, 'api-plus.clientify.com' );
 
 		// Login endpoint.
-		if ( str_contains( $url, 'me/' ) ) {
+		if ( false !== strpos( $url, 'me/' ) ) {
 			if ( 'fail' === $this->mock_api_mode ) {
 				return $this->response( 500 );
 			}
@@ -93,7 +93,7 @@ class ClientifyTests extends WP_UnitTestCase {
 		}
 
 		// v1 fallback login.
-		if ( str_contains( $url, 'settings/my-account/' ) ) {
+		if ( false !== strpos( $url, 'settings/my-account/' ) ) {
 			if ( 'fail' === $this->mock_api_mode ) {
 				return $this->response( 500 );
 			}
@@ -101,24 +101,24 @@ class ClientifyTests extends WP_UnitTestCase {
 		}
 
 		// Custom fields endpoint.
-		if ( str_contains( $url, 'custom-fields' ) ) {
+		if ( false !== strpos( $url, 'custom-fields' ) ) {
 			$file = $is_v2_base ? 'clientify-v2-custom-fields.json' : 'clientify-custom-fields.json';
 			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . $file ) );
 		}
 
 		// Search endpoint (GET contacts/companies with query).
-		if ( str_contains( $url, 'contacts/' ) && 'GET' === $r['method'] && ! str_contains( $url, 'contacts/deals' ) ) {
+		if ( false !== strpos( $url, 'contacts/' ) && 'GET' === $r['method'] && false === strpos( $url, 'contacts/deals' ) ) {
 			// Search found existing contact.
-			if ( str_contains( $url, 'query=test%40example.com' ) ) {
+			if ( false !== strpos( $url, 'query=test%40example.com' ) ) {
 				return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","first_name":"John","email":"test@example.com"}]}' );
 			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
 		}
 
-		if ( str_contains( $url, 'companies/' ) && 'GET' === $r['method'] ) {
+		if ( false !== strpos( $url, 'companies/' ) && 'GET' === $r['method'] ) {
 			// Search found existing company.
-			if ( str_contains( $url, 'query=ACME' ) ) {
+			if ( false !== strpos( $url, 'query=ACME' ) ) {
 				return $this->response( 200, '{"count":1,"results":[{"id":"company-456","name":"ACME Corp"}]}' );
 			}
 			// Search not found.
@@ -126,27 +126,27 @@ class ClientifyTests extends WP_UnitTestCase {
 		}
 
 		// Create/update endpoints.
-		if ( str_contains( $url, 'contacts/' ) && 'POST' === $r['method'] ) {
+		if ( false !== strpos( $url, 'contacts/' ) && 'POST' === $r['method'] ) {
 			return $this->response( 201, '{"id":"contact-new","first_name":"Jane","email":"new@example.com"}' );
 		}
 
-		if ( str_contains( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
+		if ( false !== strpos( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
 			return $this->response( 200, '{"id":"contact-123","first_name":"John","email":"test@example.com","updated":true}' );
 		}
 
-		if ( str_contains( $url, 'companies/' ) && 'POST' === $r['method'] ) {
+		if ( false !== strpos( $url, 'companies/' ) && 'POST' === $r['method'] ) {
 			return $this->response( 201, '{"id":"company-new","name":"New Corp"}' );
 		}
 
-		if ( str_contains( $url, 'companies/' ) && 'PATCH' === $r['method'] ) {
+		if ( false !== strpos( $url, 'companies/' ) && 'PATCH' === $r['method'] ) {
 			return $this->response( 200, '{"id":"company-456","name":"ACME Corp Updated"}' );
 		}
 
 		// Deals creation.
-		if ( str_contains( $url, 'deals/' ) && 'POST' === $r['method'] ) {
+		if ( false !== strpos( $url, 'deals/' ) && 'POST' === $r['method'] ) {
 			return $this->response( 201, '{"id":"deal-789","name":"New Deal","amount":5000}' );
 		// Contacts create endpoint — capture body for assertions.
-		if ( 'POST' === $r['method'] && str_contains( $url, '/contacts/' ) ) {
+		if ( 'POST' === $r['method'] && false !== strpos( $url, '/contacts/' ) ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
 			return $this->response( 201, '{"id":999}' );
 		}
@@ -652,7 +652,7 @@ class ClientifyTests extends WP_UnitTestCase {
 		add_filter(
 			'pre_http_request',
 			function ( $pre, $r, $url ) use ( &$last_deal_body ) {
-				if ( 'POST' === $r['method'] && str_contains( $url, '/deals/' ) ) {
+				if ( 'POST' === $r['method'] && false !== strpos( $url, '/deals/' ) ) {
 					$last_deal_body = json_decode( $r['body'], true );
 					return array(
 						'body'     => '{"id":888}',

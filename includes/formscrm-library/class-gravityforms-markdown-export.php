@@ -422,7 +422,7 @@ class FormsCRM_GravityForms_Markdown_Export {
 	 */
 	private function escape_markdown( $text ) {
 		// Don't escape file links or already formatted markdown.
-		if ( str_contains( $text, '](http' ) ) {
+		if ( false !== strpos( $text, '](http' ) ) {
 			return $text;
 		}
 

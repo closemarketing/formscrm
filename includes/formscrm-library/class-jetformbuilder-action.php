@@ -173,7 +173,7 @@ class FORMSCRM_JFB_Action extends Base {
 	 * @return string
 	 */
 	private function fill_dynamic_value( string $value, array $submitted_data ): string {
-		if ( ! str_contains( $value, '{id:' ) ) {
+		if ( false === strpos( $value, '{id:' ) ) {
 			return $value;
 		}
 		preg_match_all( '/{([^}]*)}/', $value, $matches );
