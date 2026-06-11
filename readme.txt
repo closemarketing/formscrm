@@ -244,8 +244,12 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
-= 4.3.4 =
+= 4.4.0 =
 * Enhanced: Added support to GravityForms and Clientify to update strategy in the feed. You can choose between update if contact exists or create new contact always.
+* Enhanced: Added `CRMLIB_Abstract` base class to unify the CRM library interface (`create_or_update_entry`, `list_fields_search_entry`, `determine_search_by`) across all integrations.
+* Enhanced: GravityForms entry notes now include the action taken (created/updated) and the merge strategy field used.
+* Fixed: Clientify API version now propagated consistently to deals and products requests instead of using hard-coded strings.
+* Fixed: Improved `build_error_message()` to handle `WP_Error` objects and parse standard API error keys (`error`, `detail`, `message`).
 * Fixed: Elementor not getting correctly the module from settings.
 * Fixed: Normalize boolean CRM fields to standardized values for Clientify.
 * Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
