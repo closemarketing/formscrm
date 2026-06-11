@@ -12,6 +12,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once dirname( __DIR__ ) . '/formscrm-library/helpers-functions.php';
+
 if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 	/**
 	 * Class FORMSCRM_Error_Log
@@ -482,6 +484,17 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					// Cancel any scheduled retries.
 					$this->cancel_scheduled_retry( $log_id );
 
+					formscrm_add_entry_note(
+						$log->form_type,
+						$log->entry_id,
+						sprintf(
+							/* translators: %s: CRM name */
+							__( 'FormsCRM manual resend success (%s)', 'formscrm' ),
+							esc_html( $log->crm_type )
+						),
+						'success'
+					);
+
 					wp_send_json_success(
 						array(
 							'message' => __( 'Entry resent successfully', 'formscrm' ),
@@ -490,6 +503,18 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				} else {
 					$error_message = isset( $response['message'] ) ? $response['message'] : __( 'Unknown error occurred', 'formscrm' );
 
+					formscrm_add_entry_note(
+						$log->form_type,
+						$log->entry_id,
+						sprintf(
+							/* translators: %1$s: CRM name, %2$s: error message */
+							__( 'FormsCRM manual resend failed (%1$s): %2$s', 'formscrm' ),
+							esc_html( $log->crm_type ),
+							esc_html( $error_message )
+						),
+						'error'
+					);
+
 					wp_send_json_error(
 						array(
 							'message' => $error_message,
@@ -497,6 +522,18 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					);
 				}
 			} catch ( Exception $e ) {
+				formscrm_add_entry_note(
+					$log->form_type,
+					$log->entry_id,
+					sprintf(
+						/* translators: %1$s: CRM name, %2$s: exception message */
+						__( 'FormsCRM manual resend error (%1$s): %2$s', 'formscrm' ),
+						esc_html( $log->crm_type ),
+						esc_html( $e->getMessage() )
+					),
+					'error'
+				);
+
 				wp_send_json_error(
 					array(
 						'message' => $e->getMessage(),
@@ -801,9 +838,37 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 
 					// Cancel any pending scheduled retries (AS + WP-Cron).
 					$this->cancel_scheduled_retry( $log_id );
+
+					formscrm_add_entry_note(
+						$log->form_type,
+						$log->entry_id,
+						sprintf(
+							/* translators: %1$s: CRM name, %2$s: attempt number */
+							__( 'FormsCRM auto-retry success (%1$s) - Attempt %2$s/3', 'formscrm' ),
+							esc_html( $log->crm_type ),
+							esc_html( (string) $log->resend_attempts )
+						),
+						'success'
+					);
+
+					// Clear any scheduled retries.
+					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 				} else {
 					$error_msg = isset( $response['message'] ) ? $response['message'] : 'Unknown error';
 					formscrm_debug_message( "Auto-retry FAILED for log {$log_id}: {$error_msg}" );
+
+					formscrm_add_entry_note(
+						$log->form_type,
+						$log->entry_id,
+						sprintf(
+							/* translators: %1$s: CRM name, %2$s: attempt number, %3$s: error message */
+							__( 'FormsCRM auto-retry failed (%1$s) - Attempt %2$s/3: %3$s', 'formscrm' ),
+							esc_html( $log->crm_type ),
+							esc_html( (string) $log->resend_attempts ),
+							esc_html( $error_msg )
+						),
+						'error'
+					);
 
 					// Failed - check if we should schedule another retry.
 					$log = $this->get_log( $log_id );
@@ -811,11 +876,25 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 						$this->schedule_retry( $log_id );
 						formscrm_debug_message( "Scheduled next retry for log {$log_id}" );
 					} else {
+						wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 						formscrm_debug_message( "No more retries scheduled for log {$log_id}: max attempts reached" );
 					}
 				}
 			} catch ( Exception $e ) {
 				formscrm_debug_message( "Auto-retry EXCEPTION for log {$log_id}: {$e->getMessage()}" );
+
+				formscrm_add_entry_note(
+					$log->form_type,
+					$log->entry_id,
+					sprintf(
+						/* translators: %1$s: CRM name, %2$s: attempt number, %3$s: exception message */
+						__( 'FormsCRM auto-retry error (%1$s) - Attempt %2$s/3: %3$s', 'formscrm' ),
+						esc_html( $log->crm_type ),
+						esc_html( (string) $log->resend_attempts ),
+						esc_html( $e->getMessage() )
+					),
+					'error'
+				);
 
 				// Failed - check if we should schedule another retry.
 				$log = $this->get_log( $log_id );
@@ -823,6 +902,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					$this->schedule_retry( $log_id );
 					formscrm_debug_message( "Scheduled next retry for log {$log_id}" );
 				} else {
+					wp_clear_scheduled_hook( 'formscrm_retry_failed_entry', array( $log_id ) );
 					formscrm_debug_message( "No more retries scheduled for log {$log_id}: max attempts reached" );
 				}
 			} finally {

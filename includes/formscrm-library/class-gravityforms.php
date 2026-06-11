@@ -150,6 +150,7 @@ class GFCRM extends GFFeedAddOn {
 			add_filter( 'gform_form_list_columns', array( $this, 'add_feeds_column' ), 10 );
 			add_action( 'gform_form_list_column_formscrm_feeds', array( $this, 'display_feeds_column' ), 10, 1 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_forms_list_styles' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_module_search_scripts' ) );
 			add_filter( 'gform_field_map_choices', array( $this, 'add_gravitypdf_field_map_choices' ), 10, 4 );
 		}
 	}
@@ -213,6 +214,25 @@ class GFCRM extends GFFeedAddOn {
 				FORMSCRM_VERSION
 			);
 		}
+	}
+
+	/**
+	 * Enqueues searchable module select script for GF feed settings pages.
+	 *
+	 * @param string $hook Current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_module_search_scripts( $hook ) {
+		if ( strpos( $hook, 'gf_' ) === false ) {
+			return;
+		}
+		wp_enqueue_script(
+			'formscrm-module-search',
+			FORMSCRM_PLUGIN_URL . 'includes/formscrm-library/js/module-search.js',
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
 	}
 
 	/**

@@ -31,30 +31,32 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 		// Log available CRM paths for debugging.
 		formscrm_debug_message( 'Available CRM paths: ' . wp_json_encode( array_keys( $array_path ) ) );
 
+		$instance = null;
+
 		if ( isset( $array_path[ $crmname ] ) ) {
 			$file_path = $array_path[ $crmname ];
 
 			// Verify file exists before including.
-			if ( ! file_exists( $file_path ) ) {
+			if ( file_exists( $file_path ) ) {
+				include_once $file_path;
+				formscrm_debug_message( 'Included CRM library: ' . $file_path );
+			} else {
 				formscrm_debug_message( 'ERROR: CRM library file not found: ' . $file_path );
-				return null;
 			}
-
-			include_once $file_path;
-			formscrm_debug_message( 'Included CRM library: ' . $file_path );
 		} else {
 			formscrm_debug_message( 'ERROR: CRM path not registered for: ' . $crmname );
-			return null;
 		}
 
 		// Verify class exists after including file.
 		if ( class_exists( $crmclassname ) ) {
 			formscrm_debug_message( 'Successfully created instance of: ' . $crmclassname );
-			return new $crmclassname();
+			$instance = new $crmclassname();
+		} else {
+			formscrm_debug_message( 'ERROR: CRM class not found: ' . $crmclassname );
 		}
 
-		formscrm_debug_message( 'ERROR: CRM class not found: ' . $crmclassname );
-		return null;
+		// Allow tests and extensions to override the resolved instance.
+		return apply_filters( 'formscrm_get_api_class', $instance, $crm_type );
 	}
 }
 
@@ -85,7 +87,7 @@ if ( ! function_exists( 'formscrm_get_crm_settings' ) ) {
 
 		formscrm_debug_message( 'Retrieved CRM settings for form type: ' . $form_type );
 
-		return $settings;
+		return apply_filters( 'formscrm_get_crm_settings', $settings, $form_type );
 	}
 }
 
@@ -102,6 +104,47 @@ if ( ! function_exists( 'formscrm_debug_message' ) ) {
 				$message = print_r( $message, true ); //phpcs:ignore
 			}
 			error_log( 'FORMSCRM: ' . esc_html__( 'Message Debug Mode', 'formscrm' ) . ' ' . esc_html( $message ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		}
+	}
+}
+
+if ( ! function_exists( 'formscrm_add_entry_note' ) ) {
+	/**
+	 * Adds a note to a form entry in a form-agnostic way.
+	 *
+	 * Supports Gravity Forms and WPForms. Other form plugins do not have
+	 * a native entry notes API, so the call is silently skipped for them.
+	 *
+	 * @param string $form_type Type slug (e.g. 'gravityforms', 'wpforms').
+	 * @param int    $entry_id  Entry ID.
+	 * @param string $note      Note text.
+	 * @param string $type      Note type: 'success' or 'error'.
+	 * @return void
+	 */
+	function formscrm_add_entry_note( $form_type, $entry_id, $note, $type = 'note' ) {
+		if ( empty( $entry_id ) ) {
+			return;
+		}
+
+		if ( 'gravityforms' === $form_type && class_exists( 'GFFormsModel' ) ) {
+			GFFormsModel::add_note( $entry_id, 0, 'FormsCRM', $note, 'formscrm', $type );
+			return;
+		}
+
+		if ( 'wpforms' === $form_type && function_exists( 'wpforms' ) ) {
+			$entry_meta = wpforms()->obj( 'entry_meta' );
+			if ( $entry_meta ) {
+				$entry_meta->add(
+					array(
+						'entry_id' => $entry_id,
+						'form_id'  => 0,
+						'user_id'  => 0,
+						'type'     => 'note',
+						'data'     => $note,
+					),
+					'entry_meta'
+				);
+			}
 		}
 	}
 }
