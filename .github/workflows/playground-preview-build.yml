@@ -60,7 +60,7 @@ jobs:
           printf '%s' '${{ github.event.pull_request.head.sha }}' > build/playground-preview/head-sha
 
       - name: Upload plugin zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: formscrm-zip
           path: build/formscrm.zip
@@ -68,7 +68,7 @@ jobs:
           retention-days: 5
 
       - name: Upload Playground preview metadata
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: formscrm-preview-metadata
           path: build/playground-preview
