@@ -16,8 +16,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class for Holded connection.
  */
-class CRMLIB_HOLDED {
-
+class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	/**
 	 * Holded API v2 base URL.
 	 */
@@ -426,5 +425,38 @@ class CRMLIB_HOLDED {
 			'message' => 'success',
 			'id'      => isset( $result['data']['id'] ) ? $result['data']['id'] : '',
 		);
+	}
+
+	/**
+	 * List fields for search entry for given module of a CRM.
+	 *
+	 * @internal Not applicable for Holded integration.
+	 * @param  string|null $module Module to get fields from.
+	 * @return array Empty array.
+	 */
+	public function list_fields_search_entry( ?string $module = null ): array {
+		return array();
+	}
+
+	/**
+	 * Map a search field ID to the API query param name.
+	 *
+	 * @internal Not applicable for Holded integration.
+	 * @param string $search_field Field ID from list_fields_search_entry.
+	 * @return string Query param name to use in the API request.
+	 */
+	public function determine_search_by( string $search_field ): string {
+		return '';
+	}
+
+	/**
+	 * Check if an entry exists and create or update it.
+	 *
+	 * @param array  $data   Raw merge vars from form.
+	 * @param string $module CRM module slug (contacts, companies etc).
+	 * @return array
+	 */
+	public function create_or_update_entry( array $data, string $module ): array {
+		return array();
 	}
 } //from Class

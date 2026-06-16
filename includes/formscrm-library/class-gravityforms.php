@@ -150,6 +150,7 @@ class GFCRM extends GFFeedAddOn {
 			add_filter( 'gform_form_list_columns', array( $this, 'add_feeds_column' ), 10 );
 			add_action( 'gform_form_list_column_formscrm_feeds', array( $this, 'display_feeds_column' ), 10, 1 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_forms_list_styles' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_module_search_scripts' ) );
 			add_filter( 'gform_field_map_choices', array( $this, 'add_gravitypdf_field_map_choices' ), 10, 4 );
 		}
 	}
@@ -213,6 +214,25 @@ class GFCRM extends GFFeedAddOn {
 				FORMSCRM_VERSION
 			);
 		}
+	}
+
+	/**
+	 * Enqueues searchable module select script for GF feed settings pages.
+	 *
+	 * @param string $hook Current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_module_search_scripts( $hook ) {
+		if ( strpos( $hook, 'gf_' ) === false ) {
+			return;
+		}
+		wp_enqueue_script(
+			'formscrm-module-search',
+			FORMSCRM_PLUGIN_URL . 'includes/formscrm-library/js/module-search.js',
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -557,14 +577,40 @@ class GFCRM extends GFFeedAddOn {
 		$module          = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
 		$modules_choices = $this->crmlib->list_modules( $settings );
 
-		if ( empty( $modules_choices ) ) {
-			$modules_choices = array(
-				array(
-					'label' => esc_html__( 'No modules found. Check your API credentials.', 'formscrm' ),
-					'value' => '',
+			$has_search_entry        = false;
+			$has_search_entry_method = method_exists( $this->crmlib, 'list_fields_search_entry' );
+
+		if ( $has_search_entry_method ) {
+			$has_search_entry = ! empty( $this->crmlib->list_fields_search_entry( $module ) );
+		}
+
+		if ( ! empty( $has_search_entry ) && ! empty( $module ) ) {
+			$crm_feed_fields[] = array(
+				'name'     => 'fc_crm_merge_entry',
+				'label'    => __( 'Merge strategy', 'formscrm' ),
+				'type'     => 'select',
+				'class'    => 'medium',
+				'onchange' => 'jQuery(this).parents("form").submit();',
+				'choices'  => array_merge(
+					array(
+						array(
+							'label' => __( 'No strategy (always create)', 'formscrm' ),
+							'value' => '',
+						),
+					),
+					$this->crmlib->list_fields_search_entry( $module )
 				),
 			);
 		}
+
+		$crm_feed_fields[] = array(
+			'name'       => 'listFields',
+			'label'      => __( 'Map Fields', 'formscrm' ),
+			'type'       => 'field_map',
+			'dependency' => 'fc_crm_module',
+			'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
+			'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+		);
 
 		$crm_feed_fields[] = array(
 			'name'     => 'fc_crm_module',
@@ -804,7 +850,7 @@ class GFCRM extends GFFeedAddOn {
 			if ( $feed_count > 1 ) {
 				echo '<div class="formscrm-feed-total">';
 				printf(
-					/* translators: %d: number of feeds */
+				/* translators: %d: number of feeds */
 					esc_html__( 'Total: %d feeds', 'formscrm' ),
 					absint( $feed_count )
 				);
@@ -934,7 +980,7 @@ class GFCRM extends GFFeedAddOn {
 			formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $message, $merge_vars, $url, $query, $form_info );
 
 			$response_message = sprintf(
-				// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.
+			// translators: %1$s CRM name %2$s Error message %3$s URL %4$s Query.
 				__( 'Error creating %1$s Error: %2$s URL: %3$s QUERY: %4$s', 'formscrm' ),
 				esc_html( $settings['fc_crm_type'] ),
 				$message,
@@ -943,14 +989,28 @@ class GFCRM extends GFFeedAddOn {
 			);
 			$this->add_note( $entry['id'], $response_message, 'error' );
 		} else {
-			$response_message = sprintf(
+			$crm_action   = isset( $response_result['action'] ) ? $response_result['action'] : '';
+			$crm_strategy = isset( $response_result['strategy'] ) ? $response_result['strategy'] : '';
+
+			if ( ! empty( $crm_action ) ) {
+				$response_message = sprintf(
+				// translators: %1$s CRM name %2$s CRM type %3$s ID %4$s action (created/updated) %5$s strategy field.
+					__( 'Success %4$s %1$s (%2$s) Entry ID: %3$s. Strategy: %5$s', 'formscrm' ),
+					isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
+					esc_html( $settings['fc_crm_type'] ),
+					$response_result['id'],
+					esc_html( $crm_action ),
+					'none' === $crm_strategy ? __( 'always create', 'formscrm' ) : esc_html( $crm_strategy )
+				);
+			} else {
+				$response_message = sprintf(
 				// translators: %1$s CRM name %2$s CRM type %3$s ID number of entry created.
-				__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
-				isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
-				esc_html( $settings['fc_crm_type'] ),
-				$response_result['id'],
-				$response_result['message'] ?? ''
-			);
+					__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
+					isset( $settings['fc_crm_name'] ) ? esc_html( $settings['fc_crm_name'] ) : '',
+					esc_html( $settings['fc_crm_type'] ),
+					$response_result['id']
+				);
+			}
 			$this->add_note( $entry['id'], $response_message, 'success' );
 			formscrm_debug_message( $response_result['id'] );
 			formscrm_send_webhook( $settings, $response_result );
@@ -1074,16 +1134,16 @@ class GFCRM extends GFFeedAddOn {
 	 * @return string Processed field value.
 	 */
 	private function fill_dynamic_value( $field_value, $entry, $form ) {
-		if ( str_contains( $field_value, '{id:' ) || str_contains( $field_value, '{label:' ) ) {
+		if ( false !== strpos( $field_value, '{id:' ) || false !== strpos( $field_value, '{label:' ) ) {
 			$dynamic_value = $field_value;
 			preg_match_all( '#\{(.*?)\}#', $field_value, $matches );
 			if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
 				foreach ( $matches[1] as $field ) {
-					$mode = str_contains( $field, 'id:' ) ? 'id' : 'label';
+					$mode = false !== strpos( $field, 'id:' ) ? 'id' : 'label';
 					if ( 'id' === $mode ) {
 						$field_id = (int) str_replace( 'id:', '', $field );
 						$value    = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
-						if ( str_contains( $value, '[' ) ) {
+						if ( false !== strpos( $value, '[' ) ) {
 							// is array.
 							$clean_note_file = str_replace( '[', '', $value );
 							$clean_note_file = str_replace( ']', '', $clean_note_file );

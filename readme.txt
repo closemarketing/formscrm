@@ -258,7 +258,12 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
-= next =
+= 4.4.0 =
+* Enhanced: Added support to GravityForms and Clientify to update strategy in the feed. You can choose between update if contact exists or create new contact always.
+* Enhanced: Added `CRMLIB_Abstract` base class to unify the CRM library interface (`create_or_update_entry`, `list_fields_search_entry`, `determine_search_by`) across all integrations.
+* Enhanced: GravityForms entry notes now include the action taken (created/updated) and the merge strategy field used.
+* Fixed: Clientify API version now propagated consistently to deals and products requests instead of using hard-coded strings.
+* Fixed: Improved `build_error_message()` to handle `WP_Error` objects and parse standard API error keys (`error`, `detail`, `message`).
 * Fixed: Clientify GDPR checkbox value in Contact Form 7 now normalized to '1' (accepted) or '' (not accepted), regardless of the checkbox label language.
 * Add a notice to recall to review the plugin FormsCRM.
 * Added: Support for JetFormBuilder forms plugin with full field mapping and global settings integration.

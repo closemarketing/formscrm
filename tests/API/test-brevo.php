@@ -80,7 +80,7 @@ class BrevoTests extends WP_UnitTestCase {
 		}
 
 		// contacts/lists endpoint (login + list_modules).
-		if ( str_contains( $url, 'contacts/lists' ) ) {
+		if ( false !== strpos( $url, 'contacts/lists' ) ) {
 			if ( 'empty' === $this->mock_mode ) {
 				return $this->response( 200, '{"lists":[],"count":0}' );
 			}
@@ -88,12 +88,12 @@ class BrevoTests extends WP_UnitTestCase {
 		}
 
 		// contacts/attributes endpoint (list_fields).
-		if ( str_contains( $url, 'contacts/attributes' ) ) {
+		if ( false !== strpos( $url, 'contacts/attributes' ) ) {
 			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . 'brevo-get-contacts-attributes.json' ) );
 		}
 
 		// contacts POST endpoint (create_entry) — capture body for assertions.
-		if ( 'POST' === $r['method'] && str_contains( $url, '/contacts' ) ) {
+		if ( 'POST' === $r['method'] && false !== strpos( $url, '/contacts' ) ) {
 			$this->last_request_body = json_decode( $r['body'], true );
 			return $this->response( 201, '{"id":42}' );
 		}

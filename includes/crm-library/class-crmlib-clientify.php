@@ -17,15 +17,28 @@
 /**
  * Class for Clientify connection.
  */
-class CRMLIB_Clientify {
+class CRMLIB_Clientify extends CRMLIB_Abstract {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 
 	/**
-	 * API version detected on login: 'v2' or 'v1'.
+	 * CRM settings stored for use in helper methods.
+	 *
+	 * @var array
+	 */
+	private array $settings = array();
+
+	/**
+	 * Processed contact data stored for use in helper methods.
+	 *
+	 * @var array
+	 */
+	private array $contact = array();
+	/**
+	 * Gets information from Clientify CRM
 	 *
 	 * @var string
 	 */
-	private $api_version = 'v2';
+	protected $api_version = 'v2';
 
 	/**
 	 * Logins to a CRM and detects API version.
@@ -88,7 +101,7 @@ class CRMLIB_Clientify {
 	 * @param  array $settings Settings from Gravity Forms options.
 	 * @return array           Returns an array of modules.
 	 */
-	public function list_modules( array $settings ) {
+	public function list_modules( array $settings ): array {
 		return array(
 			array(
 				'name'  => 'contacts',
@@ -124,6 +137,7 @@ class CRMLIB_Clientify {
 		$apikey      = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module      = ! empty( $module ) ? $module : 'Contacts';
 		$module_slug = sanitize_title( $module );
+		$merge_field = isset( $settings['fc_crm_merge_entry'] ) ? $settings['fc_crm_merge_entry'] : '';
 
 		$fields = array();
 		if ( 'contacts' === $module_slug || 'contacts-deals' === $module_slug ) {
@@ -481,6 +495,7 @@ class CRMLIB_Clientify {
 	 * @return array             Status, message and id.
 	 */
 	public function create_entry( $settings, $merge_vars ) {
+		$this->settings    = $settings;
 		$apikey            = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$module            = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
 		$contact           = array();
@@ -509,15 +524,13 @@ class CRMLIB_Clientify {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
-		if ( 'v2' === $this->api_version ) {
-			// Default marketing status to 2 (Marketing Contact) if not set.
-			if ( ! isset( $contact['marketing_status'] ) ) {
-				$contact['marketing_status'] = 2;
-			}
-			$result = $this->request( $module . '/', $contact, $apikey );
-		} else {
-			$result = $this->request( $module, $contact, $apikey, 'POST', 'v1' );
+		// Default marketing status to 2 (Marketing Contact) if not set (v2 only).
+		if ( 'v2' === $this->api_version && ! isset( $contact['marketing_status'] ) ) {
+			$contact['marketing_status'] = 2;
 		}
+
+		$this->contact = $contact;
+		$result        = $this->create_or_update_entry( $merge_vars, $module );
 
 		if ( 'ok' === $result['status'] ) {
 			$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
@@ -546,7 +559,7 @@ class CRMLIB_Clientify {
 						$deal['company_id'] = (int) $contact_id;
 					}
 					$deal['amount'] = isset( $deal['amount'] ) ? $deal['amount'] : 0;
-					$result         = $this->request( 'deals/', $deal, $apikey );
+					$result         = $this->request( 'deals/', $deal, $apikey, 'POST', $this->api_version );
 				} else {
 					$key  = 'contacts' === $module ? 'contact' : 'company';
 					$slug = 'contacts' === $module ? 'contacts' : 'companies';
@@ -676,7 +689,7 @@ class CRMLIB_Clientify {
 		foreach ( $skus as $sku ) {
 			$sku = trim( $sku );
 			if ( 'v2' === $this->api_version ) {
-				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET' );
+				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET', $this->api_version );
 				if ( 'ok' === $res_product['status'] && isset( $res_product['data']['results'][0]['id'] ) ) {
 					$product       = $res_product['data']['results'][0];
 					$product_price = ! empty( $product['price'] ) ? (float) $product['price'] : 0;
@@ -689,7 +702,7 @@ class CRMLIB_Clientify {
 					$deal_total     += $product_price;
 				}
 			} else {
-				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET', 'v1' );
+				$res_product = $this->request( 'products/?sku=' . $sku, array(), $apikey, 'GET', $this->api_version );
 				if ( 'ok' === $res_product['status'] && isset( $res_product['data']['results'][0]['id'] ) ) {
 					$product       = $res_product['data']['results'][0];
 					$product_price = ! empty( $product['price'] ) ? (float) $product['price'] : 0;
@@ -789,6 +802,14 @@ class CRMLIB_Clientify {
 				$contact[ $element['name'] ] = $element['value'];
 			}
 		}
+
+		// Clean tags blank.
+		if ( ! empty( $contact['tags'] ) && is_array( $contact['tags'] ) ) {
+			$contact_tags    = array_map( 'trim', $contact['tags'] );
+			$contact['tags'] = array_values( array_filter( $contact_tags ) );
+		}
+
+		$this->contact = $contact;
 	}
 
 	/**
@@ -1069,11 +1090,13 @@ class CRMLIB_Clientify {
 		}
 
 		// Fields in query.
-		if ( 'GET' === $method && 'v2' === $api_version ) {
-			if ( empty( $params ) ) {
+		if ( 'GET' === $method ) {
+			if ( 'v2' === $api_version && empty( $params ) ) {
 				$params = array( 'fields' => 'id' );
 			}
-			$url .= '?' . http_build_query( $params );
+			if ( ! empty( $params ) ) {
+				$url .= '?' . http_build_query( $params );
+			}
 		}
 
 		$next          = true;
@@ -1120,21 +1143,140 @@ class CRMLIB_Clientify {
 	}
 
 	/**
-	 * Builds an error message string from an API response.
+	 * List fields for search entry for given module of a CRM
 	 *
-	 * @param array|\WP_Error $result   wp_remote_* result.
-	 * @param string          $body_raw Raw response body.
+	 * @param  string $module Module to get fields from.
+	 * @return array Array of mudules
+	 */
+	public function list_fields_search_entry( ?string $module = 'Contacts' ): array {
+		$module = sanitize_title( $module );
+		$fields = array();
+
+		if ( 'contacts' === $module || 'contacts-deals' === $module ) {
+			$fields = array(
+				array(
+					'name'     => 'email',
+					'value'    => 'email',
+					'label'    => __( 'Email Main', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'taxpayer_identification_number',
+					'value'    => 'taxpayer_identification_number',
+					'label'    => __( 'Taxpayer Identification number', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'phone',
+					'value'    => 'phone',
+					'label'    => __( 'Phone Main', 'formscrm' ),
+					'required' => false,
+				),
+			);
+		} elseif ( 'companies' === $module || 'companies-deals' === $module ) {
+			$fields = array(
+				array(
+					'name'     => 'business_name',
+					'value'    => 'business_name',
+					'label'    => __( 'Company Name', 'formscrm' ),
+					'required' => false,
+				),
+				array(
+					'name'     => 'taxpayer_identification_number',
+					'value'    => 'taxpayer_identification_number',
+					'label'    => __( 'Taxpayer Identification Number', 'formscrm' ),
+					'required' => false,
+				),
+			);
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Check if an entry exists and create or update it.
+	 *
+	 * @param array  $data   Raw merge vars from form.
+	 * @param string $module CRM module slug (contacts, companies).
+	 * @return array
+	 */
+	public function create_or_update_entry( array $data, string $module ): array {
+
+		$apikey       = isset( $this->settings['fc_crm_apipassword'] ) ? $this->settings['fc_crm_apipassword'] : '';
+		$search_field = isset( $this->settings['fc_crm_merge_entry'] ) ? $this->settings['fc_crm_merge_entry'] : '';
+		$endpoint     = $module . '/';
+		$data_array   = array_column( $data, 'value', 'name' );
+
+		// If no merge field configured, just create.
+		if ( empty( $search_field ) || empty( $data_array[ $search_field ] ) ) {
+			$endpoint          .= '?force_insert=true';
+			$result             = $this->request( $endpoint, $this->contact, $apikey, 'POST', $this->api_version );
+			$result['action']   = 'created';
+			$result['strategy'] = 'none';
+			return $result;
+		}
+
+		$search_value = $data_array[ $search_field ];
+		$query_param  = $this->determine_search_by( $search_field );
+
+		// Search existing entry by field.
+		$search_params = array( $query_param => $search_value );
+		$search_result = $this->request( $endpoint, $search_params, $apikey, 'GET', $this->api_version );
+
+		if ( 'ok' === $search_result['status'] && ! empty( $search_result['data']['results'] ) ) {
+			// Entry exists: update.
+			$entry_id           = $search_result['data']['results'][0]['id'];
+			$result             = $this->request( $endpoint . $entry_id . '/', $this->contact, $apikey, 'PATCH', $this->api_version );
+			$result['action']   = 'updated';
+			$result['strategy'] = $search_field . ': ' . $search_value;
+			return $result;
+		}
+
+		// Entry not found: create.
+		$result             = $this->request( $endpoint, $this->contact, $apikey, 'POST', $this->api_version );
+		$result['action']   = 'created';
+		$result['strategy'] = $search_field . ': ' . $search_value;
+		return $result;
+	}
+
+	/**
+	 * Map a search field ID to the API query param name.
+	 *
+	 * @param string $search_field Field ID from list_fields_search_entry.
+	 * @return string Query param name to use in the API request.
+	 */
+	public function determine_search_by( string $search_field ): string {
+		$map = array(
+			'email'         => 'query',
+			'business_name' => 'query',
+		);
+
+		return ! empty( $map[ $search_field ] ) ? $map[ $search_field ] : $search_field;
+	}
+
+	/**
+	 * Build a human-readable error message from a WP HTTP response.
+	 *
+	 * @param  array|\WP_Error $result   WP HTTP response.
+	 * @param  string          $body_raw Raw response body.
 	 * @return string
 	 */
-	private function build_error_message( $result, $body_raw ) {
-		$message = (int) wp_remote_retrieve_response_code( $result ) . ' ';
-		$body    = json_decode( $body_raw, true );
-		if ( is_array( $body ) ) {
-			foreach ( $body as $key => $value ) {
-				$message_value = is_array( $value ) ? implode( '.', $value ) : $value;
-				$message      .= $key . ': ' . $message_value;
+	private function build_error_message( $result, string $body_raw ): string {
+		if ( is_wp_error( $result ) ) {
+			return $result->get_error_message();
+		}
+
+		$code    = (int) wp_remote_retrieve_response_code( $result );
+		$decoded = json_decode( $body_raw, true );
+
+		if ( is_array( $decoded ) ) {
+			foreach ( array( 'error', 'detail', 'message' ) as $key ) {
+				if ( ! empty( $decoded[ $key ] ) && is_string( $decoded[ $key ] ) ) {
+					return sprintf( 'HTTP %d: %s', $code, $decoded[ $key ] );
+				}
 			}
 		}
-		return $message;
+
+		return sprintf( 'HTTP %d: %s', $code, wp_remote_retrieve_response_message( $result ) );
 	}
 }
