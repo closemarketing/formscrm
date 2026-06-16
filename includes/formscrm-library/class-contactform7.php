@@ -390,7 +390,7 @@ class FORMSCRM_CF7_Settings {
 	 * @return string Processed field value with shortcodes replaced.
 	 */
 	private static function fill_dynamic_value( $field_value, $submitted_data ) {
-		if ( ! str_contains( $field_value, '{id:' ) ) {
+		if ( false === strpos( $field_value, '{id:' ) ) {
 			return $field_value;
 		}
 

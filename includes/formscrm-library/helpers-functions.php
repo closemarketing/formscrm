@@ -36,6 +36,9 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 		if ( isset( $array_path[ $crmname ] ) ) {
 			$file_path = $array_path[ $crmname ];
 
+			// Include the abstract class before the CRM class that extends it.
+			require_once FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-abstract.php';
+
 			// Verify file exists before including.
 			if ( file_exists( $file_path ) ) {
 				include_once $file_path;
