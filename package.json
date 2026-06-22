@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.0",
     "@wordpress/scripts": "^32.4.0",
     "@wp-playground/cli": "^3.1.39",
     "fetch-cookie": "^3.1.0",
