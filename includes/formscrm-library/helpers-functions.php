@@ -865,7 +865,8 @@ if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	 */
 	function formscrm_gf_get_label_by_value( array $choices, $entry_value ) {
 		foreach ( $choices as $choice ) {
-			if ( isset( $choice['value'] ) && $choice['value'] === $entry_value ) {
+			$choice_value = isset( $choice['value'] ) && '' !== $choice['value'] ? $choice['value'] : ( isset( $choice['text'] ) ? $choice['text'] : '' );
+			if ( $choice_value === $entry_value ) {
 				return isset( $choice['text'] ) ? $choice['text'] : '';
 			}
 		}

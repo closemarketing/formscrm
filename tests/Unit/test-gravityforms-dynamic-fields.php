@@ -176,6 +176,22 @@ class GravityFormsDynamicFieldsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * When GravityForms stores the label as the entry value (no separate "Use Value"
+	 * configured), choices have an empty string value and the entry stores the text.
+	 * The function must fall back to matching by text.
+	 */
+	public function test_empty_choice_value_falls_back_to_text_match() {
+		$choices = array(
+			array( 'text' => 'Option A', 'value' => '' ),
+			array( 'text' => 'Option B', 'value' => '' ),
+			array( 'text' => 'Option C', 'value' => '' ),
+		);
+
+		$this->assertEquals( 'Option B', formscrm_gf_get_label_by_value( $choices, 'Option B' ) );
+		$this->assertEquals( 'Option A', formscrm_gf_get_label_by_value( $choices, 'Option A' ) );
+	}
+
+	/**
 	 * A single choice in the array is resolved correctly.
 	 */
 	public function test_single_choice_array() {
