@@ -865,9 +865,15 @@ if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	 */
 	function formscrm_gf_get_label_by_value( array $choices, $entry_value ) {
 		foreach ( $choices as $choice ) {
-			$choice_value = isset( $choice['value'] ) && '' !== $choice['value'] ? $choice['value'] : ( isset( $choice['text'] ) ? $choice['text'] : '' );
-			if ( $choice_value === $entry_value ) {
-				return isset( $choice['text'] ) ? $choice['text'] : '';
+			$choice_text = isset( $choice['text'] ) ? $choice['text'] : '';
+			$has_value   = array_key_exists( 'value', $choice );
+
+			if ( $has_value && $choice['value'] === $entry_value ) {
+				return $choice_text;
+			}
+
+			if ( ( ! $has_value || '' === $choice['value'] ) && $choice_text === $entry_value ) {
+				return $choice_text;
 			}
 		}
 		return '';
