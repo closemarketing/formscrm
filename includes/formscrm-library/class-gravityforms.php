@@ -584,6 +584,22 @@ class GFCRM extends GFFeedAddOn {
 			$has_search_entry = ! empty( $this->crmlib->list_fields_search_entry( $module ) );
 		}
 
+		$crm_feed_fields[] = array(
+			'name'     => 'fc_crm_module',
+			'label'    => __( 'CRM Module', 'formscrm' ),
+			'type'     => 'select',
+			'class'    => 'medium',
+			'onchange' => 'jQuery(this).parents("form").submit();',
+			'choices'  => $modules_choices,
+		);
+		if ( empty( $module ) ) {
+			$crm_feed_fields[] = array(
+				'name'  => 'fc_select_module',
+				'label' => esc_html__( 'Select Module and save to select merge values', 'formscrm' ),
+				'type'  => 'hidden',
+			);
+		}
+
 		if ( ! empty( $has_search_entry ) && ! empty( $module ) ) {
 			$crm_feed_fields[] = array(
 				'name'     => 'fc_crm_merge_entry',
@@ -609,31 +625,6 @@ class GFCRM extends GFFeedAddOn {
 			'type'       => 'field_map',
 			'dependency' => 'fc_crm_module',
 			'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
-			'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
-		);
-
-		$crm_feed_fields[] = array(
-			'name'     => 'fc_crm_module',
-			'label'    => __( 'CRM Module', 'formscrm' ),
-			'type'     => 'select',
-			'class'    => 'medium',
-			'onchange' => 'jQuery(this).parents("form").submit();',
-			'choices'  => $modules_choices,
-		);
-		if ( empty( $module ) ) {
-			$crm_feed_fields[] = array(
-				'name'  => 'fc_select_module',
-				'label' => esc_html__( 'Select Module and save to select merge values', 'formscrm' ),
-				'type'  => 'hidden',
-			);
-		}
-
-		$crm_feed_fields[] = array(
-			'name'       => 'listFields',
-			'label'      => __( 'Map Fields', 'formscrm' ),
-			'type'       => 'field_map',
-			'dependency' => 'fc_crm_module',
-			'field_map'  => $this->crmlib->list_fields( $settings, $module ),
 			'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 		);
 
