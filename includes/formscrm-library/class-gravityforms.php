@@ -1159,12 +1159,15 @@ class GFCRM extends GFFeedAddOn {
 							$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						}
 					} else {
-						$field_id   = (int) str_replace( 'label:', '', $field );
+						$field_id   = sanitize_text_field( str_replace( 'label:', '', $field ) );
 						$field_obj  = RGFormsModel::get_field( $form, $field_id );
 						$field_type = RGFormsModel::get_input_type( $field_obj );
 
 						if ( 'radio' === $field_type || 'select' === $field_type ) {
-							$value = formscrm_gf_get_label_by_value( $field_obj['choices'], $entry[ $field_id ] );
+							$entry_value = rgar( $entry, $field_id );
+							$choices     = isset( $field_obj['choices'] ) ? $field_obj['choices'] : array();
+							$label       = formscrm_gf_get_label_by_value( $choices, $entry_value );
+							$value       = '' !== $label ? $label : $entry_value;
 						} elseif ( 'checkbox' === $field_type ) {
 							$search_values = array();
 							$count_choices = count( $field_obj['choices'] );
