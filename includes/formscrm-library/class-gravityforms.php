@@ -1164,7 +1164,7 @@ class GFCRM extends GFFeedAddOn {
 						$field_obj  = RGFormsModel::get_field( $form, $field_id );
 						$field_type = RGFormsModel::get_input_type( $field_obj );
 						if ( 'radio' === $field_type || 'select' === $field_type ) {
-							$value = array_search( $entry[ $field_id ], array_column( $field_obj['choices'], 'value', 'text' ), true );
+							$value = formscrm_gf_get_label_by_value( $field_obj['choices'], $entry[ $field_id ] );
 						} elseif ( 'checkbox' === $field_type ) {
 							$search_values = array();
 							$count_choices = count( $field_obj['choices'] );

@@ -850,6 +850,29 @@ if ( ! function_exists( 'formscrm_build_status_html' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
+	/**
+	 * Returns the label text for a GravityForms choice matching the given value.
+	 *
+	 * Iterates the choices array in order so the first match is returned, which is
+	 * the correct behaviour even when two choices share the same value.  The old
+	 * array_column + array_search pattern always returned the first label regardless
+	 * of which option the user actually selected.
+	 *
+	 * @param array  $choices     GravityForms choices array (each item has 'text' and 'value').
+	 * @param string $entry_value The value stored in the entry for this field.
+	 * @return string Label text, or empty string when no match is found.
+	 */
+	function formscrm_gf_get_label_by_value( array $choices, $entry_value ) {
+		foreach ( $choices as $choice ) {
+			if ( isset( $choice['value'] ) && $choice['value'] === $entry_value ) {
+				return isset( $choice['text'] ) ? $choice['text'] : '';
+			}
+		}
+		return '';
+	}
+}
+
 if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 	/**
 	 * Render API connection status indicator.
