@@ -1077,7 +1077,7 @@ class GFCRM extends GFFeedAddOn {
 			$label       = formscrm_gf_get_label_by_value( $choices, $entry_value );
 			return array(
 				'name'  => $var_key,
-				'value' => apply_filters( 'formscrm_field_value', '' !== $label ? $label : $entry_value, $form['id'], $field_id, $entry ),
+				'value' => '' !== $label ? $label : $entry_value,
 			);
 		} elseif ( $field && 'multiselect' === RGFormsModel::get_input_type( $field ) ) {
 			$value = apply_filters( 'formscrm_field_value_multiselect', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
