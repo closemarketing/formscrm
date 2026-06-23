@@ -1138,9 +1138,9 @@ class GFCRM extends GFFeedAddOn {
 			preg_match_all( '#\{(.*?)\}#', $field_value, $matches );
 			if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
 				foreach ( $matches[1] as $field ) {
-					$mode = false !== strpos( $field, 'id:' ) ? 'id' : 'label';
+					$mode     = false !== strpos( $field, 'id:' ) ? 'id' : 'label';
+					$field_id = sanitize_text_field( str_replace( $mode . ':', '', $field ) );
 					if ( 'id' === $mode ) {
-						$field_id = (int) str_replace( 'id:', '', $field );
 						$value    = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						if ( false !== strpos( $value, '[' ) ) {
 							// is array.
@@ -1155,11 +1155,8 @@ class GFCRM extends GFFeedAddOn {
 								$file_note .= $file . "\n";
 							}
 							$value = $file_note;
-						} else {
-							$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						}
 					} else {
-						$field_id   = sanitize_text_field( str_replace( 'label:', '', $field ) );
 						$field_obj  = RGFormsModel::get_field( $form, $field_id );
 						$field_type = RGFormsModel::get_input_type( $field_obj );
 
