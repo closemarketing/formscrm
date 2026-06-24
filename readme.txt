@@ -258,6 +258,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= next =
+* Fixed: GravityForms `{label:X}` merge tag returning wrong label when select/radio fields have duplicate values.
+
 = 4.4.0 =
 * Enhanced: Added support to GravityForms and Clientify to update strategy in the feed. You can choose between update if contact exists or create new contact always.
 * Enhanced: Added `CRMLIB_Abstract` base class to unify the CRM library interface (`create_or_update_entry`, `list_fields_search_entry`, `determine_search_by`) across all integrations.

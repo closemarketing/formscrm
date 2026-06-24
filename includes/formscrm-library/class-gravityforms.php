@@ -577,79 +577,70 @@ class GFCRM extends GFFeedAddOn {
 		$module          = $this->get_actual_feed_value( 'fc_crm_module', $feed_settings );
 		$modules_choices = $this->crmlib->list_modules( $settings );
 
-			$has_search_entry        = false;
-			$has_search_entry_method = method_exists( $this->crmlib, 'list_fields_search_entry' );
-
-		if ( $has_search_entry_method ) {
-			$has_search_entry = ! empty( $this->crmlib->list_fields_search_entry( $module ) );
-		}
-
-		if ( ! empty( $has_search_entry ) && ! empty( $module ) ) {
 			$crm_feed_fields[] = array(
-				'name'     => 'fc_crm_merge_entry',
-				'label'    => __( 'Merge strategy', 'formscrm' ),
+				'name'     => 'fc_crm_module',
+				'label'    => __( 'CRM Module', 'formscrm' ),
 				'type'     => 'select',
 				'class'    => 'medium',
 				'onchange' => 'jQuery(this).parents("form").submit();',
-				'choices'  => array_merge(
-					array(
+				'choices'  => $modules_choices,
+			);
+			if ( empty( $module ) ) {
+				$crm_feed_fields[] = array(
+					'name'  => 'fc_select_module',
+					'label' => esc_html__( 'Select Module and save to select merge values', 'formscrm' ),
+					'type'  => 'hidden',
+				);
+			}
+
+			$has_search_entry        = false;
+			$has_search_entry_method = method_exists( $this->crmlib, 'list_fields_search_entry' );
+
+			if ( $has_search_entry_method ) {
+				$has_search_entry = ! empty( $this->crmlib->list_fields_search_entry( $module ) );
+			}
+
+			if ( ! empty( $has_search_entry ) && ! empty( $module ) ) {
+				$crm_feed_fields[] = array(
+					'name'     => 'fc_crm_merge_entry',
+					'label'    => __( 'Merge strategy', 'formscrm' ),
+					'type'     => 'select',
+					'class'    => 'medium',
+					'onchange' => 'jQuery(this).parents("form").submit();',
+					'choices'  => array_merge(
 						array(
-							'label' => __( 'No strategy (always create)', 'formscrm' ),
-							'value' => '',
+							array(
+								'label' => __( 'No strategy (always create)', 'formscrm' ),
+								'value' => '',
+							),
 						),
+						$this->crmlib->list_fields_search_entry( $module )
 					),
-					$this->crmlib->list_fields_search_entry( $module )
+				);
+			}
+
+			$crm_feed_fields[] = array(
+				'name'       => 'listFields',
+				'label'      => __( 'Map Fields', 'formscrm' ),
+				'type'       => 'field_map',
+				'dependency' => 'fc_crm_module',
+				'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
+				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+			);
+
+			$crm_feed_fields[] = array(
+				'name'       => 'optin',
+				'label'      => esc_html__( 'Conditional Logic', 'formscrm' ),
+				'type'       => 'feed_condition',
+				'dependency' => 'fc_crm_module',
+				'tooltip'    => sprintf(
+					'<h6>%s</h6>%s',
+					esc_html__( 'Conditional Logic', 'formscrm' ),
+					esc_html__( 'When conditional logic is enabled, form submissions will only be exported to MailerLite when the condition is met. When disabled all form submissions will be exported.', 'formscrm' )
 				),
 			);
-		}
 
-		$crm_feed_fields[] = array(
-			'name'       => 'listFields',
-			'label'      => __( 'Map Fields', 'formscrm' ),
-			'type'       => 'field_map',
-			'dependency' => 'fc_crm_module',
-			'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
-			'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
-		);
-
-		$crm_feed_fields[] = array(
-			'name'     => 'fc_crm_module',
-			'label'    => __( 'CRM Module', 'formscrm' ),
-			'type'     => 'select',
-			'class'    => 'medium',
-			'onchange' => 'jQuery(this).parents("form").submit();',
-			'choices'  => $modules_choices,
-		);
-		if ( empty( $module ) ) {
-			$crm_feed_fields[] = array(
-				'name'  => 'fc_select_module',
-				'label' => esc_html__( 'Select Module and save to select merge values', 'formscrm' ),
-				'type'  => 'hidden',
-			);
-		}
-
-		$crm_feed_fields[] = array(
-			'name'       => 'listFields',
-			'label'      => __( 'Map Fields', 'formscrm' ),
-			'type'       => 'field_map',
-			'dependency' => 'fc_crm_module',
-			'field_map'  => $this->crmlib->list_fields( $settings, $module ),
-			'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
-		);
-
-		$crm_feed_fields[] = array(
-			'name'       => 'optin',
-			'label'      => esc_html__( 'Conditional Logic', 'formscrm' ),
-			'type'       => 'feed_condition',
-			'dependency' => 'fc_crm_module',
-			'tooltip'    => sprintf(
-				'<h6>%s</h6>%s',
-				esc_html__( 'Conditional Logic', 'formscrm' ),
-				esc_html__( 'When conditional logic is enabled, form submissions will only be exported to MailerLite when the condition is met. When disabled all form submissions will be exported.', 'formscrm' )
-			),
-		);
-
-		return $crm_feed_fields;
+			return $crm_feed_fields;
 	}
 
 	/**
@@ -1080,6 +1071,14 @@ class GFCRM extends GFFeedAddOn {
 				'name'  => $var_key,
 				'value' => $value,
 			);
+		} elseif ( $field && ( 'select' === RGFormsModel::get_input_type( $field ) || 'radio' === RGFormsModel::get_input_type( $field ) ) ) {
+			$entry_value = rgar( $entry, $field_id );
+			$choices     = isset( $field['choices'] ) ? $field['choices'] : array();
+			$label       = formscrm_gf_get_label_by_value( $choices, $entry_value );
+			return array(
+				'name'  => $var_key,
+				'value' => '' !== $label ? $label : $entry_value,
+			);
 		} elseif ( $field && 'multiselect' === RGFormsModel::get_input_type( $field ) ) {
 			$value = apply_filters( 'formscrm_field_value_multiselect', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
 			$value = str_replace( ',', '|', $value );
@@ -1139,10 +1138,10 @@ class GFCRM extends GFFeedAddOn {
 			preg_match_all( '#\{(.*?)\}#', $field_value, $matches );
 			if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
 				foreach ( $matches[1] as $field ) {
-					$mode = false !== strpos( $field, 'id:' ) ? 'id' : 'label';
+					$mode     = false !== strpos( $field, 'id:' ) ? 'id' : 'label';
+					$field_id = sanitize_text_field( str_replace( $mode . ':', '', $field ) );
 					if ( 'id' === $mode ) {
-						$field_id = (int) str_replace( 'id:', '', $field );
-						$value    = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
+						$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						if ( false !== strpos( $value, '[' ) ) {
 							// is array.
 							$clean_note_file = str_replace( '[', '', $value );
@@ -1156,15 +1155,16 @@ class GFCRM extends GFFeedAddOn {
 								$file_note .= $file . "\n";
 							}
 							$value = $file_note;
-						} else {
-							$value = isset( $entry[ $field_id ] ) ? $entry[ $field_id ] : '';
 						}
 					} else {
-						$field_id   = str_replace( 'label:', '', $field );
 						$field_obj  = RGFormsModel::get_field( $form, $field_id );
 						$field_type = RGFormsModel::get_input_type( $field_obj );
+
 						if ( 'radio' === $field_type || 'select' === $field_type ) {
-							$value = array_search( $entry[ $field_id ], array_column( $field_obj['choices'], 'value', 'text' ), true );
+							$entry_value = rgar( $entry, $field_id );
+							$choices     = isset( $field_obj['choices'] ) ? $field_obj['choices'] : array();
+							$label       = formscrm_gf_get_label_by_value( $choices, $entry_value );
+							$value       = '' !== $label ? $label : $entry_value;
 						} elseif ( 'checkbox' === $field_type ) {
 							$search_values = array();
 							$count_choices = count( $field_obj['choices'] );
