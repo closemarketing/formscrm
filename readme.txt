@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 4.4.0
-Version: 4.4.0
+Stable tag: 4.4.1
+Version: 4.4.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -258,8 +258,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
-= next =
+= 4.4.1 =
 * Fixed: GravityForms `{label:X}` merge tag returning wrong label when select/radio fields have duplicate values.
+* Fixed: Merge strategy field not showing correctly.
 
 = 4.4.0 =
 * Enhanced: Added support to GravityForms and Clientify to update strategy in the feed. You can choose between update if contact exists or create new contact always.
