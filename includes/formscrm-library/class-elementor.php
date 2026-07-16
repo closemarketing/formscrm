@@ -284,10 +284,15 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 
 		// Unpack hidden settings for the form.
 		$formscrm_fields = array();
+		$merge_entry     = '';
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
 			$formscrm_fields = json_decode( $settings['formscrm_settings_hidden'], true );
 			$module          = $formscrm_fields[ $crm_type ] ?? '';
 			unset( $formscrm_fields[ $crm_type ] );
+
+			// Merge strategy is a meta setting, not a field mapping — pull it out before building merge vars.
+			$merge_entry = $formscrm_fields['fc_crm_merge_entry'] ?? '';
+			unset( $formscrm_fields['fc_crm_merge_entry'] );
 		}
 
 		if ( empty( $module ) ) {
@@ -310,10 +315,11 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		// Create contact in CRM.
-		$settings        = formscrm_elementor_process_settings( $settings, $module );
-		$this->crmlib    = formscrm_get_api_class( $settings['fc_crm_type'] );
-		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, array() );
-		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
+		$settings                       = formscrm_elementor_process_settings( $settings, $module );
+		$settings['fc_crm_merge_entry'] = $merge_entry;
+		$this->crmlib                   = formscrm_get_api_class( $settings['fc_crm_type'] );
+		$merge_vars                     = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, array() );
+		$response_result                = $this->crmlib->create_entry( $settings, $merge_vars );
 
 		$response_message = '';
 		if ( 'error' === $response_result['status'] ) {
