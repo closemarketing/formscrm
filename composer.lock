@@ -761,12 +761,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPCSStandards/PHPCSUtils.git",
-                "reference": "38dd30ffcc737777b18ef9bd665fd59cdb8b9161"
+                "reference": "a43cbe73e49d01ef1bc815e2bdd0bd21cd91ff56"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPCSStandards/PHPCSUtils/zipball/38dd30ffcc737777b18ef9bd665fd59cdb8b9161",
-                "reference": "38dd30ffcc737777b18ef9bd665fd59cdb8b9161",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHPCSUtils/zipball/a43cbe73e49d01ef1bc815e2bdd0bd21cd91ff56",
+                "reference": "a43cbe73e49d01ef1bc815e2bdd0bd21cd91ff56",
                 "shasum": ""
             },
             "require": {
@@ -847,7 +847,7 @@
                     "type": "thanks_dev"
                 }
             ],
-            "time": "2025-12-01T11:33:33+00:00"
+            "time": "2026-07-09T14:52:03+00:00"
         },
         {
             "name": "phpstan/extension-installer",
@@ -2721,16 +2721,16 @@
         },
         {
             "name": "wp-coding-standards/wpcs",
-            "version": "3.3.0",
+            "version": "3.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
-                "reference": "7795ec6fa05663d716a549d0b44e47ffc8b0d4a6"
+                "reference": "469c18ceab4d642b15bad4c65ebf3b307bfd55ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/7795ec6fa05663d716a549d0b44e47ffc8b0d4a6",
-                "reference": "7795ec6fa05663d716a549d0b44e47ffc8b0d4a6",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/469c18ceab4d642b15bad4c65ebf3b307bfd55ab",
+                "reference": "469c18ceab4d642b15bad4c65ebf3b307bfd55ab",
                 "shasum": ""
             },
             "require": {
@@ -2740,8 +2740,8 @@
                 "ext-xmlreader": "*",
                 "php": ">=7.2",
                 "phpcsstandards/phpcsextra": "^1.5.0",
-                "phpcsstandards/phpcsutils": "^1.1.0",
-                "squizlabs/php_codesniffer": "^3.13.4"
+                "phpcsstandards/phpcsutils": "^1.2.2",
+                "squizlabs/php_codesniffer": "^3.13.5"
             },
             "require-dev": {
                 "php-parallel-lint/php-console-highlighter": "^1.0.0",
@@ -2783,7 +2783,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2025-11-25T12:08:04+00:00"
+            "time": "2026-07-16T13:05:29+00:00"
         },
         {
             "name": "wp-phpunit/wp-phpunit",
