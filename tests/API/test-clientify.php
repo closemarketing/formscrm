@@ -108,6 +108,11 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		// Search endpoint (GET contacts/companies with query).
 		if ( false !== strpos( $url, 'contacts/' ) && 'GET' === $r['method'] && false === strpos( $url, 'contacts/deals' ) ) {
+			// The v2 API rejects any GET request without a `fields` param. Real
+			// Clientify response: ["You must specify the fields param: fields = id, ..."].
+			if ( $is_v2_base && false === strpos( $url, 'fields=' ) ) {
+				return $this->response( 400, '["You must specify the fields param: fields = id, ..."]' );
+			}
 			// Search found existing contact.
 			if ( false !== strpos( $url, 'query=test%40example.com' ) ) {
 				return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","first_name":"John","email":"test@example.com"}]}' );
@@ -124,6 +129,9 @@ class ClientifyTests extends WP_UnitTestCase {
 		}
 
 		if ( false !== strpos( $url, 'companies/' ) && 'GET' === $r['method'] ) {
+			if ( $is_v2_base && false === strpos( $url, 'fields=' ) ) {
+				return $this->response( 400, '["You must specify the fields param: fields = id, ..."]' );
+			}
 			// Search found existing company.
 			if ( false !== strpos( $url, 'query=ACME' ) ) {
 				return $this->response( 200, '{"count":1,"results":[{"id":"company-456","name":"ACME Corp"}]}' );

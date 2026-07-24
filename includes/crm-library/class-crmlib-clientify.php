@@ -1089,10 +1089,10 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$args['body']                    = wp_json_encode( $params );
 		}
 
-		// Fields in query.
+		// Fields in query. The v2 API requires a `fields` param on every GET request.
 		if ( 'GET' === $method ) {
-			if ( 'v2' === $api_version && empty( $params ) ) {
-				$params = array( 'fields' => 'id' );
+			if ( 'v2' === $api_version && empty( $params['fields'] ) ) {
+				$params['fields'] = 'id';
 			}
 			if ( ! empty( $params ) ) {
 				$url .= '?' . http_build_query( $params );
