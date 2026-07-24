@@ -1247,8 +1247,9 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	 */
 	public function determine_search_by( string $search_field ): string {
 		$map = array(
-			'email'         => 'query',
-			'business_name' => 'query',
+			'email'                          => 'query',
+			'business_name'                  => 'query',
+			'taxpayer_identification_number' => 'query',
 		);
 
 		return ! empty( $map[ $search_field ] ) ? $map[ $search_field ] : $search_field;

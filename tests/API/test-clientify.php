@@ -112,6 +112,13 @@ class ClientifyTests extends WP_UnitTestCase {
 			if ( false !== strpos( $url, 'query=test%40example.com' ) ) {
 				return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","first_name":"John","email":"test@example.com"}]}' );
 			}
+			// Search found existing contact by NIF/DNI. Confirmed against the real
+			// Clientify API: it does NOT support filtering by
+			// taxpayer_identification_number as a literal query param — only the
+			// generic `query` param matches it.
+			if ( false !== strpos( $url, 'query=50997453J' ) ) {
+				return $this->response( 200, '{"count":1,"results":[{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J"}]}' );
+			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
 		}
@@ -128,11 +135,22 @@ class ClientifyTests extends WP_UnitTestCase {
 		// Create/update endpoints — capture body for assertions.
 		if ( false !== strpos( $url, 'contacts/' ) && 'POST' === $r['method'] ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
+			// Real Clientify behaviour: POSTing a contact whose NIF already exists
+			// server-side returns 409. Guards against a regression in
+			// determine_search_by() that would stop mapping
+			// taxpayer_identification_number to the `query` search param.
+			if ( ! empty( $this->last_contact_body['taxpayer_identification_number'] )
+				&& '50997453J' === $this->last_contact_body['taxpayer_identification_number'] ) {
+				return $this->response( 409, '{"detail":"Contact with this taxpayer_identification_number already exists."}' );
+			}
 			return $this->response( 201, '{"id":"contact-new","first_name":"Jane","email":"new@example.com"}' );
 		}
 
 		if ( false !== strpos( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
+			if ( false !== strpos( $url, 'contacts/contact-789/' ) ) {
+				return $this->response( 200, '{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J","updated":true}' );
+			}
 			return $this->response( 200, '{"id":"contact-123","first_name":"John","email":"test@example.com","updated":true}' );
 		}
 
@@ -456,6 +474,67 @@ class ClientifyTests extends WP_UnitTestCase {
 			array(
 				'name'  => 'email',
 				'value' => 'alice@example.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-new', $result['id'] );
+	}
+
+	/**
+	 * v2: Merge by taxpayer_identification_number. Confirmed against the real
+	 * Clientify API (developer.clientify.com) that GET /contacts/ only matches
+	 * NIF/DNI via the generic `query` param, not a literal
+	 * taxpayer_identification_number param. determine_search_by() maps this
+	 * field to `query` — contact found and updated via PATCH, no 409.
+	 *
+	 * Reproduces the real-world case: Antonio Luque Oliveros (DNI 50997453J)
+	 * already exists in the account with merge_strategy set to
+	 * taxpayer_identification_number — this must resolve to an update, not a 409.
+	 */
+	public function test_create_entry_v2_merge_nif_found_patched() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Antonio',
+			),
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997453J',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-789', $result['id'] );
+	}
+
+	/**
+	 * v2: Merge by taxpayer_identification_number. Contact not found (NIF not in
+	 * Clientify) — created via POST, no error.
+	 */
+	public function test_create_entry_v2_merge_nif_not_found_posted() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Alice',
+			),
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '00000000T',
 			),
 		);
 
