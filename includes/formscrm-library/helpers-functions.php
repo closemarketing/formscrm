@@ -94,6 +94,85 @@ if ( ! function_exists( 'formscrm_get_crm_settings' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_merge_feed_meta_into_settings' ) ) {
+	/**
+	 * Merge a Gravity Forms feed's meta (e.g. fc_crm_merge_entry, fc_crm_module)
+	 * into the given settings array, matching what process_feed() does on the
+	 * original submission. Needed for resends/retries, which only start from the
+	 * plugin's global CRM settings and otherwise never see per-feed settings like
+	 * the merge strategy.
+	 *
+	 * A form can have multiple FormsCRM feeds (e.g. different CRMs/modules per
+	 * feed_condition), and feeds don't reliably carry their own CRM type in meta
+	 * (fc_crm_type is resolved at runtime from fc_crm_custom_type, usually unset
+	 * when a feed just uses the plugin's globally configured CRM). So instead of
+	 * matching on CRM type, this evaluates each feed's condition against the
+	 * actual entry, matching the addon framework's own feed selection.
+	 *
+	 * @param array  $settings  Settings array to merge into.
+	 * @param string $form_type Type of form (gravity, woocommerce, etc).
+	 * @param string $form_id   Gravity Forms form ID.
+	 * @param string $entry_id  Gravity Forms entry ID for the original submission.
+	 * @return array Settings array with feed meta merged in.
+	 */
+	function formscrm_merge_feed_meta_into_settings( array $settings, string $form_type, string $form_id, string $entry_id = '' ): array {
+		if ( ! in_array( $form_type, array( 'gravity', 'gravityforms' ), true ) || empty( $form_id ) || ! class_exists( 'GFAPI' ) ) {
+			return $settings;
+		}
+
+		$feeds = GFAPI::get_feeds( null, $form_id, 'formscrm' );
+
+		if ( is_wp_error( $feeds ) || empty( $feeds ) ) {
+			return $settings;
+		}
+
+		$active_feeds = array_values(
+			array_filter(
+				$feeds,
+				function ( $feed ) {
+					return ! empty( $feed['is_active'] );
+				}
+			)
+		);
+
+		if ( empty( $active_feeds ) ) {
+			return $settings;
+		}
+
+		$matched_feed = null;
+
+		if ( ! empty( $entry_id ) && class_exists( 'GFCRM' ) ) {
+			$form  = GFAPI::get_form( $form_id );
+			$entry = GFAPI::get_entry( $entry_id );
+
+			if ( ! is_wp_error( $form ) && ! is_wp_error( $entry ) ) {
+				$addon = GFCRM::get_instance();
+
+				foreach ( $active_feeds as $feed ) {
+					if ( $addon->is_feed_condition_met( $feed, $form, $entry ) ) {
+						$matched_feed = $feed;
+						break;
+					}
+				}
+			}
+		}
+
+		// Fall back to the first active feed if the entry-based match failed
+		// (e.g. missing entry_id, or no feed's condition matched).
+		if ( null === $matched_feed ) {
+			$matched_feed = $active_feeds[0];
+		}
+
+		foreach ( $matched_feed['meta'] as $key => $value ) {
+			if ( ! empty( $value ) ) {
+				$settings[ $key ] = $value;
+			}
+		}
+
+		return $settings;
+	}
+}
+
 if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	/**
 	 * Debug message in log

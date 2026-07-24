@@ -446,6 +446,10 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				);
 			}
 
+			// Merge the feed's own meta (e.g. merge strategy) so resends behave
+			// exactly like the original submission instead of always creating.
+			$settings = formscrm_merge_feed_meta_into_settings( $settings, (string) $log->form_type, (string) $log->form_id, (string) $log->entry_id );
+
 			// Get CRM API class.
 			$api_class = formscrm_get_api_class( $log->crm_type );
 
@@ -816,6 +820,10 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				formscrm_debug_message( "Retry failed for log {$log_id}: no CRM settings found for form type {$log->form_type}" );
 				return;
 			}
+
+			// Merge the feed's own meta (e.g. merge strategy) so retries behave
+			// exactly like the original submission instead of always creating.
+			$settings = formscrm_merge_feed_meta_into_settings( $settings, (string) $log->form_type, (string) $log->form_id, (string) $log->entry_id );
 
 			// Get CRM API class.
 			$api_class = formscrm_get_api_class( $log->crm_type );
