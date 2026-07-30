@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 4.4.1
-Version: 4.4.1
+Stable tag: 4.4.2
+Version: 4.4.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -257,6 +257,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 4.4.2 =
+* Enhanced: Added support for GravityForms 3.0's international Phone field format, normalizing the number (digits and leading "+") before sending it to the CRM.
 
 = 4.4.1 =
 * Fixed: GravityForms `{label:X}` merge tag returning wrong label when select/radio fields have duplicate values.

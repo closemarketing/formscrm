@@ -880,6 +880,37 @@ if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_normalize_phone_number' ) ) {
+	/**
+	 * Normalizes a GravityForms Phone field value for CRM submission.
+	 *
+	 * GravityForms 3.0's international Phone format applies no format mask or
+	 * regex, so the raw entry value can contain spaces, dashes, parentheses and
+	 * dots around the dial code and number (e.g. "+34 612 34 56 78"). This keeps
+	 * only the digits and a leading "+" (when present), giving CRMs a consistent
+	 * value regardless of which format (standard or international) was used.
+	 *
+	 * @param string $phone_number Raw phone value as stored in the entry.
+	 * @return string Normalized phone number.
+	 */
+	function formscrm_normalize_phone_number( $phone_number ) {
+		$phone_number = trim( (string) $phone_number );
+
+		if ( '' === $phone_number ) {
+			return $phone_number;
+		}
+
+		$has_plus_prefix = ( '+' === $phone_number[0] );
+		$digits_only     = preg_replace( '/\D+/', '', $phone_number );
+
+		if ( '' === $digits_only ) {
+			return $phone_number;
+		}
+
+		return ( $has_plus_prefix ? '+' : '' ) . $digits_only;
+	}
+}
+
 if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 	/**
 	 * Render API connection status indicator.
