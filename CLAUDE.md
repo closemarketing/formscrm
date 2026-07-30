@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **FormsCRM** is a WordPress plugin that connects WordPress form plugins to CRM/ERP and Email Marketing systems. It acts as a hub that loads integrations conditionally based on which form plugins and CRMs are active.
 
 - Form integrations: Gravity Forms, Contact Form 7, WPForms, Elementor Pro, WooCommerce
-- Built-in CRMs: Clientify, Holded, Brevo, AcumbaMail, MailerLite Classic
+- Built-in CRMs: Clientify, Holded, Brevo, AcumbaMail, MailerLite Classic, Hostinger Reach
 - External CRMs (separate plugins): Zoho, Salesforce, Odoo, and others
 
 ## Development Commands
