@@ -143,17 +143,34 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	 * Logins to a CRM
 	 *
 	 * @param  array $settings settings from Gravity Forms options.
-	 * @return false or id     returns false if cannot login and string if gets token
+	 * @return array           status ok/error, data and message.
 	 */
-	public function login( $settings ) {
-		$apikey       = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+	public function login( array $settings ): array {
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+
+		if ( empty( $apikey ) || ! is_string( $apikey ) ) {
+			return array(
+				'status'  => 'error',
+				'data'    => 0,
+				'message' => __( 'Invalid API key.', 'formscrm' ),
+			);
+		}
+
 		$login_result = $this->get( 'contacts', $apikey );
 
-		if ( $apikey && 'error' !== $login_result['status'] ) {
-			return true;
-		} else {
-			return false;
+		if ( 'error' === $login_result['status'] ) {
+			return array(
+				'status'  => 'error',
+				'data'    => 0,
+				'message' => __( 'Failed to login in Holded API.', 'formscrm' ),
+			);
 		}
+
+		return array(
+			'status'  => 'ok',
+			'data'    => 0,
+			'message' => __( 'Logged correctly in Holded API.', 'formscrm' ),
+		);
 	}
 
 	/**
@@ -162,7 +179,7 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	 * @param  array $settings settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_modules( $settings ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Required by interface.
+	public function list_modules( array $settings ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Required by interface.
 		$modules = array(
 			array(
 				'name'  => 'contacts',
