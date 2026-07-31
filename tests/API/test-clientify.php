@@ -55,6 +55,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	 */
 	public function tearDown(): void {
 		remove_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10 );
+		unset( $_COOKIE['vk'] );
 		parent::tearDown();
 	}
 
@@ -680,5 +681,94 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		$this->assertNotContains( 'empty_field', $field_keys, 'Empty deal custom_field must not be sent.' );
 		$this->assertContains( 'filled_field', $field_keys, 'Non-empty deal custom_field must be sent.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// visitor_key2 (Analytics PLUS) and legacy vk cookie tests.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Contacts module field list must expose visitor_key2 for Analytics PLUS attribution.
+	 */
+	public function test_list_fields_contacts_includes_visitor_key2() {
+		$this->crm_clientify->login( $this->settings );
+
+		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
+		$field_names = array_column( $fields, 'name' );
+
+		$this->assertContains( 'visitor_key2', $field_names );
+	}
+
+	/**
+	 * visitor_key2 mapped from a form field must be sent to the API as-is.
+	 */
+	public function test_create_entry_visitor_key2_from_merge_vars_is_sent() {
+		$this->last_contact_body = null;
+
+		$merge_vars = array(
+			array( 'name' => 'email',        'value' => 'test@example.com' ),
+			array( 'name' => 'visitor_key2', 'value' => 'MTIzYWJjLi4uMjAyNS0wNy0wNg==' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body = $this->last_contact_body ?? array();
+		$this->assertArrayHasKey( 'visitor_key2', $body );
+		$this->assertSame( 'MTIzYWJjLi4uMjAyNS0wNy0wNg==', $body['visitor_key2'] );
+	}
+
+	/**
+	 * Clientify's legacy `vk` cookie must be forwarded automatically as visitor_key,
+	 * without requiring a field mapped in the form.
+	 */
+	public function test_create_entry_vk_cookie_forwarded_as_visitor_key() {
+		$this->last_contact_body = null;
+		$_COOKIE['vk']           = 'cookie-visitor-key-value';
+
+		$merge_vars = array(
+			array( 'name' => 'email', 'value' => 'test@example.com' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body = $this->last_contact_body ?? array();
+		$this->assertArrayHasKey( 'visitor_key', $body );
+		$this->assertSame( 'cookie-visitor-key-value', $body['visitor_key'] );
+	}
+
+	/**
+	 * A visitor_key already present in merge_vars must not be overridden by the vk cookie.
+	 */
+	public function test_create_entry_visitor_key_from_merge_vars_not_overridden_by_cookie() {
+		$this->last_contact_body = null;
+		$_COOKIE['vk']           = 'cookie-visitor-key-value';
+
+		$merge_vars = array(
+			array( 'name' => 'email',        'value' => 'test@example.com' ),
+			array( 'name' => 'visitor_key',  'value' => 'mapped-visitor-key-value' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body = $this->last_contact_body ?? array();
+		$this->assertSame( 'mapped-visitor-key-value', $body['visitor_key'] );
+	}
+
+	/**
+	 * The vk cookie must not be forwarded when creating Companies, only Contacts.
+	 */
+	public function test_create_entry_vk_cookie_not_forwarded_for_companies() {
+		$this->last_contact_body         = null;
+		$_COOKIE['vk']                    = 'cookie-visitor-key-value';
+		$this->settings['fc_crm_module'] = 'Companies';
+
+		$merge_vars = array(
+			array( 'name' => 'business_name', 'value' => 'ACME Corp' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body = $this->last_contact_body ?? array();
+		$this->assertArrayNotHasKey( 'visitor_key', $body );
 	}
 }

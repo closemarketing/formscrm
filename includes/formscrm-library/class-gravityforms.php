@@ -879,9 +879,8 @@ class GFCRM extends GFFeedAddOn {
 		$feed_type    = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$this->crmlib = formscrm_get_api_class( $feed_type );
 
-		$merge_vars         = array();
-		$field_maps         = $this->get_field_map_fields( $feed, 'listFields' );
-		$field_clientify_id = 0;
+		$merge_vars = array();
+		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
 
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
@@ -912,17 +911,6 @@ class GFCRM extends GFFeedAddOn {
 					);
 				}
 			}
-			if ( 'clientify' === $feed_type && isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
-				$field_clientify_id = $field->id;
-			}
-		}
-
-		// Adds Clientify visitor key.
-		if ( ! empty( $field_clientify_id ) && ! empty( $entry[ $field_clientify_id ] ) ) {
-			$merge_vars[] = array(
-				'name'  => 'visitor_key',
-				'value' => $entry[ $field_clientify_id ],
-			);
 		}
 
 		$override_custom_fields = apply_filters( 'formscrm_override_blank_custom_fields', false, $entry, $form, $feed );

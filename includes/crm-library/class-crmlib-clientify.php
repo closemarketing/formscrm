@@ -274,6 +274,13 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 				'required' => false,
 			);
 
+			$fields[] = array(
+				'name'     => 'visitor_key2',
+				'label'    => __( 'Analytics PLUS Visitor Key', 'formscrm' ),
+				'tooltip'  => __( 'Links the contact to the visit tracked by the Analytics PLUS pixel, for attribution. Value must come from the __<pixel_key>_visitor_uuid key in the browser localStorage.', 'formscrm' ),
+				'required' => false,
+			);
+
 			// Address.
 			$fields = array_merge( $fields, $this->get_fields_addresses() );
 
@@ -517,6 +524,11 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		}
 
 		$this->parse_merge_vars( $merge_vars, $contact, $deal, $deal_product_skus, $deal_tags );
+
+		// Forward Clientify's legacy tracking cookie automatically (v1 analytics), no field mapping needed.
+		if ( 'contacts' === $module && empty( $contact['visitor_key'] ) && ! empty( $_COOKIE['vk'] ) ) {
+			$contact['visitor_key'] = sanitize_text_field( wp_unslash( $_COOKIE['vk'] ) );
+		}
 
 		// Clean tags blank.
 		if ( ! empty( $contact['tags'] ) && is_array( $contact['tags'] ) ) {

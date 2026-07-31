@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 4.4.1
-Version: 4.4.1
+Stable tag: 4.5.0
+Version: 4.5.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -230,8 +230,11 @@ Each Markdown file includes:
 **Important: API v2 Migration**
 Since version 4.3.2, FormsCRM uses the Clientify API v2 (api-plus.clientify.com). Your existing API key will continue to work without changes. The migration is fully backward compatible with existing feed configurations.
 
-**Instructions for adding Clientify cookie in the forms**
-Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
+**Clientify tracking cookie (legacy analytics)**
+If Clientify's own tracking script has set its `vk` cookie on the visitor's browser, FormsCRM forwards it automatically as `visitor_key` when the contact is created. No field mapping or extra setup is needed.
+
+**Analytics PLUS attribution (visitor_key2)**
+To attribute contacts to visits tracked by Clientify's Analytics PLUS pixel, map a field to `visitor_key2` with the value of the `__<pixel_key>_visitor_uuid` key from the browser's `localStorage` (captured client-side, since FormsCRM runs server-side and cannot read `localStorage` itself).
 
 **Add Pipeline name or ID in Opportunities**
 You can add a new field that fits with the Pipeline name (pipeline_desc) or Pipeline ID (pipeline_id) in Opportunities in Clientify. You can also specify the Pipeline Stage Name (pipeline_stage_desc). You will need to use the same name or ID as the Pipeline in Clientify.
@@ -257,6 +260,11 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 4.5.0 =
+* Added: Support for Clientify's Analytics PLUS contact attribution. Map a field to `visitor_key2` (from the `__<pixel_key>_visitor_uuid` localStorage key) to link created contacts to the visit tracked by the Analytics PLUS pixel.
+* Enhanced: Clientify's legacy `vk` tracking cookie is now forwarded automatically as `visitor_key` on contact creation, without requiring a hidden field in the form.
+* Removed: Automatic hidden-field injection for Gravity Forms, Contact Form 7, Elementor and WooCommerce previously used to carry the Clientify tracking cookie into the form (superseded by the automatic cookie forwarding above).
 
 = 4.4.1 =
 * Fixed: GravityForms `{label:X}` merge tag returning wrong label when select/radio fields have duplicate values.
