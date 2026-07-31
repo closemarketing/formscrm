@@ -224,6 +224,24 @@ class GFAPI {
 	 * @return int|WP_Error
 	 */
 	public static function update_form( $form, $form_id = 0 ) {}
+
+	/**
+	 * Get feed
+	 *
+	 * @param int $feed_id Feed ID.
+	 * @return array|WP_Error
+	 */
+	public static function get_feed( $feed_id ) {}
+
+	/**
+	 * Update feed
+	 *
+	 * @param int   $feed_id  Feed ID.
+	 * @param array $feed_meta Feed meta.
+	 * @param int   $form_id  Form ID.
+	 * @return bool|WP_Error
+	 */
+	public static function update_feed( $feed_id, $feed_meta, $form_id = null ) {}
 }
 
 /**
@@ -396,6 +414,16 @@ class GFFeedAddOn extends GFAddOn {
 	 * @return int
 	 */
 	public function add_note( $entry_id, $note, $note_type = 'note' ) {}
+
+	/**
+	 * Save feed settings
+	 *
+	 * @param int   $feed_id  Feed ID.
+	 * @param int   $form_id  Form ID.
+	 * @param array $settings Feed settings.
+	 * @return int|bool
+	 */
+	public function save_feed_settings( $feed_id, $form_id, $settings ) {}
 }
 
 /**

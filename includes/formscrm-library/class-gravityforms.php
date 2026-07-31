@@ -152,6 +152,10 @@ class GFCRM extends GFFeedAddOn {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_forms_list_styles' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_module_search_scripts' ) );
 			add_filter( 'gform_field_map_choices', array( $this, 'add_gravitypdf_field_map_choices' ), 10, 4 );
+
+			// Export/import a feed's connection and field mapping as JSON.
+			add_action( 'admin_init', array( $this, 'handle_feed_export' ) );
+			add_action( 'admin_post_formscrm_import_feed', array( $this, 'handle_feed_import' ) );
 		}
 	}
 
@@ -471,7 +475,218 @@ class GFCRM extends GFFeedAddOn {
 
 		echo '<script type="text/javascript">var form = ' . esc_html( GFCommon::json_encode( $form ) ) . ';</script><style type="text/css">#gform_setting_fc_login_result {display: block !important; } #gform_setting_fc_login_result label { font-size:18px; color:red;} #gform_setting_fc_select_module {display:block !important}</style>';
 
+		$this->render_feed_import_export( $form, $feed_id );
+
 		parent::feed_edit_page( $form, $feed_id );
+	}
+
+	/**
+	 * Renders the Export/Import JSON controls for a feed, and any status notice
+	 * from a previous import.
+	 *
+	 * @param array $form    Form.
+	 * @param int   $feed_id Feed id.
+	 * @return void
+	 */
+	private function render_feed_import_export( $form, $feed_id ) {
+		$form_id = isset( $form['id'] ) ? absint( $form['id'] ) : 0;
+
+		if ( ! $form_id ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only status notice, no state change.
+		$import_status = isset( $_GET['formscrm_import_status'] ) ? sanitize_key( wp_unslash( $_GET['formscrm_import_status'] ) ) : '';
+		if ( 'success' === $import_status ) {
+			echo '<div class="notice notice-success"><p>' . esc_html__( 'Feed imported successfully.', 'formscrm' ) . '</p></div>';
+		} elseif ( 'error' === $import_status ) {
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'Could not import the feed file. Please check the JSON file and try again.', 'formscrm' ) . '</p></div>';
+		}
+
+		echo '<div class="formscrm-feed-import-export">';
+
+		// Export/import only apply once the feed exists (i.e. has already been saved).
+		if ( ! empty( $feed_id ) ) {
+			$export_url = add_query_arg(
+				array(
+					'formscrm_export_feed' => 1,
+					'feed_id'              => absint( $feed_id ),
+					'nonce'                => wp_create_nonce( 'formscrm_export_feed_' . $feed_id ),
+				)
+			);
+			echo '<a href="' . esc_url( $export_url ) . '" class="button">' . esc_html__( 'Export Feed (JSON)', 'formscrm' ) . '</a> ';
+
+			echo '<form method="post" enctype="multipart/form-data" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline-block;margin-left:10px;">';
+			echo '<input type="hidden" name="action" value="formscrm_import_feed" />';
+			echo '<input type="hidden" name="form_id" value="' . absint( $form_id ) . '" />';
+			echo '<input type="hidden" name="feed_id" value="' . absint( $feed_id ) . '" />';
+			wp_nonce_field( 'formscrm_import_feed_' . $form_id, 'formscrm_import_feed_nonce' );
+			echo '<input type="file" name="formscrm_import_file" accept="application/json" />';
+			echo '<button type="submit" class="button">' . esc_html__( 'Import Feed (JSON)', 'formscrm' ) . '</button>';
+			echo '</form>';
+		}
+
+		echo '</div>';
+	}
+
+	/**
+	 * Exports the current feed's connection and field mapping as a JSON download.
+	 *
+	 * Runs on admin_init and only acts when the export query args are present.
+	 *
+	 * @return void
+	 */
+	public function handle_feed_export() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Nonce verified below.
+		if ( empty( $_GET['formscrm_export_feed'] ) || empty( $_GET['feed_id'] ) ) {
+			return;
+		}
+
+		$feed_id = absint( $_GET['feed_id'] );
+		$nonce   = isset( $_GET['nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['nonce'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( ! wp_verify_nonce( $nonce, 'formscrm_export_feed_' . $feed_id ) ) {
+			wp_die( esc_html__( 'Security check failed. Please try again.', 'formscrm' ) );
+		}
+
+		if ( ! current_user_can( $this->_capabilities_form_settings ) ) {
+			wp_die( esc_html__( 'You do not have permission to export this feed.', 'formscrm' ) );
+		}
+
+		$feed = GFAPI::get_feed( $feed_id );
+		if ( is_wp_error( $feed ) || empty( $feed ) ) {
+			wp_die( esc_html__( 'Feed not found.', 'formscrm' ) );
+		}
+
+		$export_data = formscrm_gf_build_feed_export( $feed );
+		$filename    = 'formscrm-feed-' . $feed_id . '.json';
+		$json        = wp_json_encode( $export_data, JSON_PRETTY_PRINT );
+
+		while ( ob_get_level() ) {
+			ob_end_clean();
+		}
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		header( 'Content-Length: ' . strlen( $json ) );
+		echo $json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON content, not HTML.
+		die();
+	}
+
+	/**
+	 * Imports a previously exported feed JSON file into the current feed.
+	 *
+	 * Registered on admin_post_formscrm_import_feed.
+	 *
+	 * @return void
+	 */
+	public function handle_feed_import() {
+		$form_id = isset( $_POST['form_id'] ) ? absint( $_POST['form_id'] ) : 0;
+		$feed_id = isset( $_POST['feed_id'] ) ? absint( $_POST['feed_id'] ) : 0;
+
+		check_admin_referer( 'formscrm_import_feed_' . $form_id, 'formscrm_import_feed_nonce' );
+
+		if ( ! current_user_can( $this->_capabilities_form_settings ) ) {
+			wp_die( esc_html__( 'You do not have permission to import a feed.', 'formscrm' ) );
+		}
+
+		$redirect_args = array(
+			'page'    => 'gf_edit_forms',
+			'view'    => 'settings',
+			'subview' => $this->_slug,
+			'id'      => $form_id,
+		);
+		if ( ! empty( $feed_id ) ) {
+			$redirect_args['fid'] = $feed_id;
+		}
+		$redirect_url = add_query_arg( $redirect_args, admin_url( 'admin.php' ) );
+
+		if ( empty( $form_id ) || empty( $feed_id ) || empty( $_FILES['formscrm_import_file']['tmp_name'] )
+			|| UPLOAD_ERR_OK !== $_FILES['formscrm_import_file']['error'] ) {
+			wp_safe_redirect( add_query_arg( 'formscrm_import_status', 'error', $redirect_url ) );
+			exit;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_get_contents -- Reading an uploaded temp file, not a plugin/theme file.
+		$contents    = file_get_contents( $_FILES['formscrm_import_file']['tmp_name'] );
+		$import_data = json_decode( (string) $contents, true );
+		$meta        = formscrm_gf_feed_meta_from_import( $import_data );
+
+		$current_feed = GFAPI::get_feed( $feed_id );
+
+		if ( false === $meta || is_wp_error( $current_feed ) || empty( $current_feed ) ) {
+			wp_safe_redirect( add_query_arg( 'formscrm_import_status', 'error', $redirect_url ) );
+			exit;
+		}
+
+		$current_meta = isset( $current_feed['meta'] ) && is_array( $current_feed['meta'] ) ? $current_feed['meta'] : array();
+
+		// Reconcile the imported field mapping against the feed's current connection, matching by key then by label.
+		if ( isset( $meta['listFields'] ) ) {
+			$settings      = $this->get_api_settings_custom( $current_feed );
+			$crm_type      = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
+			$crmlib        = $crm_type ? formscrm_get_api_class( $crm_type ) : null;
+			$module        = isset( $current_meta['fc_crm_module'] ) ? $current_meta['fc_crm_module'] : '';
+			$new_field_map = $crmlib ? $crmlib->list_fields( $settings, $module ) : array();
+			$imported      = $meta['listFields'];
+			$imported_lbls = isset( $meta['listFields_labels'] ) ? $meta['listFields_labels'] : array();
+
+			$existing_values   = isset( $current_meta['listFields'] ) && is_array( $current_meta['listFields'] ) ? $current_meta['listFields'] : array();
+			$reconciled_import = formscrm_gf_merge_field_map( $new_field_map, $imported, $imported, $imported_lbls );
+
+			$meta['listFields']        = array_merge( $existing_values, array_filter( $reconciled_import ) );
+			$meta['listFields_labels'] = formscrm_gf_build_field_map_labels( $new_field_map );
+		}
+
+		$merged_meta = array_merge( $current_meta, $meta );
+		$updated     = GFAPI::update_feed( $feed_id, $merged_meta, $form_id );
+
+		wp_safe_redirect( add_query_arg( 'formscrm_import_status', $updated ? 'success' : 'error', $redirect_url ) );
+		exit;
+	}
+
+	/**
+	 * Save Feed Settings
+	 *
+	 * Preserves previously mapped fields when the feed's CRM connection or module
+	 * changes, matching by field key first and then by label, so a switch of
+	 * connection does not silently wipe out an existing field mapping.
+	 *
+	 * @param int   $feed_id  Feed id.
+	 * @param int   $form_id  Form id.
+	 * @param array $settings Feed settings being saved.
+	 * @return int|bool
+	 */
+	public function save_feed_settings( $feed_id, $form_id, $settings ) {
+		if ( ! empty( $feed_id ) && isset( $settings['listFields'] ) && is_array( $settings['listFields'] ) ) {
+			$new_settings = $this->get_api_settings_custom();
+			$new_crm_type = isset( $new_settings['fc_crm_type'] ) ? $new_settings['fc_crm_type'] : '';
+			$new_module   = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
+			$new_crmlib   = $new_crm_type ? formscrm_get_api_class( $new_crm_type ) : null;
+
+			if ( $new_crmlib ) {
+				$old_feed   = GFAPI::get_feed( $feed_id );
+				$old_values = ( ! is_wp_error( $old_feed ) && ! empty( $old_feed['meta']['listFields'] ) ) ? $old_feed['meta']['listFields'] : array();
+				$old_labels = ( ! is_wp_error( $old_feed ) && ! empty( $old_feed['meta']['listFields_labels'] ) ) ? $old_feed['meta']['listFields_labels'] : array();
+
+				$new_field_map = $new_crmlib->list_fields(
+					array_merge(
+						$new_settings,
+						array( 'fc_crm_merge_entry' => isset( $settings['fc_crm_merge_entry'] ) ? $settings['fc_crm_merge_entry'] : '' )
+					),
+					$new_module
+				);
+
+				if ( ! empty( $old_values ) || ! empty( $old_labels ) ) {
+					$settings['listFields'] = formscrm_gf_merge_field_map( $new_field_map, $settings['listFields'], $old_values, $old_labels );
+				}
+
+				$settings['listFields_labels'] = formscrm_gf_build_field_map_labels( $new_field_map );
+			}
+		}
+
+		return parent::save_feed_settings( $feed_id, $form_id, $settings );
 	}
 
 	/**

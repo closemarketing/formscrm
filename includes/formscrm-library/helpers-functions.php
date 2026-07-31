@@ -880,6 +880,166 @@ if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_gf_build_field_map_labels' ) ) {
+	/**
+	 * Builds a key => label snapshot from a GravityForms field_map definition.
+	 *
+	 * The snapshot is stored alongside the field mapping values so that a later
+	 * save, made after the feed's CRM connection or module changed, can still
+	 * recognise a field by its label even though its internal key changed.
+	 *
+	 * @param array $field_map Field map definitions, each with a 'name' and a 'label'.
+	 * @return array Map of field key to label.
+	 */
+	function formscrm_gf_build_field_map_labels( $field_map ) {
+		$labels = array();
+
+		foreach ( (array) $field_map as $field ) {
+			if ( empty( $field['name'] ) ) {
+				continue;
+			}
+			$labels[ $field['name'] ] = isset( $field['label'] ) ? $field['label'] : '';
+		}
+
+		return $labels;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_merge_field_map' ) ) {
+	/**
+	 * Preserves previously mapped GravityForms field selections when the target
+	 * field map changes (e.g. the feed's CRM connection or module was switched).
+	 *
+	 * For every field of the current map that has no value in $new_values, this
+	 * looks for a previous value under the same key first, then falls back to
+	 * matching by label against $old_labels, so mappings survive a connection
+	 * change whenever the target field still exists under the same or a
+	 * differently-keyed but identically-labelled entry.
+	 *
+	 * @param array $new_field_map Field map definitions currently being saved/rendered; each item has 'name' and optionally 'label'.
+	 * @param array $new_values    Values submitted in the current save (key => GravityForms merge tag), possibly incomplete.
+	 * @param array $old_values    Previously saved values (key => GravityForms merge tag).
+	 * @param array $old_labels    Previously saved key => label snapshot, as returned by formscrm_gf_build_field_map_labels().
+	 * @return array Values to store, keyed by the current field map's names.
+	 */
+	function formscrm_gf_merge_field_map( $new_field_map, $new_values, $old_values, $old_labels ) {
+		$new_values = is_array( $new_values ) ? $new_values : array();
+		$old_values = is_array( $old_values ) ? $old_values : array();
+		$old_labels = is_array( $old_labels ) ? $old_labels : array();
+
+		// Index old keys by lowercase label, keeping the first key for a repeated label.
+		$old_keys_by_label = array();
+		foreach ( $old_labels as $old_key => $label ) {
+			$label = strtolower( trim( (string) $label ) );
+			if ( '' !== $label && ! isset( $old_keys_by_label[ $label ] ) ) {
+				$old_keys_by_label[ $label ] = $old_key;
+			}
+		}
+
+		$merged = $new_values;
+
+		foreach ( (array) $new_field_map as $field ) {
+			if ( empty( $field['name'] ) ) {
+				continue;
+			}
+			$key = $field['name'];
+
+			if ( ! empty( $merged[ $key ] ) ) {
+				continue; // Already mapped in the current submission.
+			}
+
+			if ( ! empty( $old_values[ $key ] ) ) {
+				$merged[ $key ] = $old_values[ $key ];
+				continue;
+			}
+
+			$label = isset( $field['label'] ) ? strtolower( trim( $field['label'] ) ) : '';
+			if ( '' === $label || ! isset( $old_keys_by_label[ $label ] ) ) {
+				continue;
+			}
+
+			$old_key = $old_keys_by_label[ $label ];
+			if ( ! empty( $old_values[ $old_key ] ) ) {
+				$merged[ $key ] = $old_values[ $old_key ];
+			}
+		}
+
+		return $merged;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_build_feed_export' ) ) {
+	/**
+	 * Builds the exportable data structure for a Gravity Forms feed.
+	 *
+	 * Intentionally excludes CRM credentials (URL, username, password, API keys):
+	 * the export is meant to back up and transfer the field mapping, not the
+	 * account it was configured against.
+	 *
+	 * @param array $feed Gravity Forms feed array, as returned by GFAPI::get_feed().
+	 * @return array Exportable feed data.
+	 */
+	function formscrm_gf_build_feed_export( $feed ) {
+		$meta = isset( $feed['meta'] ) && is_array( $feed['meta'] ) ? $feed['meta'] : array();
+
+		return array(
+			'formscrm_feed_export' => true,
+			'schema_version'       => 1,
+			'feed_name'            => isset( $meta['feedName'] ) ? $meta['feedName'] : '',
+			'fc_crm_custom_type'   => isset( $meta['fc_crm_custom_type'] ) ? $meta['fc_crm_custom_type'] : 'no',
+			'fc_crm_module'        => isset( $meta['fc_crm_module'] ) ? $meta['fc_crm_module'] : '',
+			'fc_crm_merge_entry'   => isset( $meta['fc_crm_merge_entry'] ) ? $meta['fc_crm_merge_entry'] : '',
+			'fc_crm_webhook'       => isset( $meta['fc_crm_webhook'] ) ? $meta['fc_crm_webhook'] : '',
+			'listFields'           => isset( $meta['listFields'] ) && is_array( $meta['listFields'] ) ? $meta['listFields'] : array(),
+			'listFields_labels'    => isset( $meta['listFields_labels'] ) && is_array( $meta['listFields_labels'] ) ? $meta['listFields_labels'] : array(),
+			'optin'                => isset( $meta['optin'] ) ? $meta['optin'] : array(),
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_feed_meta_from_import' ) ) {
+	/**
+	 * Validates and sanitizes an imported feed export back into feed meta.
+	 *
+	 * @param mixed $import_data Decoded JSON data from an exported feed file.
+	 * @return array|false Sanitized feed meta, or false when the data is not a valid export.
+	 */
+	function formscrm_gf_feed_meta_from_import( $import_data ) {
+		if ( ! is_array( $import_data ) || empty( $import_data['formscrm_feed_export'] ) ) {
+			return false;
+		}
+
+		$meta = array();
+
+		if ( isset( $import_data['feed_name'] ) && is_string( $import_data['feed_name'] ) ) {
+			$meta['feedName'] = sanitize_text_field( $import_data['feed_name'] );
+		}
+		if ( isset( $import_data['fc_crm_custom_type'] ) && is_string( $import_data['fc_crm_custom_type'] ) ) {
+			$meta['fc_crm_custom_type'] = sanitize_text_field( $import_data['fc_crm_custom_type'] );
+		}
+		if ( isset( $import_data['fc_crm_module'] ) && is_string( $import_data['fc_crm_module'] ) ) {
+			$meta['fc_crm_module'] = sanitize_text_field( $import_data['fc_crm_module'] );
+		}
+		if ( isset( $import_data['fc_crm_merge_entry'] ) && is_string( $import_data['fc_crm_merge_entry'] ) ) {
+			$meta['fc_crm_merge_entry'] = sanitize_text_field( $import_data['fc_crm_merge_entry'] );
+		}
+		if ( isset( $import_data['fc_crm_webhook'] ) && is_string( $import_data['fc_crm_webhook'] ) ) {
+			$meta['fc_crm_webhook'] = esc_url_raw( $import_data['fc_crm_webhook'] );
+		}
+		if ( isset( $import_data['listFields'] ) && is_array( $import_data['listFields'] ) ) {
+			$meta['listFields'] = array_map( 'sanitize_text_field', array_filter( $import_data['listFields'], 'is_string' ) );
+		}
+		if ( isset( $import_data['listFields_labels'] ) && is_array( $import_data['listFields_labels'] ) ) {
+			$meta['listFields_labels'] = array_map( 'sanitize_text_field', array_filter( $import_data['listFields_labels'], 'is_string' ) );
+		}
+		if ( isset( $import_data['optin'] ) && is_array( $import_data['optin'] ) ) {
+			$meta['optin'] = $import_data['optin'];
+		}
+
+		return $meta;
+	}
+}
+
 if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 	/**
 	 * Render API connection status indicator.
