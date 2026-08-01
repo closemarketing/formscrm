@@ -487,16 +487,38 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 		$module  = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'contacts';
 		$contact = array();
 
+		// list_fields() exposes v1 camelCase field IDs (existing feeds map to these).
+		// Holded v2 requires snake_case field names, so translate on the way out
+		// when the key is a v2 key. v1 keys keep the original field names untouched.
+		$v2_field_map = array(
+			'tradename'              => 'trade_name',
+			'code'                   => 'vat_number',
+			'isperson'               => 'is_person',
+			'sepaRef'                => 'sepa_ref',
+			'clientRecord'           => 'client_record',
+			'supplierRecord'         => 'supplier_record',
+			'billAddress|address'    => 'bill_address|address',
+			'billAddress|city'       => 'bill_address|city',
+			'billAddress|postalCode' => 'bill_address|postal_code',
+			'billAddress|province'  => 'bill_address|province',
+			'billAddress|country'   => 'bill_address|country',
+			'socialNetworks|website' => 'website',
+			'defaults|dueDays'       => 'defaults|due_days',
+		);
+		$is_v2 = 'v2' === $this->detect_api_version( $apikey );
+
 		foreach ( $merge_vars as $element ) {
-			if ( false !== strpos( $element['name'], '|' ) ) {
-				$data_field = explode( '|', $element['name'] );
+			$field_name = $is_v2 && isset( $v2_field_map[ $element['name'] ] ) ? $v2_field_map[ $element['name'] ] : $element['name'];
+
+			if ( false !== strpos( $field_name, '|' ) ) {
+				$data_field = explode( '|', $field_name );
 				if ( is_array( $data_field ) ) {
 					$contact[ $data_field[0] ][ $data_field[1] ] = (string) $element['value'];
 				}
-			} elseif ( 'tags' === $element['name'] ) {
-				$contact[ $element['name'] ] = explode( ',', $element['value'] );
+			} elseif ( 'tags' === $field_name ) {
+				$contact[ $field_name ] = explode( ',', $element['value'] );
 			} else {
-				$contact[ $element['name'] ] = (string) $element['value'];
+				$contact[ $field_name ] = (string) $element['value'];
 			}
 		}
 
