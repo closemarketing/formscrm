@@ -31,7 +31,7 @@
   "devDependencies": {
     "@playwright/test": "^1.62.0",
     "@types/node": "^26.1.1",
-    "@wordpress/scripts": "^33.0.0",
+    "@wordpress/scripts": "^34.0.0",
     "@wp-playground/cli": "^3.1.47",
     "fetch-cookie": "^3.1.0",
     "vitest": "^4.1.10"
