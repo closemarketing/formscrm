@@ -500,12 +500,12 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 			'billAddress|address'    => 'bill_address|address',
 			'billAddress|city'       => 'bill_address|city',
 			'billAddress|postalCode' => 'bill_address|postal_code',
-			'billAddress|province'  => 'bill_address|province',
-			'billAddress|country'   => 'bill_address|country',
+			'billAddress|province'   => 'bill_address|province',
+			'billAddress|country'    => 'bill_address|country',
 			'socialNetworks|website' => 'website',
 			'defaults|dueDays'       => 'defaults|due_days',
 		);
-		$is_v2 = 'v2' === $this->detect_api_version( $apikey );
+		$is_v2        = 'v2' === $this->detect_api_version( $apikey );
 
 		foreach ( $merge_vars as $element ) {
 			$field_name = $is_v2 && isset( $v2_field_map[ $element['name'] ] ) ? $v2_field_map[ $element['name'] ] : $element['name'];
