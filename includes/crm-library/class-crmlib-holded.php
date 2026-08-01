@@ -2,7 +2,9 @@
 /**
  * HOLDED connect library
  *
- * Has functions to login, list fields and create entry
+ * Has functions to login, list fields and create entry. Supports both the
+ * legacy v1 API (32-char hex key, `key` header) and v2 (key prefixed with
+ * `pat_`, Bearer token) — the API version is detected from the key itself.
  *
  * @author    David Perez <david@closemarketing.es>
  * @category  Functions
@@ -13,31 +15,60 @@
 
 defined( 'ABSPATH' ) || exit;
 
+define( 'FORMSCRM_MAX_LIMIT_HOLDED_API', 500 );
+
 /**
  * Class for Holded connection.
  */
 class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	/**
-	 * Holded API v2 base URL.
+	 * Holded API v1 base URL.
 	 */
-	const API_BASE_URL = 'https://api.holded.com/api/v2/';
+	const API_V1_BASE_URL = 'https://api.holded.com/api/';
 
 	/**
-	 * Gets information from Holded API v2
+	 * Holded API v2 base URL.
+	 */
+	const API_V2_BASE_URL = 'https://api.holded.com/api/v2/';
+
+	/**
+	 * Detects the Holded API version from the key's shape.
 	 *
-	 * @param string $url    Endpoint path.
 	 * @param string $apikey API key.
+	 * @return string 'v2' or 'v1'.
+	 */
+	private function detect_api_version( $apikey ) {
+		return 0 === strpos( (string) $apikey, 'pat_' ) ? 'v2' : 'v1';
+	}
+
+	/**
+	 * Gets information from Holded CRM (v1 or v2, detected from the key).
+	 *
+	 * @param string $url      URL for module.
+	 * @param string $apikey   Pass to access.
+	 * @param string $function Holded API function type (invoicing, purchases, etc). v1 only.
 	 * @return array
 	 */
-	public function get( $url, $apikey ) {
-		$args   = array(
-			'headers' => array(
-				'Authorization' => 'Bearer ' . $apikey,
-				'Accept'        => 'application/json',
-			),
-			'timeout' => 120,
-		);
-		$url    = self::API_BASE_URL . $url;
+	public function get( $url, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.
+		if ( 'v2' === $this->detect_api_version( $apikey ) ) {
+			$args = array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $apikey,
+					'Accept'        => 'application/json',
+				),
+				'timeout' => 120,
+			);
+			$url  = self::API_V2_BASE_URL . $url;
+		} else {
+			$args = array(
+				'headers' => array(
+					'key' => $apikey,
+				),
+				'timeout' => 120,
+			);
+			$url  = self::API_V1_BASE_URL . $function . '/v1/' . $url;
+		}
+
 		$result = wp_remote_get( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
@@ -64,24 +95,37 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	}
 
 	/**
-	 * Posts information to Holded API v2
+	 * Posts information to Holded CRM (v1 or v2, detected from the key).
 	 *
-	 * @param string $url      Endpoint path.
+	 * @param string $url      URL for module.
 	 * @param array  $bodypost Data to post.
-	 * @param string $apikey   API key.
+	 * @param string $apikey   Pass to access.
+	 * @param string $function Holded API function type (invoicing, purchases, etc). v1 only.
 	 * @return array
 	 */
-	public function post( $url, $bodypost, $apikey ) {
-		$args   = array(
-			'headers' => array(
-				'Authorization' => 'Bearer ' . $apikey,
-				'Content-Type'  => 'application/json',
-				'Accept'        => 'application/json',
-			),
-			'timeout' => 120,
-			'body'    => wp_json_encode( $bodypost ),
-		);
-		$url    = self::API_BASE_URL . $url;
+	public function post( $url, $bodypost, $apikey, $function = 'invoicing' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.functionFound -- Parameter name matches Holded API.
+		if ( 'v2' === $this->detect_api_version( $apikey ) ) {
+			$args = array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $apikey,
+					'Content-Type'  => 'application/json',
+					'Accept'        => 'application/json',
+				),
+				'timeout' => 120,
+				'body'    => wp_json_encode( $bodypost ),
+			);
+			$url  = self::API_V2_BASE_URL . $url;
+		} else {
+			$args = array(
+				'headers' => array(
+					'key' => $apikey,
+				),
+				'timeout' => 120,
+				'body'    => $bodypost,
+			);
+			$url  = self::API_V1_BASE_URL . $function . '/v1/' . $url;
+		}
+
 		$result = wp_remote_post( $url, $args );
 		$code   = isset( $result['response']['code'] ) ? (int) round( $result['response']['code'] / 100, 0 ) : 0;
 
@@ -108,38 +152,64 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	}
 
 	/**
-	 * Search a contact by email using cursor-based pagination
+	 * Search a contact or lead by email. Uses cursor-based pagination on v2,
+	 * page-based pagination on v1.
 	 *
 	 * @param string $module contacts or leads.
-	 * @param string $email  Email to search.
-	 * @param string $apikey API key.
+	 * @param string $email  email to search.
+	 * @param string $apikey Pass to access.
 	 * @return string|bool
 	 */
 	public function search_by_email( $module, $email, $apikey ) {
-		$cursor = '';
+		if ( 'v2' === $this->detect_api_version( $apikey ) ) {
+			$cursor = '';
 
-		while ( true ) {
-			$query_url = $module . '?limit=100';
-			if ( $cursor ) {
-				$query_url .= '&cursor=' . rawurlencode( $cursor );
+			while ( true ) {
+				$query_url = $module . '?limit=100';
+				if ( $cursor ) {
+					$query_url .= '&cursor=' . rawurlencode( $cursor );
+				}
+
+				$result = $this->get( $query_url, $apikey );
+				if ( 'error' === $result['status'] || empty( $result['data'] ) ) {
+					return false;
+				}
+
+				$items = isset( $result['data']['items'] ) ? $result['data']['items'] : array();
+				foreach ( $items as $contact ) {
+					if ( isset( $contact['email'] ) && $contact['email'] === $email ) {
+						return $contact['id'];
+					}
+				}
+
+				if ( ! empty( $result['data']['has_more'] ) && ! empty( $result['data']['cursor'] ) ) {
+					$cursor = $result['data']['cursor'];
+				} else {
+					return false;
+				}
 			}
+		}
 
-			$result = $this->get( $query_url, $apikey );
-			if ( 'error' === $result['status'] || empty( $result['data'] ) ) {
+		$function = 'contacts' === $module ? 'invoicing' : 'crm';
+		$next     = true;
+		$page     = 1;
+
+		while ( $next ) {
+			$contacts = $this->get( $module . '?page=' . $page, $apikey, $function );
+			if ( 'error' === $contacts['status'] || empty( $contacts['data'] ) ) {
 				return false;
 			}
 
-			$items = isset( $result['data']['items'] ) ? $result['data']['items'] : array();
-			foreach ( $items as $contact ) {
+			foreach ( $contacts['data'] as $contact ) {
 				if ( isset( $contact['email'] ) && $contact['email'] === $email ) {
 					return $contact['id'];
 				}
 			}
 
-			if ( ! empty( $result['data']['has_more'] ) && ! empty( $result['data']['cursor'] ) ) {
-				$cursor = $result['data']['cursor'];
+			if ( count( $contacts['data'] ) === FORMSCRM_MAX_LIMIT_HOLDED_API ) {
+				++$page;
 			} else {
-				break;
+				$next = false;
 			}
 		}
 
@@ -150,17 +220,36 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	 * Logins to a CRM
 	 *
 	 * @param  array $settings settings from Gravity Forms options.
-	 * @return false or id     returns false if cannot login and string if gets token
+	 * @return array           status ok/error, data and message.
 	 */
-	public function login( $settings ) {
-		$apikey       = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$login_result = $this->get( 'contacts?limit=1', $apikey );
+	public function login( array $settings ): array {
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 
-		if ( $apikey && 'error' !== $login_result['status'] ) {
-			return true;
-		} else {
-			return false;
+		if ( empty( $apikey ) || ! is_string( $apikey ) ) {
+			return array(
+				'status'  => 'error',
+				'data'    => 0,
+				'message' => __( 'Invalid API key.', 'formscrm' ),
+			);
 		}
+
+		$api_version  = $this->detect_api_version( $apikey );
+		$login_result = 'v2' === $api_version ? $this->get( 'contacts?limit=1', $apikey ) : $this->get( 'contacts', $apikey );
+
+		if ( 'error' === $login_result['status'] ) {
+			return array(
+				'status'  => 'error',
+				'data'    => 0,
+				'message' => __( 'Failed to login in Holded API.', 'formscrm' ),
+			);
+		}
+
+		return array(
+			'status'  => 'ok',
+			'data'    => 0,
+			/* translators: %s: API version detected (v1 or v2) */
+			'message' => sprintf( __( 'Logged correctly in Holded API %s.', 'formscrm' ), $api_version ),
+		);
 	}
 
 	/**
@@ -169,7 +258,7 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	 * @param  array $settings settings from Gravity Forms options.
 	 * @return array           returns an array of mudules
 	 */
-	public function list_modules( $settings ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Required by interface.
+	public function list_modules( array $settings ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Required by interface.
 		$modules = array(
 			array(
 				'name'  => 'contacts',

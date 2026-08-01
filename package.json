@@ -26,15 +26,15 @@
   },
   "homepage": "https://github.com/closemarketing/formscrm#readme",
   "dependencies": {
-    "csv-parse": "^7.0.0"
+    "csv-parse": "^7.0.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.0",
-    "@types/node": "^25.9.3",
-    "@wordpress/scripts": "^32.4.0",
-    "@wp-playground/cli": "^3.1.39",
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^26.1.1",
+    "@wordpress/scripts": "^34.0.0",
+    "@wp-playground/cli": "^3.1.47",
     "fetch-cookie": "^3.1.0",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "core": "WordPress/WordPress",
   "plugins": [
