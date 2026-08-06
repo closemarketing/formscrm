@@ -809,6 +809,15 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
+		// If we are using the v2 API, then move 'email' inside the 'emails' array as type 4 (Main).
+		if ( 'v2' === $this->api_version && ! empty( $contact['email'] ) ) {
+			$contact['emails'][] = array(
+				'type'  => 4,
+				'email' => $contact['email'],
+			);
+			unset( $contact['email'] );
+		}
+
 		$this->contact = $contact;
 	}
 
@@ -1089,10 +1098,10 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$args['body']                    = wp_json_encode( $params );
 		}
 
-		// Fields in query.
+		// Fields in query. The v2 API requires a `fields` param on every GET request.
 		if ( 'GET' === $method ) {
-			if ( 'v2' === $api_version && empty( $params ) ) {
-				$params = array( 'fields' => 'id' );
+			if ( 'v2' === $api_version && empty( $params['fields'] ) ) {
+				$params['fields'] = 'id';
 			}
 			if ( ! empty( $params ) ) {
 				$url .= '?' . http_build_query( $params );
@@ -1247,8 +1256,9 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	 */
 	public function determine_search_by( string $search_field ): string {
 		$map = array(
-			'email'         => 'query',
-			'business_name' => 'query',
+			'email'                          => 'query',
+			'business_name'                  => 'query',
+			'taxpayer_identification_number' => 'query',
 		);
 
 		return ! empty( $map[ $search_field ] ) ? $map[ $search_field ] : $search_field;
