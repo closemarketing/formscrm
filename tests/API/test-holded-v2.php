@@ -243,6 +243,22 @@ class HoldedV2Tests extends WP_UnitTestCase {
 	}
 
 	/**
+	 * create_entry() reports the detected API version via fc_crm_name, so the
+	 * entry note shows "Holded v2" instead of a bare "holded".
+	 */
+	public function test_create_entry_reports_v2_in_fc_crm_name() {
+		$merge_vars = array(
+			array(
+				'name'  => 'name',
+				'value' => 'Fixture V2 Contact',
+			),
+		);
+		$result = $this->crm_holded->create_entry( $this->settings, $merge_vars );
+
+		$this->assertSame( 'Holded v2', $result['fc_crm_name'] );
+	}
+
+	/**
 	 * v1 camelCase field IDs from list_fields() (tradename, code, isperson,
 	 * sepaRef, billAddress|city) are translated to v2 snake_case before
 	 * being sent, since existing feeds map to the v1 names.

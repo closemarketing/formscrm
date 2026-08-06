@@ -522,19 +522,22 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 			}
 		}
 
-		$result = $this->post( $module, $contact, $apikey );
+		$result      = $this->post( $module, $contact, $apikey );
+		$fc_crm_name = $is_v2 ? __( 'Holded v2', 'formscrm' ) : __( 'Holded v1', 'formscrm' );
 
 		if ( 'error' === $result['status'] ) {
 			return array(
-				'status'  => 'error',
-				'message' => $result['data'],
+				'status'      => 'error',
+				'message'     => $result['data'],
+				'fc_crm_name' => $fc_crm_name,
 			);
 		}
 
 		return array(
-			'status'  => 'ok',
-			'message' => 'success',
-			'id'      => isset( $result['data']['id'] ) ? $result['data']['id'] : '',
+			'status'      => 'ok',
+			'message'     => 'success',
+			'id'          => isset( $result['data']['id'] ) ? $result['data']['id'] : '',
+			'fc_crm_name' => $fc_crm_name,
 		);
 	}
 

@@ -277,6 +277,22 @@ class HoldedTests extends WP_UnitTestCase {
 	}
 
 	/**
+	 * create_entry() reports the detected API version via fc_crm_name, so the
+	 * entry note shows "Holded v1" instead of a bare "holded".
+	 */
+	public function test_create_entry_reports_v1_in_fc_crm_name() {
+		$merge_vars = array(
+			array(
+				'name'  => 'name',
+				'value' => 'Fixture V1 Contact',
+			),
+		);
+		$result = $this->crm_holded->create_entry( $this->settings, $merge_vars );
+
+		$this->assertSame( 'Holded v1', $result['fc_crm_name'] );
+	}
+
+	/**
 	 * A failed creation returns an error status with the API's message.
 	 */
 	public function test_create_entry_on_error_returns_error_status() {

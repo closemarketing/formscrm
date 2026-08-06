@@ -983,6 +983,11 @@ class GFCRM extends GFFeedAddOn {
 			$crm_action   = isset( $response_result['action'] ) ? $response_result['action'] : '';
 			$crm_strategy = isset( $response_result['strategy'] ) ? $response_result['strategy'] : '';
 
+			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
+			if ( ! empty( $response_result['fc_crm_name'] ) ) {
+				$settings['fc_crm_name'] = $response_result['fc_crm_name'];
+			}
+
 			if ( ! empty( $crm_action ) ) {
 				$response_message = sprintf(
 				// translators: %1$s CRM name %2$s CRM type %3$s ID %4$s action (created/updated) %5$s strategy field.
