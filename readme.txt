@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 4.4.1
-Version: 4.4.1
+Stable tag: 4.4.2
+Version: 4.4.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -257,6 +257,16 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 4.4.2 =
+* Added: Holded API v2 support. The API version is now auto-detected from the key's shape (keys prefixed with `pat_` use v2, existing keys keep using v1) — both versions work through the same connector with no new setting.
+* Enhanced: "API Connection Status" badge and entry success notes now show the detected Holded API version (e.g. "Connected (Holded v2)") instead of a generic "(Holded)".
+* Fixed: `CRMLIB_HOLDED::login()` and `list_modules()` signature mismatch with the `CRMLIB_Abstract` contract, which caused a PHP fatal error on the Holded feed settings page in production.
+* Fixed: Holded v2 field names (e.g. `bill_address`, `trade_name`, `is_person`) are now translated from the existing v1 camelCase field IDs, so feeds configured before the v2 migration keep working unmodified.
+* Fixed: Clientify API v2 contact merge returning a 409 conflict when matching by `taxpayer_identification_number`; the field is now supported as a search/merge key.
+* Fixed: Clientify API v2 now sends `email` inside the `emails` array (type Main) instead of a top-level field, matching the v2 schema.
+* Fixed: Clientify API v2 GET requests now always include the required `fields` parameter, even when other query params are already set.
+* Tests: Added PHPUnit coverage for both Holded API v1 and v2 using fixtures captured from real sandbox accounts.
 
 = 4.4.1 =
 * Fixed: GravityForms `{label:X}` merge tag returning wrong label when select/radio fields have duplicate values.
