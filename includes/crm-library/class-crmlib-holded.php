@@ -42,6 +42,16 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 	}
 
 	/**
+	 * Display name for the detected API version (e.g. "Holded v2").
+	 *
+	 * @param string $apikey API key.
+	 * @return string
+	 */
+	private function get_crm_display_name( $apikey ) {
+		return 'v2' === $this->detect_api_version( $apikey ) ? __( 'Holded v2', 'formscrm' ) : __( 'Holded v1', 'formscrm' );
+	}
+
+	/**
 	 * Gets information from Holded CRM (v1 or v2, detected from the key).
 	 *
 	 * @param string $url      URL for module.
@@ -234,21 +244,24 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 		}
 
 		$api_version  = $this->detect_api_version( $apikey );
+		$crm_name     = $this->get_crm_display_name( $apikey );
 		$login_result = 'v2' === $api_version ? $this->get( 'contacts?limit=1', $apikey ) : $this->get( 'contacts', $apikey );
 
 		if ( 'error' === $login_result['status'] ) {
 			return array(
-				'status'  => 'error',
-				'data'    => 0,
-				'message' => __( 'Failed to login in Holded API.', 'formscrm' ),
+				'status'   => 'error',
+				'data'     => 0,
+				'message'  => __( 'Failed to login in Holded API.', 'formscrm' ),
+				'crm_name' => $crm_name,
 			);
 		}
 
 		return array(
-			'status'  => 'ok',
-			'data'    => 0,
+			'status'   => 'ok',
+			'data'     => 0,
 			/* translators: %s: API version detected (v1 or v2) */
-			'message' => sprintf( __( 'Logged correctly in Holded API %s.', 'formscrm' ), $api_version ),
+			'message'  => sprintf( __( 'Logged correctly in Holded API %s.', 'formscrm' ), $api_version ),
+			'crm_name' => $crm_name,
 		);
 	}
 
@@ -523,7 +536,7 @@ class CRMLIB_HOLDED extends CRMLIB_Abstract {
 		}
 
 		$result      = $this->post( $module, $contact, $apikey );
-		$fc_crm_name = $is_v2 ? __( 'Holded v2', 'formscrm' ) : __( 'Holded v1', 'formscrm' );
+		$fc_crm_name = $this->get_crm_display_name( $apikey );
 
 		if ( 'error' === $result['status'] ) {
 			return array(

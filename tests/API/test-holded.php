@@ -152,6 +152,15 @@ class HoldedTests extends WP_UnitTestCase {
 	}
 
 	/**
+	 * login() reports the detected version via crm_name, used by the
+	 * "API Connection Status" badge to show "Holded v1" instead of "Holded".
+	 */
+	public function test_login_reports_v1_in_crm_name() {
+		$result = $this->crm_holded->login( $this->settings );
+		$this->assertSame( 'Holded v1', $result['crm_name'] );
+	}
+
+	/**
 	 * Invalid API key returns an error status array.
 	 */
 	public function test_login_invalid_credentials_returns_error() {
