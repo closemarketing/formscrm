@@ -29,9 +29,9 @@
     "csv-parse": "^7.0.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.0",
-    "@types/node": "^26.1.1",
-    "@wordpress/scripts": "^34.0.0",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.1.2",
+    "@wordpress/scripts": "^19.2.4",
     "@wp-playground/cli": "^3.1.47",
     "fetch-cookie": "^3.1.0",
     "vitest": "^4.1.10"
