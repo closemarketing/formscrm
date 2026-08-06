@@ -152,6 +152,15 @@ class HoldedTests extends WP_UnitTestCase {
 	}
 
 	/**
+	 * login() reports the detected version via crm_name, used by the
+	 * "API Connection Status" badge to show "Holded v1" instead of "Holded".
+	 */
+	public function test_login_reports_v1_in_crm_name() {
+		$result = $this->crm_holded->login( $this->settings );
+		$this->assertSame( 'Holded v1', $result['crm_name'] );
+	}
+
+	/**
 	 * Invalid API key returns an error status array.
 	 */
 	public function test_login_invalid_credentials_returns_error() {
@@ -274,6 +283,22 @@ class HoldedTests extends WP_UnitTestCase {
 		$this->assertIsArray( $result );
 		$this->assertSame( 'ok', $result['status'] );
 		$this->assertSame( '6a6dbf9f2c0eaed0fb0df1d7', $result['id'] );
+	}
+
+	/**
+	 * create_entry() reports the detected API version via fc_crm_name, so the
+	 * entry note shows "Holded v1" instead of a bare "holded".
+	 */
+	public function test_create_entry_reports_v1_in_fc_crm_name() {
+		$merge_vars = array(
+			array(
+				'name'  => 'name',
+				'value' => 'Fixture V1 Contact',
+			),
+		);
+		$result = $this->crm_holded->create_entry( $this->settings, $merge_vars );
+
+		$this->assertSame( 'Holded v1', $result['fc_crm_name'] );
 	}
 
 	/**
