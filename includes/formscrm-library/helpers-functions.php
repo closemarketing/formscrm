@@ -770,6 +770,11 @@ if ( ! function_exists( 'formscrm_check_connection_status' ) ) {
 		$login_result = $crmlib->login( $settings );
 		$login_status = isset( $login_result['status'] ) ? $login_result['status'] : '';
 
+		// CRM classes may report a display name (e.g. "Holded v2") via the login() message.
+		if ( is_array( $login_result ) && ! empty( $login_result['crm_name'] ) ) {
+			$data['crm_type'] = $login_result['crm_name'];
+		}
+
 		if ( ! $login_result || ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) ) {
 			$data['status']        = 'error';
 			$data['text']          = __( 'Error', 'formscrm' );
