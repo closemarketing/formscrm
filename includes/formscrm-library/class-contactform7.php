@@ -307,7 +307,7 @@ class FORMSCRM_CF7_Settings {
 		} else {
 			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
 			$crm_name = ! empty( $response_result['fc_crm_name'] ) ? $response_result['fc_crm_name'] : $cf7_crm['fc_crm_type'];
-			error_log( 'FormsCRM: Success creating ' . $crm_name . ' Entry ID: ' . $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
+			formscrm_debug_message( 'Success creating ' . $crm_name . ' Entry ID: ' . $response_result['id'] );
 		}
 	}
 
