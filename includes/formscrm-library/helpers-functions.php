@@ -173,6 +173,26 @@ if ( ! function_exists( 'formscrm_merge_feed_meta_into_settings' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_get_crm_display_name' ) ) {
+	/**
+	 * Returns the CRM display name reported by a login()/create_entry() result,
+	 * falling back to the CRM type when the CRM class doesn't report one.
+	 *
+	 * @param array  $result   Result array from login() or create_entry(), may contain 'crm_name' or 'fc_crm_name'.
+	 * @param string $fallback CRM type to use when no display name is reported.
+	 * @return string
+	 */
+	function formscrm_get_crm_display_name( $result, $fallback ) {
+		if ( ! empty( $result['fc_crm_name'] ) ) {
+			return $result['fc_crm_name'];
+		}
+		if ( ! empty( $result['crm_name'] ) ) {
+			return $result['crm_name'];
+		}
+		return $fallback;
+	}
+}
+
 if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	/**
 	 * Debug message in log

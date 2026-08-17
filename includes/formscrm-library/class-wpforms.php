@@ -192,11 +192,11 @@ class FormsCRM_WPForms extends WPForms_Provider {
 				} else {
 					// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
 					if ( ! empty( $response_result['fc_crm_name'] ) ) {
-						$settings['fc_crm_name'] = $response_result['fc_crm_name'];
+						$crm_name = formscrm_get_crm_display_name( $response_result, $settings['fc_crm_type'] ) . ' (' . $settings['fc_crm_type'] . ')';
+					} else {
+						$crm_name = $settings['fc_crm_type'];
 					}
-
-					$crm_name = isset( $settings['fc_crm_name'] ) ? $settings['fc_crm_name'] : $settings['fc_crm_type'];
-					$message  = __( 'Success creating:', 'formscrm' ) . ' ' . $crm_name . ' (' . $settings['fc_crm_type'] . ') ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
+					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $crm_name . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
 				}
 				$message .= ' ' . $api_message;
 			} catch ( Exception $e ) {

@@ -345,7 +345,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				$response_message = sprintf(
 					// translators: %1$s CRM name %2$s CRM type %3$s ID number of entry created.
 					__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
-					esc_html( $response_result['fc_crm_name'] ),
+					esc_html( formscrm_get_crm_display_name( $response_result, $settings['fc_crm_type'] ) ),
 					esc_html( $settings['fc_crm_type'] ),
 					$response_result['id']
 				);
