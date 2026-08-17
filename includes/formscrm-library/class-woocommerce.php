@@ -277,7 +277,9 @@ class FormsCRM_WooCommerce {
 
 				formscrm_alert_error( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
 			} else {
-				error_log( $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
+				// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
+				$crm_name = ! empty( $response_result['fc_crm_name'] ) ? $response_result['fc_crm_name'] : $wc_formscrm['fc_crm_type'];
+				error_log( 'FormsCRM: Success creating ' . $crm_name . ' Entry ID: ' . $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
 			}
 		}
 	}
