@@ -341,22 +341,12 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			$ajax_handler->messages['admin_error'][] = $response_message;
 		} else {
 			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
-			if ( ! empty( $response_result['fc_crm_name'] ) ) {
-				$response_message = sprintf(
-					// translators: %1$s CRM name %2$s CRM type %3$s ID number of entry created.
-					__( 'Success creating %1$s (%2$s) Entry ID: %3$s', 'formscrm' ),
-					esc_html( formscrm_get_crm_display_name( $response_result, $settings['fc_crm_type'] ) ),
-					esc_html( $settings['fc_crm_type'] ),
-					$response_result['id']
-				);
-			} else {
-				$response_message = sprintf(
-					// translators: %1$s CRM name %2$s ID number of entry created.
-					__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
-					esc_html( $settings['fc_crm_type'] ),
-					$response_result['id']
-				);
-			}
+			$response_message = sprintf(
+				// translators: %1$s CRM name/type label %2$s ID number of entry created.
+				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
+				esc_html( formscrm_format_crm_success_label( $response_result, $settings['fc_crm_type'] ) ),
+				$response_result['id']
+			);
 			$ajax_handler->messages['success'][] = $response_message;
 		}
 	}

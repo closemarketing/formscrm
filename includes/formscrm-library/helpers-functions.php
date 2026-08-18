@@ -193,6 +193,23 @@ if ( ! function_exists( 'formscrm_get_crm_display_name' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_format_crm_success_label' ) ) {
+	/**
+	 * Formats the CRM label for success messages: "Name (Type)" when the CRM
+	 * class reports a distinct display name, or bare "Type" otherwise.
+	 *
+	 * @param array  $result Result array from login() or create_entry(), may contain 'crm_name' or 'fc_crm_name'.
+	 * @param string $type   CRM type slug/label.
+	 * @return string
+	 */
+	function formscrm_format_crm_success_label( $result, $type ) {
+		if ( empty( $result['fc_crm_name'] ) && empty( $result['crm_name'] ) ) {
+			return $type;
+		}
+		return formscrm_get_crm_display_name( $result, $type ) . ' (' . $type . ')';
+	}
+}
+
 if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	/**
 	 * Debug message in log
