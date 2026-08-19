@@ -134,6 +134,10 @@ class FORMSCRM_JFB_Action extends Base {
 				$result['query'] ?? '',
 				$form_info
 			);
+		} else {
+			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
+			$crm_name = formscrm_get_crm_display_name( $result, $crm_type );
+			formscrm_debug_message( 'Success creating ' . $crm_name . ' Entry ID: ' . ( $result['id'] ?? '' ) );
 		}
 	}
 
