@@ -1124,16 +1124,23 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 				// Temporary Clientify-support workaround: api.clientify.net occasionally returns
 				// a 504 Gateway Timeout. Retry once against the api.clientify.com fallback before
 				// giving up. Remove once Clientify confirms the issue on api.clientify.net is fixed.
-				// Restricted to GET: a 504 on a POST/PUT does not prove the mutation failed on
-				// Clientify's end, so retrying it here could create duplicate records. Writes keep
-				// failing as before and rely on the existing error-log/resend flow instead.
-				if ( 'GET' === $method && 'v1' === $api_version && 504 === $response_code && ! $used_fallback_url ) {
+				//
+				// Also covers POST create ("?force_insert=true"): in production, the 504 shows up
+				// on lead creation itself, not just GET reads. A 504 here doesn't prove the create
+				// failed on Clientify's end (risking a duplicate contact on retry), but losing the
+				// submitted lead entirely is worse — force_insert=true creates are idempotent-ish
+				// in intent (a new lead is expected), so the duplicate-record risk is accepted here.
+				// Other writes (PATCH updates, deal/tag POSTs) are NOT retried: a duplicate update
+				// or duplicate deal is a different, less acceptable failure mode.
+				$is_retryable_write = 'POST' === $method && false !== strpos( $url, 'force_insert=true' );
+				if ( 'v1' === $api_version && 504 === $response_code && ! $used_fallback_url && ( 'GET' === $method || $is_retryable_write ) ) {
+					$failed_url        = $url;
 					$used_fallback_url = true;
 					$url               = str_replace( $base_url, $fallback_base_url, $url );
 					$args['timeout']   = 30;
 					// Logged unconditionally (not via formscrm_error_admin_message, which is a
 					// no-op outside WP_DEBUG) so fallback usage is visible in production too.
-					error_log( 'FORMSCRM: Clientify API v1 returned 504 on api.clientify.net, retrying with api.clientify.com fallback.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( 'FORMSCRM: Clientify API v1 returned 504 on api.clientify.net for ' . $method . ' ' . $failed_url . ', retrying with api.clientify.com fallback.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 					continue;
 				}
 
