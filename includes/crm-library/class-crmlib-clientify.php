@@ -1083,9 +1083,10 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			);
 		}
 
-		$base_url = 'v1' === $api_version ? 'https://api.clientify.net/v1/' : 'https://api-plus.clientify.com/v2/';
-		$url      = $base_url . strtolower( $module );
-		$args     = array(
+		$base_url          = 'v1' === $api_version ? 'https://api.clientify.net/v1/' : 'https://api-plus.clientify.com/v2/';
+		$fallback_base_url = 'https://api.clientify.com/v1/';
+		$url               = $base_url . strtolower( $module );
+		$args              = array(
 			'headers' => array(
 				'Authorization' => 'Token ' . $apikey,
 			),
@@ -1108,16 +1109,28 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			}
 		}
 
-		$next          = true;
-		$results_value = array();
+		$next              = true;
+		$results_value     = array();
+		$used_fallback_url = false;
 
 		while ( $next ) {
-			$result   = wp_remote_request( $url, $args );
-			$body_raw = wp_remote_retrieve_body( $result );
-			$results  = json_decode( $body_raw, true );
-			$code     = (int) round( (int) wp_remote_retrieve_response_code( $result ) / 100, 0 );
+			$result        = wp_remote_request( $url, $args );
+			$response_code = (int) wp_remote_retrieve_response_code( $result );
+			$body_raw      = wp_remote_retrieve_body( $result );
+			$results       = json_decode( $body_raw, true );
+			$code          = (int) round( $response_code / 100, 0 );
 
 			if ( 2 !== $code ) {
+				// Temporary Clientify-support workaround: api.clientify.net occasionally returns
+				// a 504 Gateway Timeout. Retry once against the api.clientify.com fallback before
+				// giving up. Remove once Clientify confirms the issue on api.clientify.net is fixed.
+				if ( 'v1' === $api_version && 504 === $response_code && ! $used_fallback_url ) {
+					$used_fallback_url = true;
+					$url               = str_replace( $base_url, $fallback_base_url, $url );
+					formscrm_error_admin_message( 'WARNING', 'Clientify API v1 returned 504 on api.clientify.net, retrying with api.clientify.com fallback.' );
+					continue;
+				}
+
 				$message = $this->build_error_message( $result, $body_raw );
 				formscrm_error_admin_message( 'ERROR', $message );
 				$out = array(
