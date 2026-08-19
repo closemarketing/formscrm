@@ -1122,18 +1122,14 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 			if ( 2 !== $code ) {
 				// Temporary Clientify-support workaround: api.clientify.net occasionally returns
-				// a 504 Gateway Timeout. Retry once against the api.clientify.com fallback before
-				// giving up. Remove once Clientify confirms the issue on api.clientify.net is fixed.
+				// a 504 Gateway Timeout on any method (GET/POST/PATCH/DELETE). Retry once against
+				// the api.clientify.com fallback before giving up. Remove once Clientify confirms
+				// the issue on api.clientify.net is fixed.
 				//
-				// Also covers POST create ("?force_insert=true"): in production, the 504 shows up
-				// on lead creation itself, not just GET reads. A 504 here doesn't prove the create
-				// failed on Clientify's end (risking a duplicate contact on retry), but losing the
-				// submitted lead entirely is worse — force_insert=true creates are idempotent-ish
-				// in intent (a new lead is expected), so the duplicate-record risk is accepted here.
-				// Other writes (PATCH updates, deal/tag POSTs) are NOT retried: a duplicate update
-				// or duplicate deal is a different, less acceptable failure mode.
-				$is_retryable_write = 'POST' === $method && false !== strpos( $url, 'force_insert=true' );
-				if ( 'v1' === $api_version && 504 === $response_code && ! $used_fallback_url && ( 'GET' === $method || $is_retryable_write ) ) {
+				// A 504 on a write doesn't prove the mutation failed on Clientify's end, so
+				// retrying here risks a duplicate record (contact, update, deal, tag). That risk
+				// is accepted across the board: losing the submission entirely is worse.
+				if ( 'v1' === $api_version && 504 === $response_code && ! $used_fallback_url ) {
 					$failed_url        = $url;
 					$used_fallback_url = true;
 					$url               = str_replace( $base_url, $fallback_base_url, $url );
