@@ -258,6 +258,11 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.4.4 =
+* Fixed: Clientify merge strategy could update the wrong contact/company. Clientify's `query` search param is a substring match (e.g. searching "molina@gmail.com" could match "aestepamolina@gmail.com"), and the merge strategy took the first search result without verifying it was an exact match. It now only updates when there is exactly one exact match for the searched field, and creates a new entry otherwise.
+* Fixed: the "Email Main" field-mapping option and the "Email Main" typed-email option showed the same label, so mapping the wrong one silently defeated the merge strategy (fell back to creating instead of updating) with no warning. The native field is now labeled "Email Main (single field)".
+* Fixed: `marketing_status` defaulted to "Marketing Contact" was also sent when updating an existing contact via the merge strategy, silently overwriting a contact intentionally set as "Sales Contact". The default is now only applied when creating a new contact.
+
 = 4.4.3 =
 * Fixed: Clientify API v1 requests occasionally failing with `HTTP 504 Gateway Timeout` on `api.clientify.net`. All requests (reads, lead/contact creation, updates, deals) now retry once against the `api.clientify.com` fallback before failing; this is a temporary workaround suggested by Clientify support while they investigate the root cause.
 

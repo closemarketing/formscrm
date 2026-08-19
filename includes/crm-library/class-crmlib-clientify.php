@@ -173,7 +173,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 			$fields[] = array(
 				'name'     => 'email',
-				'label'    => __( 'Email Main', 'formscrm' ),
+				'label'    => __( 'Email Main (single field)', 'formscrm' ),
 				'required' => false,
 			);
 
@@ -524,11 +524,6 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
-		// Default marketing status to 2 (Marketing Contact) if not set (v2 only).
-		if ( 'v2' === $this->api_version && ! isset( $contact['marketing_status'] ) ) {
-			$contact['marketing_status'] = 2;
-		}
-
 		$this->contact = $contact;
 		$result        = $this->create_or_update_entry( $merge_vars, $module );
 
@@ -810,6 +805,12 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		}
 
 		// If we are using the v2 API, then move 'email' inside the 'emails' array as type 4 (Main).
+		//
+		// NOTE: it isn't confirmed whether Clientify's own server-side dedup on repeated
+		// emails (used when fc_crm_merge_entry is unset) still triggers once the email is
+		// nested here instead of being a top-level field. Until that's confirmed, configuring
+		// a merge strategy (fc_crm_merge_entry) is the only guaranteed way to avoid duplicates
+		// — see https://github.com/closemarketing/formscrm/issues/286.
 		if ( 'v2' === $this->api_version && ! empty( $contact['email'] ) ) {
 			$contact['emails'][] = array(
 				'type'  => 4,
@@ -1240,6 +1241,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 		// If no merge field configured, just create.
 		if ( empty( $search_field ) || empty( $data_array[ $search_field ] ) ) {
+			$this->apply_create_only_defaults();
 			$endpoint          .= '?force_insert=true';
 			$result             = $this->request( $endpoint, $this->contact, $apikey, 'POST', $this->api_version );
 			$result['action']   = 'created';
@@ -1253,21 +1255,129 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		// Search existing entry by field.
 		$search_params = array( $query_param => $search_value );
 		$search_result = $this->request( $endpoint, $search_params, $apikey, 'GET', $this->api_version );
+		$entry_id      = null;
 
 		if ( 'ok' === $search_result['status'] && ! empty( $search_result['data']['results'] ) ) {
+			$results = $search_result['data']['results'];
+
+			// 'query' performs a substring search on Clientify's side (e.g. searching
+			// "molina@gmail.com" can match "aestepamolina@gmail.com"), so results[0]
+			// can't be trusted as an exact match before overwriting an existing record.
+			// Fields with their own dedicated query param (e.g. 'phone') are assumed
+			// to already be exact server-side filters and are used as-is.
+			if ( 'query' === $query_param ) {
+				$entry_id = $this->find_exact_match_id( $results, $search_field, $search_value );
+			} else {
+				$entry_id = $results[0]['id'];
+			}
+		}
+
+		if ( null !== $entry_id ) {
 			// Entry exists: update.
-			$entry_id           = $search_result['data']['results'][0]['id'];
 			$result             = $this->request( $endpoint . $entry_id . '/', $this->contact, $apikey, 'PATCH', $this->api_version );
 			$result['action']   = 'updated';
 			$result['strategy'] = $search_field . ': ' . $search_value;
 			return $result;
 		}
 
-		// Entry not found: create.
+		// No (exact) match found: create.
+		$this->apply_create_only_defaults();
 		$result             = $this->request( $endpoint, $this->contact, $apikey, 'POST', $this->api_version );
 		$result['action']   = 'created';
 		$result['strategy'] = $search_field . ': ' . $search_value;
 		return $result;
+	}
+
+	/**
+	 * Applies defaults that must only be sent when creating a brand-new contact —
+	 * never on an update, where they would silently overwrite a value the CRM
+	 * user (or a previous submission) had already set intentionally.
+	 */
+	private function apply_create_only_defaults(): void {
+		// Default marketing status to 2 (Marketing Contact) if not set (v2 only).
+		if ( 'v2' === $this->api_version && ! isset( $this->contact['marketing_status'] ) ) {
+			$this->contact['marketing_status'] = 2;
+		}
+	}
+
+	/**
+	 * From a substring-search result set, returns the id of the single entry
+	 * whose value for $search_field exactly matches $search_value. Returns null
+	 * when there is no exact match, or more than one — an ambiguous match is
+	 * never auto-selected for update.
+	 *
+	 * @param array  $results      Raw 'results' array from the search request.
+	 * @param string $search_field Field ID from list_fields_search_entry().
+	 * @param string $search_value Value being searched for.
+	 * @return string|int|null
+	 */
+	private function find_exact_match_id( array $results, string $search_field, string $search_value ) {
+		$response_key = $this->response_key_for_search_field( $search_field );
+		$matches      = array();
+
+		foreach ( $results as $entry ) {
+			$is_match = $this->entry_field_matches( $entry, $response_key, $search_value )
+				|| ( 'email' === $search_field && $this->entry_emails_array_matches( $entry, $search_value ) );
+
+			if ( $is_match ) {
+				$matches[] = $entry;
+			}
+		}
+
+		return 1 === count( $matches ) ? $matches[0]['id'] : null;
+	}
+
+	/**
+	 * Whether a scalar field on a search-result entry exactly matches a value
+	 * (case-insensitive, trimmed).
+	 *
+	 * @param array  $entry Result entry.
+	 * @param string $key   Field key to compare.
+	 * @param string $value Value to compare against.
+	 * @return bool
+	 */
+	private function entry_field_matches( array $entry, string $key, string $value ): bool {
+		return isset( $entry[ $key ] ) && is_scalar( $entry[ $key ] )
+			&& 0 === strcasecmp( trim( (string) $entry[ $key ] ), trim( $value ) );
+	}
+
+	/**
+	 * Whether a search-result entry's nested 'emails' array contains an exact
+	 * match for a value — some API responses may carry the matched email there
+	 * instead of (or in addition to) a flat 'email' field.
+	 *
+	 * @param array  $entry Result entry.
+	 * @param string $value Value to compare against.
+	 * @return bool
+	 */
+	private function entry_emails_array_matches( array $entry, string $value ): bool {
+		if ( empty( $entry['emails'] ) || ! is_array( $entry['emails'] ) ) {
+			return false;
+		}
+
+		foreach ( $entry['emails'] as $email_entry ) {
+			if ( isset( $email_entry['email'] ) && 0 === strcasecmp( trim( (string) $email_entry['email'] ), trim( $value ) ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Maps a search field ID to the key Clientify actually returns for it in
+	 * search results, when it differs from the request field name — company
+	 * search results return the company name under 'name', not 'business_name'.
+	 *
+	 * @param string $search_field Field ID from list_fields_search_entry().
+	 * @return string
+	 */
+	private function response_key_for_search_field( string $search_field ): string {
+		$map = array(
+			'business_name' => 'name',
+		);
+
+		return isset( $map[ $search_field ] ) ? $map[ $search_field ] : $search_field;
 	}
 
 	/**
