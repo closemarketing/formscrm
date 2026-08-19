@@ -1124,10 +1124,16 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 				// Temporary Clientify-support workaround: api.clientify.net occasionally returns
 				// a 504 Gateway Timeout. Retry once against the api.clientify.com fallback before
 				// giving up. Remove once Clientify confirms the issue on api.clientify.net is fixed.
-				if ( 'v1' === $api_version && 504 === $response_code && ! $used_fallback_url ) {
+				// Restricted to GET: a 504 on a POST/PUT does not prove the mutation failed on
+				// Clientify's end, so retrying it here could create duplicate records. Writes keep
+				// failing as before and rely on the existing error-log/resend flow instead.
+				if ( 'GET' === $method && 'v1' === $api_version && 504 === $response_code && ! $used_fallback_url ) {
 					$used_fallback_url = true;
 					$url               = str_replace( $base_url, $fallback_base_url, $url );
-					formscrm_error_admin_message( 'WARNING', 'Clientify API v1 returned 504 on api.clientify.net, retrying with api.clientify.com fallback.' );
+					$args['timeout']   = 30;
+					// Logged unconditionally (not via formscrm_error_admin_message, which is a
+					// no-op outside WP_DEBUG) so fallback usage is visible in production too.
+					error_log( 'FORMSCRM: Clientify API v1 returned 504 on api.clientify.net, retrying with api.clientify.com fallback.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 					continue;
 				}
 
