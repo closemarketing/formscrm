@@ -768,4 +768,214 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertNotContains( 'empty_field', $field_keys, 'Empty deal custom_field must not be sent.' );
 		$this->assertContains( 'filled_field', $field_keys, 'Non-empty deal custom_field must be sent.' );
 	}
+
+	// -------------------------------------------------------------------------
+	// api.clientify.net 504 fallback tests (v1 only).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Registers a filter that returns 504 for every request to api.clientify.net
+	 * (optionally restricted to $only_method) and, past $fail_count hits, a
+	 * success response from the api.clientify.com fallback host. Runs at
+	 * priority 20 — after mock_http_request() (10) — so it wins: WordPress's
+	 * pre_http_request filter chain lets the LAST-run callback's return value
+	 * win over earlier ones, not the first.
+	 *
+	 * @param array       $calls       Reference: every intercepted call is appended as ['method' => ..., 'url' => ...].
+	 * @param int         $fail_count  How many api.clientify.net hits return 504 before this filter stops intercepting.
+	 * @param array       $success_body Decoded JSON body for the api.clientify.com fallback success response.
+	 * @param int         $success_code HTTP code for the fallback success response.
+	 * @param string|null $only_method  If set, only intercept requests using this HTTP method.
+	 * @return void
+	 */
+	private function register_504_filter( array &$calls, $fail_count, array $success_body, $success_code = 200, $only_method = null ) {
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) use ( &$calls, $fail_count, $success_body, $success_code, $only_method ) {
+				if ( null !== $only_method && $only_method !== $r['method'] ) {
+					return $pre;
+				}
+				if ( false !== strpos( $url, 'api.clientify.net' ) ) {
+					$calls[] = array( 'method' => $r['method'], 'url' => $url );
+					if ( count( $calls ) <= $fail_count ) {
+						return $this->response( 504, '{"detail":"Gateway Timeout"}' );
+					}
+				}
+				if ( false !== strpos( $url, 'api.clientify.com' ) ) {
+					$calls[] = array( 'method' => $r['method'], 'url' => $url );
+					return $this->response( $success_code, wp_json_encode( $success_body ) );
+				}
+				return $pre;
+			},
+			20,
+			3
+		);
+	}
+
+	/**
+	 * v1 GET (contact search) 504 on api.clientify.net retries once against
+	 * api.clientify.com and succeeds.
+	 */
+	public function test_v1_get_504_falls_back_to_clientify_com() {
+		$this->mock_api_mode                  = 'v1_via_account_status';
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$calls = array();
+		$this->register_504_filter( $calls, 1, array( 'count' => 0, 'results' => array() ) );
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'Fallback' ),
+			array( 'name' => 'email', 'value' => 'fallback-get@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		// 3 calls total: GET search on .net (504) -> GET search retried on .com (success,
+		// "not found") -> POST create (falls through to .net again, this mock leaves it
+		// alone so it succeeds via the central mock_http_request()).
+		$this->assertCount( 3, $calls );
+		$this->assertStringContainsString( 'api.clientify.net', $calls[0]['url'] );
+		$this->assertSame( 'GET', $calls[0]['method'] );
+		$this->assertStringContainsString( 'api.clientify.com', $calls[1]['url'] );
+		$this->assertSame( 'GET', $calls[1]['method'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'ok', $result['status'], 'Submission must not be lost when the fallback succeeds.' );
+	}
+
+	/**
+	 * v1 POST (contact create, force_insert=true) 504 on api.clientify.net
+	 * retries once against api.clientify.com and succeeds.
+	 */
+	public function test_v1_post_create_504_falls_back_to_clientify_com() {
+		$this->mock_api_mode             = 'v1_via_account_status';
+		$this->settings['fc_crm_module'] = 'Contacts';
+		$this->crm_clientify->login( $this->settings );
+
+		$calls = array();
+		$this->register_504_filter( $calls, 1, array( 'id' => 'contact-fallback', 'email' => 'fallback-post@example.com' ), 201 );
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'Fallback' ),
+			array( 'name' => 'email', 'value' => 'fallback-post@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertCount( 2, $calls );
+		$this->assertStringContainsString( 'api.clientify.net', $calls[0]['url'] );
+		$this->assertStringContainsString( 'api.clientify.com', $calls[1]['url'] );
+		$this->assertSame( 'POST', $calls[0]['method'] );
+		$this->assertStringContainsString( 'force_insert=true', $calls[0]['url'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'ok', $result['status'] );
+		$this->assertSame( 'contact-fallback', $result['id'] );
+	}
+
+	/**
+	 * v1 PATCH (contact update via merge strategy) 504 on api.clientify.net
+	 * retries once against api.clientify.com and succeeds.
+	 */
+	public function test_v1_patch_update_504_falls_back_to_clientify_com() {
+		$this->mock_api_mode                  = 'v1_via_account_status';
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		// The merge search itself must find an existing contact so create_or_update_entry()
+		// takes the PATCH branch; the 504/fallback filter only intercepts the PATCH call.
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) {
+				if ( 'GET' === $r['method'] && false !== strpos( $url, 'query=test%40example.com' ) ) {
+					return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","email":"test@example.com"}]}' );
+				}
+				return $pre;
+			},
+			20,
+			3
+		);
+
+		$calls = array();
+		$this->register_504_filter( $calls, 1, array( 'id' => 'contact-123', 'updated' => true ), 200, 'PATCH' );
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'Updated' ),
+			array( 'name' => 'email', 'value' => 'test@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertCount( 2, $calls );
+		$this->assertStringContainsString( 'api.clientify.net', $calls[0]['url'] );
+		$this->assertStringContainsString( 'api.clientify.com', $calls[1]['url'] );
+		$this->assertSame( 'PATCH', $calls[0]['method'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'ok', $result['status'] );
+	}
+
+	/**
+	 * A repeated 504 (fallback also fails) must surface as an error, not retry forever.
+	 */
+	public function test_v1_504_persists_on_both_hosts_returns_error() {
+		$this->mock_api_mode             = 'v1_via_account_status';
+		$this->settings['fc_crm_module'] = 'Contacts';
+		$this->crm_clientify->login( $this->settings );
+
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) {
+				if ( false !== strpos( $url, 'api.clientify.net' ) || false !== strpos( $url, 'api.clientify.com' ) ) {
+					return $this->response( 504, '{"detail":"Gateway Timeout"}' );
+				}
+				return $pre;
+			},
+			20,
+			3
+		);
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'Persistent' ),
+			array( 'name' => 'email', 'value' => 'persistent-504@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'error', $result['status'] );
+	}
+
+	/**
+	 * v2 requests must NOT trigger the fallback — it's scoped to v1 only.
+	 */
+	public function test_v2_504_does_not_fall_back() {
+		$this->settings['fc_crm_module'] = 'Contacts';
+		$this->crm_clientify->login( $this->settings ); // Default mock_api_mode is 'v2'.
+
+		$calls = array();
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) use ( &$calls ) {
+				if ( false !== strpos( $url, 'contacts/' ) && 'POST' === $r['method'] ) {
+					$calls[] = array( 'method' => $r['method'], 'url' => $url );
+					return $this->response( 504, '{"detail":"Gateway Timeout"}' );
+				}
+				return $pre;
+			},
+			20,
+			3
+		);
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'V2NoFallback' ),
+			array( 'name' => 'email', 'value' => 'v2-no-fallback@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertCount( 1, $calls, 'v2 must fail immediately on 504, no api.clientify.com retry.' );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'error', $result['status'] );
+	}
 }
