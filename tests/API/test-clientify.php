@@ -115,25 +115,32 @@ class ClientifyTests extends WP_UnitTestCase {
 			}
 			// Search found existing contact.
 			if ( false !== strpos( $url, 'query=test%40example.com' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","first_name":"John","email":"test@example.com"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-123', 'first_name' => 'John', 'email' => 'test@example.com' ) ) );
 			}
 			// Search found existing contact by NIF/DNI. Confirmed against the real
 			// Clientify API: it does NOT support filtering by
 			// taxpayer_identification_number as a literal query param — only the
 			// generic `query` param matches it.
 			if ( false !== strpos( $url, 'query=50997453J' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-789', 'first_name' => 'Antonio', 'taxpayer_identification_number' => '50997453J' ) ) );
 			}
 			// Substring false-positive: `query` is a substring match on Clientify's
 			// side, so searching for an exact email must not silently adopt an
 			// unrelated contact whose email merely contains it as a substring.
 			if ( false !== strpos( $url, 'query=molina%40gmail.com' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"contact-wrong","email":"aestepamolina@gmail.com"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-wrong', 'email' => 'aestepamolina@gmail.com' ) ) );
 			}
 			// Ambiguous: two contacts already share this exact email. Must not
 			// silently pick one of them to update.
 			if ( false !== strpos( $url, 'query=duplicate%40example.com' ) ) {
-				return $this->response( 200, '{"count":2,"results":[{"id":"contact-dup-1","email":"duplicate@example.com"},{"id":"contact-dup-2","email":"duplicate@example.com"}]}' );
+				return $this->restricted_results_response(
+					$url,
+					$is_v2_base,
+					array(
+						array( 'id' => 'contact-dup-1', 'email' => 'duplicate@example.com' ),
+						array( 'id' => 'contact-dup-2', 'email' => 'duplicate@example.com' ),
+					)
+				);
 			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
@@ -145,7 +152,7 @@ class ClientifyTests extends WP_UnitTestCase {
 			}
 			// Search found existing company.
 			if ( false !== strpos( $url, 'query=ACME' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"company-456","name":"ACME Corp"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'company-456', 'name' => 'ACME Corp' ) ) );
 			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
@@ -206,6 +213,45 @@ class ClientifyTests extends WP_UnitTestCase {
 				'code'    => $code,
 				'message' => 200 === $code ? 'OK' : 'Error',
 			),
+		);
+	}
+
+	/**
+	 * Builds a search response, restricting each entry to whatever fields the
+	 * request's `fields=` query param actually asked for (plus 'id', which the
+	 * real v2 API always returns) — v1 is not fields-restricted. This mirrors
+	 * the real API's behavior and catches a regression where
+	 * create_or_update_entry() reads a field on a result entry it never asked
+	 * the API to include, which would make every match look like a non-match.
+	 *
+	 * @param string $url    Request URL.
+	 * @param bool   $is_v2  Whether this is a v2-base request.
+	 * @param array  $entries Full mocked entries.
+	 * @return array
+	 */
+	protected function restricted_results_response( $url, $is_v2, array $entries ) {
+		if ( $is_v2 ) {
+			$requested = array( 'id' );
+			if ( preg_match( '/[?&]fields=([^&]+)/', $url, $matches ) ) {
+				$requested = array_unique( array_merge( $requested, explode( ',', urldecode( $matches[1] ) ) ) );
+			}
+
+			$entries = array_map(
+				function ( $entry ) use ( $requested ) {
+					return array_intersect_key( $entry, array_flip( $requested ) );
+				},
+				$entries
+			);
+		}
+
+		return $this->response(
+			200,
+			wp_json_encode(
+				array(
+					'count'   => count( $entries ),
+					'results' => $entries,
+				)
+			)
 		);
 	}
 

@@ -1254,6 +1254,18 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 		// Search existing entry by field.
 		$search_params = array( $query_param => $search_value );
+
+		if ( 'v2' === $this->api_version && 'query' === $query_param ) {
+			// A fields-less v2 GET defaults to `fields=id` (see request()), which
+			// would leave every result with nothing to verify an exact match
+			// against. Request the field the match is checked against too.
+			$exact_match_fields = array( 'id', $this->response_key_for_search_field( $search_field ) );
+			if ( 'email' === $search_field ) {
+				$exact_match_fields[] = 'emails';
+			}
+			$search_params['fields'] = implode( ',', $exact_match_fields );
+		}
+
 		$search_result = $this->request( $endpoint, $search_params, $apikey, 'GET', $this->api_version );
 		$entry_id      = null;
 
