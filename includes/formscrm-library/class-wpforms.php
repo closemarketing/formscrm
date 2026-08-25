@@ -190,7 +190,9 @@ class FormsCRM_WPForms extends WPForms_Provider {
 					formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
 					$message = __( 'Error', 'formscrm' );
 				} else {
-					$message = __( 'Success creating:', 'formscrm' ) . ' ' . $settings['fc_crm_type'] . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
+					// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
+					$crm_name = formscrm_format_crm_success_label( $response_result, $settings['fc_crm_type'] );
+					$message  = __( 'Success creating:', 'formscrm' ) . ' ' . $crm_name . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
 				}
 				$message .= ' ' . $api_message;
 			} catch ( Exception $e ) {

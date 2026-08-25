@@ -40,7 +40,7 @@ const crmTypeOptions = [
 const needsUrl         = [ 'bitrix24', 'espo_crm', 'facturadirecta', 'msdyn', 'mspfe', 'odoo', 'ofiweb', 'sugarcrm6', 'sugarcrm7', 'suitecrm_3_1', 'suitecrm_4_1', 'vtiger_6' ];
 const needsUsername    = [ 'bitrix24', 'espo_crm', 'facturadirecta', 'msdyn', 'mspfe', 'odoo', 'salesforce', 'solve360', 'sugarcrm6', 'sugarcrm7', 'suitecrm_3_1', 'suitecrm_4_1', 'vtiger_6', 'zoho' ];
 const needsPassword    = [ 'bitrix24', 'espo_crm', 'facturadirecta', 'msdyn', 'mspfe', 'sugarcrm6', 'sugarcrm7', 'suitecrm_3_1', 'suitecrm_4_1', 'zoho' ];
-const needsApiPassword = [ 'hubspot', 'solve360', 'vtiger_6', 'odoo', 'holded', 'clientify', 'brevo', 'acumbamail', 'mailerlite' ];
+const needsApiPassword = [ 'hubspot', 'solve360', 'vtiger_6', 'odoo', 'holded', 'clientify', 'brevo', 'acumbamail', 'mailerlite', 'reach' ];
 const needsApiSales    = [ 'salesforce' ];
 const needsOdooDB      = [ 'odoo' ];
 

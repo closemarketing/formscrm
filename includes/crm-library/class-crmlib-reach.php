@@ -287,6 +287,7 @@ class CRMLIB_Reach {
 				$response_result = array(
 					'status'  => 'ok',
 					'message' => 'success',
+					'id'      => '',
 				);
 			} else {
 				$response_result = array(

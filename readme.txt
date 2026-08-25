@@ -261,6 +261,19 @@ WordPress installation and then activate the Plugin from Plugins page.
 = 4.5.0 =
 * Added: Support for Hostinger Reach (Email Marketing) as a new built-in CRM integration.
 
+= 4.4.3 =
+* Fixed: Clientify API v1 requests occasionally failing with `HTTP 504 Gateway Timeout` on `api.clientify.net`. All requests (reads, lead/contact creation, updates, deals) now retry once against the `api.clientify.com` fallback before failing; this is a temporary workaround suggested by Clientify support while they investigate the root cause.
+
+= 4.4.2 =
+* Added: Holded API v2 support. The API version is now auto-detected from the key's shape (keys prefixed with `pat_` use v2, existing keys keep using v1) — both versions work through the same connector with no new setting.
+* Enhanced: "API Connection Status" badge and entry success notes now show the detected Holded API version (e.g. "Connected (Holded v2)") instead of a generic "(Holded)".
+* Fixed: `CRMLIB_HOLDED::login()` and `list_modules()` signature mismatch with the `CRMLIB_Abstract` contract, which caused a PHP fatal error on the Holded feed settings page in production.
+* Fixed: Holded v2 field names (e.g. `bill_address`, `trade_name`, `is_person`) are now translated from the existing v1 camelCase field IDs, so feeds configured before the v2 migration keep working unmodified.
+* Fixed: Clientify API v2 contact merge returning a 409 conflict when matching by `taxpayer_identification_number`; the field is now supported as a search/merge key.
+* Fixed: Clientify API v2 now sends `email` inside the `emails` array (type Main) instead of a top-level field, matching the v2 schema.
+* Fixed: Clientify API v2 GET requests now always include the required `fields` parameter, even when other query params are already set.
+* Tests: Added PHPUnit coverage for both Holded API v1 and v2 using fixtures captured from real sandbox accounts.
+
 = 4.4.1 =
 * Fixed: GravityForms `{label:X}` merge tag returning wrong label when select/radio fields have duplicate values.
 * Fixed: Merge strategy field not showing correctly.

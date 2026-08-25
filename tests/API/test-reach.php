@@ -27,7 +27,7 @@ class ReachTests extends WP_UnitTestCase {
 	protected $crm_reach;
 
 	/**
-	 * Controls which scenario the mock simulates: 'ok', 'error', 'empty'.
+	 * Controls which scenario the mock simulates: 'ok', 'error', 'empty', 'paginated'.
 	 *
 	 * @var string
 	 */
@@ -46,14 +46,14 @@ class ReachTests extends WP_UnitTestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$this->settings = array(
+		$this->settings          = array(
 			'fc_crm_type'        => 'reach',
 			'fc_crm_apipassword' => 'test-token-xxxxx',
 			'fc_crm_module'      => '550e8400-e29b-41d4-a716-446655440000',
 		);
-		$this->crm_reach          = formscrm_get_api_class( 'reach' );
-		$this->mock_mode          = 'ok';
-		$this->last_request_body  = null;
+		$this->crm_reach         = formscrm_get_api_class( 'reach' );
+		$this->mock_mode         = 'ok';
+		$this->last_request_body = null;
 
 		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
 	}
@@ -76,21 +76,25 @@ class ReachTests extends WP_UnitTestCase {
 	 */
 	public function mock_http_request( $pre, $r, $url ) {
 		if ( 'error' === $this->mock_mode ) {
-			return $this->response( 401, '{"error":"Unauthenticated.","correlation_id":"abc-123"}' );
+			return $this->response( 401, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . 'reach-error-unauthenticated.json' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Loads a local test fixture.
 		}
 
 		// profiles endpoint (login + list_modules).
 		if ( false !== strpos( $url, '/profiles?' ) ) {
 			if ( 'empty' === $this->mock_mode ) {
-				return $this->response( 200, '{"data":[],"meta":{"current_page":1,"per_page":50,"total":0}}' );
+				return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . 'reach-get-profiles-empty.json' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Loads a local test fixture.
 			}
-			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . 'reach-get-profiles.json' ) );
+			if ( 'paginated' === $this->mock_mode ) {
+				$fixture = false !== strpos( $url, 'page=2' ) ? 'reach-get-profiles-page-2.json' : 'reach-get-profiles-page-1.json';
+				return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . $fixture ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Loads a local test fixture.
+			}
+			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . 'reach-get-profiles.json' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Loads a local test fixture.
 		}
 
 		// contacts POST endpoint (create_entry) — capture body for assertions.
 		if ( 'POST' === $r['method'] && false !== strpos( $url, '/contacts' ) ) {
 			$this->last_request_body = json_decode( $r['body'], true );
-			return $this->response( 200, '{"message":"Request accepted"}' );
+			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . 'reach-create-contact-success.json' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Loads a local test fixture.
 		}
 
 		return $this->response( 500 );
@@ -140,7 +144,7 @@ class ReachTests extends WP_UnitTestCase {
 	 */
 	public function test_login_empty_token_returns_falsy() {
 		$this->settings['fc_crm_apipassword'] = '';
-		$result = $this->crm_reach->login( $this->settings );
+		$result                               = $this->crm_reach->login( $this->settings );
 		$this->assertNotTrue( $result );
 	}
 
@@ -199,6 +203,19 @@ class ReachTests extends WP_UnitTestCase {
 		$this->assertEmpty( $modules );
 	}
 
+	/**
+	 * Profiles from each API page are returned as modules.
+	 */
+	public function test_list_modules_returns_all_paginated_profiles() {
+		$this->mock_mode = 'paginated';
+		$modules         = $this->crm_reach->list_modules( $this->settings );
+		$labels          = array_column( $modules, 'label' );
+
+		$this->assertCount( 2, $modules );
+		$this->assertContains( 'Newsletter ES', $labels );
+		$this->assertContains( 'Newsletter EN', $labels );
+	}
+
 	// -------------------------------------------------------------------------
 	// list_fields tests.
 	// -------------------------------------------------------------------------
@@ -229,17 +246,23 @@ class ReachTests extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Successful create_entry returns status ok, with no id (API never returns one).
+	 * Successful create_entry returns status ok and an empty ID when the API returns none.
 	 */
 	public function test_create_entry_returns_ok() {
 		$merge_vars = array(
-			array( 'name' => 'email', 'value' => 'contact@example.com' ),
-			array( 'name' => 'name', 'value' => 'Jane' ),
+			array(
+				'name'  => 'email',
+				'value' => 'contact@example.com',
+			),
+			array(
+				'name'  => 'name',
+				'value' => 'Jane',
+			),
 		);
-		$result = $this->crm_reach->create_entry( $this->settings, $merge_vars );
+		$result     = $this->crm_reach->create_entry( $this->settings, $merge_vars );
 		$this->assertIsArray( $result );
 		$this->assertSame( 'ok', $result['status'] );
-		$this->assertArrayNotHasKey( 'id', $result );
+		$this->assertSame( '', $result['id'] );
 	}
 
 	/**
@@ -247,11 +270,26 @@ class ReachTests extends WP_UnitTestCase {
 	 */
 	public function test_create_entry_body_contains_only_known_fields() {
 		$merge_vars = array(
-			array( 'name' => 'email', 'value' => 'contact@example.com' ),
-			array( 'name' => 'surname', 'value' => 'Doe' ),
-			array( 'name' => 'phone', 'value' => '+14155552671' ),
-			array( 'name' => 'note', 'value' => 'VIP customer' ),
-			array( 'name' => 'unknown_field', 'value' => 'should be dropped' ),
+			array(
+				'name'  => 'email',
+				'value' => 'contact@example.com',
+			),
+			array(
+				'name'  => 'surname',
+				'value' => 'Doe',
+			),
+			array(
+				'name'  => 'phone',
+				'value' => '+14155552671',
+			),
+			array(
+				'name'  => 'note',
+				'value' => 'VIP customer',
+			),
+			array(
+				'name'  => 'unknown_field',
+				'value' => 'should be dropped',
+			),
 		);
 		$this->crm_reach->create_entry( $this->settings, $merge_vars );
 
@@ -269,9 +307,12 @@ class ReachTests extends WP_UnitTestCase {
 	 */
 	public function test_create_entry_without_email_returns_error() {
 		$merge_vars = array(
-			array( 'name' => 'name', 'value' => 'Jane' ),
+			array(
+				'name'  => 'name',
+				'value' => 'Jane',
+			),
 		);
-		$result = $this->crm_reach->create_entry( $this->settings, $merge_vars );
+		$result     = $this->crm_reach->create_entry( $this->settings, $merge_vars );
 		$this->assertSame( 'error', $result['status'] );
 		$this->assertNull( $this->last_request_body );
 	}
@@ -282,9 +323,12 @@ class ReachTests extends WP_UnitTestCase {
 	public function test_create_entry_without_profile_returns_error() {
 		$this->settings['fc_crm_module'] = '';
 		$merge_vars                      = array(
-			array( 'name' => 'email', 'value' => 'contact@example.com' ),
+			array(
+				'name'  => 'email',
+				'value' => 'contact@example.com',
+			),
 		);
-		$result = $this->crm_reach->create_entry( $this->settings, $merge_vars );
+		$result                          = $this->crm_reach->create_entry( $this->settings, $merge_vars );
 		$this->assertSame( 'error', $result['status'] );
 		$this->assertNull( $this->last_request_body );
 	}
@@ -295,9 +339,12 @@ class ReachTests extends WP_UnitTestCase {
 	public function test_create_entry_on_api_error_returns_error() {
 		$this->mock_mode = 'error';
 		$merge_vars      = array(
-			array( 'name' => 'email', 'value' => 'contact@example.com' ),
+			array(
+				'name'  => 'email',
+				'value' => 'contact@example.com',
+			),
 		);
-		$result = $this->crm_reach->create_entry( $this->settings, $merge_vars );
+		$result          = $this->crm_reach->create_entry( $this->settings, $merge_vars );
 		$this->assertIsArray( $result );
 		$this->assertSame( 'error', $result['status'] );
 	}

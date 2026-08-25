@@ -108,15 +108,30 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		// Search endpoint (GET contacts/companies with query).
 		if ( false !== strpos( $url, 'contacts/' ) && 'GET' === $r['method'] && false === strpos( $url, 'contacts/deals' ) ) {
+			// The v2 API rejects any GET request without a `fields` param. Real
+			// Clientify response: ["You must specify the fields param: fields = id, ..."].
+			if ( $is_v2_base && false === strpos( $url, 'fields=' ) ) {
+				return $this->response( 400, '["You must specify the fields param: fields = id, ..."]' );
+			}
 			// Search found existing contact.
 			if ( false !== strpos( $url, 'query=test%40example.com' ) ) {
 				return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","first_name":"John","email":"test@example.com"}]}' );
+			}
+			// Search found existing contact by NIF/DNI. Confirmed against the real
+			// Clientify API: it does NOT support filtering by
+			// taxpayer_identification_number as a literal query param — only the
+			// generic `query` param matches it.
+			if ( false !== strpos( $url, 'query=50997453J' ) ) {
+				return $this->response( 200, '{"count":1,"results":[{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J"}]}' );
 			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
 		}
 
 		if ( false !== strpos( $url, 'companies/' ) && 'GET' === $r['method'] ) {
+			if ( $is_v2_base && false === strpos( $url, 'fields=' ) ) {
+				return $this->response( 400, '["You must specify the fields param: fields = id, ..."]' );
+			}
 			// Search found existing company.
 			if ( false !== strpos( $url, 'query=ACME' ) ) {
 				return $this->response( 200, '{"count":1,"results":[{"id":"company-456","name":"ACME Corp"}]}' );
@@ -128,11 +143,22 @@ class ClientifyTests extends WP_UnitTestCase {
 		// Create/update endpoints — capture body for assertions.
 		if ( false !== strpos( $url, 'contacts/' ) && 'POST' === $r['method'] ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
+			// Real Clientify behaviour: POSTing a contact whose NIF already exists
+			// server-side returns 409. Guards against a regression in
+			// determine_search_by() that would stop mapping
+			// taxpayer_identification_number to the `query` search param.
+			if ( ! empty( $this->last_contact_body['taxpayer_identification_number'] )
+				&& '50997453J' === $this->last_contact_body['taxpayer_identification_number'] ) {
+				return $this->response( 409, '{"detail":"Contact with this taxpayer_identification_number already exists."}' );
+			}
 			return $this->response( 201, '{"id":"contact-new","first_name":"Jane","email":"new@example.com"}' );
 		}
 
 		if ( false !== strpos( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
+			if ( false !== strpos( $url, 'contacts/contact-789/' ) ) {
+				return $this->response( 200, '{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J","updated":true}' );
+			}
 			return $this->response( 200, '{"id":"contact-123","first_name":"John","email":"test@example.com","updated":true}' );
 		}
 
@@ -466,6 +492,67 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertSame( 'contact-new', $result['id'] );
 	}
 
+	/**
+	 * v2: Merge by taxpayer_identification_number. Confirmed against the real
+	 * Clientify API (developer.clientify.com) that GET /contacts/ only matches
+	 * NIF/DNI via the generic `query` param, not a literal
+	 * taxpayer_identification_number param. determine_search_by() maps this
+	 * field to `query` — contact found and updated via PATCH, no 409.
+	 *
+	 * Reproduces the real-world case: Antonio Luque Oliveros (DNI 50997453J)
+	 * already exists in the account with merge_strategy set to
+	 * taxpayer_identification_number — this must resolve to an update, not a 409.
+	 */
+	public function test_create_entry_v2_merge_nif_found_patched() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Antonio',
+			),
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997453J',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-789', $result['id'] );
+	}
+
+	/**
+	 * v2: Merge by taxpayer_identification_number. Contact not found (NIF not in
+	 * Clientify) — created via POST, no error.
+	 */
+	public function test_create_entry_v2_merge_nif_not_found_posted() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Alice',
+			),
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '00000000T',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-new', $result['id'] );
+	}
+
 	// -------------------------------------------------------------------------
 	// create_or_update_entry tests — v1 (with merge field, search then POST/PATCH).
 	// -------------------------------------------------------------------------
@@ -680,5 +767,215 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		$this->assertNotContains( 'empty_field', $field_keys, 'Empty deal custom_field must not be sent.' );
 		$this->assertContains( 'filled_field', $field_keys, 'Non-empty deal custom_field must be sent.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// api.clientify.net 504 fallback tests (v1 only).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Registers a filter that returns 504 for every request to api.clientify.net
+	 * (optionally restricted to $only_method) and, past $fail_count hits, a
+	 * success response from the api.clientify.com fallback host. Runs at
+	 * priority 20 — after mock_http_request() (10) — so it wins: WordPress's
+	 * pre_http_request filter chain lets the LAST-run callback's return value
+	 * win over earlier ones, not the first.
+	 *
+	 * @param array       $calls       Reference: every intercepted call is appended as ['method' => ..., 'url' => ...].
+	 * @param int         $fail_count  How many api.clientify.net hits return 504 before this filter stops intercepting.
+	 * @param array       $success_body Decoded JSON body for the api.clientify.com fallback success response.
+	 * @param int         $success_code HTTP code for the fallback success response.
+	 * @param string|null $only_method  If set, only intercept requests using this HTTP method.
+	 * @return void
+	 */
+	private function register_504_filter( array &$calls, $fail_count, array $success_body, $success_code = 200, $only_method = null ) {
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) use ( &$calls, $fail_count, $success_body, $success_code, $only_method ) {
+				if ( null !== $only_method && $only_method !== $r['method'] ) {
+					return $pre;
+				}
+				if ( false !== strpos( $url, 'api.clientify.net' ) ) {
+					$calls[] = array( 'method' => $r['method'], 'url' => $url );
+					if ( count( $calls ) <= $fail_count ) {
+						return $this->response( 504, '{"detail":"Gateway Timeout"}' );
+					}
+				}
+				if ( false !== strpos( $url, 'api.clientify.com' ) ) {
+					$calls[] = array( 'method' => $r['method'], 'url' => $url );
+					return $this->response( $success_code, wp_json_encode( $success_body ) );
+				}
+				return $pre;
+			},
+			20,
+			3
+		);
+	}
+
+	/**
+	 * v1 GET (contact search) 504 on api.clientify.net retries once against
+	 * api.clientify.com and succeeds.
+	 */
+	public function test_v1_get_504_falls_back_to_clientify_com() {
+		$this->mock_api_mode                  = 'v1_via_account_status';
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$calls = array();
+		$this->register_504_filter( $calls, 1, array( 'count' => 0, 'results' => array() ) );
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'Fallback' ),
+			array( 'name' => 'email', 'value' => 'fallback-get@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		// 3 calls total: GET search on .net (504) -> GET search retried on .com (success,
+		// "not found") -> POST create (falls through to .net again, this mock leaves it
+		// alone so it succeeds via the central mock_http_request()).
+		$this->assertCount( 3, $calls );
+		$this->assertStringContainsString( 'api.clientify.net', $calls[0]['url'] );
+		$this->assertSame( 'GET', $calls[0]['method'] );
+		$this->assertStringContainsString( 'api.clientify.com', $calls[1]['url'] );
+		$this->assertSame( 'GET', $calls[1]['method'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'ok', $result['status'], 'Submission must not be lost when the fallback succeeds.' );
+	}
+
+	/**
+	 * v1 POST (contact create, force_insert=true) 504 on api.clientify.net
+	 * retries once against api.clientify.com and succeeds.
+	 */
+	public function test_v1_post_create_504_falls_back_to_clientify_com() {
+		$this->mock_api_mode             = 'v1_via_account_status';
+		$this->settings['fc_crm_module'] = 'Contacts';
+		$this->crm_clientify->login( $this->settings );
+
+		$calls = array();
+		$this->register_504_filter( $calls, 1, array( 'id' => 'contact-fallback', 'email' => 'fallback-post@example.com' ), 201 );
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'Fallback' ),
+			array( 'name' => 'email', 'value' => 'fallback-post@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertCount( 2, $calls );
+		$this->assertStringContainsString( 'api.clientify.net', $calls[0]['url'] );
+		$this->assertStringContainsString( 'api.clientify.com', $calls[1]['url'] );
+		$this->assertSame( 'POST', $calls[0]['method'] );
+		$this->assertStringContainsString( 'force_insert=true', $calls[0]['url'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'ok', $result['status'] );
+		$this->assertSame( 'contact-fallback', $result['id'] );
+	}
+
+	/**
+	 * v1 PATCH (contact update via merge strategy) 504 on api.clientify.net
+	 * retries once against api.clientify.com and succeeds.
+	 */
+	public function test_v1_patch_update_504_falls_back_to_clientify_com() {
+		$this->mock_api_mode                  = 'v1_via_account_status';
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		// The merge search itself must find an existing contact so create_or_update_entry()
+		// takes the PATCH branch; the 504/fallback filter only intercepts the PATCH call.
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) {
+				if ( 'GET' === $r['method'] && false !== strpos( $url, 'query=test%40example.com' ) ) {
+					return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","email":"test@example.com"}]}' );
+				}
+				return $pre;
+			},
+			20,
+			3
+		);
+
+		$calls = array();
+		$this->register_504_filter( $calls, 1, array( 'id' => 'contact-123', 'updated' => true ), 200, 'PATCH' );
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'Updated' ),
+			array( 'name' => 'email', 'value' => 'test@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertCount( 2, $calls );
+		$this->assertStringContainsString( 'api.clientify.net', $calls[0]['url'] );
+		$this->assertStringContainsString( 'api.clientify.com', $calls[1]['url'] );
+		$this->assertSame( 'PATCH', $calls[0]['method'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'ok', $result['status'] );
+	}
+
+	/**
+	 * A repeated 504 (fallback also fails) must surface as an error, not retry forever.
+	 */
+	public function test_v1_504_persists_on_both_hosts_returns_error() {
+		$this->mock_api_mode             = 'v1_via_account_status';
+		$this->settings['fc_crm_module'] = 'Contacts';
+		$this->crm_clientify->login( $this->settings );
+
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) {
+				if ( false !== strpos( $url, 'api.clientify.net' ) || false !== strpos( $url, 'api.clientify.com' ) ) {
+					return $this->response( 504, '{"detail":"Gateway Timeout"}' );
+				}
+				return $pre;
+			},
+			20,
+			3
+		);
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'Persistent' ),
+			array( 'name' => 'email', 'value' => 'persistent-504@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'error', $result['status'] );
+	}
+
+	/**
+	 * v2 requests must NOT trigger the fallback — it's scoped to v1 only.
+	 */
+	public function test_v2_504_does_not_fall_back() {
+		$this->settings['fc_crm_module'] = 'Contacts';
+		$this->crm_clientify->login( $this->settings ); // Default mock_api_mode is 'v2'.
+
+		$calls = array();
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $r, $url ) use ( &$calls ) {
+				if ( false !== strpos( $url, 'contacts/' ) && 'POST' === $r['method'] ) {
+					$calls[] = array( 'method' => $r['method'], 'url' => $url );
+					return $this->response( 504, '{"detail":"Gateway Timeout"}' );
+				}
+				return $pre;
+			},
+			20,
+			3
+		);
+
+		$entry_data = array(
+			array( 'name' => 'first_name', 'value' => 'V2NoFallback' ),
+			array( 'name' => 'email', 'value' => 'v2-no-fallback@example.com' ),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertCount( 1, $calls, 'v2 must fail immediately on 504, no api.clientify.com retry.' );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'error', $result['status'] );
 	}
 }
