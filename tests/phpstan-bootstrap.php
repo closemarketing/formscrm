@@ -440,6 +440,68 @@ function rgpost( $key ) {}
 function gform_add_meta( $form_id, $meta_key, $meta_value, $entry_id = 0 ) {}
 
 /**
+ * Action Scheduler Stubs
+ * ============================================================================
+ */
+
+if ( ! function_exists( 'as_schedule_single_action' ) ) {
+	/**
+	 * Schedule a single action.
+	 *
+	 * @param int    $timestamp Unix timestamp.
+	 * @param string $hook      Action hook.
+	 * @param array  $args      Action arguments.
+	 * @param string $group     Action group.
+	 * @return int
+	 */
+	function as_schedule_single_action( $timestamp, $hook, $args = array(), $group = '' ) {
+		return 0;
+	}
+}
+
+if ( ! function_exists( 'as_has_scheduled_action' ) ) {
+	/**
+	 * Check if an action is scheduled.
+	 *
+	 * @param string $hook  Action hook.
+	 * @param array  $args  Action arguments.
+	 * @param string $group Action group.
+	 * @return bool
+	 */
+	function as_has_scheduled_action( $hook, $args = array(), $group = '' ) {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'as_unschedule_all_actions' ) ) {
+	/**
+	 * Unschedule all pending actions for a hook.
+	 *
+	 * @param string $hook  Action hook.
+	 * @param array  $args  Action arguments.
+	 * @param string $group Action group.
+	 * @return void
+	 */
+	function as_unschedule_all_actions( $hook, $args = array(), $group = '' ) {}
+}
+
+/**
+ * Action Scheduler action object (minimal stub for type-checking).
+ */
+if ( ! class_exists( 'ActionScheduler_Action' ) ) {
+	class ActionScheduler_Action {
+		/**
+		 * Get the hook name.
+		 *
+		 * @return string
+		 */
+		public function get_hook() {
+			return '';
+		}
+	}
+}
+
+/**
  * WooCommerce Stubs
  * ============================================================================
  */

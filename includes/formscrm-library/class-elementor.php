@@ -181,6 +181,29 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	}
 
 	/**
+	 * Get Merge Vars
+	 *
+	 * Builds the merge vars array from CRM field settings and submitted raw fields.
+	 *
+	 * @access public
+	 * @param array $formscrm_settings Decoded hidden settings (field_crm => field_form_id).
+	 * @param array $raw_fields        Submitted form fields keyed by field id.
+	 * @return array
+	 */
+	public static function get_merge_vars( $formscrm_settings, $raw_fields ) {
+		$merge_vars = array();
+		foreach ( $formscrm_settings as $field_crm => $field_form ) {
+			$field_crm    = str_replace( 'fc_crm_field-', '', $field_crm );
+			$field_value  = $raw_fields[ $field_form ]['value'] ?? '';
+			$merge_vars[] = array(
+				'name'  => $field_crm,
+				'value' => is_array( $field_value ) ? implode( ', ', $field_value ) : $field_value,
+			);
+		}
+		return $merge_vars;
+	}
+
+	/**
 	 * Run
 	 *
 	 * Runs the action after submit
@@ -191,34 +214,35 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 */
 	public function run( $record, $ajax_handler ) {
 		$settings = $record->get( 'form_settings' );
+		$crm_type = $settings['fc_crm_type'] ?? '';
+		$module   = '';
+
+		if ( empty( $crm_type ) ) {
+			formscrm_alert_error( $crm_type, __( 'Invalid CRM type.', 'formscrm' ), array() );
+			return;
+		}
 
 		// Get submitted Form data.
 		$raw_fields = $record->get( 'fields' );
 
 		// Unpack hidden settings for the form.
-		$hidden_settings = array();
+		$formscrm_fields = array();
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
-			$hidden_settings = json_decode( $settings['formscrm_settings_hidden'], true );
-			$settings        = array_merge( $settings, $hidden_settings );
-
-			if ( isset( $settings['fc_crm_type'] ) && ! empty( $hidden_settings[ $settings['fc_crm_type'] ] ) ) {
-				$settings['fc_crm_module'] = $hidden_settings[ $settings['fc_crm_type'] ] ?? '';
-			}
+			$formscrm_fields = json_decode( $settings['formscrm_settings_hidden'], true );
+			$module          = $formscrm_fields[ $crm_type ] ?? '';
+			unset( $formscrm_fields[ $crm_type ] );
 		}
 
-		// Normalize the Form Data.
-		$merge_vars = array();
-		foreach ( $raw_fields as $id => $field ) {
-			$key = array_search( $id, $hidden_settings, true );
-			if ( false === $key ) {
-				continue;
-			}
-			$field_id     = str_replace( 'fc_crm_field-', '', $key );
-			$merge_vars[] = array(
-				'name'  => $field_id,
-				'value' => $field['value'] ?? '',
-			);
+		if ( empty( $module ) ) {
+			formscrm_alert_error( $module, __( 'Module not found.', 'formscrm' ), array() );
+			return;
 		}
+
+		// Allow add-ons to inject virtual field values before merge var resolution (e.g. UTM tracker).
+		$formscrm_fields = apply_filters( 'formscrm_elementor_field_settings', $formscrm_fields, $raw_fields );
+
+		// Normalize the Form data.
+		$merge_vars = self::get_merge_vars( $formscrm_fields, $raw_fields );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
 		if ( ! empty( $_POST['visitor_key'] ) ) {
@@ -229,8 +253,9 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		// Create contact in CRM.
-		$settings        = formscrm_elementor_process_settings( $settings );
+		$settings        = formscrm_elementor_process_settings( $settings, $module );
 		$this->crmlib    = formscrm_get_api_class( $settings['fc_crm_type'] );
+		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, array() );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
 		$response_message = '';
@@ -258,10 +283,11 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			);
 			$ajax_handler->messages['admin_error'][] = $response_message;
 		} else {
+			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
 			$response_message = sprintf(
-				// translators: %1$s CRM name %2$s ID number of entry created.
+				// translators: %1$s CRM name/type label %2$s ID number of entry created.
 				__( 'Success creating %1$s Entry ID: %2$s', 'formscrm' ),
-				esc_html( $settings['fc_crm_type'] ),
+				esc_html( formscrm_format_crm_success_label( $response_result, $settings['fc_crm_type'] ) ),
 				$response_result['id']
 			);
 			$ajax_handler->messages['success'][] = $response_message;

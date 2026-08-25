@@ -1,0 +1,50 @@
+{
+    "items": [
+        {
+            "id": "6a6c7230bc72eb5167065075",
+            "custom_id": null,
+            "name": "Fixture Contact QA",
+            "code": null,
+            "vat_number": null,
+            "trade_name": null,
+            "is_person": true,
+            "email": "fixturecontactqa@gmail.com",
+            "extra_emails": [],
+            "website": null,
+            "mobile": null,
+            "phone": null,
+            "type": null,
+            "iban": null,
+            "swift": null,
+            "sepa_ref": null,
+            "group_id": null,
+            "tags": [],
+            "created_at": "2026-07-31T10:00:16+00:00",
+            "updated_at": null,
+            "bill_address": null,
+            "client_record": null,
+            "supplier_record": null,
+            "defaults": {
+                "sales_channel": null,
+                "expenses_account": null,
+                "due_days": null,
+                "payment_day": null,
+                "payment_method": null,
+                "discount": null,
+                "language": "es",
+                "currency": null,
+                "sales_tax": null,
+                "purchases_tax": null,
+                "numbering_series": null
+            },
+            "shipping_addresses": [],
+            "notes": [],
+            "contact_persons": [],
+            "custom_fields": [],
+            "social_networks": null,
+            "rate": null
+        }
+    ],
+    "cursor": null,
+    "has_more": false
+}

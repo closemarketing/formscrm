@@ -290,6 +290,32 @@
 			"visible": false
 		},
 		{
+			"url": "https://api.clientify.net/v1/custom-fields/476900/",
+			"id": 476900,
+			"user_company": "PRUEBA CLOSE",
+			"content_type": "deals | deal",
+			"name": "campo_deal_v1",
+			"help_text": "",
+			"field_type": 3,
+			"field_type_display": "Text",
+			"default_value": "",
+			"dropdown_choices": [],
+			"visible": true
+		},
+		{
+			"url": "https://api.clientify.net/v1/custom-fields/476901/",
+			"id": 476901,
+			"user_company": "PRUEBA CLOSE",
+			"content_type": "companies | company",
+			"name": "campo_empresa_v1",
+			"help_text": "",
+			"field_type": 3,
+			"field_type_display": "Text",
+			"default_value": "",
+			"dropdown_choices": [],
+			"visible": true
+		},
+		{
 			"url": "https://api.clientify.net/v1/custom-fields/473103/",
 			"id": 473103,
 			"user_company": "PRUEBA CLOSE",

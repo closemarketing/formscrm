@@ -7,7 +7,7 @@
 define( 'TESTS_PLUGIN_DIR', dirname( __DIR__ ) );
 define( 'UNIT_TESTS_DATA_PLUGIN_DIR', TESTS_PLUGIN_DIR . '/tests/Data/' );
 
-// Define WP_CORE_DIR if not already defined
+// Define WP_CORE_DIR if not already defined.
 if ( ! defined( 'WP_CORE_DIR' ) ) {
 	$_wp_core_dir = getenv( 'WP_CORE_DIR' );
 	if ( ! $_wp_core_dir ) {
@@ -45,7 +45,11 @@ function _manually_load_plugin() {
 	if ( file_exists( $cf7_path ) ) {
 		require_once $cf7_path;
 	}
-	require dirname( dirname( __FILE__ ) ) . '/formscrm.php';
+	// Load form integration classes used in tests (normally loaded conditionally by loader.php).
+	require_once TESTS_PLUGIN_DIR . '/tests/stubs/stub-elementor.php';
+	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-elementor.php';
+	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-contactform7.php';
+	require __DIR__ . '/../formscrm.php';
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );

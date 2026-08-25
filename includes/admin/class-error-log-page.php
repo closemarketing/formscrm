@@ -34,7 +34,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 		 * @return void
 		 */
 		public function enqueue_scripts( $hook ) {
-			if ( 'toplevel_page_formscrm' !== $hook ) {
+			if ( 'settings_page_formscrm' !== $hook ) {
 				return;
 			}
 
@@ -46,25 +46,63 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 			wp_enqueue_script(
 				'formscrm-error-log',
 				FORMSCRM_PLUGIN_URL . 'includes/admin/js/error-log.js',
-				array( 'jquery' ),
+				array(),
 				FORMSCRM_VERSION,
 				true
 			);
+
+			wp_enqueue_script( 'jquery-ui-datepicker' );
+			wp_enqueue_style( 'jquery-ui' );
+			wp_enqueue_style(
+				'formscrm-admin',
+				FORMSCRM_PLUGIN_URL . 'includes/assets/formscrm-admin.css',
+				array(),
+				FORMSCRM_VERSION
+			);
+
+			// Localize datepicker if not English.
+			$lang = substr( get_locale(), 0, 2 );
+			if ( in_array( $lang, array( 'es', 'fr' ), true ) ) {
+				wp_enqueue_script(
+					'jquery-ui-datepicker-' . $lang,
+					FORMSCRM_PLUGIN_URL . 'includes/assets/js/datepicker-' . $lang . '.js',
+					array( 'jquery-ui-datepicker' ),
+					'1.13.2',
+					true
+				);
+			}
 
 			wp_localize_script(
 				'formscrm-error-log',
 				'formscrmErrorLog',
 				array(
-					'ajaxurl'       => admin_url( 'admin-ajax.php' ),
-					'nonce'         => wp_create_nonce( 'formscrm_error_log_nonce' ),
-					'confirmClear'  => __( 'Are you sure you want to clear all error logs? This action cannot be undone.', 'formscrm' ),
-					'confirmDelete' => __( 'Are you sure you want to delete this log entry?', 'formscrm' ),
-					'resending'     => __( 'Resending...', 'formscrm' ),
-					'clearing'      => __( 'Clearing...', 'formscrm' ),
-					'clearAll'      => __( 'Clear All Logs', 'formscrm' ),
-					'viewDetails'   => __( 'Details', 'formscrm' ),
-					'hideDetails'   => __( 'Hide', 'formscrm' ),
-					'successText'   => __( 'Success', 'formscrm' ),
+					'ajaxurl'              => admin_url( 'admin-ajax.php' ),
+					'nonce'                => wp_create_nonce( 'formscrm_error_log_nonce' ),
+					'confirmClear'         => __( 'Are you sure you want to clear all error logs? This action cannot be undone.', 'formscrm' ),
+					'confirmDelete'        => __( 'Are you sure you want to delete this log entry?', 'formscrm' ),
+					'resending'            => __( 'Resending...', 'formscrm' ),
+					'clearing'             => __( 'Clearing...', 'formscrm' ),
+					'clearAll'             => __( 'Clear All Logs', 'formscrm' ),
+					'viewDetails'          => __( 'Details', 'formscrm' ),
+					'hideDetails'          => __( 'Hide', 'formscrm' ),
+					'successText'          => __( 'Success', 'formscrm' ),
+					'selectActionMessage'  => __( 'Please select an action', 'formscrm' ),
+					'selectLogsMessage'    => __( 'Please select at least one log', 'formscrm' ),
+					/* translators: %d: Number of logs to delete */
+					'confirmBulkDelete'    => __( 'Are you sure you want to delete %d selected logs? This action cannot be undone.', 'formscrm' ),
+					/* translators: %d: Number of logs to resend */
+					'confirmBulkResend'    => __( 'Are you sure you want to resend %d selected logs?', 'formscrm' ),
+					'bulkDeleteSuccess'    => __( 'Logs deleted successfully', 'formscrm' ),
+					'bulkDeleteError'      => __( 'Failed to delete logs', 'formscrm' ),
+					'bulkResendSuccess'    => __( 'Resend complete', 'formscrm' ),
+					'bulkResendError'      => __( 'Failed to resend logs', 'formscrm' ),
+					'bulkResendSuccessful' => __( 'successful', 'formscrm' ),
+					'bulkResendFailed'     => __( 'failed', 'formscrm' ),
+					'bulkResendDetails'    => __( 'Details', 'formscrm' ),
+					'ajaxError'            => __( 'AJAX Error', 'formscrm' ),
+					'confirmCancelRetries' => __( 'Are you sure you want to cancel all pending scheduled retries? Log entries will not be deleted.', 'formscrm' ),
+					'cancellingRetries'    => __( 'Cancelling...', 'formscrm' ),
+					'cancelAllRetries'     => __( 'Cancel All Scheduled Retries', 'formscrm' ),
 				)
 			);
 		}
@@ -150,9 +188,38 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 							</a>
 						</form>
 
-						<button type="button" class="fcrm-button fcrm-button-danger" id="fcrm-clear-all-logs">
+						<div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+							<input type="text" id="fcrm-export-date-from" class="fcrm-form-input" placeholder="<?php esc_attr_e( 'From', 'formscrm' ); ?>" style="width: 150px;">
+							<input type="text" id="fcrm-export-date-to" class="fcrm-form-input" placeholder="<?php esc_attr_e( 'To', 'formscrm' ); ?>" style="width: 150px;">
+							<button type="button" class="fcrm-button fcrm-button-secondary" id="fcrm-export-csv">
+								<?php esc_html_e( 'Export CSV', 'formscrm' ); ?>
+							</button>
+						</div>
+
+						<button type="button" class="fcrm-button fcrm-button-danger" id="fcrm-clear-all-logs" style="margin-top: 10px;">
 							<?php esc_html_e( 'Clear All Logs', 'formscrm' ); ?>
 						</button>
+						<button type="button" class="fcrm-button fcrm-button-danger" id="fcrm-cancel-all-retries" style="margin-top: 10px;">
+							<?php esc_html_e( 'Cancel All Scheduled Retries', 'formscrm' ); ?>
+						</button>
+					</div>
+
+					<!-- Bulk Actions Section -->
+					<div class="fcrm-bulk-actions-bar">
+						<select id="fcrm-bulk-action-select" class="fcrm-form-input">
+							<option value=""><?php esc_html_e( 'Bulk Actions', 'formscrm' ); ?></option>
+							<option value="delete"><?php esc_html_e( 'Delete Selected', 'formscrm' ); ?></option>
+							<option value="resend"><?php esc_html_e( 'Resend Selected', 'formscrm' ); ?></option>
+						</select>
+						<button type="button" class="fcrm-button fcrm-button-secondary" id="fcrm-bulk-action-btn">
+							<?php esc_html_e( 'Apply', 'formscrm' ); ?>
+						</button>
+						<div id="fcrm-bulk-action-status" class="fcrm-bulk-action-status" style="display: none;">
+							<div class="fcrm-progress-bar">
+								<div id="fcrm-progress-fill" class="fcrm-progress-fill"></div>
+							</div>
+							<p id="fcrm-status-text" class="fcrm-status-text"></p>
+						</div>
 					</div>
 
 					<!-- Stats Summary -->
@@ -170,6 +237,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 							<table class="fcrm-table">
 								<thead>
 									<tr>
+										<th class="fcrm-table-checkbox">
+											<input type="checkbox" id="fcrm-select-all-logs" class="fcrm-select-all-checkbox">
+										</th>
 										<th><?php esc_html_e( 'ID', 'formscrm' ); ?></th>
 										<th><?php esc_html_e( 'Date', 'formscrm' ); ?></th>
 										<th><?php esc_html_e( 'CRM', 'formscrm' ); ?></th>
@@ -183,6 +253,9 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 								<tbody>
 									<?php foreach ( $logs as $log ) : ?>
 										<tr data-log-id="<?php echo esc_attr( $log->id ); ?>">
+											<td class="fcrm-table-checkbox">
+												<input type="checkbox" class="fcrm-log-checkbox" value="<?php echo esc_attr( $log->id ); ?>">
+											</td>
 											<td>
 												<strong><?php echo esc_html( $log->id ); ?></strong>
 											</td>

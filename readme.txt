@@ -3,9 +3,9 @@ Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasque
 Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
-Tested up to: 6.9
-Stable tag: 4.3.1
-Version: 4.3.1
+Tested up to: 7.0
+Stable tag: 4.4.3
+Version: 4.4.3
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [Contact Form 7](https://wordpress.org/plugins/contact-form-7/)
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
+- [JetForms](https://wordpress.org/plugins/jetformbuilder/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -56,6 +57,19 @@ Demo:
 
 **RedSys**
 RedSys is a payment gateway that allows you to accept payments from your WordPress forms. It is a Spanish payment gateway that is compatible with all Spanish banks.
+
+** UTM Tracker Addon **
+
+Know exactly where every lead comes from. The [UTM Tracker Addon](https://close.technology/wordpress-plugins/formscrm-utm-tracker/) captures UTM parameters from the URL and automatically attaches them to every form submission sent to your CRM — no hidden fields required.
+
+When a visitor lands on your site with UTM parameters (e.g. `?utm_source=google&utm_medium=cpc&utm_campaign=spring`), the addon:
+
+1. Reads the UTM values from the URL.
+2. Stores them in a browser cookie that persists for 90 days across page navigation.
+3. Preserves first-touch attribution — if the visitor returns later via a different channel, the original source is kept alongside the latest one.
+4. Injects the values directly into the CRM payload when the form is submitted, using merge tags in the field mapping (e.g. `formscrm_utm:utm_source`).
+
+Supported parameters: `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content` — plus `_first` variants for first-touch attribution.
 
 **Dynamic values in GravityForms and WPForms**
 We have developed a way to get values from other fields in GravityForms and WPForms. You can use this in the field mapping in the feed. You can use:
@@ -217,14 +231,20 @@ Each Markdown file includes:
 * Integrate with static site generators (Jekyll, Hugo, etc.)
 
 == Settings for Clientify ==
+**Important: API v2 Migration**
+Since version 4.3.2, FormsCRM uses the Clientify API v2 (api-plus.clientify.com). Your existing API key will continue to work without changes. The migration is fully backward compatible with existing feed configurations.
+
 **Instructions for adding Clientify cookie in the forms**
 Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
 
-**Add Pipeline name in Opportunities**
-You can add a new field that fits with the Pipeline name in Opportunities in Clientify. You will need to use the same name as the Pipeline in Clientify.
+**Add Pipeline name or ID in Opportunities**
+You can add a new field that fits with the Pipeline name (pipeline_desc) or Pipeline ID (pipeline_id) in Opportunities in Clientify. You can also specify the Pipeline Stage Name (pipeline_stage_desc). You will need to use the same name or ID as the Pipeline in Clientify.
 
 **Add expected closure date for Deals in Clientify**
 You can add a new field that fits with expected closure date for Deals in Clientify. This field is optional, and you need to add a number of days to the expected closure date. The plugin will calculate the date from today and will add it to the Deal in Clientify.
+
+**Marketing Status in Clientify**
+You can set the marketing status for contacts using the marketing_status field. Use value 1 for Sales Contact or value 2 for Marketing Contact.
 
 **Autoassignment in Clientify**
 Field that applies the autoassignment to the contact. You can add a string with the list of usernames (property emails) separated by comma (,) to apply the autoassignment.
@@ -242,7 +262,53 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.4.3 =
+* Fixed: Clientify API v1 requests occasionally failing with `HTTP 504 Gateway Timeout` on `api.clientify.net`. All requests (reads, lead/contact creation, updates, deals) now retry once against the `api.clientify.com` fallback before failing; this is a temporary workaround suggested by Clientify support while they investigate the root cause.
+
+= 4.4.2 =
+* Added: Holded API v2 support. The API version is now auto-detected from the key's shape (keys prefixed with `pat_` use v2, existing keys keep using v1) — both versions work through the same connector with no new setting.
+* Enhanced: "API Connection Status" badge and entry success notes now show the detected Holded API version (e.g. "Connected (Holded v2)") instead of a generic "(Holded)".
+* Fixed: `CRMLIB_HOLDED::login()` and `list_modules()` signature mismatch with the `CRMLIB_Abstract` contract, which caused a PHP fatal error on the Holded feed settings page in production.
+* Fixed: Holded v2 field names (e.g. `bill_address`, `trade_name`, `is_person`) are now translated from the existing v1 camelCase field IDs, so feeds configured before the v2 migration keep working unmodified.
+* Fixed: Clientify API v2 contact merge returning a 409 conflict when matching by `taxpayer_identification_number`; the field is now supported as a search/merge key.
+* Fixed: Clientify API v2 now sends `email` inside the `emails` array (type Main) instead of a top-level field, matching the v2 schema.
+* Fixed: Clientify API v2 GET requests now always include the required `fields` parameter, even when other query params are already set.
+* Tests: Added PHPUnit coverage for both Holded API v1 and v2 using fixtures captured from real sandbox accounts.
+
+= 4.4.1 =
+* Fixed: GravityForms `{label:X}` merge tag returning wrong label when select/radio fields have duplicate values.
+* Fixed: Merge strategy field not showing correctly.
+
+= 4.4.0 =
+* Enhanced: Added support to GravityForms and Clientify to update strategy in the feed. You can choose between update if contact exists or create new contact always.
+* Enhanced: Added `CRMLIB_Abstract` base class to unify the CRM library interface (`create_or_update_entry`, `list_fields_search_entry`, `determine_search_by`) across all integrations.
+* Enhanced: GravityForms entry notes now include the action taken (created/updated) and the merge strategy field used.
+* Fixed: Clientify API version now propagated consistently to deals and products requests instead of using hard-coded strings.
+* Fixed: Improved `build_error_message()` to handle `WP_Error` objects and parse standard API error keys (`error`, `detail`, `message`).
+* Fixed: Clientify GDPR checkbox value in Contact Form 7 now normalized to '1' (accepted) or '' (not accepted), regardless of the checkbox label language.
+* Add a notice to recall to review the plugin FormsCRM.
+* Added: Support for JetFormBuilder forms plugin with full field mapping and global settings integration.
+* Added: Support to FormsCRM UTM Tracker plugin to send UTM parameters from the cookie to the CRM as merge vars.
+* Fixed: API Clientify error not add null values in custom fields.
+* Fixed: Error in CF7 value expert.
+* Fixed: Login error depending on the CRM, now it shows the error message from the CRM in the settings page.
+* Fixed: Elementor not getting correctly the module from settings.
+* Fixed: Normalize boolean CRM fields to standardized values for Clientify.
+* Fixed: CF7 "Saving..." spinner was always visible because wp_kses strips display:none from inline styles; moved visibility control to CSS class.
+* Fixed: Brevo list_modules pagination now returns all lists instead of only 10 by properly sending limit/offset parameters and accumulating paginated results.
+
+= 4.3.3 =
+* Added: Smart support for Clientify API v2 and v1 with enhanced login response handling and error messages. 
+* Fixed: Elementor Forms field mapping only processed the first occurrence when multiple CRM fields mapped to the same form field; now all mappings are applied correctly.
+* Tests: Added unit tests for Elementor and Contact Form 7 merge vars field mapping.
+* Fixed: CF7 GDPR checkbox value sent as field name instead of boolean when unchecked, causing gdpr_accept to always be true in Clientify.
+* Fixed: Error logs page not working properly.
+
 = 4.3.2 =
+*  Migrated: Clientify to API v2 (api-plus.clientify.com/v2): login me/, custom fields object_type filter, deal creation with ID-based refs and inline products (v2 schema).
+*  Added: Clientify contact marketing_status, pipeline ID/stage name, and Email Main/Phone Main field types. It defaults to Marketing Contact (2).
+*  Fixed: HTTP PUT via wp_remote_request(), consistent wp_remote_retrieve_body() for errors, pipeline_desc mapping.
+*  Fixed: GravityForms widget sending leads twice when viewing or editing an entry.
 *  Fixed: WPForms > Connections was not working correctly.
 
 = 4.3.1 =

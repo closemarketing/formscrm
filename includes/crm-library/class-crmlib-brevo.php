@@ -48,19 +48,21 @@ class CRMLIB_Brevo {
 		}
 
 		if ( 'GET' === $method ) {
-			$limit        = 100; // default limit.
+			$limit        = 50;
 			$offset       = 0;
 			$result_data  = array();
 			$repeat_query = false;
 
-			// . '?limit=' . $limit . '&offset=' . $offset
 			do {
-				$result = $this->request( $module, $args );
+				$paginated_module = $module . '?limit=' . $limit . '&offset=' . $offset;
+				$result           = $this->request( $paginated_module, $args );
 
 				if ( 'ok' === $result['status'] && ! empty( $result['data'] ) && is_array( $result['data'] ) ) {
-					$offset      += count( $result['data'] );
-					$result_data  = array_merge( $result_data, $result['data'] );
-					$repeat_query = count( $result['data'] ) === $limit ? true : false;
+					$items        = isset( $result['data']['lists'] ) ? $result['data']['lists'] : $result['data'];
+					$offset      += count( $items );
+					$result_data  = array_merge( $result_data, $items );
+					$total        = isset( $result['data']['count'] ) ? (int) $result['data']['count'] : 0;
+					$repeat_query = $offset < $total;
 				} else {
 					return $result;
 				}
@@ -121,13 +123,20 @@ class CRMLIB_Brevo {
 				return true;
 			}
 
-			return false;
+			$error_msg = isset( $results['data'] ) ? $results['data'] : __( 'Unable to connect to Brevo API', 'formscrm' );
+			return array(
+				'status'  => 'error',
+				'message' => $error_msg,
+			);
 		} catch ( \Exception $e ) {
 
 			// Log that authentication test failed.
 			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for API errors.
 
-			return false;
+			return array(
+				'status'  => 'error',
+				'message' => __( 'Invalid API credentials', 'formscrm' ),
+			);
 		}
 	}
 
@@ -141,7 +150,8 @@ class CRMLIB_Brevo {
 		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 
 		// If API cannot be initialized, return array.
-		if ( ! $this->login( $settings ) ) {
+		$login_check = $this->login( $settings );
+		if ( true !== $login_check ) {
 			return array();
 		}
 
@@ -150,12 +160,12 @@ class CRMLIB_Brevo {
 		$result_lists = $this->api( 'GET', 'contacts/lists', $apikey );
 
 		// If no lists were found, return.
-		if ( 'error' === $result_lists['status'] || empty( $result_lists['data']['lists'] ) ) {
+		if ( 'error' === $result_lists['status'] || empty( $result_lists['data'] ) ) {
 			return array();
 		}
 
 		// Loop through array.
-		foreach ( $result_lists['data']['lists'] as $list ) {
+		foreach ( $result_lists['data'] as $list ) {
 
 			// Add list as choice.
 			$choices[] = array(

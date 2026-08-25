@@ -116,6 +116,9 @@ class FormsCRM_GravityForms_Widget {
 
 		// Check if action was triggered.
 		$resend_action = isset( $_POST['formscrm_action'] ) ? sanitize_text_field( wp_unslash( $_POST['formscrm_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified below.
+		if ( empty( $resend_action ) && isset( $args['mode'] ) && ( 'view' === $args['mode'] || 'edit' === $args['mode'] ) ) {
+			$resend_action = 'formscrm_process_feeds_view_edit';
+		}
 
 		if ( $action === $resend_action ) {
 			// Verify nonce for security.

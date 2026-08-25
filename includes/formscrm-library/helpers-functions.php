@@ -31,30 +31,35 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 		// Log available CRM paths for debugging.
 		formscrm_debug_message( 'Available CRM paths: ' . wp_json_encode( array_keys( $array_path ) ) );
 
+		$instance = null;
+
 		if ( isset( $array_path[ $crmname ] ) ) {
 			$file_path = $array_path[ $crmname ];
 
-			// Verify file exists before including.
-			if ( ! file_exists( $file_path ) ) {
-				formscrm_debug_message( 'ERROR: CRM library file not found: ' . $file_path );
-				return null;
-			}
+			// Include the abstract class before the CRM class that extends it.
+			require_once FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-abstract.php';
 
-			include_once $file_path;
-			formscrm_debug_message( 'Included CRM library: ' . $file_path );
+			// Verify file exists before including.
+			if ( file_exists( $file_path ) ) {
+				include_once $file_path;
+				formscrm_debug_message( 'Included CRM library: ' . $file_path );
+			} else {
+				formscrm_debug_message( 'ERROR: CRM library file not found: ' . $file_path );
+			}
 		} else {
 			formscrm_debug_message( 'ERROR: CRM path not registered for: ' . $crmname );
-			return null;
 		}
 
 		// Verify class exists after including file.
 		if ( class_exists( $crmclassname ) ) {
 			formscrm_debug_message( 'Successfully created instance of: ' . $crmclassname );
-			return new $crmclassname();
+			$instance = new $crmclassname();
+		} else {
+			formscrm_debug_message( 'ERROR: CRM class not found: ' . $crmclassname );
 		}
 
-		formscrm_debug_message( 'ERROR: CRM class not found: ' . $crmclassname );
-		return null;
+		// Allow tests and extensions to override the resolved instance.
+		return apply_filters( 'formscrm_get_api_class', $instance, $crm_type );
 	}
 }
 
@@ -85,7 +90,123 @@ if ( ! function_exists( 'formscrm_get_crm_settings' ) ) {
 
 		formscrm_debug_message( 'Retrieved CRM settings for form type: ' . $form_type );
 
+		return apply_filters( 'formscrm_get_crm_settings', $settings, $form_type );
+	}
+}
+
+if ( ! function_exists( 'formscrm_merge_feed_meta_into_settings' ) ) {
+	/**
+	 * Merge a Gravity Forms feed's meta (e.g. fc_crm_merge_entry, fc_crm_module)
+	 * into the given settings array, matching what process_feed() does on the
+	 * original submission. Needed for resends/retries, which only start from the
+	 * plugin's global CRM settings and otherwise never see per-feed settings like
+	 * the merge strategy.
+	 *
+	 * A form can have multiple FormsCRM feeds (e.g. different CRMs/modules per
+	 * feed_condition), and feeds don't reliably carry their own CRM type in meta
+	 * (fc_crm_type is resolved at runtime from fc_crm_custom_type, usually unset
+	 * when a feed just uses the plugin's globally configured CRM). So instead of
+	 * matching on CRM type, this evaluates each feed's condition against the
+	 * actual entry, matching the addon framework's own feed selection.
+	 *
+	 * @param array  $settings  Settings array to merge into.
+	 * @param string $form_type Type of form (gravity, woocommerce, etc).
+	 * @param string $form_id   Gravity Forms form ID.
+	 * @param string $entry_id  Gravity Forms entry ID for the original submission.
+	 * @return array Settings array with feed meta merged in.
+	 */
+	function formscrm_merge_feed_meta_into_settings( array $settings, string $form_type, string $form_id, string $entry_id = '' ): array {
+		if ( ! in_array( $form_type, array( 'gravity', 'gravityforms' ), true ) || empty( $form_id ) || ! class_exists( 'GFAPI' ) ) {
+			return $settings;
+		}
+
+		$feeds = GFAPI::get_feeds( null, $form_id, 'formscrm' );
+
+		if ( is_wp_error( $feeds ) || empty( $feeds ) ) {
+			return $settings;
+		}
+
+		$active_feeds = array_values(
+			array_filter(
+				$feeds,
+				function ( $feed ) {
+					return ! empty( $feed['is_active'] );
+				}
+			)
+		);
+
+		if ( empty( $active_feeds ) ) {
+			return $settings;
+		}
+
+		$matched_feed = null;
+
+		if ( ! empty( $entry_id ) && class_exists( 'GFCRM' ) ) {
+			$form  = GFAPI::get_form( $form_id );
+			$entry = GFAPI::get_entry( $entry_id );
+
+			if ( ! is_wp_error( $form ) && ! is_wp_error( $entry ) ) {
+				$addon = GFCRM::get_instance();
+
+				foreach ( $active_feeds as $feed ) {
+					if ( $addon->is_feed_condition_met( $feed, $form, $entry ) ) {
+						$matched_feed = $feed;
+						break;
+					}
+				}
+			}
+		}
+
+		// Fall back to the first active feed if the entry-based match failed
+		// (e.g. missing entry_id, or no feed's condition matched).
+		if ( null === $matched_feed ) {
+			$matched_feed = $active_feeds[0];
+		}
+
+		foreach ( $matched_feed['meta'] as $key => $value ) {
+			if ( ! empty( $value ) ) {
+				$settings[ $key ] = $value;
+			}
+		}
+
 		return $settings;
+	}
+}
+
+if ( ! function_exists( 'formscrm_get_crm_display_name' ) ) {
+	/**
+	 * Returns the CRM display name reported by a login()/create_entry() result,
+	 * falling back to the CRM type when the CRM class doesn't report one.
+	 *
+	 * @param array  $result   Result array from login() or create_entry(), may contain 'crm_name' or 'fc_crm_name'.
+	 * @param string $fallback CRM type to use when no display name is reported.
+	 * @return string
+	 */
+	function formscrm_get_crm_display_name( $result, $fallback ) {
+		if ( ! empty( $result['fc_crm_name'] ) ) {
+			return $result['fc_crm_name'];
+		}
+		if ( ! empty( $result['crm_name'] ) ) {
+			return $result['crm_name'];
+		}
+		return $fallback;
+	}
+}
+
+if ( ! function_exists( 'formscrm_format_crm_success_label' ) ) {
+	/**
+	 * Formats the CRM label for success messages: "Name (Type)" when the CRM
+	 * class reports a distinct display name, or bare "Type" otherwise.
+	 *
+	 * @param array  $result Result array from login() or create_entry(), may contain 'crm_name' or 'fc_crm_name'.
+	 * @param string $type   CRM type slug/label.
+	 * @return string
+	 */
+	function formscrm_format_crm_success_label( $result, $type ) {
+		if ( empty( $result['fc_crm_name'] ) && empty( $result['crm_name'] ) ) {
+			return $type;
+		}
+		return formscrm_get_crm_display_name( $result, $type ) . ' (' . $type . ')';
 	}
 }
 
@@ -102,6 +223,47 @@ if ( ! function_exists( 'formscrm_debug_message' ) ) {
 				$message = print_r( $message, true ); //phpcs:ignore
 			}
 			error_log( 'FORMSCRM: ' . esc_html__( 'Message Debug Mode', 'formscrm' ) . ' ' . esc_html( $message ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		}
+	}
+}
+
+if ( ! function_exists( 'formscrm_add_entry_note' ) ) {
+	/**
+	 * Adds a note to a form entry in a form-agnostic way.
+	 *
+	 * Supports Gravity Forms and WPForms. Other form plugins do not have
+	 * a native entry notes API, so the call is silently skipped for them.
+	 *
+	 * @param string $form_type Type slug (e.g. 'gravityforms', 'wpforms').
+	 * @param int    $entry_id  Entry ID.
+	 * @param string $note      Note text.
+	 * @param string $type      Note type: 'success' or 'error'.
+	 * @return void
+	 */
+	function formscrm_add_entry_note( $form_type, $entry_id, $note, $type = 'note' ) {
+		if ( empty( $entry_id ) ) {
+			return;
+		}
+
+		if ( 'gravityforms' === $form_type && class_exists( 'GFFormsModel' ) ) {
+			GFFormsModel::add_note( $entry_id, 0, 'FormsCRM', $note, 'formscrm', $type );
+			return;
+		}
+
+		if ( 'wpforms' === $form_type && function_exists( 'wpforms' ) ) {
+			$entry_meta = wpforms()->obj( 'entry_meta' );
+			if ( $entry_meta ) {
+				$entry_meta->add(
+					array(
+						'entry_id' => $entry_id,
+						'form_id'  => 0,
+						'user_id'  => 0,
+						'type'     => 'note',
+						'data'     => $note,
+					),
+					'entry_meta'
+				);
+			}
 		}
 	}
 }
@@ -645,7 +807,12 @@ if ( ! function_exists( 'formscrm_check_connection_status' ) ) {
 		$login_result = $crmlib->login( $settings );
 		$login_status = isset( $login_result['status'] ) ? $login_result['status'] : '';
 
-		if ( is_array( $login_result ) && 'error' === $login_status ) {
+		// CRM classes may report a display name (e.g. "Holded v2") via the login() message.
+		if ( is_array( $login_result ) && ! empty( $login_result['crm_name'] ) ) {
+			$data['crm_type'] = $login_result['crm_name'];
+		}
+
+		if ( ! $login_result || ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) ) {
 			$data['status']        = 'error';
 			$data['text']          = __( 'Error', 'formscrm' );
 			$data['color']         = '#dc3232';
@@ -801,6 +968,36 @@ if ( ! function_exists( 'formscrm_build_status_html' ) ) {
 		}
 
 		return $html;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
+	/**
+	 * Returns the label text for a GravityForms choice matching the given value.
+	 *
+	 * Iterates the choices array in order so the first match is returned, which is
+	 * the correct behaviour even when two choices share the same value.  The old
+	 * array_column + array_search pattern always returned the first label regardless
+	 * of which option the user actually selected.
+	 *
+	 * @param array  $choices     GravityForms choices array (each item has 'text' and 'value').
+	 * @param string $entry_value The value stored in the entry for this field.
+	 * @return string Label text, or empty string when no match is found.
+	 */
+	function formscrm_gf_get_label_by_value( array $choices, $entry_value ) {
+		foreach ( $choices as $choice ) {
+			$choice_text = isset( $choice['text'] ) ? $choice['text'] : '';
+			$has_value   = array_key_exists( 'value', $choice );
+
+			if ( $has_value && $choice['value'] === $entry_value ) {
+				return $choice_text;
+			}
+
+			if ( ( ! $has_value || '' === $choice['value'] ) && $choice_text === $entry_value ) {
+				return $choice_text;
+			}
+		}
+		return '';
 	}
 }
 

@@ -670,4 +670,42 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 
 		remove_all_filters( 'formscrm_crm_field_definitions' );
 	}
+
+	// -------------------------------------------------------------------------
+	// formscrm_merge_feed_meta_into_settings tests.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Non Gravity Forms form types are returned unchanged.
+	 */
+	public function test_merge_feed_meta_ignores_non_gravityforms_form_type() {
+		$settings = array( 'fc_crm_apipassword' => 'secret' );
+
+		$result = formscrm_merge_feed_meta_into_settings( $settings, 'woocommerce', '5' );
+
+		$this->assertSame( $settings, $result );
+	}
+
+	/**
+	 * Empty form_id is returned unchanged, since there is no feed to look up.
+	 */
+	public function test_merge_feed_meta_ignores_empty_form_id() {
+		$settings = array( 'fc_crm_apipassword' => 'secret' );
+
+		$result = formscrm_merge_feed_meta_into_settings( $settings, 'gravityforms', '' );
+
+		$this->assertSame( $settings, $result );
+	}
+
+	/**
+	 * Without the Gravity Forms API available (e.g. GF inactive), settings are
+	 * returned unchanged rather than fatal-erroring on a missing class.
+	 */
+	public function test_merge_feed_meta_returns_unchanged_when_gfapi_missing() {
+		$settings = array( 'fc_crm_apipassword' => 'secret' );
+
+		$result = formscrm_merge_feed_meta_into_settings( $settings, 'gravityforms', '5' );
+
+		$this->assertSame( $settings, $result );
+	}
 }
