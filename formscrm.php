@@ -3,7 +3,7 @@
  * Plugin Name: FormsCRM
  * Plugin URI : https://close.technology/wordpress-plugins/formscrm/
  * Description: Connects Forms with CRM, ERP and Email Marketing.
- * Version: 4.4.3
+ * Version: 4.5.0
  * Author: CloseTechnology
  * Author URI: https://close.technology
  * Text Domain: formscrm
@@ -23,7 +23,7 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-define( 'FORMSCRM_VERSION', '4.4.3' );
+define( 'FORMSCRM_VERSION', '4.5.0' );
 define( 'FORMSCRM_PLUGIN', __FILE__ );
 define( 'FORMSCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FORMSCRM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -57,6 +57,11 @@ add_filter(
 			'value' => 'mailerlite',
 		);
 
+		$choices[] = array(
+			'label' => 'Hostinger Reach',
+			'value' => 'reach',
+		);
+
 		return $choices;
 	}
 );
@@ -70,6 +75,7 @@ add_filter(
 		$choices[] = 'holded';
 		$choices[] = 'mailerlite';
 		$choices[] = 'brevo';
+		$choices[] = 'reach';
 
 		return $choices;
 	}
@@ -84,6 +90,7 @@ add_filter(
 		$choices['acumbamail'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
 		$choices['mailerlite'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite.php';
 		$choices['brevo']      = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-brevo.php';
+		$choices['reach']      = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-reach.php';
 
 		return $choices;
 	}

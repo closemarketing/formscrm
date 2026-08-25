@@ -1,0 +1,17 @@
+{
+	"data": [
+		{
+			"uuid": "550e8400-e29b-41d4-a716-446655440000",
+			"name": "Newsletter Profile"
+		},
+		{
+			"uuid": "660e8400-e29b-41d4-a716-446655440001",
+			"name": "Sales Profile"
+		}
+	],
+	"meta": {
+		"current_page": 1,
+		"per_page": 50,
+		"total": 2
+	}
+}
