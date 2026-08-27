@@ -115,14 +115,32 @@ class ClientifyTests extends WP_UnitTestCase {
 			}
 			// Search found existing contact.
 			if ( false !== strpos( $url, 'query=test%40example.com' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","first_name":"John","email":"test@example.com"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-123', 'first_name' => 'John', 'email' => 'test@example.com' ) ) );
 			}
 			// Search found existing contact by NIF/DNI. Confirmed against the real
 			// Clientify API: it does NOT support filtering by
 			// taxpayer_identification_number as a literal query param — only the
 			// generic `query` param matches it.
 			if ( false !== strpos( $url, 'query=50997453J' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-789', 'first_name' => 'Antonio', 'taxpayer_identification_number' => '50997453J' ) ) );
+			}
+			// Substring false-positive: `query` is a substring match on Clientify's
+			// side, so searching for an exact email must not silently adopt an
+			// unrelated contact whose email merely contains it as a substring.
+			if ( false !== strpos( $url, 'query=molina%40gmail.com' ) ) {
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-wrong', 'email' => 'aestepamolina@gmail.com' ) ) );
+			}
+			// Ambiguous: two contacts already share this exact email. Must not
+			// silently pick one of them to update.
+			if ( false !== strpos( $url, 'query=duplicate%40example.com' ) ) {
+				return $this->restricted_results_response(
+					$url,
+					$is_v2_base,
+					array(
+						array( 'id' => 'contact-dup-1', 'email' => 'duplicate@example.com' ),
+						array( 'id' => 'contact-dup-2', 'email' => 'duplicate@example.com' ),
+					)
+				);
 			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
@@ -134,7 +152,7 @@ class ClientifyTests extends WP_UnitTestCase {
 			}
 			// Search found existing company.
 			if ( false !== strpos( $url, 'query=ACME' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"company-456","name":"ACME Corp"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'company-456', 'name' => 'ACME Corp' ) ) );
 			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
@@ -195,6 +213,45 @@ class ClientifyTests extends WP_UnitTestCase {
 				'code'    => $code,
 				'message' => 200 === $code ? 'OK' : 'Error',
 			),
+		);
+	}
+
+	/**
+	 * Builds a search response, restricting each entry to whatever fields the
+	 * request's `fields=` query param actually asked for (plus 'id', which the
+	 * real v2 API always returns) — v1 is not fields-restricted. This mirrors
+	 * the real API's behavior and catches a regression where
+	 * create_or_update_entry() reads a field on a result entry it never asked
+	 * the API to include, which would make every match look like a non-match.
+	 *
+	 * @param string $url    Request URL.
+	 * @param bool   $is_v2  Whether this is a v2-base request.
+	 * @param array  $entries Full mocked entries.
+	 * @return array
+	 */
+	protected function restricted_results_response( $url, $is_v2, array $entries ) {
+		if ( $is_v2 ) {
+			$requested = array( 'id' );
+			if ( preg_match( '/[?&]fields=([^&]+)/', $url, $matches ) ) {
+				$requested = array_unique( array_merge( $requested, explode( ',', urldecode( $matches[1] ) ) ) );
+			}
+
+			$entries = array_map(
+				function ( $entry ) use ( $requested ) {
+					return array_intersect_key( $entry, array_flip( $requested ) );
+				},
+				$entries
+			);
+		}
+
+		return $this->response(
+			200,
+			wp_json_encode(
+				array(
+					'count'   => count( $entries ),
+					'results' => $entries,
+				)
+			)
 		);
 	}
 
@@ -612,7 +669,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * v1: Merge by business_name (companies). Company found — updated via PATCH.
+	 * v1: Merge by business_name (companies), exact match. Company found — updated via PATCH.
 	 */
 	public function test_create_entry_v1_merge_business_name_found_patched() {
 		$this->mock_api_mode                  = 'v1_via_account_status';
@@ -627,7 +684,7 @@ class ClientifyTests extends WP_UnitTestCase {
 			),
 			array(
 				'name'  => 'business_name',
-				'value' => 'ACME',
+				'value' => 'ACME Corp',
 			),
 		);
 
@@ -636,6 +693,180 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'id', $result );
 		$this->assertSame( 'company-456', $result['id'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Merge strategy exact-match safety (issue #286).
+	//
+	// Clientify's `query` param performs a SUBSTRING search, not an exact one.
+	// These tests guard against create_or_update_entry() picking results[0] and
+	// PATCHing an unrelated contact/company just because its value happens to
+	// contain the searched-for text.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * v2: Merge by email. Search value is only a substring of an existing
+	 * contact's email ("molina@gmail.com" is contained in
+	 * "aestepamolina@gmail.com") — must NOT be treated as a match. A new
+	 * contact is created instead of overwriting the unrelated one.
+	 */
+	public function test_create_entry_v2_merge_email_substring_false_positive_creates_new() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Molina',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'molina@gmail.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		// Must be the POST-created id, never the unrelated substring-matched contact.
+		$this->assertSame( 'contact-new', $result['id'] );
+		$this->assertNotSame( 'contact-wrong', $result['id'] );
+	}
+
+	/**
+	 * v1: Merge by business_name. Search value ("ACME") is only a substring of
+	 * an existing company's name ("ACME Corp") — must NOT be treated as a
+	 * match. A new company is created instead of overwriting the unrelated one.
+	 */
+	public function test_create_entry_v1_merge_business_name_substring_false_positive_creates_new() {
+		$this->mock_api_mode                  = 'v1_via_account_status';
+		$this->settings['fc_crm_module']      = 'Companies';
+		$this->settings['fc_crm_merge_entry'] = 'business_name';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'name',
+				'value' => 'ACME',
+			),
+			array(
+				'name'  => 'business_name',
+				'value' => 'ACME',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'company-new', $result['id'] );
+	}
+
+	/**
+	 * v2: Merge by email. Two existing contacts already share the exact same
+	 * email (ambiguous). Must not silently pick one to update — creates a new
+	 * entry instead.
+	 */
+	public function test_create_entry_v2_merge_email_ambiguous_exact_matches_creates_new() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Dup',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'duplicate@example.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-new', $result['id'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// marketing_status create-only default (issue #286).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * v2: No merge field configured — creating a contact defaults
+	 * marketing_status to 2 (Marketing Contact) when not explicitly mapped.
+	 */
+	public function test_create_entry_v2_no_merge_defaults_marketing_status_on_create() {
+		$this->settings['fc_crm_module'] = 'Contacts';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'email',
+				'value' => 'new@example.com',
+			),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertSame( 2, $this->last_contact_body['marketing_status'] );
+	}
+
+	/**
+	 * v2: Merge by email, contact found — the PATCH sent to update the existing
+	 * contact must NOT inject a marketing_status default. Doing so would
+	 * silently flip a contact intentionally set as Sales Contact (1) back to
+	 * Marketing Contact (2) on every resubmission.
+	 */
+	public function test_create_entry_v2_merge_email_found_does_not_default_marketing_status_on_update() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'John',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'test@example.com',
+			),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertArrayNotHasKey( 'marketing_status', $this->last_contact_body );
+	}
+
+	// -------------------------------------------------------------------------
+	// Field-mapping label collision (issue #286).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The native 'email' field and the 'emails|4' (Email Main, from the typed
+	 * emails list) field must not render with the same label — mapping the
+	 * wrong one silently defeats the merge strategy lookup, since it only
+	 * reads $data_array['email'].
+	 */
+	public function test_list_fields_email_and_emails_main_have_distinct_labels() {
+		$this->crm_clientify->login( $this->settings );
+
+		$fields = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
+		$labels = array();
+		foreach ( $fields as $field ) {
+			if ( 'email' === $field['name'] || 'emails|4' === $field['name'] ) {
+				$labels[ $field['name'] ] = $field['label'];
+			}
+		}
+
+		$this->assertArrayHasKey( 'email', $labels );
+		$this->assertArrayHasKey( 'emails|4', $labels );
+		$this->assertNotSame( $labels['email'], $labels['emails|4'] );
 	}
 
 	// gdpr_accept bool normalization tests.
