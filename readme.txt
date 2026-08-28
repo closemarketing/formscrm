@@ -56,7 +56,11 @@ Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
 
 **RedSys**
-RedSys is a payment gateway that allows you to accept payments from your WordPress forms. It is a Spanish payment gateway that is compatible with all Spanish banks.
+Turn any FormsCRM form into a secure payment opportunity with RedSys. Whether you are taking a booking deposit, selling a service, collecting a registration fee, or charging for an order, customers complete their payment on the familiar, bank-hosted Redsys checkout.
+
+Set the amount you want to charge, connect your existing Redsys virtual POS, and let FormsCRM take care of the handoff. Your customer is sent to the bank to pay and returned to your form confirmation page when they finish, so the experience stays smooth from first click to final confirmation.
+
+Built for Spanish businesses that already use Redsys through their bank, the integration gives you a straightforward way to accept card payments without building or maintaining a separate checkout.
 
 ** UTM Tracker Addon **
 
