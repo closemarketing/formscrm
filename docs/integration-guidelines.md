@@ -71,11 +71,12 @@ exact field name from memory instead of offering a selector built from the
 form's actual fields is a step backwards compared to how every other
 integration works, and it's error-prone.
 
-✅ Correct alternative for Ninja Forms: lean on Ninja Forms' own field
-mapping (fields can already be inserted as a merge tag from NF's own
-button/menu on a `textbox`, rather than as unaided free text), or better yet,
-build the list of form fields (`Ninja_Forms()->form()->get(...)->get_fields()`)
-and offer one `select` per CRM field, the same way WPForms does.
+✅ Correct alternative, now implemented in `class-ninjaforms.php`: one
+merge-tag-enabled `textbox` **per CRM field** (not one big multi-line
+textarea), generated from the real fields of the selected CRM module. The
+admin clicks Ninja Forms' own merge tag button to pick a real submitted
+field instead of typing anything — see section 9 for how the module/field
+list is built.
 
 ## 4. Only show the connection fields that apply to the selected CRM
 
@@ -178,6 +179,42 @@ if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) && ! class_exists( 'Forms
 - [ ] Are there unit tests for any new helper (e.g. field-mapping parsing)?
 - [ ] Do `composer lint` and `composer phpstan` pass with no new warnings?
 
+## 9. When the host plugin resolves settings before it knows which form is involved
+
+Some action frameworks (Ninja Forms among them) build every registered
+action's `_settings` once on `init`, before any specific form or action
+instance exists. This is different from CF7 (settings render per-form on
+demand) or WPForms (settings render per-connection on demand): there is no
+"current form" to read credentials from yet, and no admin-triggered request
+you can hook to fetch fresh data.
+
+Two building blocks solve this without inventing anything new:
+
+- Store **one global CRM connection** for that integration inside FormsCRM's
+  own settings page, using the existing `formscrm_settings_tabs` filter
+  (`class-admin-options.php`) to add a new tab — the same place Notifications
+  and the Error Log already live. This mirrors what the JetFormBuilder
+  integration already does via its own settings tab
+  (`class-jetformbuilder-tab-handler.php`), just hosted on FormsCRM's page
+  instead of the form plugin's, because the form plugin's settings API isn't
+  guaranteed to be reachable from a generic PHP integration in every plugin.
+- Fetch CRM modules/fields **eagerly** with that one connection (all modules,
+  all their fields, in one pass) and cache the result with a short-lived
+  transient (see `docs/performance-optimization-feeds-cache.md` for the same
+  pattern applied to Gravity Forms feeds). This is exactly how real,
+  widely-used Ninja Forms integrations do it — e.g. Mailchimp for WordPress's
+  `MC4WP_Ninja_Forms_Action` builds a `newsletter_list` select whose every
+  `option` carries its own `fields` array, paired with a sibling `fieldset`
+  setting; Ninja Forms core switches between each option's fields entirely
+  client-side, with no extra AJAX endpoint required. FormsCRM's Ninja Forms
+  action (`class-ninjaforms.php`) reuses this exact select+fieldset shape for
+  `fc_crm_module` / `fc_crm_field_map`.
+- Each field-mapping input still uses Ninja Forms' own merge tag picker
+  (`use_merge_tags`), so the admin selects a real submitted field instead of
+  typing one — Ninja Forms resolves the tag into the actual submitted value
+  before `process()` runs, so the action itself does no template parsing at
+  all.
+
 ## Reference: case study — Ninja Forms (issue #122)
 
 - **Issue**: [#122](https://github.com/closemarketing/formscrm/issues/122)
@@ -191,14 +228,17 @@ if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) && ! class_exists( 'Forms
   documenting the exact reason).
 - Reviewing the merged code, the points that diverge the most from the
   conventions used by the rest of the integrations (and the most plausible
-  candidates for the revert) are the ones described in sections 3, 4 and 6 of
-  this guide: free-text field mapping instead of a native selector, all
-  connection fields visible at once regardless of the CRM, and errors logged
-  without `$form_info`.
-- **None of these issues is a blocker** for picking the integration back up:
-  the foundation (`NF_Abstracts_Action`, conditional loading, the
-  `formscrm_parse_field_mapping()` helper) is reusable. Before reopening the
-  PR, apply the checklist in section 8, in particular replacing the mapping
-  `textarea` with a per-field `select` built from the form's real field keys,
-  and applying the `formscrm_get_dependency_*()` helpers so only the
-  connection fields relevant to the chosen CRM are shown.
+  candidates for the revert) were: free-text field mapping instead of a
+  native selector, all connection fields visible at once regardless of the
+  CRM, and errors logged without `$form_info`.
+- **The integration has been rebuilt** (`class-ninjaforms.php` +
+  `class-ninjaforms-settings-tab.php`) applying the fixes above and the
+  select+fieldset pattern from section 9: the CRM connection is configured
+  once in FormsCRM > Ninja Forms (with `formscrm_get_dependency_*()` hiding
+  irrelevant fields, same as every other integration), each form only picks
+  a `fc_crm_module` and maps fields through Ninja Forms' native merge tag
+  picker, and every failure path calls `formscrm_alert_error()` with full
+  `$form_info`. The old `formscrm_parse_field_mapping()` free-text helper was
+  dropped entirely rather than reused, since the native picker makes it
+  unnecessary; `formscrm_ninjaforms_build_merge_vars()` replaces it with a
+  simple, fully unit-tested lookup.

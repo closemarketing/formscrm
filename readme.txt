@@ -23,6 +23,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
 - [JetForms](https://wordpress.org/plugins/jetformbuilder/)
+- [Ninja Forms](https://wordpress.org/plugins/ninja-forms/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -259,6 +260,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = 4.4.3 =
+* Added: Native Ninja Forms integration. A "FormsCRM" action becomes available in the Ninja Forms action drawer; the CRM connection is configured once in FormsCRM > Ninja Forms, and each form picks a CRM module and maps its fields using Ninja Forms' own merge tag picker.
 * Fixed: Clientify API v1 requests occasionally failing with `HTTP 504 Gateway Timeout` on `api.clientify.net`. All requests (reads, lead/contact creation, updates, deals) now retry once against the `api.clientify.com` fallback before failing; this is a temporary workaround suggested by Clientify support while they investigate the root cause.
 
 = 4.4.2 =
