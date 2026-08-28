@@ -268,6 +268,7 @@ if ( class_exists( 'NF_Abstracts_Action' ) && ! class_exists( 'FormsCRM_NinjaFor
 	}
 }
 
+// phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed
 if ( ! function_exists( 'formscrm_register_ninja_forms_action' ) ) {
 	/**
 	 * Registers the FormsCRM action within Ninja Forms.
