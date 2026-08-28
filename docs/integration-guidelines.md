@@ -1,87 +1,87 @@
-# Guía para crear integraciones de FormsCRM con plugins de formularios
+# Guidelines for building FormsCRM integrations with form plugins
 
-Este documento define **cómo debe construirse una nueva integración de formulario**
-(Gravity Forms, WPForms, Ninja Forms, Elementor, CF7, JetFormBuilder, etc.) para que
-sea coherente con el resto del plugin. Se basa en los patrones ya usados en
-`includes/formscrm-library/` y en el análisis de un intento de integración de
-**Ninja Forms** (issue [#122](https://github.com/closemarketing/formscrm/issues/122),
-PR [#171](https://github.com/closemarketing/formscrm/pull/171)) que se fusionó y
-posteriormente se revirtió (PR [#173](https://github.com/closemarketing/formscrm/pull/173)).
+This document defines **how a new form integration** (Gravity Forms, WPForms,
+Ninja Forms, Elementor, CF7, JetFormBuilder, etc.) should be built so it stays
+consistent with the rest of the plugin. It is based on the patterns already
+used in `includes/formscrm-library/` and on the analysis of a **Ninja Forms**
+integration attempt (issue [#122](https://github.com/closemarketing/formscrm/issues/122),
+PR [#171](https://github.com/closemarketing/formscrm/pull/171)) that was
+merged and later reverted (PR [#173](https://github.com/closemarketing/formscrm/pull/173)).
 
-## Los dos principios rectores
+## The two guiding principles
 
-1. **Lo más adaptada posible al formulario y a su interfaz.** El usuario no debe
-   notar que FormsCRM es un plugin externo: la configuración tiene que vivir dentro
-   de las pantallas propias del plugin de formularios, con sus propios componentes
-   visuales.
-2. **Integrarse al máximo con las funciones que ya ofrece el plugin de formularios.**
-   Si el plugin ya resuelve un problema (mapeo de campos, merge tags, validación,
-   reintentos, registro de envíos...), FormsCRM debe apoyarse en esa solución en
-   lugar de reinventarla.
+1. **As adapted as possible to the form and its interface.** The user should
+   not notice that FormsCRM is an external plugin: configuration must live
+   inside the form plugin's own screens, using its own UI components.
+2. **Integrate as deeply as possible with the functions the form plugin
+   already offers.** If the plugin already solves a problem (field mapping,
+   merge tags, validation, retries, submission logging...), FormsCRM should
+   build on that solution instead of reinventing it.
 
-## 1. Usa el mecanismo de extensión nativo del plugin, no un hook genérico
+## 1. Use the plugin's native extension mechanism, not a generic hook
 
-Cada integración existente se registra a través del **sistema de extensión propio
-de su plugin**, nunca mediante un hook genérico common a todos:
+Every existing integration registers itself through the **extension system of
+its own plugin**, never through a hook that is generic to all of them:
 
-| Plugin | Mecanismo nativo usado |
+| Plugin | Native mechanism used |
 |---|---|
-| Gravity Forms | `GFAddOn` / Feed Add-On Framework (`class-gravityforms.php`, cargado en `gform_loaded`) |
-| WPForms | `WPForms_Provider` — el mismo sistema de "Marketing Providers" que usa Mailchimp/Constant Contact (`class-wpforms.php`, cargado en `wpforms_loaded`) |
-| Elementor Pro | `\ElementorPro\Modules\Forms\Classes\Action_Base`, registrado en `elementor_pro/init` |
-| JetFormBuilder | `Jet_Form_Builder\Actions\Types\Base`, registrado vía `jet-form-builder/actions/register` |
-| Contact Form 7 | Hooks propios de CF7: `wpcf7_editor_panels`, `wpcf7_before_send_mail` |
+| Gravity Forms | `GFAddOn` / Feed Add-On Framework (`class-gravityforms.php`, loaded on `gform_loaded`) |
+| WPForms | `WPForms_Provider` — the same "Marketing Providers" system used by Mailchimp/Constant Contact (`class-wpforms.php`, loaded on `wpforms_loaded`) |
+| Elementor Pro | `\ElementorPro\Modules\Forms\Classes\Action_Base`, registered on `elementor_pro/init` |
+| JetFormBuilder | `Jet_Form_Builder\Actions\Types\Base`, registered via `jet-form-builder/actions/register` |
+| Contact Form 7 | CF7's own hooks: `wpcf7_editor_panels`, `wpcf7_before_send_mail` |
 
-Al plantear una integración nueva, la primera pregunta es: **¿qué extension point
-ofrece este plugin para "proveedores" o "acciones tras el envío"?** Si el plugin
-tiene un concepto de "Action"/"Provider"/"Add-on" (como Ninja Forms con
-`NF_Abstracts_Action`), FormsCRM debe registrarse ahí — no enganchar directamente
-a un hook de "formulario enviado" genérico y reimplementar por nuestra cuenta el
-listado de acciones, el guardado de ajustes, etc.
+When scoping a new integration, the first question is: **what extension point
+does this plugin offer for "providers" or "post-submission actions"?** If the
+plugin has an "Action"/"Provider"/"Add-on" concept (like Ninja Forms with
+`NF_Abstracts_Action`), FormsCRM must register there — not hook directly into
+a generic "form submitted" event and reimplement the action list, settings
+storage, etc. on its own.
 
-## 2. La configuración vive dentro de las pantallas del propio plugin
+## 2. Configuration lives inside the plugin's own screens
 
-No se crea una pantalla de ajustes aparte para cada integración. La UI de conexión
-al CRM se inserta:
+No standalone settings page is created for each integration. The CRM
+connection UI is inserted:
 
-- como una nueva pestaña/metabox en el editor del formulario (CF7: `wpcf7_editor_panels`),
-- como una nueva "Acción" dentro del listado de acciones del constructor (JetFormBuilder, Ninja Forms),
-- o como un "Provider" más en la pantalla de conexiones ya existente (WPForms).
+- as a new tab/metabox in the form editor (CF7: `wpcf7_editor_panels`),
+- as a new "Action" inside the builder's action list (JetFormBuilder, Ninja Forms),
+- or as one more "Provider" in the plugin's existing connections screen (WPForms).
 
-El usuario configura FormsCRM exactamente donde configura cualquier otra
-integración de ese plugin (Mailchimp, Zapier, etc.), con el mismo look & feel.
+The user configures FormsCRM exactly where they configure any other
+integration of that plugin (Mailchimp, Zapier, etc.), with the same look and
+feel.
 
-## 3. El mapeo de campos debe usar los selectores del propio formulario
+## 3. Field mapping must use the form's own selectors
 
-Esto es lo más importante y donde más se suele fallar:
+This is the most important point, and the one most often gotten wrong:
 
-- **WPForms**: el mapeo se hace campo a campo con un `<select>` nativo de WPForms
-  que lista los campos reales del formulario (`output_fields()`), igual que para
-  cualquier otro proveedor de WPForms.
-- **JetFormBuilder**: el mapeo se define en el propio editor visual de JFB
-  (`fields_map`), usando los componentes de JS del constructor.
-- **Contact Form 7**: usa los propios *mail-tags*/shortcodes de CF7 (`[nombre-campo]`)
-  ya existentes en el formulario.
+- **WPForms**: mapping is done field by field with a native WPForms `<select>`
+  listing the form's real fields (`output_fields()`), the same as for any
+  other WPForms provider.
+- **JetFormBuilder**: mapping is defined in JFB's own visual editor
+  (`fields_map`), using the builder's own JS components.
+- **Contact Form 7**: uses CF7's own mail-tags/shortcodes (`[field-name]`)
+  that already exist on the form.
 
-❌ **Anti-patrón (detectado en el intento de Ninja Forms, PR #171):** un
-`<textarea>` libre donde el usuario escribe a mano líneas
-`crm_field = {field:clave}`. Aunque Ninja Forms soporta *merge tags*, y el
-`textarea` los admitía (`use_merge_tags => true`), obligar a escribir el nombre
-exacto del campo de memoria en vez de ofrecer un selector con los campos reales
-del formulario es un paso atrás respecto a como funcionan el resto de
-integraciones y es propenso a errores de tecleo.
+❌ **Anti-pattern (found in the Ninja Forms attempt, PR #171):** a free-text
+`<textarea>` where the user hand-types lines like
+`crm_field = {field:key}`. Even though Ninja Forms supports merge tags and the
+textarea allowed them (`use_merge_tags => true`), forcing the user to type the
+exact field name from memory instead of offering a selector built from the
+form's actual fields is a step backwards compared to how every other
+integration works, and it's error-prone.
 
-✅ Alternativa correcta para Ninja Forms: usar el propio *field mapping* de
-Ninja Forms (los campos ya se pueden insertar como merge tag desde un botón/menú
-del propio NF sobre un `textbox`, no en texto libre sin ayuda visual), o mejor
-aún, construir la lista de campos del formulario (`Ninja_Forms()->form()->get(...)->get_fields()`)
-y ofrecer un `select` por cada campo CRM, tal como hace WPForms.
+✅ Correct alternative for Ninja Forms: lean on Ninja Forms' own field
+mapping (fields can already be inserted as a merge tag from NF's own
+button/menu on a `textbox`, rather than as unaided free text), or better yet,
+build the list of form fields (`Ninja_Forms()->form()->get(...)->get_fields()`)
+and offer one `select` per CRM field, the same way WPForms does.
 
-## 4. Solo muestra los campos de conexión que aplican al CRM elegido
+## 4. Only show the connection fields that apply to the selected CRM
 
-Cada CRM necesita credenciales distintas (URL, usuario/contraseña, API key,
-Odoo DB...). Todas las integraciones existentes ocultan/muestran estos campos
-según el CRM seleccionado, usando los helpers de `helpers-library-crm.php`:
+Each CRM needs different credentials (URL, username/password, API key, Odoo
+DB...). Every existing integration hides/shows these fields based on the
+selected CRM, using the helpers in `helpers-library-crm.php`:
 
 - `formscrm_get_dependency_url()`
 - `formscrm_get_dependency_username()`
@@ -90,48 +90,50 @@ según el CRM seleccionado, usando los helpers de `helpers-library-crm.php`:
 - `formscrm_get_dependency_apisales()`
 - `formscrm_get_dependency_odoodb()`
 
-CF7 los aplica en PHP (renderiza solo el campo que corresponde), WPForms/JetFormBuilder
-los aplican en JS al cambiar el `select` de CRM. **Nunca renderices todos los
-campos de conexión a la vez de forma estática** (URL, usuario, contraseña, API
-password, API sales, Odoo DB, modo experto...) — es el error concreto del PR de
-Ninja Forms revertido: mostraba las 9 opciones siempre visibles en el grupo
-"advanced", sin depender del CRM elegido, saturando la pantalla de ajustes.
+CF7 applies them in PHP (it only renders the matching field), while
+WPForms/JetFormBuilder apply them in JS when the CRM `select` changes.
+**Never render all connection fields statically at once** (URL, username,
+password, API password, API sales, Odoo DB, expert mode...) — this is the
+concrete mistake in the reverted Ninja Forms PR: it always showed all 9
+options in the "advanced" group regardless of the chosen CRM, cluttering the
+settings screen.
 
-## 5. Reutiliza siempre las mismas piezas compartidas
+## 5. Always reuse the same shared building blocks
 
-No dupliques lógica ya resuelta en `helpers-functions.php` / `helpers-library-crm.php`:
+Don't duplicate logic that is already solved in `helpers-functions.php` /
+`helpers-library-crm.php`:
 
-- `formscrm_get_choices()` para el desplegable de CRMs.
-- `formscrm_get_api_class( $crm_type )` para cargar la clase `CRMLIB_*` correspondiente.
-- Las claves de ajustes estándar: `fc_crm_type`, `fc_crm_module`, `fc_crm_url`,
+- `formscrm_get_choices()` for the CRM dropdown.
+- `formscrm_get_api_class( $crm_type )` to load the matching `CRMLIB_*` class.
+- The standard settings keys: `fc_crm_type`, `fc_crm_module`, `fc_crm_url`,
   `fc_crm_username`, `fc_crm_password`, `fc_crm_apipassword`, `fc_crm_apisales`,
-  `fc_crm_odoodb`. Cualquier integración nueva debe producir un array de
-  `$settings` con estas mismas claves para que funcione sin cambios con
-  cualquier CRM ya soportado (built-in o externo vía filtros).
-- `formscrm_check_url_crm()` para normalizar la URL del CRM antes de guardarla.
+  `fc_crm_odoodb`. Any new integration must produce a `$settings` array with
+  these same keys so it works unmodified with any already-supported CRM
+  (built-in or external via filters).
+- `formscrm_check_url_crm()` to normalize the CRM URL before storing it.
 
-## 6. Nunca bloquees el envío del formulario ni pierdas el error
+## 6. Never block the form submission or lose the error
 
-Principio de "Máxima Fiabilidad" (ver `AGENTS.md`): un fallo del CRM nunca debe
-impedir que el formulario se envíe ni mostrar un error al usuario final. Además,
-el error debe quedar **visible y accionable** para el administrador:
+"Maximum Reliability" principle (see `AGENTS.md`): a CRM failure must never
+prevent the form from submitting, nor be shown to the end user. On top of
+that, the error must remain **visible and actionable** for the administrator:
 
-- Envuelve la llamada al CRM en `try { } catch ( Exception $e ) { }`.
-- En caso de error, llama a `formscrm_alert_error( $crm_type, $message, $merge_vars, $url, $json, $form_info )`
-  (o su alias `formscrm_debug_email_lead()`), pasando siempre `$form_info` con
-  `form_type`, `form_type_title`, `form_id`, `form_name` y, si existe, `entry_id`.
-  Esto es lo que alimenta la tabla de Error Log (`class-error-log.php`) y permite
-  reenviar el lead manualmente. El intento de Ninja Forms llamaba a
-  `formscrm_debug_email_lead()` sin `$form_info`, por lo que las entradas en el
-  log quedaban sin poder identificar de qué formulario/envío de NF procedían.
-- En caso de éxito, no interrumpas el flujo normal del plugin de formularios:
-  simplemente registra el resultado (nota interna, log de depuración, etc.)
-  usando el propio sistema de logging del plugin anfitrión si existe
-  (`entry_meta` en WPForms, notas de NF, etc.).
+- Wrap the CRM call in `try { } catch ( Exception $e ) { }`.
+- On error, call `formscrm_alert_error( $crm_type, $message, $merge_vars, $url, $json, $form_info )`
+  (or its alias `formscrm_debug_email_lead()`), always passing `$form_info`
+  with `form_type`, `form_type_title`, `form_id`, `form_name`, and, if
+  available, `entry_id`. This is what feeds the Error Log table
+  (`class-error-log.php`) and allows the lead to be resent manually. The
+  Ninja Forms attempt called `formscrm_debug_email_lead()` without
+  `$form_info`, so log entries couldn't be traced back to which NF
+  form/submission they came from.
+- On success, don't interrupt the form plugin's normal flow: just record the
+  result (an internal note, a debug log, etc.) using the host plugin's own
+  logging system if it has one (`entry_meta` in WPForms, NF notes, etc.).
 
-## 7. Carga condicional y sin coste si el plugin no está activo
+## 7. Conditional loading, at zero cost when the plugin is inactive
 
-Sigue el patrón de `loader.php`:
+Follow the `loader.php` pattern:
 
 ```php
 if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) && ! class_exists( 'FormsCRM_NinjaForms_Action' ) ) {
@@ -143,62 +145,60 @@ if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) && ! class_exists( 'Forms
 }
 ```
 
-- Comprueba `is_plugin_active()` antes de nada.
-- Engánchate al hook de arranque propio del plugin (`gform_loaded`,
+- Check `is_plugin_active()` first.
+- Hook into the plugin's own bootstrap action (`gform_loaded`,
   `wpforms_loaded`, `elementor_pro/init`, `jet-form-builder/actions/register`,
-  o `plugins_loaded` con prioridad suficiente) en vez de cargar la clase
-  directamente en `loader.php`.
-- No leas superglobales (`$_POST`, `$_REQUEST`) directamente salvo que el propio
-  plugin anfitrión no te entregue ese dato en el array de la petición; si lo
-  haces, sanitiza (`sanitize_text_field( wp_unslash( ... ) )`) y documenta por
-  qué es necesario.
+  or `plugins_loaded` at a sufficient priority) instead of loading the class
+  directly in `loader.php`.
+- Don't read superglobals (`$_POST`, `$_REQUEST`) directly unless the host
+  plugin genuinely doesn't hand you that data in the request array; if you
+  do, sanitize it (`sanitize_text_field( wp_unslash( ... ) )`) and document
+  why it's necessary.
 
-## 8. Checklist antes de abrir un PR de una integración nueva
+## 8. Checklist before opening a PR for a new integration
 
-- [ ] ¿Usa el extension point nativo del plugin (Action/Provider/Add-on), no un
-      hook genérico "on submit"?
-- [ ] ¿La configuración aparece dentro de las pantallas propias del plugin
-      (editor de formulario, listado de acciones, conexiones), no en una página
-      de ajustes aparte?
-- [ ] ¿El mapeo de campos usa un selector con los campos reales del formulario
-      (o el sistema de merge tags/shortcodes nativo), en vez de texto libre a
-      mano?
-- [ ] ¿Los campos de conexión (URL, usuario, password, API key, Odoo DB...) se
-      muestran/ocultan según el CRM elegido usando los helpers
-      `formscrm_get_dependency_*()`?
-- [ ] ¿Reutiliza `formscrm_get_choices()`, `formscrm_get_api_class()` y las
-      claves `fc_crm_*` estándar?
-- [ ] ¿Un fallo del CRM nunca bloquea el envío del formulario ni se muestra al
-      usuario final?
-- [ ] ¿Todo error pasa por `formscrm_alert_error()` con `$form_info` completo
-      (`form_type`, `form_id`, `form_name`, `entry_id` si existe)?
-- [ ] ¿La clase/archivo solo se carga si el plugin está activo, enganchada a su
-      hook de arranque propio?
-- [ ] ¿Hay tests unitarios para cualquier helper nuevo (p. ej. parseo de mapeo
-      de campos)?
-- [ ] `composer lint` y `composer phpstan` pasan sin avisos nuevos.
+- [ ] Does it use the plugin's native extension point (Action/Provider/Add-on),
+      not a generic "on submit" hook?
+- [ ] Does configuration appear inside the plugin's own screens (form editor,
+      action list, connections), rather than a separate settings page?
+- [ ] Does field mapping use a selector built from the form's real fields (or
+      the plugin's native merge-tag/shortcode system), instead of hand-typed
+      free text?
+- [ ] Are connection fields (URL, username, password, API key, Odoo DB...)
+      shown/hidden based on the selected CRM, using the
+      `formscrm_get_dependency_*()` helpers?
+- [ ] Does it reuse `formscrm_get_choices()`, `formscrm_get_api_class()`, and
+      the standard `fc_crm_*` keys?
+- [ ] Does a CRM failure never block form submission or surface to the end user?
+- [ ] Does every error go through `formscrm_alert_error()` with a complete
+      `$form_info` (`form_type`, `form_id`, `form_name`, `entry_id` if it
+      exists)?
+- [ ] Is the class/file only loaded when the plugin is active, hooked to its
+      own bootstrap action?
+- [ ] Are there unit tests for any new helper (e.g. field-mapping parsing)?
+- [ ] Do `composer lint` and `composer phpstan` pass with no new warnings?
 
-## Referencia: caso de estudio — Ninja Forms (issue #122)
+## Reference: case study — Ninja Forms (issue #122)
 
-- **Issue**: [#122](https://github.com/closemarketing/formscrm/issues/122) pide
-  soporte nativo para Ninja Forms.
-- **PR #123** (draft, de Cursor) apuntaba a una rama base obsoleta
-  (`122-support-for-ninja-forms-integration`) y quedó cerrado sin fusionar.
-- **PR #171** rehizo la integración contra `trunk`, añadiendo
-  `FormsCRM_NinjaForms_Action` (extiende correctamente `NF_Abstracts_Action`,
-  el patrón nativo de NF) con carga condicional en `loader.php`. Se fusionó y
-  se revirtió el mismo día siguiente mediante el **PR #173** (sin comentarios
-  registrados que documenten el motivo exacto).
-- Al revisar el código fusionado, los puntos que más se alejan de las
-  convenciones del resto de integraciones (y candidatos más probables al
-  motivo de la reversión) son los descritos en los puntos 3, 4 y 6 de esta
-  guía: mapeo de campos por texto libre en vez de selector nativo, todos los
-  campos de conexión visibles a la vez sin depender del CRM, y errores
-  registrados sin `$form_info`.
-- **Ninguno de estos problemas es bloqueante** para retomar la integración:
-  la base (`NF_Abstracts_Action`, carga condicional, helper
-  `formscrm_parse_field_mapping()`) es reutilizable. Antes de reabrir el PR,
-  conviene aplicar el checklist de la sección 8, en particular sustituir el
-  `textarea` de mapeo por un `select` por campo con las claves reales del
-  formulario y aplicar los helpers `formscrm_get_dependency_*()` para mostrar
-  solo los campos de conexión relevantes al CRM elegido.
+- **Issue**: [#122](https://github.com/closemarketing/formscrm/issues/122)
+  requests native Ninja Forms support.
+- **PR #123** (draft, by Cursor) targeted a stale base branch
+  (`122-support-for-ninja-forms-integration`) and was closed without merging.
+- **PR #171** redid the integration against `trunk`, adding
+  `FormsCRM_NinjaForms_Action` (correctly extending `NF_Abstracts_Action`, NF's
+  native pattern) with conditional loading in `loader.php`. It was merged and
+  reverted the following day via **PR #173** (with no recorded comments
+  documenting the exact reason).
+- Reviewing the merged code, the points that diverge the most from the
+  conventions used by the rest of the integrations (and the most plausible
+  candidates for the revert) are the ones described in sections 3, 4 and 6 of
+  this guide: free-text field mapping instead of a native selector, all
+  connection fields visible at once regardless of the CRM, and errors logged
+  without `$form_info`.
+- **None of these issues is a blocker** for picking the integration back up:
+  the foundation (`NF_Abstracts_Action`, conditional loading, the
+  `formscrm_parse_field_mapping()` helper) is reusable. Before reopening the
+  PR, apply the checklist in section 8, in particular replacing the mapping
+  `textarea` with a per-field `select` built from the form's real field keys,
+  and applying the `formscrm_get_dependency_*()` helpers so only the
+  connection fields relevant to the chosen CRM are shown.
