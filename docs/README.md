@@ -8,6 +8,11 @@ Welcome to the FormsCRM plugin documentation. All documentation files are locate
 
 ## 📖 Feature Documentation
 
+### Integration Guidelines
+Guidelines for building new form-plugin integrations (native extension points, field mapping, CRM dependency fields, error logging).
+
+- **[integration-guidelines.md](integration-guidelines.md)** - How FormsCRM integrations should be built, with a Ninja Forms (#122) case study
+
 ### Error Log Feature (v4.3.0)
 Complete documentation for the Error Log with Resend Capability feature.
 
