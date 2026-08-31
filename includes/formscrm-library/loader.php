@@ -71,6 +71,11 @@ if ( is_plugin_active( 'jetformbuilder/jet-form-builder.php' ) && ! class_exists
 	require_once 'class-jetformbuilder.php';
 }
 
+// SureForms.
+if ( is_plugin_active( 'sureforms/sureforms.php' ) && ! class_exists( 'FORMSCRM_SureForms' ) ) {
+	require_once 'class-sureforms.php';
+}
+
 // WPForms.
 if ( is_plugin_active( 'wpforms/wpforms.php' ) && ! class_exists( 'FormsCRM_WPForms' ) ) {
 	add_action( 'wpforms_loaded', 'formscrm_wpforms' );
