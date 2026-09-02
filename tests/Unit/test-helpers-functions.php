@@ -611,4 +611,93 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 
 		$this->assertSame( $settings, $result );
 	}
+
+	/**
+	 * Mapped fields with a submitted value are turned into merge vars.
+	 */
+	public function test_ninjaforms_build_merge_vars_maps_known_fields() {
+		$crm_fields = array(
+			array(
+				'name'  => 'email',
+				'label' => 'Email',
+			),
+			array(
+				'name'  => 'first_name',
+				'label' => 'First Name',
+			),
+		);
+
+		$action_settings = array(
+			'email'      => 'jane@example.com',
+			'first_name' => 'Jane',
+			'active'     => '1',
+		);
+
+		$result = formscrm_ninjaforms_build_merge_vars( $crm_fields, $action_settings );
+
+		$this->assertSame(
+			array(
+				array(
+					'name'  => 'email',
+					'value' => 'jane@example.com',
+				),
+				array(
+					'name'  => 'first_name',
+					'value' => 'Jane',
+				),
+			),
+			$result
+		);
+	}
+
+	/**
+	 * CRM fields with no matching (or empty) submitted value are skipped.
+	 */
+	public function test_ninjaforms_build_merge_vars_skips_unmapped_and_empty_fields() {
+		$crm_fields = array(
+			array(
+				'name'  => 'email',
+				'label' => 'Email',
+			),
+			array(
+				'name'  => 'phone',
+				'label' => 'Phone',
+			),
+		);
+
+		$action_settings = array(
+			'email' => '',
+		);
+
+		$result = formscrm_ninjaforms_build_merge_vars( $crm_fields, $action_settings );
+
+		$this->assertSame( array(), $result );
+	}
+
+	/**
+	 * Array values (e.g. checkbox fields) are flattened to a comma separated string.
+	 */
+	public function test_ninjaforms_build_merge_vars_flattens_array_values() {
+		$crm_fields       = array(
+			array(
+				'name'  => 'interests',
+				'label' => 'Interests',
+			),
+		);
+		$action_settings = array(
+			'interests' => array( 'sales', 'support' ),
+		);
+
+		$result = formscrm_ninjaforms_build_merge_vars( $crm_fields, $action_settings );
+
+		$this->assertSame(
+			array(
+				array(
+					'name'  => 'interests',
+					'value' => 'sales,support',
+				),
+			),
+			$result
+		);
+	}
 }

@@ -1033,3 +1033,42 @@ if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 		echo wp_kses( formscrm_get_connection_status_html( $settings, $output_type, $help_text ), $allowed_html );
 	}
 }
+
+if ( ! function_exists( 'formscrm_ninjaforms_build_merge_vars' ) ) {
+	/**
+	 * Builds the merge-vars array for a Ninja Forms submission.
+	 *
+	 * Ninja Forms resolves merge tags (e.g. `{field:email}`) inside action
+	 * settings before `process()` runs, so `$action_settings` already
+	 * contains the real submitted values keyed by CRM field name. This just
+	 * matches those values against the CRM module's field list.
+	 *
+	 * @param array $crm_fields      Fields returned by CRMLIB::list_fields() for the selected module.
+	 * @param array $action_settings Ninja Forms action settings for this submission.
+	 * @return array
+	 */
+	function formscrm_ninjaforms_build_merge_vars( array $crm_fields, array $action_settings ) {
+		$merge_vars = array();
+
+		foreach ( $crm_fields as $crm_field ) {
+			if ( empty( $crm_field['name'] ) ) {
+				continue;
+			}
+
+			$field_name = $crm_field['name'];
+
+			if ( ! isset( $action_settings[ $field_name ] ) || '' === $action_settings[ $field_name ] ) {
+				continue;
+			}
+
+			$value = $action_settings[ $field_name ];
+
+			$merge_vars[] = array(
+				'name'  => $field_name,
+				'value' => is_array( $value ) ? implode( ',', $value ) : (string) $value,
+			);
+		}
+
+		return $merge_vars;
+	}
+}
