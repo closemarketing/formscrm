@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 4.4.3
-Version: 4.4.3
+Stable tag: 4.5.0
+Version: 4.5.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
 - [JetForms](https://wordpress.org/plugins/jetformbuilder/)
+- [SureForms](https://wordpress.org/plugins/sureforms/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -257,6 +258,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 4.5.0 =
+* Added: Support for SureForms plugin with field mapping and CRM connection settings per form.
 
 = 4.4.3 =
 * Fixed: Clientify API v1 requests occasionally failing with `HTTP 504 Gateway Timeout` on `api.clientify.net`. All requests (reads, lead/contact creation, updates, deals) now retry once against the `api.clientify.com` fallback before failing; this is a temporary workaround suggested by Clientify support while they investigate the root cause.
