@@ -46,8 +46,16 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		 * @return void
 		 */
 		public function register_settings() {
-			register_setting( 'formscrm_settings', 'formscrm_slack_webhook_url' );
-			register_setting( 'formscrm_settings', 'formscrm_error_notification_email' );
+			register_setting(
+				'formscrm_settings',
+				'formscrm_slack_webhook_url',
+				array( 'sanitize_callback' => 'esc_url_raw' )
+			);
+			register_setting(
+				'formscrm_settings',
+				'formscrm_error_notification_email',
+				array( 'sanitize_callback' => 'sanitize_email' )
+			);
 		}
 
 		/**
