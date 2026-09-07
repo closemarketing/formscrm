@@ -168,11 +168,14 @@ class GFCRM extends GFFeedAddOn {
 	public function maybe_sync_payment_feed( $is_asynchronous, $feed, $entry, $form ) {
 		$settings = $this->get_api_settings_custom( $feed );
 
-		if ( ! empty( $settings['fc_crm_type'] ) && 'redsys' === $settings['fc_crm_type'] ) {
-			return false;
+		if ( empty( $settings['fc_crm_type'] ) || 'redsys' !== $settings['fc_crm_type'] ) {
+			return $is_asynchronous;
 		}
 
-		return $is_asynchronous;
+		// Only force synchronous processing if the connector actually loads;
+		// otherwise a deactivated/missing addon would fatal on the main
+		// request instead of failing quietly in the background as before.
+		return formscrm_get_api_class( $settings['fc_crm_type'] ) ? false : $is_asynchronous;
 	}
 
 	/**
@@ -1002,7 +1005,14 @@ class GFCRM extends GFFeedAddOn {
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
 		if ( ! is_array( $response_result ) ) {
-			formscrm_alert_error( $settings['fc_crm_type'], __( 'The CRM did not return a valid response.', 'formscrm' ), $merge_vars, '', '', array() );
+			$form_info = array(
+				'form_type'       => 'gravityforms',
+				'form_type_title' => 'Gravity Forms',
+				'form_id'         => isset( $form['id'] ) ? $form['id'] : '',
+				'form_name'       => isset( $form['title'] ) ? $form['title'] : '',
+				'entry_id'        => isset( $entry['id'] ) ? $entry['id'] : '',
+			);
+			formscrm_alert_error( $settings['fc_crm_type'], __( 'The CRM did not return a valid response.', 'formscrm' ), $merge_vars, '', '', $form_info );
 			return;
 		}
 
