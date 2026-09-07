@@ -32,7 +32,7 @@
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.4.0",
     "@wordpress/scripts": "^34.0.0",
-    "@wp-playground/cli": "^3.1.51",
+    "@wp-playground/cli": "^3.1.52",
     "fetch-cookie": "^3.1.0",
     "vitest": "^4.1.10"
   },
