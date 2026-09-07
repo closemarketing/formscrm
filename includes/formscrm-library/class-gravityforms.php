@@ -123,6 +123,13 @@ class GFCRM extends GFFeedAddOn {
 	private $crmlib;
 
 	/**
+	 * Hosted payment redirect URLs keyed by form ID for the active request.
+	 *
+	 * @var array<int,string>
+	 */
+	private $payment_redirects = array();
+
+	/**
 	 * Get singleton instance.
 	 *
 	 * @return GFCRM
@@ -133,6 +140,59 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		return self::$_instance;
+	}
+
+	/**
+	 * Init functions.
+	 *
+	 * @return void
+	 */
+	public function init() {
+		parent::init();
+
+		// Hosted payment gateways (e.g. Redsys) must run synchronously so their
+		// redirect_url is available before Gravity Forms builds the confirmation.
+		add_filter( 'gform_is_feed_asynchronous', array( $this, 'maybe_sync_payment_feed' ), 10, 4 );
+		add_filter( 'gform_confirmation', array( $this, 'maybe_redirect_payment_confirmation' ), 20, 4 );
+	}
+
+	/**
+	 * Forces synchronous processing for feeds using a hosted payment gateway.
+	 *
+	 * @param bool  $is_asynchronous Whether the feed processes asynchronously.
+	 * @param array $feed            Feed configuration.
+	 * @param array $entry           Entry data.
+	 * @param array $form            Form configuration.
+	 * @return bool
+	 */
+	public function maybe_sync_payment_feed( $is_asynchronous, $feed, $entry, $form ) {
+		$settings = $this->get_api_settings_custom( $feed );
+
+		if ( ! empty( $settings['fc_crm_type'] ) && 'redsys' === $settings['fc_crm_type'] ) {
+			return false;
+		}
+
+		return $is_asynchronous;
+	}
+
+	/**
+	 * Makes Gravity Forms follow the payment gateway handoff instead of its
+	 * normal confirmation, when the feed just processed one for this entry.
+	 *
+	 * @param array|string $confirmation Confirmation configuration.
+	 * @param array        $form         Form configuration.
+	 * @param array        $entry        Entry data.
+	 * @param bool         $ajax         Whether this is an AJAX request.
+	 * @return array|string
+	 */
+	public function maybe_redirect_payment_confirmation( $confirmation, $form, $entry, $ajax ) {
+		$form_id = isset( $form['id'] ) ? absint( $form['id'] ) : 0;
+
+		if ( empty( $this->payment_redirects[ $form_id ] ) ) {
+			return $confirmation;
+		}
+
+		return array( 'redirect' => $this->payment_redirects[ $form_id ] );
 	}
 
 	/**
@@ -940,7 +1000,13 @@ class GFCRM extends GFFeedAddOn {
 
 		// Sends the entry to CRM.
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
-		$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
+
+		if ( ! is_array( $response_result ) ) {
+			formscrm_alert_error( $settings['fc_crm_type'], __( 'The CRM did not return a valid response.', 'formscrm' ), $merge_vars, '', '', array() );
+			return;
+		}
+
+		$api_status = isset( $response_result['status'] ) ? $response_result['status'] : '';
 
 		if ( 'error' === $api_status ) {
 			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
@@ -967,6 +1033,12 @@ class GFCRM extends GFFeedAddOn {
 			);
 			$this->add_note( $entry['id'], $response_message, 'error', $this->get_note_author( $settings, $response_result ) );
 		} else {
+			if ( ! empty( $response_result['redirect_url'] ) ) {
+				// Hosted payment gateways, such as Redsys, return a local
+				// one-time handoff URL. Picked up by maybe_redirect_payment_confirmation().
+				$this->payment_redirects[ (int) $form['id'] ] = esc_url_raw( $response_result['redirect_url'] );
+			}
+
 			$crm_action   = isset( $response_result['action'] ) ? $response_result['action'] : '';
 			$crm_strategy = isset( $response_result['strategy'] ) ? $response_result['strategy'] : '';
 			$crm_message  = isset( $response_result['message'] ) ? $response_result['message'] : '';
@@ -1047,9 +1119,12 @@ class GFCRM extends GFFeedAddOn {
 		if ( isset( $field['type'] ) && GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
 			$ary          = explode( '|', $entry[ $field_id ] );
 			$product_name = count( $ary ) > 0 ? $ary[0] : '';
+			// Payment-gateway CRMs (e.g. Redsys) map their amount field to the
+			// price, not the product label.
+			$value = 'amount' === $var_key && isset( $ary[1] ) ? $ary[1] : $product_name;
 			return array(
 				'name'  => $var_key,
-				'value' => $product_name,
+				'value' => $value,
 			);
 		} elseif ( $field && 'checkbox' === RGFormsModel::get_input_type( $field ) ) {
 			$value = '';
