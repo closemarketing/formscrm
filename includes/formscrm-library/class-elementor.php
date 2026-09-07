@@ -151,9 +151,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'button_type' => 'info',
 				'text'        => esc_html__( 'Connect', 'formscrm' ),
 				'event'       => 'formscrm:editor:connectCRM',
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
 			)
 		);
 
@@ -162,9 +159,6 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			array(
 				'type'      => \Elementor\Controls_Manager::RAW_HTML,
 				'raw'       => '<div id="formscrm-popup"></div>',
-				'condition' => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
 			)
 		);
 
@@ -258,8 +252,20 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, array() );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
+		if ( ! is_array( $response_result ) ) {
+			$ajax_handler->add_error_message( __( 'Could not process the form submission.', 'formscrm' ) );
+			return;
+		}
+
+		// Hosted payment gateways, such as Redsys, return a local one-time
+		// handoff URL. Elementor follows redirect_url after a successful AJAX
+		// submission, keeping the signed payment parameters server-side.
+		if ( ! empty( $response_result['redirect_url'] ) ) {
+			$ajax_handler->add_response_data( 'redirect_url', esc_url_raw( $response_result['redirect_url'] ) );
+		}
+
 		$response_message = '';
-		if ( 'error' === $response_result['status'] ) {
+		if ( isset( $response_result['status'] ) && 'error' === $response_result['status'] ) {
 			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
 			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';

@@ -288,9 +288,23 @@ class FORMSCRM_CF7_Settings {
 		}
 		$merge_vars      = self::get_merge_vars( $cf7_crm, $submission->get_posted_data() );
 		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $cf7_crm, array() );
+		$cf7_crm['formscrm_form_type'] = 'contactform7';
 		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
-		if ( 'error' === $response_result['status'] ) {
+		if ( ! is_array( $response_result ) ) {
+			formscrm_alert_error( $crm_type, __( 'The CRM did not return a valid response.', 'formscrm' ), $merge_vars, '', '', $form_info );
+			return;
+		}
+
+		if ( ! empty( $response_result['redirect_url'] ) ) {
+			/**
+			 * Hosted payment gateways return a local, signed handoff URL. The
+			 * addon adds it to Contact Form 7's REST response for its frontend.
+			 */
+			do_action( 'formscrm_payment_redirect', $response_result['redirect_url'], 'contactform7', $contact_form->id() );
+		}
+
+		if ( isset( $response_result['status'] ) && 'error' === $response_result['status'] ) {
 			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
 
@@ -298,7 +312,7 @@ class FORMSCRM_CF7_Settings {
 		} else {
 			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
 			$crm_name = formscrm_get_crm_display_name( $response_result, $cf7_crm['fc_crm_type'] );
-			formscrm_debug_message( 'Success creating ' . $crm_name . ' Entry ID: ' . $response_result['id'] );
+			formscrm_debug_message( 'Success creating ' . $crm_name . ' Entry ID: ' . ( $response_result['id'] ?? '' ) );
 		}
 	}
 

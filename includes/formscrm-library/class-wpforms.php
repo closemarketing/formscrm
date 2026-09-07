@@ -34,7 +34,18 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		'fc_crm_apipassword',
 		'fc_crm_apisales',
 		'fc_crm_odoodb',
+		'fc_crm_fuc',
+		'fc_crm_terminal',
+		'fc_crm_sha_secret',
+		'fc_crm_redsys_mode',
 	);
+
+	/**
+	 * Hosted payment redirect URLs keyed by form ID for the active request.
+	 *
+	 * @var array<int,string>
+	 */
+	private $payment_redirects = array();
 
 	/**
 	 * Initialize.
@@ -48,6 +59,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		$this->slug     = 'formscrm';
 		$this->priority = 14;
 		$this->icon     = plugins_url( '../assets/addon-icon-wpforms.png', __FILE__ );
+		add_filter( 'wpforms_process_entry_confirmation_redirect_confirmations', array( $this, 'payment_confirmation_redirect' ), 20, 4 );
 	}
 
 	/**
@@ -70,6 +82,9 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		foreach ( $form_data['providers'][ $this->slug ] as $connection ) {
 			$account_id                = $connection['account_id'];
 			$settings                  = $this->api_connect( $account_id );
+			if ( is_wp_error( $settings ) ) {
+				return;
+			}
 			$settings['fc_crm_module'] = $connection['list_id'];
 			$merge_vars                = array();
 			$entry_meta                = wpforms()->get( 'entry_meta' );
@@ -174,8 +189,12 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			// Submit to API.
 			$message = '';
 			try {
+				$settings['formscrm_form_type'] = 'wpforms';
 				$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
 				$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
+				if ( is_array( $response_result ) && ! empty( $response_result['redirect_url'] ) ) {
+					$this->payment_redirects[ $form_id ] = esc_url_raw( $response_result['redirect_url'] );
+				}
 				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
 				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
@@ -211,6 +230,32 @@ class FormsCRM_WPForms extends WPForms_Provider {
 				'entry_meta'
 			);
 		}
+	}
+
+	/**
+	 * Makes WPForms follow the Redsys handoff instead of its normal confirmation.
+	 *
+	 * The provider is called before WPForms resolves confirmations, so this is
+	 * scoped to the current submission and cannot affect another form request.
+	 *
+	 * @param array $confirmations Confirmation configuration.
+	 * @param array $form_data Form data.
+	 * @param array $fields Submitted fields.
+	 * @param int   $entry_id Entry ID.
+	 * @return array
+	 */
+	public function payment_confirmation_redirect( $confirmations, $form_data, $fields, $entry_id ) {
+		$form_id = absint( $form_data['id'] ?? 0 );
+		if ( empty( $this->payment_redirects[ $form_id ] ) ) {
+			return $confirmations;
+		}
+
+		$confirmations[1] = array(
+			'type'     => 'redirect',
+			'redirect' => $this->payment_redirects[ $form_id ],
+		);
+
+		return $confirmations;
 	}
 
 	/**

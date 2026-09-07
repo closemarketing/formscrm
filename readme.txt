@@ -62,6 +62,8 @@ Set the amount you want to charge, connect your existing Redsys virtual POS, and
 
 Built for Spanish businesses that already use Redsys through their bank, the integration gives you a straightforward way to accept card payments without building or maintaining a separate checkout.
 
+[Redsys Addon](https://close.technology/wordpress-plugins/formscrm-redsys/)
+
 ** UTM Tracker Addon **
 
 Know exactly where every lead comes from. The [UTM Tracker Addon](https://close.technology/wordpress-plugins/formscrm-utm-tracker/) captures UTM parameters from the URL and automatically attaches them to every form submission sent to your CRM — no hidden fields required.
