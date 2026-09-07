@@ -1,0 +1,27 @@
+# .pcpignore
+#
+# Development-only paths to skip once Plugin Check ships its opt-in
+# --use-pcpignore flag (https://github.com/WordPress/plugin-check/pull/1460).
+# These paths are already stripped from the distributed plugin via
+# .distignore and are not part of the production code Plugin Check should
+# be scoring.
+
+.github/
+bin/
+tests/
+docs/
+node_modules/
+vendor/
+
+.npmrc
+.gitignore
+.distignore
+.editorconfig
+.phpcs.xml.dist
+phpcs.xml.dist
+phpstan.neon.dist
+phpunit.xml.dist
+.wp-env.json
+
+AGENTS.md
+CLAUDE.md
