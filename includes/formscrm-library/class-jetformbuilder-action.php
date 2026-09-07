@@ -120,7 +120,7 @@ class FORMSCRM_JFB_Action extends Base {
 			return;
 		}
 
-		$settings['fc_crm_module'] = $module;
+		$settings['fc_crm_module']      = $module;
 		$settings['formscrm_form_type'] = 'jetformbuilder';
 
 		$merge_vars = $this->build_merge_vars( $request );
@@ -128,7 +128,7 @@ class FORMSCRM_JFB_Action extends Base {
 		$result     = $crmlib->create_entry( $settings, $merge_vars );
 
 		if ( ! is_array( $result ) ) {
-			throw new Action_Exception( __( 'The CRM did not return a valid response.', 'formscrm' ) );
+			throw new Action_Exception( __( 'The CRM did not return a valid response.', 'formscrm' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not direct output.
 		}
 
 		if ( isset( $result['status'] ) && 'error' === $result['status'] ) {

@@ -251,7 +251,7 @@ class GFCRM extends GFFeedAddOn {
 			return array();
 		}
 
-		$crm_fields = array();
+		$crm_fields  = array();
 		$definitions = formscrm_get_crm_field_definitions();
 		foreach ( $definitions as $def ) {
 			$gf_field = array(

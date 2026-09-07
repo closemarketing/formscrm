@@ -286,10 +286,10 @@ class FORMSCRM_CF7_Settings {
 			formscrm_alert_error( $crm_type, sprintf( __( 'CRM class not found for type: %s', 'formscrm' ), $crm_type ), array(), '', '', $form_info );
 			return;
 		}
-		$merge_vars      = self::get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $cf7_crm, array() );
+		$merge_vars                    = self::get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+		$merge_vars                    = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $cf7_crm, array() );
 		$cf7_crm['formscrm_form_type'] = 'contactform7';
-		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
+		$response_result               = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
 		if ( ! is_array( $response_result ) ) {
 			formscrm_alert_error( $crm_type, __( 'The CRM did not return a valid response.', 'formscrm' ), $merge_vars, '', '', $form_info );

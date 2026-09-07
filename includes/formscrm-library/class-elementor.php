@@ -157,8 +157,8 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$widget->add_control(
 			'formscrm_html',
 			array(
-				'type'      => \Elementor\Controls_Manager::RAW_HTML,
-				'raw'       => '<div id="formscrm-popup"></div>',
+				'type' => \Elementor\Controls_Manager::RAW_HTML,
+				'raw'  => '<div id="formscrm-popup"></div>',
 			)
 		);
 

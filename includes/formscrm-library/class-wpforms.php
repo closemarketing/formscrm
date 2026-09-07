@@ -80,8 +80,8 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 		// Fire for each connection.
 		foreach ( $form_data['providers'][ $this->slug ] as $connection ) {
-			$account_id                = $connection['account_id'];
-			$settings                  = $this->api_connect( $account_id );
+			$account_id = $connection['account_id'];
+			$settings   = $this->api_connect( $account_id );
 			if ( is_wp_error( $settings ) ) {
 				return;
 			}
@@ -190,13 +190,13 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			$message = '';
 			try {
 				$settings['formscrm_form_type'] = 'wpforms';
-				$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
-				$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
+				$merge_vars                     = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
+				$response_result                = $this->crmlib->create_entry( $settings, $merge_vars );
 				if ( is_array( $response_result ) && ! empty( $response_result['redirect_url'] ) ) {
 					$this->payment_redirects[ $form_id ] = esc_url_raw( $response_result['redirect_url'] );
 				}
-				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
-				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
+				$api_status  = isset( $response_result['status'] ) ? $response_result['status'] : '';
+				$api_message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 				if ( 'error' === $api_status ) {
 					$form_info = array(
@@ -696,7 +696,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		foreach ( formscrm_get_choices() as $crm ) {
 			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_js( $crm['value'] ) . "') {";
 			foreach ( formscrm_get_crm_field_definitions() as $def ) {
-				$css_class   = 'fc_crm_' . $def['name'];
+				$css_class  = 'fc_crm_' . $def['name'];
 				$dependency = call_user_func( $def['dependency'] );
 				if ( in_array( $crm['value'], $dependency, true ) ) {
 					$js_dependency .= '$(".' . esc_js( $css_class ) . '").show();';
