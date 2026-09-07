@@ -46,8 +46,30 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 		 * @return void
 		 */
 		public function register_settings() {
-			register_setting( 'formscrm_settings', 'formscrm_slack_webhook_url' );
-			register_setting( 'formscrm_settings', 'formscrm_error_notification_email' );
+			register_setting(
+				'formscrm_settings',
+				'formscrm_slack_webhook_url',
+				array( 'sanitize_callback' => 'esc_url_raw' )
+			);
+			register_setting(
+				'formscrm_settings',
+				'formscrm_error_notification_email',
+				array( 'sanitize_callback' => array( $this, 'sanitize_notification_emails' ) )
+			);
+		}
+
+		/**
+		 * Sanitizes a comma-separated list of notification email addresses.
+		 *
+		 * @param string $value Raw comma-separated email addresses.
+		 * @return string Comma-separated list of valid, sanitized email addresses.
+		 */
+		public function sanitize_notification_emails( $value ) {
+			$emails = array_map( 'trim', explode( ',', (string) $value ) );
+			$emails = array_map( 'sanitize_email', $emails );
+			$emails = array_filter( $emails, 'is_email' );
+
+			return implode( ',', $emails );
 		}
 
 		/**

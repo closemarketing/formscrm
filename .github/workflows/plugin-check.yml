@@ -40,6 +40,7 @@ jobs:
       - name: Run Plugin Check
         uses: WordPress/plugin-check-action@v1
         with:
-          exclude-directories: vendor,node_modules,tests
+          exclude-directories: vendor,node_modules,tests,bin,.github
+          exclude-files: .npmrc,.gitignore,.distignore,.editorconfig,.pcpignore,.phpcs.xml.dist,phpcs.xml.dist,phpstan.neon.dist,phpunit.xml.dist,AGENTS.md,CLAUDE.md
           error-severity: 7
           warning-severity: 8
