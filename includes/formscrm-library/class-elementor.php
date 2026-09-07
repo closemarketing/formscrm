@@ -87,89 +87,32 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			)
 		);
 
-		// URL field.
-		$widget->add_control(
-			'fc_crm_url',
-			array(
-				'label'       => __( 'URL:', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::URL,
-				'placeholder' => 'https://domain.com',
-				'label_block' => true,
-				'description' => __( 'CRM URL', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_url(),
-				),
-			)
-		);
-
-		// Username field.
-		$widget->add_control(
-			'fc_crm_username',
-			array(
-				'label'       => __( 'Username', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Username for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_username(),
-				),
-			)
-		);
-
-		// Password field.
-		$widget->add_control(
-			'fc_crm_password',
-			array(
-				'label'       => __( 'Password', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Password for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_password(),
-				),
-			)
-		);
-
-		// API Password field.
-		$widget->add_control(
-			'fc_crm_apipassword',
-			array(
-				'label'       => __( 'API Password', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'API Password for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
-			)
-		);
-
-		// API Sales field.
-		$widget->add_control(
-			'fc_crm_apisales',
-			array(
-				'label'       => __( 'API Sales', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
+		foreach ( formscrm_get_crm_field_definitions() as $def ) {
+			$control_name = 'fc_crm_' . $def['name'];
+			$control_args = array(
+				'label'       => $def['label'],
 				'label_block' => true,
 				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apisales(),
+					'fc_crm_type' => call_user_func( $def['dependency'] ),
 				),
-			)
-		);
-
-		// Odoo DB field.
-		$widget->add_control(
-			'fc_crm_odoodb',
-			array(
-				'label'       => __( 'Odoo DB', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Odoo DB to connect this form.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_odoodb(),
-				),
-			)
-		);
+			);
+			if ( ! empty( $def['tooltip'] ) ) {
+				$control_args['description'] = $def['tooltip'];
+			}
+			if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+				$control_args['type']    = \Elementor\Controls_Manager::SELECT;
+				$control_args['options'] = array();
+				foreach ( $def['choices'] as $choice ) {
+					$control_args['options'][ $choice['value'] ] = $choice['label'];
+				}
+			} else {
+				$control_args['type'] = \Elementor\Controls_Manager::TEXT;
+				if ( 'url' === $def['name'] ) {
+					$control_args['placeholder'] = 'https://domain.com';
+				}
+			}
+			$widget->add_control( $control_name, $control_args );
+		}
 
 		// Expert Mode.
 		$widget->add_control(
@@ -208,20 +151,14 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'button_type' => 'info',
 				'text'        => esc_html__( 'Connect', 'formscrm' ),
 				'event'       => 'formscrm:editor:connectCRM',
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
 			)
 		);
 
 		$widget->add_control(
 			'formscrm_html',
 			array(
-				'type'      => \Elementor\Controls_Manager::RAW_HTML,
-				'raw'       => '<div id="formscrm-popup"></div>',
-				'condition' => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
+				'type' => \Elementor\Controls_Manager::RAW_HTML,
+				'raw'  => '<div id="formscrm-popup"></div>',
 			)
 		);
 
@@ -315,8 +252,20 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, array() );
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
 
+		if ( ! is_array( $response_result ) ) {
+			$ajax_handler->add_error_message( __( 'Could not process the form submission.', 'formscrm' ) );
+			return;
+		}
+
+		// Hosted payment gateways, such as Redsys, return a local one-time
+		// handoff URL. Elementor follows redirect_url after a successful AJAX
+		// submission, keeping the signed payment parameters server-side.
+		if ( ! empty( $response_result['redirect_url'] ) ) {
+			$ajax_handler->add_response_data( 'redirect_url', esc_url_raw( $response_result['redirect_url'] ) );
+		}
+
 		$response_message = '';
-		if ( 'error' === $response_result['status'] ) {
+		if ( isset( $response_result['status'] ) && 'error' === $response_result['status'] ) {
 			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
 			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';

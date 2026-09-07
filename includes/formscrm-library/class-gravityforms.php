@@ -251,76 +251,29 @@ class GFCRM extends GFFeedAddOn {
 			return array();
 		}
 
-		$crm_fields = array(
-			array(
-				'name'          => $prefix . 'url',
-				'label'         => __( 'CRM URL', 'formscrm' ),
-				'type'          => 'text',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_url(),
-				),
-			),
-			array(
-				'name'       => $prefix . 'username',
-				'label'      => __( 'Username', 'formscrm' ),
-				'type'       => 'text',
+		$crm_fields  = array();
+		$definitions = formscrm_get_crm_field_definitions();
+		foreach ( $definitions as $def ) {
+			$gf_field = array(
+				'name'       => $prefix . $def['name'],
+				'label'      => $def['label'],
+				'type'       => $def['type'],
 				'class'      => 'medium',
 				'dependency' => array(
 					'field'  => $field_name,
-					'values' => formscrm_get_dependency_username(),
+					'values' => call_user_func( $def['dependency'] ),
 				),
-			),
-			array(
-				'name'          => $prefix . 'password',
-				'label'         => __( 'Password', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Use the password of the actual user.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_password(),
-				),
-			),
-			array(
-				'name'          => $prefix . 'apipassword',
-				'label'         => __( 'API Password for User', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_apipassword(),
-				),
-			),
-			array(
-				'name'          => $prefix . 'apisales',
-				'label'         => __( 'Password and Security Key', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_apisales(),
-				),
-			),
-			array(
-				'name'       => $prefix . 'odoodb',
-				'label'      => __( 'Odoo DB Name', 'formscrm' ),
-				'type'       => 'text',
-				'class'      => 'medium',
-				'dependency' => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_odoodb(),
-				),
-			),
-		);
+			);
+			if ( ! empty( $def['tooltip'] ) ) {
+				$gf_field['tooltip']       = $def['tooltip'];
+				$gf_field['tooltip_class'] = 'tooltipclass';
+			}
+			if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+				$gf_field['choices'] = $def['choices'];
+			}
+			$crm_fields[] = $gf_field;
+		}
+
 		if ( $select_crm_type ) {
 			$crm_fields = array_merge(
 				array(
@@ -867,6 +820,40 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Adds an entry note, optionally using the connector's own display name.
+	 *
+	 * @param int         $entry_id  Entry ID.
+	 * @param string      $note      Note content.
+	 * @param string|null $sub_type  Note subtype.
+	 * @param string      $user_name Display name for the connector.
+	 * @return int
+	 */
+	public function add_note( $entry_id, $note, $sub_type = null, $user_name = '' ) {
+		$user_name = '' === $user_name ? $this->_short_title : sanitize_text_field( $user_name );
+
+		return GFFormsModel::add_note( $entry_id, 0, $user_name, $note, $this->get_slug(), $sub_type );
+	}
+
+	/**
+	 * Gets the display name for a note created by a connector.
+	 *
+	 * @param array $settings        Current feed settings.
+	 * @param array $response_result Connector response.
+	 * @return string
+	 */
+	private function get_note_author( $settings, $response_result = array() ) {
+		$author = ! empty( $response_result['note_author'] ) ? $response_result['note_author'] : $this->_short_title;
+
+		return apply_filters(
+			'formscrm_entry_note_author',
+			$author,
+			isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '',
+			$settings,
+			$response_result
+		);
+	}
+
+	/**
 	 * Sends data to API
 	 *
 	 * @param array  $feed  Feed data.
@@ -978,17 +965,20 @@ class GFCRM extends GFFeedAddOn {
 				$url,
 				$query
 			);
-			$this->add_note( $entry['id'], $response_message, 'error' );
+			$this->add_note( $entry['id'], $response_message, 'error', $this->get_note_author( $settings, $response_result ) );
 		} else {
 			$crm_action   = isset( $response_result['action'] ) ? $response_result['action'] : '';
 			$crm_strategy = isset( $response_result['strategy'] ) ? $response_result['strategy'] : '';
+			$crm_message  = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
 			if ( ! empty( $response_result['fc_crm_name'] ) ) {
 				$settings['fc_crm_name'] = $response_result['fc_crm_name'];
 			}
 
-			if ( ! empty( $crm_action ) ) {
+			if ( ! empty( $crm_message ) ) {
+				$response_message = esc_html( $crm_message );
+			} elseif ( ! empty( $crm_action ) ) {
 				$response_message = sprintf(
 				// translators: %1$s CRM name %2$s CRM type %3$s ID %4$s action (created/updated) %5$s strategy field.
 					__( 'Success %4$s %1$s (%2$s) Entry ID: %3$s. Strategy: %5$s', 'formscrm' ),
@@ -1007,7 +997,7 @@ class GFCRM extends GFFeedAddOn {
 					$response_result['id']
 				);
 			}
-			$this->add_note( $entry['id'], $response_message, 'success' );
+			$this->add_note( $entry['id'], $response_message, 'success', $this->get_note_author( $settings, $response_result ) );
 			formscrm_debug_message( $response_result['id'] );
 			formscrm_send_webhook( $settings, $response_result );
 			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );

@@ -40,8 +40,9 @@ At this time, FormsCRM supports in free version:
 - [Brevo](https://brevo.com/)
 
 And you will find, that there are Premium Addons to support:
-- [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
 - [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/)
+- [RedSys](https://close.technology/en/wordpress-plugins/formscrm-redsys/)
+- [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
 - [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/)
 - [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/)
 - [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/)
@@ -53,6 +54,15 @@ You can use multiple feed connector in GravityForms, WPForms PRO, Elementor Form
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
+
+**RedSys**
+Turn any FormsCRM form into a secure payment opportunity with RedSys. Whether you are taking a booking deposit, selling a service, collecting a registration fee, or charging for an order, customers complete their payment on the familiar, bank-hosted Redsys checkout.
+
+Set the amount you want to charge, connect your existing Redsys virtual POS, and let FormsCRM take care of the handoff. Your customer is sent to the bank to pay and returned to your form confirmation page when they finish, so the experience stays smooth from first click to final confirmation.
+
+Built for Spanish businesses that already use Redsys through their bank, the integration gives you a straightforward way to accept card payments without building or maintaining a separate checkout.
+
+[Redsys Addon](https://close.technology/wordpress-plugins/formscrm-redsys/)
 
 ** UTM Tracker Addon **
 
