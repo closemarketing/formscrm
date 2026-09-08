@@ -546,7 +546,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			}
 
 			if ( ! empty( $lead_parts ) ) {
-				$message_text .= '*' . esc_html( $labels['slack_data'] ) . '* ' . implode( ' | ', $lead_parts );
+				$message_text .= '*' . $labels['slack_data'] . '* ' . implode( ' | ', $lead_parts );
 
 				if ( count( $data ) > 3 ) {
 					/* translators: %d: number of additional fields not shown */
