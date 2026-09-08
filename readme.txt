@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 4.4.3
-Version: 4.4.3
+Stable tag: 4.4.4-beta.1
+Version: 4.4.4-beta.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 

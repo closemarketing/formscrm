@@ -330,12 +330,25 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 		$custom_email = get_option( 'formscrm_error_notification_email', '' );
 		$to           = ! empty( $custom_email ) ? $custom_email : get_option( 'admin_email' );
 
+		// Allow CRM addons (e.g. payment gateways) to override the error report wording.
+		$labels = apply_filters(
+			'formscrm_alert_error_labels',
+			array(
+				'subject_reason' => __( 'Error creating the Lead', 'formscrm' ),
+				'report_title'   => __( 'FormsCRM Error Report', 'formscrm' ),
+				'data_section'   => __( 'Lead Data', 'formscrm' ),
+				'slack_title'    => __( '⚠️ FormsCRM Error Report', 'formscrm' ),
+				'slack_data'     => __( 'Lead:', 'formscrm' ),
+			),
+			$crm
+		);
+
 		// Subject with site name.
 		$site_name = get_bloginfo( 'name' );
 		$subject   = sprintf(
 			'[%s] FormsCRM - %s',
 			$site_name,
-			__( 'Error creating the Lead', 'formscrm' )
+			$labels['subject_reason']
 		);
 
 		// Body with site information.
@@ -343,7 +356,7 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 		$body .= '<div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">';
 
 		// Header.
-		$body .= '<h2 style="color: #d32f2f; margin-top: 0;">' . __( 'FormsCRM Error Report', 'formscrm' ) . '</h2>';
+		$body .= '<h2 style="color: #d32f2f; margin-top: 0;">' . esc_html( $labels['report_title'] ) . '</h2>';
 
 		// Site Information.
 		$body .= '<div style="background-color: #f5f5f5; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
@@ -389,7 +402,7 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 
 		// Lead Data.
 		$body .= '<div style="background-color: #fff3e0; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
-		$body .= '<h3 style="margin-top: 0; color: #f57c00;">' . __( 'Lead Data', 'formscrm' ) . '</h3>';
+		$body .= '<h3 style="margin-top: 0; color: #f57c00;">' . esc_html( $labels['data_section'] ) . '</h3>';
 		$body .= '<table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">';
 		foreach ( $data as $dataitem ) {
 			$body .= '<tr style="border-bottom: 1px solid #eee;">';
@@ -472,6 +485,19 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			return false;
 		}
 
+		// Allow CRM addons (e.g. payment gateways) to override the error report wording.
+		$labels = apply_filters(
+			'formscrm_alert_error_labels',
+			array(
+				'subject_reason' => __( 'Error creating the Lead', 'formscrm' ),
+				'report_title'   => __( 'FormsCRM Error Report', 'formscrm' ),
+				'data_section'   => __( 'Lead Data', 'formscrm' ),
+				'slack_title'    => __( '⚠️ FormsCRM Error Report', 'formscrm' ),
+				'slack_data'     => __( 'Lead:', 'formscrm' ),
+			),
+			$crm
+		);
+
 		// Build the Slack message.
 		$site_name = get_bloginfo( 'name' );
 		$site_url  = get_site_url();
@@ -520,7 +546,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			}
 
 			if ( ! empty( $lead_parts ) ) {
-				$message_text .= '*' . __( 'Lead:', 'formscrm' ) . '* ' . implode( ' | ', $lead_parts );
+				$message_text .= '*' . $labels['slack_data'] . '* ' . implode( ' | ', $lead_parts );
 
 				if ( count( $data ) > 3 ) {
 					/* translators: %d: number of additional fields not shown */
@@ -549,7 +575,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 						$error
 					),
 					'color'       => 'danger',
-					'title'       => __( '⚠️ FormsCRM Error Report', 'formscrm' ),
+					'title'       => $labels['slack_title'],
 					'text'        => $message_text,
 					'footer'      => 'FormsCRM',
 					'footer_icon' => 'https://close.technology/wp-content/uploads/2023/12/close-technology-logo.png',
