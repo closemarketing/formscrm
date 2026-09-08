@@ -158,6 +158,36 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 			</tr>
 			<?php
 
+			// Merge strategy: lets the entry be searched and updated instead of always created.
+			$search_entry_fields = method_exists( $crmlib, 'list_fields_search_entry' ) ? $crmlib->list_fields_search_entry( $value ) : array();
+
+			if ( ! empty( $search_entry_fields ) ) {
+				$saved_merge_val = isset( $hidden_settings['fc_crm_merge_entry'] ) ? $hidden_settings['fc_crm_merge_entry'] : '';
+				?>
+				<tr class="elementor-map-row">
+					<td class="elementor-map-column elementor-map-column-key">
+						<label for="fc_crm_merge_entry-<?php echo esc_html( $value ); ?>"><?php esc_html_e( 'Merge strategy', 'formscrm' ); ?></label>
+					</td>
+					<td class="elementor-map-column elementor-map-column-value">
+						<select class="wide" id="fc_crm_merge_entry-<?php echo esc_html( $value ); ?>" name="fc_crm_merge_entry">
+							<option value=""><?php esc_html_e( 'No strategy (always create)', 'formscrm' ); ?></option>
+							<?php
+							foreach ( $search_entry_fields as $search_entry_field ) {
+								$field_value = isset( $search_entry_field['value'] ) ? $search_entry_field['value'] : ( $search_entry_field['name'] ?? '' );
+								if ( empty( $field_value ) || ! isset( $search_entry_field['label'] ) ) {
+									continue;
+								}
+								echo '<option value="' . esc_attr( $field_value ) . '" ';
+								selected( $saved_merge_val, $field_value );
+								echo '>' . esc_html( $search_entry_field['label'] ) . '</option>';
+							}
+							?>
+						</select>
+					</td>
+				</tr>
+				<?php
+			}
+
 			$count_fields = 0;
 
 			foreach ( $crm_fields as $crm_field ) {
