@@ -809,6 +809,15 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$contact['tags'] = array_values( array_filter( $contact_tags ) );
 		}
 
+		// If we are using the v2 API, then move 'email' inside the 'emails' array as type 4 (Main).
+		if ( 'v2' === $this->api_version && ! empty( $contact['email'] ) ) {
+			$contact['emails'][] = array(
+				'type'  => 4,
+				'email' => $contact['email'],
+			);
+			unset( $contact['email'] );
+		}
+
 		$this->contact = $contact;
 	}
 
@@ -1074,9 +1083,10 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			);
 		}
 
-		$base_url = 'v1' === $api_version ? 'https://api.clientify.net/v1/' : 'https://api-plus.clientify.com/v2/';
-		$url      = $base_url . strtolower( $module );
-		$args     = array(
+		$base_url          = 'v1' === $api_version ? 'https://api.clientify.net/v1/' : 'https://api-plus.clientify.com/v2/';
+		$fallback_base_url = 'https://api.clientify.com/v1/';
+		$url               = $base_url . strtolower( $module );
+		$args              = array(
 			'headers' => array(
 				'Authorization' => 'Token ' . $apikey,
 			),
@@ -1089,26 +1099,47 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$args['body']                    = wp_json_encode( $params );
 		}
 
-		// Fields in query.
+		// Fields in query. The v2 API requires a `fields` param on every GET request.
 		if ( 'GET' === $method ) {
-			if ( 'v2' === $api_version && empty( $params ) ) {
-				$params = array( 'fields' => 'id' );
+			if ( 'v2' === $api_version && empty( $params['fields'] ) ) {
+				$params['fields'] = 'id';
 			}
 			if ( ! empty( $params ) ) {
 				$url .= '?' . http_build_query( $params );
 			}
 		}
 
-		$next          = true;
-		$results_value = array();
+		$next              = true;
+		$results_value     = array();
+		$used_fallback_url = false;
 
 		while ( $next ) {
-			$result   = wp_remote_request( $url, $args );
-			$body_raw = wp_remote_retrieve_body( $result );
-			$results  = json_decode( $body_raw, true );
-			$code     = (int) round( (int) wp_remote_retrieve_response_code( $result ) / 100, 0 );
+			$result        = wp_remote_request( $url, $args );
+			$response_code = (int) wp_remote_retrieve_response_code( $result );
+			$body_raw      = wp_remote_retrieve_body( $result );
+			$results       = json_decode( $body_raw, true );
+			$code          = (int) round( $response_code / 100, 0 );
 
 			if ( 2 !== $code ) {
+				// Temporary Clientify-support workaround: api.clientify.net occasionally returns
+				// a 504 Gateway Timeout on any method (GET/POST/PATCH/DELETE). Retry once against
+				// the api.clientify.com fallback before giving up. Remove once Clientify confirms
+				// the issue on api.clientify.net is fixed.
+				//
+				// A 504 on a write doesn't prove the mutation failed on Clientify's end, so
+				// retrying here risks a duplicate record (contact, update, deal, tag). That risk
+				// is accepted across the board: losing the submission entirely is worse.
+				if ( 'v1' === $api_version && 504 === $response_code && ! $used_fallback_url ) {
+					$failed_url        = $url;
+					$used_fallback_url = true;
+					$url               = str_replace( $base_url, $fallback_base_url, $url );
+					$args['timeout']   = 30;
+					// Logged unconditionally (not via formscrm_error_admin_message, which is a
+					// no-op outside WP_DEBUG) so fallback usage is visible in production too.
+					error_log( 'FORMSCRM: Clientify API v1 returned 504 on api.clientify.net for ' . $method . ' ' . $failed_url . ', retrying with api.clientify.com fallback.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					continue;
+				}
+
 				$message = $this->build_error_message( $result, $body_raw );
 				formscrm_error_admin_message( 'ERROR', $message );
 				$out = array(
@@ -1247,8 +1278,9 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	 */
 	public function determine_search_by( string $search_field ): string {
 		$map = array(
-			'email'         => 'query',
-			'business_name' => 'query',
+			'email'                          => 'query',
+			'business_name'                  => 'query',
+			'taxpayer_identification_number' => 'query',
 		);
 
 		return ! empty( $map[ $search_field ] ) ? $map[ $search_field ] : $search_field;

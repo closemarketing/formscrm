@@ -1,45 +1,129 @@
-# AGENTS.md
+## Project Overview
 
-## Cursor Cloud specific instructions
+**FormsCRM** is a WordPress plugin that connects WordPress form plugins to CRM/ERP and Email Marketing systems. It acts as a hub that loads integrations conditionally based on which form plugins and CRMs are active.
 
-This is a **WordPress plugin** that connects WordPress forms to CRM/ERP systems. When there is a form, you have to enable the connection, match variables and submit a entry to see that is correctly sent.
+- Form integrations: Gravity Forms, Contact Form 7, WPForms, Elementor Pro, WooCommerce
+- Built-in CRMs: Clientify, Holded, Brevo, AcumbaMail, MailerLite Classic
+- External CRMs (separate plugins): Zoho, Salesforce, Odoo, and others
 
-### Running the plugin locally
+## Development Commands
 
-Use [WordPress Playground CLI](https://wordpress.github.io/wordpress-playground/developers/local-development/wp-playground-cli) to run WordPress with the plugin auto-mounted:
-
-```bash
-npx @wp-playground/cli@latest server --auto-mount --php=8.1 --login --port=9400
-```
-
-This starts WordPress at `http://127.0.0.1:9400` with the plugin already active. No Docker, MySQL, or Apache needed for manual testing — Playground uses SQLite internally.
-
-### Development commands
-
-All commands are defined in `composer.json` scripts section:
+All commands run from this directory (`wp-content/plugins/formscrm/`):
 
 | Command | Purpose |
 |---|---|
-| `composer lint` | Run PHP_CodeSniffer (WordPress standards) |
+| `composer lint` | Run PHP_CodeSniffer (WordPress coding standards) |
 | `composer format` | Auto-fix coding standard issues |
-| `composer phpstan` | Run PHPStan static analysis (level 1) |
-| `composer test` | Run PHPUnit tests (requires MySQL + WP test suite) |
-| `composer test-install` | Install WordPress test suite + test database |
+| `composer phpstan` | Run PHPStan static analysis (level 1, `includes/` only) |
+| `composer test` | Run PHPUnit integration tests (requires MySQL with `wordpress_test` DB) |
+| `composer test-debug` | Run PHPUnit with Xdebug enabled |
+| `composer test-install` | Install WordPress test suite and create test DB |
+| `npm run wp` | Start WordPress Playground at http://127.0.0.1 (no MySQL needed) |
 
-### PHPUnit test environment
+**Run a single test file:**
+```bash
+vendor/bin/phpunit tests/Unit/test-helpers-functions.php
+```
 
-PHPUnit integration tests require MariaDB/MySQL running with a `wordpress_test` database. Setup steps:
+**PHPUnit test setup** (requires MySQL):
+```bash
+sudo mysqld_safe &
+composer test-install
+composer test
+```
+If tests hang during teardown, use: `timeout 120 vendor/bin/phpunit`
 
-1. Start MariaDB: `sudo mysqld_safe &`
-2. Install WP test suite: `composer test-install`
-3. Run tests: `composer test`
+## Plugin Architecture
 
-**Known issue:** PHPUnit tests pass (all dots shown) but the process may hang during WordPress test teardown in this containerized environment. Use `timeout 120 vendor/bin/phpunit` to work around this.
+### Extension Model
 
-### Project structure
+The plugin uses WordPress filters as extension points. Built-in CRMs register themselves in `formscrm.php`. External CRM plugins hook into the same filters:
 
-- `includes/` — Plugin PHP classes (API helpers, sync logic, admin UI, post type registration)
-- `tests/Unit/` — PHPUnit integration tests
-- `tests/Data/` — Mock API response JSON files for tests
-- `assets/` — CSS/JS assets (no build step needed)
-- `bin/install-wp-tests.sh` — WordPress test suite installer
+- `formscrm_choices` — adds CRM label/value pairs to the settings dropdown
+- `formscrm_crmlib_path` — maps CRM slug to the path of its class file
+- `formscrm_dependency_apipassword` — CRMs using API key auth (vs. URL+username+password)
+- `formscrm_dependency_url` — CRMs that require a URL field in settings
+
+### CRM Class Interface
+
+Every CRM class (e.g. `CRMLIB_Clientify`) must implement:
+- `login( $settings )` — validate credentials, return bool
+- `list_modules( $settings )` — return array of CRM modules/lists
+- `list_fields( $settings, $module )` — return fields for a given module
+- `create_entry( $settings, $module, $data )` — push form data to the CRM
+
+CRM class name convention: `CRMLIB_` + ucfirst(slug), e.g. `CRMLIB_Holded`. The `formscrm_get_api_class( $crm_type )` helper in `helpers-functions.php` handles dynamic loading.
+
+### Form Integration Loading
+
+`includes/formscrm-library/loader.php` checks `is_plugin_active()` for each supported form plugin and conditionally requires the matching class. This means form integration classes are only loaded when their dependency is active.
+
+### Error Log System
+
+`includes/admin/class-error-log.php` — custom DB table (`{prefix}_formscrm_error_log`) storing failed CRM submissions. Provides AJAX handlers for resend, delete, and clear-all. UI rendered by `class-error-log-page.php`. CRM failures must never surface to form submitters — all errors are caught, logged, and can be retried.
+
+## Coding Standards
+
+Enforced by `.phpcs.xml.dist` (WordPress Coding Standards):
+
+- **Tabs** for indentation (never spaces)
+- **Yoda conditions** always (`if ( 'value' === $var )`)
+- PHP inline comments start with capital letter, end with period; keep them concise
+- Global prefixes: `formscrm_`, `FormsCRM_`, `CRMLIB_`, `GFCRM`, `fcrm_`, `FCRM_`
+- Text domain: `formscrm`
+- Align consecutive `=` assignments vertically — use the minimum spaces needed to reach column alignment, one space on each side of the operator
+- **JavaScript**: Vanilla JS only — no jQuery
+- PHPStan runs at level 1 against `includes/` using bootstrap at `tests/phpstan-bootstrap.php`
+- Ensure lint tests pass before considering a change complete
+- Create unit tests for new functions/code when applicable
+
+## Tests
+
+- `tests/Unit/` — PHPUnit unit tests (helpers, markdown export, notifications, error log)
+- `tests/API/` — PHPUnit API integration tests (Clientify)
+- `tests/Forms/` — Form integration tests (CF7, Clientify)
+- `tests/Data/` — Mock JSON responses used by tests
+- `tests/bootstrap.php` — Test bootstrap (loads WP test suite)
+
+## Key Files
+
+- `formscrm.php` — Plugin entry point; registers built-in CRMs via filters, requires admin and loader
+- `includes/formscrm-library/loader.php` — Conditionally loads form integrations
+- `includes/formscrm-library/helpers-functions.php` — `formscrm_get_api_class()`, settings helpers, debug logging
+- `includes/formscrm-library/helpers-library-crm.php` — Filter wrappers (`formscrm_get_choices()`, `formscrm_get_crmlib_path()`, etc.)
+- `includes/admin/class-admin-options.php` — Settings page UI
+- `includes/admin/class-error-log.php` — Error log DB operations and AJAX handlers
+
+## CI/CD
+
+- `.github/workflows/php-lint.yml` — PHPCS on PRs
+- `.github/workflows/php-test.yml` — PHPUnit on PHP 7.4, 8.1, 8.2, 8.3
+- `.github/workflows/deploy.yml` — Deploy to WordPress.org SVN
+- Update `readme.txt` changelog for notable changes
+- Documentation goes in `/docs/` and must be listed in `.distignore`
+
+## Plugin Objective
+
+FormsCRM is designed to be the **most native complement** for form managers to connect with CRM/ERP and Email Marketing systems.
+
+### Core Principles
+
+1. **Native Integration** — Follow each form plugin's architecture and hooks; use official APIs
+2. **Maximum Reliability** — Never lose form submissions even if CRM connection fails; log errors, queue retries, degrade gracefully
+3. **Modular Design** — Each CRM integration is independent; new integrations must not break existing ones
+
+### Resilience Requirements
+
+When developing, always consider:
+- **CRM is down** → form still submits; data queued for retry; end users see no errors
+- **Timeout** → async processing where possible; proper timeout handling
+- **Wrong credentials** → clear admin error messages; don't break form submissions
+- **API changes** → version API calls; implement fallbacks
+
+### Development Guidelines
+
+1. Always test failure scenarios (CRM down, timeout, wrong credentials)
+2. Never block form submissions due to CRM issues
+3. Log errors comprehensively for debugging
+4. Use caching for expensive operations (field listings, etc.)
+5. Provide clear user feedback in admin interfaces

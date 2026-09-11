@@ -62,6 +62,10 @@ class FORMSCRM_JFB_Action extends Base {
 			'fc_crm_apipassword' => __( 'API Key / Password', 'formscrm' ),
 			'fc_crm_apisales'    => __( 'API Sales', 'formscrm' ),
 			'fc_crm_odoodb'      => __( 'Odoo DB', 'formscrm' ),
+			'fc_crm_fuc'         => __( 'Commerce number FUC', 'formscrm' ),
+			'fc_crm_terminal'    => __( 'Terminal number', 'formscrm' ),
+			'fc_crm_sha_secret'  => __( 'SHA Secret Key', 'formscrm' ),
+			'fc_crm_redsys_mode' => __( 'Mode', 'formscrm' ),
 			'fc_crm_module'      => __( 'CRM Module', 'formscrm' ),
 			'fields_map'         => __( 'Fields Map', 'formscrm' ),
 			'fetch_modules'      => __( 'Fetch Modules', 'formscrm' ),
@@ -87,6 +91,10 @@ class FORMSCRM_JFB_Action extends Base {
 				'fc_crm_apipassword' => '',
 				'fc_crm_apisales'    => '',
 				'fc_crm_odoodb'      => '',
+				'fc_crm_fuc'         => '',
+				'fc_crm_terminal'    => '',
+				'fc_crm_sha_secret'  => '',
+				'fc_crm_redsys_mode' => 'production',
 			)
 		);
 
@@ -112,11 +120,16 @@ class FORMSCRM_JFB_Action extends Base {
 			return;
 		}
 
-		$settings['fc_crm_module'] = $module;
+		$settings['fc_crm_module']      = $module;
+		$settings['formscrm_form_type'] = 'jetformbuilder';
 
 		$merge_vars = $this->build_merge_vars( $request );
 		$merge_vars = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
 		$result     = $crmlib->create_entry( $settings, $merge_vars );
+
+		if ( ! is_array( $result ) ) {
+			throw new Action_Exception( __( 'The CRM did not return a valid response.', 'formscrm' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not direct output.
+		}
 
 		if ( isset( $result['status'] ) && 'error' === $result['status'] ) {
 			$form_id   = $handler->form_id ?? 0;
@@ -134,6 +147,14 @@ class FORMSCRM_JFB_Action extends Base {
 				$result['query'] ?? '',
 				$form_info
 			);
+		} else {
+			if ( ! empty( $result['redirect_url'] ) ) {
+				// JetFormBuilder's frontend follows the `redirect` response value.
+				$handler->add_response( array( 'redirect' => esc_url_raw( $result['redirect_url'] ) ) );
+			}
+			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
+			$crm_name = formscrm_get_crm_display_name( $result, $crm_type );
+			formscrm_debug_message( 'Success creating ' . $crm_name . ' Entry ID: ' . ( $result['id'] ?? '' ) );
 		}
 	}
 

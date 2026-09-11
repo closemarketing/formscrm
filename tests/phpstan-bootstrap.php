@@ -29,7 +29,7 @@ if ( ! defined( 'FORMSCRM_PLUGIN_PATH' ) ) {
 }
 
 if ( ! defined( 'FORMSCRM_CRED_VARIABLES' ) ) {
-	define( 'FORMSCRM_CRED_VARIABLES', array( 'url', 'username', 'password', 'apipassword', 'odoodb', 'apisales' ) );
+	define( 'FORMSCRM_CRED_VARIABLES', array( 'url', 'username', 'password', 'apipassword', 'odoodb', 'apisales', 'fuc', 'terminal', 'sha_secret', 'redsys_mode' ) );
 }
 
 // Define WordPress constants that might be missing.
