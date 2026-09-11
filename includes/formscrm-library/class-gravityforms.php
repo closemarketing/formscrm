@@ -945,7 +945,12 @@ class GFCRM extends GFFeedAddOn {
 		// Dynamic Fields.
 		foreach ( $form['fields'] as $field ) {
 			if ( empty( $field_maps ) ) {
-				if ( ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
+				if ( $field && 'phone' === RGFormsModel::get_input_type( $field ) && ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
+					$merge_vars[] = array(
+						'name'  => $field->adminLabel,
+						'value' => formscrm_normalize_phone_number( $entry[ $field->id ] ),
+					);
+				} elseif ( ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
 					$merge_vars[] = array(
 						'name'  => $field->adminLabel,
 						'value' => $entry[ $field->id ],
@@ -1188,6 +1193,14 @@ class GFCRM extends GFFeedAddOn {
 			return array(
 				'name'  => $var_key,
 				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
+			);
+		} elseif ( $field && 'phone' === RGFormsModel::get_input_type( $field ) ) {
+			// Covers both the classic (standard) and GravityForms 3.0 international Phone format.
+			$value = apply_filters( 'formscrm_field_value_phone', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+			$value = $this->fill_dynamic_value( $value, $entry, $form );
+			return array(
+				'name'  => $var_key,
+				'value' => formscrm_normalize_phone_number( $value ),
 			);
 		} elseif ( $field && 'name' === RGFormsModel::get_input_type( $field ) && false === strpos( $field_id, '.' ) ) {
 			$value = rgar( $entry, $field_id . '.3' ) . ' ' . rgar( $entry, $field_id . '.6' );

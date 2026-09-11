@@ -1027,6 +1027,56 @@ if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_normalize_phone_number' ) ) {
+	/**
+	 * Normalizes a GravityForms Phone field value for CRM submission.
+	 *
+	 * GravityForms 3.0's "international (formatted)" Phone format stores the
+	 * entry value as a JSON object ({"country":"ES","national":"...",
+	 * "formatted":"...","e164":"..."}) rather than a plain string, so it is
+	 * unwrapped to its "e164" value first. Otherwise, this keeps only the
+	 * digits and a leading "+" (when present), giving CRMs a consistent value
+	 * regardless of which format (standard or international) was used.
+	 *
+	 * @param string $phone_number Raw phone value as stored in the entry.
+	 * @return string Normalized phone number.
+	 */
+	function formscrm_normalize_phone_number( $phone_number ) {
+		$phone_number = trim( (string) $phone_number );
+
+		if ( '' === $phone_number ) {
+			return $phone_number;
+		}
+
+		if ( '{' === $phone_number[0] ) {
+			$decoded = json_decode( $phone_number, true );
+
+			if ( is_array( $decoded ) ) {
+				$phone_number = '';
+				foreach ( array( 'e164', 'formatted', 'national' ) as $json_key ) {
+					if ( ! empty( $decoded[ $json_key ] ) ) {
+						$phone_number = (string) $decoded[ $json_key ];
+						break;
+					}
+				}
+
+				if ( '' === $phone_number ) {
+					return '';
+				}
+			}
+		}
+
+		$has_plus_prefix = ( '+' === $phone_number[0] );
+		$digits_only     = preg_replace( '/\D+/', '', $phone_number );
+
+		if ( '' === $digits_only ) {
+			return $phone_number;
+		}
+
+		return ( $has_plus_prefix ? '+' : '' ) . $digits_only;
+	}
+}
+
 if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 	/**
 	 * Render API connection status indicator.

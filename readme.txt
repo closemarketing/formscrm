@@ -269,6 +269,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = next =
+* Enhanced: Added support for GravityForms 3.0's international Phone field format, normalizing the number (digits and leading "+") before sending it to the CRM.
 * Fixed: Elementor forms connected to Clientify always forced contact creation (`force_insert=true`), causing an HTTP 409 Conflict on every resubmission from an existing contact. The merge strategy field (used to search and update instead of create) is now available for Elementor, same as Gravity Forms.
 
 = 4.4.3 =
