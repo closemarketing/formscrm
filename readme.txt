@@ -269,6 +269,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = next =
+* Fixed: Clientify merge strategy could update the wrong contact/company. Clientify's `query` search param is a substring match (e.g. searching "molina@gmail.com" could match "aestepamolina@gmail.com"), and the merge strategy took the first search result without verifying it was an exact match. It now only updates when there is exactly one exact match for the searched field, and creates a new entry otherwise.
+* Fixed: the "Email Main" field-mapping option and the "Email Main" typed-email option showed the same label, so mapping the wrong one silently defeated the merge strategy (fell back to creating instead of updating) with no warning. The native field is now labeled "Email Main (single field)".
+* Fixed: `marketing_status` defaulted to "Marketing Contact" was also sent when updating an existing contact via the merge strategy, silently overwriting a contact intentionally set as "Sales Contact". The default is now only applied when creating a new contact.
 * Enhanced: Added support for GravityForms 3.0's international Phone field format, normalizing the number (digits and leading "+") before sending it to the CRM.
 * Fixed: Elementor forms connected to Clientify always forced contact creation (`force_insert=true`), causing an HTTP 409 Conflict on every resubmission from an existing contact. The merge strategy field (used to search and update instead of create) is now available for Elementor, same as Gravity Forms.
 
