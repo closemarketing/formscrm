@@ -12,7 +12,6 @@ defined( 'ABSPATH' ) || exit;
 
 require_once 'helpers-functions.php';
 require_once 'helpers-library-crm.php';
-require_once 'class-forms-clientify.php';
 
 // Prevents fatal error is_plugin_active.
 if ( ! function_exists( 'is_plugin_active' ) ) {
