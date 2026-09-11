@@ -1031,11 +1031,12 @@ if ( ! function_exists( 'formscrm_normalize_phone_number' ) ) {
 	/**
 	 * Normalizes a GravityForms Phone field value for CRM submission.
 	 *
-	 * GravityForms 3.0's international Phone format applies no format mask or
-	 * regex, so the raw entry value can contain spaces, dashes, parentheses and
-	 * dots around the dial code and number (e.g. "+34 612 34 56 78"). This keeps
-	 * only the digits and a leading "+" (when present), giving CRMs a consistent
-	 * value regardless of which format (standard or international) was used.
+	 * GravityForms 3.0's "international (formatted)" Phone format stores the
+	 * entry value as a JSON object ({"country":"ES","national":"...",
+	 * "formatted":"...","e164":"..."}) rather than a plain string, so it is
+	 * unwrapped to its "e164" value first. Otherwise, this keeps only the
+	 * digits and a leading "+" (when present), giving CRMs a consistent value
+	 * regardless of which format (standard or international) was used.
 	 *
 	 * @param string $phone_number Raw phone value as stored in the entry.
 	 * @return string Normalized phone number.
@@ -1045,6 +1046,24 @@ if ( ! function_exists( 'formscrm_normalize_phone_number' ) ) {
 
 		if ( '' === $phone_number ) {
 			return $phone_number;
+		}
+
+		if ( '{' === $phone_number[0] ) {
+			$decoded = json_decode( $phone_number, true );
+
+			if ( is_array( $decoded ) ) {
+				$phone_number = '';
+				foreach ( array( 'e164', 'formatted', 'national' ) as $json_key ) {
+					if ( ! empty( $decoded[ $json_key ] ) ) {
+						$phone_number = (string) $decoded[ $json_key ];
+						break;
+					}
+				}
+
+				if ( '' === $phone_number ) {
+					return '';
+				}
+			}
 		}
 
 		$has_plus_prefix = ( '+' === $phone_number[0] );

@@ -70,4 +70,53 @@ class PhoneNormalizationTest extends WP_UnitTestCase {
 	public function test_trims_surrounding_whitespace() {
 		$this->assertSame( '+34612345678', formscrm_normalize_phone_number( '  +34 612 345 678  ' ) );
 	}
+
+	/**
+	 * GravityForms 3.0's "international (formatted)" Phone format stores the
+	 * entry as a JSON object; it must be unwrapped to its "e164" value instead
+	 * of having its digits concatenated with the other JSON keys.
+	 */
+	public function test_unwraps_gf_formatted_json_payload() {
+		$json = wp_json_encode(
+			array(
+				'country'   => 'ES',
+				'national'  => '669 88 84 44',
+				'formatted' => '+34 669 88 84 44',
+				'e164'      => '+34669888444',
+			)
+		);
+
+		$this->assertSame( '+34669888444', formscrm_normalize_phone_number( $json ) );
+	}
+
+	/**
+	 * When "e164" is missing, fall back to "formatted", then "national".
+	 */
+	public function test_unwraps_gf_formatted_json_payload_without_e164() {
+		$json_formatted = wp_json_encode(
+			array(
+				'country'   => 'ES',
+				'national'  => '669 88 84 44',
+				'formatted' => '+34 669 88 84 44',
+			)
+		);
+		$this->assertSame( '+34669888444', formscrm_normalize_phone_number( $json_formatted ) );
+
+		$json_national = wp_json_encode(
+			array(
+				'country'  => 'ES',
+				'national' => '669 88 84 44',
+			)
+		);
+		$this->assertSame( '669888444', formscrm_normalize_phone_number( $json_national ) );
+	}
+
+	/**
+	 * A JSON payload with no usable phone key returns an empty string.
+	 */
+	public function test_gf_formatted_json_payload_with_no_usable_value_returns_empty() {
+		$json = wp_json_encode( array( 'country' => 'ES' ) );
+
+		$this->assertSame( '', formscrm_normalize_phone_number( $json ) );
+	}
 }
