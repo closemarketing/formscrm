@@ -3,7 +3,7 @@
  * Plugin Name: FormsCRM
  * Plugin URI : https://close.technology/wordpress-plugins/formscrm/
  * Description: Connects Forms with CRM, ERP and Email Marketing.
- * Version: 4.4.3
+ * Version: 4.4.4-beta.1
  * Author: CloseTechnology
  * Author URI: https://close.technology
  * Text Domain: formscrm
@@ -23,11 +23,15 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-define( 'FORMSCRM_VERSION', '4.4.3' );
+define( 'FORMSCRM_VERSION', '4.4.4-beta.1' );
 define( 'FORMSCRM_PLUGIN', __FILE__ );
 define( 'FORMSCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FORMSCRM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
-define( 'FORMSCRM_CRED_VARIABLES', array( 'url', 'username', 'password', 'apipassword', 'odoodb', 'apisales' ) );
+
+// Values which can be overridden per Gravity Forms feed. Keep gateway-specific
+// credentials here as well as the generic CRM credentials so a custom feed
+// does not silently fall back to the site-wide settings.
+define( 'FORMSCRM_CRED_VARIABLES', array( 'url', 'username', 'password', 'apipassword', 'odoodb', 'apisales', 'fuc', 'terminal', 'sha_secret', 'redsys_mode' ) );
 
 add_filter(
 	'formscrm_choices',

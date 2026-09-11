@@ -46,6 +46,10 @@ class FORMSCRM_JFB_Tab_Handler extends Base_Handler {
 			'fc_crm_apipassword',
 			'fc_crm_apisales',
 			'fc_crm_odoodb',
+			'fc_crm_fuc',
+			'fc_crm_terminal',
+			'fc_crm_sha_secret',
+			'fc_crm_redsys_mode',
 		);
 
 		$data = array();
@@ -74,6 +78,10 @@ class FORMSCRM_JFB_Tab_Handler extends Base_Handler {
 				'fc_crm_apipassword' => '',
 				'fc_crm_apisales'    => '',
 				'fc_crm_odoodb'      => '',
+				'fc_crm_fuc'         => '',
+				'fc_crm_terminal'    => '',
+				'fc_crm_sha_secret'  => '',
+				'fc_crm_redsys_mode' => 'production',
 			)
 		);
 	}

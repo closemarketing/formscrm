@@ -11,15 +11,15 @@ jQuery(document).ready(function($) {
 			formFields[field.attributes.custom_id] = field.attributes.field_label;
 		});
 
-		let crmSettings = {
-			fc_crm_type: currentSettings.fc_crm_type,
-			fc_crm_url: currentSettings.fc_crm_url,
-			fc_crm_username: currentSettings.fc_crm_username,
-			fc_crm_password: currentSettings.fc_crm_password,
-			fc_crm_apipassword: currentSettings.fc_crm_apipassword,
-			fc_crm_apisales: currentSettings.fc_crm_apisales,
-			fc_crm_odoodb: currentSettings.fc_crm_odoodb,
-		}
+		// Include every connection setting registered by FormsCRM or an add-on.
+		// Integrations such as Redsys use their own credentials (FUC, terminal and
+		// SHA key), rather than the generic URL/API key fields.
+		let crmSettings = {};
+		Object.keys( currentSettings ).forEach( function( key ) {
+			if ( key.indexOf( 'fc_crm_' ) === 0 && key.indexOf( 'fc_crm_field-' ) !== 0 ) {
+				crmSettings[ key ] = currentSettings[ key ];
+			}
+		} );
 
 		let data = {
 			action: 'elementor_formscrm_connect_crm',
@@ -144,24 +144,36 @@ jQuery(document).ready(function($) {
 		saveFieldSettings();
 	});
 
+	function hasConnectionCredentials( settingsModel ) {
+		let crmType = settingsModel.getSetting( 'fc_crm_type' );
+
+		if ( crmType === 'redsys' ) {
+			return !! (
+				settingsModel.getSetting( 'fc_crm_fuc' ) &&
+				settingsModel.getSetting( 'fc_crm_terminal' ) &&
+				settingsModel.getSetting( 'fc_crm_sha_secret' )
+			);
+		}
+
+		return !! ( crmType && settingsModel.getSetting( 'fc_crm_apipassword' ) );
+	}
+
+	function connectWhenCredentialsAreReady() {
+		let settingsModel = elementor.getPanelView().getCurrentPageView().model;
+
+		if ( hasConnectionCredentials( settingsModel ) ) {
+			$('[data-event="formscrm:editor:connectCRM"]').click();
+		}
+	}
+
 	elementor.channels.editor.on('section:activated', function (panel) {
 		if( panel !== 'section_formscrm' ) return;
 
-		// form crm panel is active, check if we have credentials and show panel
-
-		let settingsModel = elementor.getPanelView().getCurrentPageView().model;
-		// check fc_crm_type and fc_crm_apipassword
-		let fc_crm_type = settingsModel.getSetting('fc_crm_type');
-		let fc_crm_apipassword = settingsModel.getSetting('fc_crm_apipassword');
-
-		if ( fc_crm_type && fc_crm_apipassword ) {
-			// show panel
-			$('[data-event="formscrm:editor:connectCRM"]').click();
-		}
+		connectWhenCredentialsAreReady();
 	});
 
-	$('body').on('change', '[data-setting="fc_crm_type"]', function() {
-		$('[data-event="formscrm:editor:connectCRM"]').click();
+	$('body').on('change', '[data-setting="fc_crm_type"], [data-setting="fc_crm_fuc"], [data-setting="fc_crm_terminal"], [data-setting="fc_crm_sha_secret"], [data-setting="fc_crm_apipassword"]', function() {
+		// Elementor updates its settings model after the control change event.
+		window.setTimeout( connectWhenCredentialsAreReady, 0 );
 	});
 });
-

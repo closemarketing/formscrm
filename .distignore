@@ -11,6 +11,7 @@ composer.lock
 .editorconfig
 .git
 .gitignore
+.pcpignore
 
 
 # Develop
