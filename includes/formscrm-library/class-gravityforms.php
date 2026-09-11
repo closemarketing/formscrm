@@ -945,7 +945,12 @@ class GFCRM extends GFFeedAddOn {
 		// Dynamic Fields.
 		foreach ( $form['fields'] as $field ) {
 			if ( empty( $field_maps ) ) {
-				if ( ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
+				if ( $field && 'phone' === RGFormsModel::get_input_type( $field ) && ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
+					$merge_vars[] = array(
+						'name'  => $field->adminLabel,
+						'value' => formscrm_normalize_phone_number( $entry[ $field->id ] ),
+					);
+				} elseif ( ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
 					$merge_vars[] = array(
 						'name'  => $field->adminLabel,
 						'value' => $entry[ $field->id ],
