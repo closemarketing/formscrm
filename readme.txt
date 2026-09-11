@@ -3,9 +3,9 @@ Contributors: closemarketing, davidperez, sacrajaimez, alexbreagarcia, matiasque
 Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
-Tested up to: 7.0
-Stable tag: 4.5.0
-Version: 4.5.0
+Tested up to: 7.1
+Stable tag: 4.4.4-beta.1
+Version: 4.4.4-beta.1
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,8 +40,9 @@ At this time, FormsCRM supports in free version:
 - [Brevo](https://brevo.com/)
 
 And you will find, that there are Premium Addons to support:
-- [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
 - [Odoo](https://close.technology/en/wordpress-plugins/formscrm-odoo/)
+- [RedSys](https://close.technology/en/wordpress-plugins/formscrm-redsys/)
+- [Holded CRM](https://close.technology/wordpress-plugins/formscrm-holded-pro/)
 - [vTiger 7](https://close.technology/en/wordpress-plugins/formscrm-vtiger/)
 - [PipeDrive](https://close.technology/en/wordpress-plugins/formscrm-pipedrive/)
 - [Inmovilla](https://close.technology/en/wordpress-plugins/formscrm-inmovilla/)
@@ -53,6 +54,15 @@ You can use multiple feed connector in GravityForms, WPForms PRO, Elementor Form
 
 Demo:
 [youtube https://www.youtube.com/watch?v=HHG763ikL7o]
+
+**RedSys**
+Turn any FormsCRM form into a secure payment opportunity with RedSys. Whether you are taking a booking deposit, selling a service, collecting a registration fee, or charging for an order, customers complete their payment on the familiar, bank-hosted Redsys checkout.
+
+Set the amount you want to charge, connect your existing Redsys virtual POS, and let FormsCRM take care of the handoff. Your customer is sent to the bank to pay and returned to your form confirmation page when they finish, so the experience stays smooth from first click to final confirmation.
+
+Built for Spanish businesses that already use Redsys through their bank, the integration gives you a straightforward way to accept card payments without building or maintaining a separate checkout.
+
+[Redsys Addon](https://close.technology/wordpress-plugins/formscrm-redsys/)
 
 ** UTM Tracker Addon **
 
@@ -261,10 +271,25 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
-= 4.5.0 =
+= next =
 * Added: Support for Clientify's Analytics PLUS contact attribution. Map a field to `visitor_key2` (from the `__<pixel_key>_visitor_uuid` localStorage key) to link created contacts to the visit tracked by the Analytics PLUS pixel.
 * Enhanced: Clientify's legacy `vk` tracking cookie is now forwarded automatically as `visitor_key` on contact creation, without requiring a hidden field in the form.
 * Removed: Automatic hidden-field injection for Gravity Forms, Contact Form 7, Elementor and WooCommerce previously used to carry the Clientify tracking cookie into the form (superseded by the automatic cookie forwarding above).
+* Enhanced: Added support for GravityForms 3.0's international Phone field format, normalizing the number (digits and leading "+") before sending it to the CRM.
+* Fixed: Elementor forms connected to Clientify always forced contact creation (`force_insert=true`), causing an HTTP 409 Conflict on every resubmission from an existing contact. The merge strategy field (used to search and update instead of create) is now available for Elementor, same as Gravity Forms.
+
+= 4.4.3 =
+* Fixed: Clientify API v1 requests occasionally failing with `HTTP 504 Gateway Timeout` on `api.clientify.net`. All requests (reads, lead/contact creation, updates, deals) now retry once against the `api.clientify.com` fallback before failing; this is a temporary workaround suggested by Clientify support while they investigate the root cause.
+
+= 4.4.2 =
+* Added: Holded API v2 support. The API version is now auto-detected from the key's shape (keys prefixed with `pat_` use v2, existing keys keep using v1) — both versions work through the same connector with no new setting.
+* Enhanced: "API Connection Status" badge and entry success notes now show the detected Holded API version (e.g. "Connected (Holded v2)") instead of a generic "(Holded)".
+* Fixed: `CRMLIB_HOLDED::login()` and `list_modules()` signature mismatch with the `CRMLIB_Abstract` contract, which caused a PHP fatal error on the Holded feed settings page in production.
+* Fixed: Holded v2 field names (e.g. `bill_address`, `trade_name`, `is_person`) are now translated from the existing v1 camelCase field IDs, so feeds configured before the v2 migration keep working unmodified.
+* Fixed: Clientify API v2 contact merge returning a 409 conflict when matching by `taxpayer_identification_number`; the field is now supported as a search/merge key.
+* Fixed: Clientify API v2 now sends `email` inside the `emails` array (type Main) instead of a top-level field, matching the v2 schema.
+* Fixed: Clientify API v2 GET requests now always include the required `fields` parameter, even when other query params are already set.
+* Tests: Added PHPUnit coverage for both Holded API v1 and v2 using fixtures captured from real sandbox accounts.
 
 = 4.4.1 =
 * Fixed: GravityForms `{label:X}` merge tag returning wrong label when select/radio fields have duplicate values.

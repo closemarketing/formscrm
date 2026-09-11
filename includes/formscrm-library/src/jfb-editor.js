@@ -43,6 +43,7 @@ const needsPassword    = [ 'bitrix24', 'espo_crm', 'facturadirecta', 'msdyn', 'm
 const needsApiPassword = [ 'hubspot', 'solve360', 'vtiger_6', 'odoo', 'holded', 'clientify', 'brevo', 'acumbamail', 'mailerlite' ];
 const needsApiSales    = [ 'salesforce' ];
 const needsOdooDB      = [ 'odoo' ];
+const needsRedsys      = [ 'redsys' ];
 
 /**
  * POST to our REST endpoint and return parsed JSON.
@@ -130,6 +131,23 @@ function CredentialFields( { settings, onChangeSettingObj } ) {
 				onChange: ( v ) => onChangeSettingObj( { fc_crm_odoodb: v } ),
 			} )
 		),
+
+		type && needsRedsys.includes( type ) && el( RowControl, null,
+			el( Label, null, __( 'Commerce number FUC', 'formscrm' ) ),
+			el( TextControl, { value: settings.fc_crm_fuc || '', onChange: ( v ) => onChangeSettingObj( { fc_crm_fuc: v } ) } )
+		),
+		type && needsRedsys.includes( type ) && el( RowControl, null,
+			el( Label, null, __( 'Terminal number', 'formscrm' ) ),
+			el( TextControl, { value: settings.fc_crm_terminal || '', onChange: ( v ) => onChangeSettingObj( { fc_crm_terminal: v } ) } )
+		),
+		type && needsRedsys.includes( type ) && el( RowControl, null,
+			el( Label, null, __( 'SHA Secret Key', 'formscrm' ) ),
+			el( TextControl, { type: 'password', value: settings.fc_crm_sha_secret || '', onChange: ( v ) => onChangeSettingObj( { fc_crm_sha_secret: v } ) } )
+		),
+		type && needsRedsys.includes( type ) && el( RowControl, null,
+			el( Label, null, __( 'Mode', 'formscrm' ) ),
+			el( SelectControl, { value: settings.fc_crm_redsys_mode || 'production', options: [ { value: 'test', label: __( 'Test', 'formscrm' ) }, { value: 'production', label: __( 'Production', 'formscrm' ) } ], onChange: ( v ) => onChangeSettingObj( { fc_crm_redsys_mode: v } ) } )
+		),
 	);
 }
 
@@ -162,7 +180,7 @@ function ModuleSelector( { settings, onChangeSettingObj } ) {
 			.catch( ( err ) => setError( err.message ) )
 			.finally( () => setLoading( false ) );
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ type, settings.use_global, settings.fc_crm_url, settings.fc_crm_username, settings.fc_crm_password, settings.fc_crm_apipassword ] );
+	}, [ type, settings.use_global, settings.fc_crm_url, settings.fc_crm_username, settings.fc_crm_password, settings.fc_crm_apipassword, settings.fc_crm_fuc, settings.fc_crm_terminal, settings.fc_crm_sha_secret, settings.fc_crm_redsys_mode ] );
 
 	if ( ! type ) {
 		return null;
@@ -216,7 +234,7 @@ function FieldsMap( { settings, getMapField, setMapField } ) {
 			.catch( ( err ) => setError( err.message ) )
 			.finally( () => setLoading( false ) );
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ type, module, settings.use_global, settings.fc_crm_url, settings.fc_crm_username, settings.fc_crm_password, settings.fc_crm_apipassword ] );
+	}, [ type, module, settings.use_global, settings.fc_crm_url, settings.fc_crm_username, settings.fc_crm_password, settings.fc_crm_apipassword, settings.fc_crm_fuc, settings.fc_crm_terminal, settings.fc_crm_sha_secret, settings.fc_crm_redsys_mode ] );
 
 	if ( ! type || ! module ) {
 		return null;

@@ -123,53 +123,26 @@ class FormsCRM_WooCommerce {
 		);
 
 		if ( isset( $wc_formscrm['fc_crm_type'] ) && $wc_formscrm['fc_crm_type'] ) {
-			if ( false !== array_search( $wc_formscrm['fc_crm_type'], formscrm_get_dependency_url(), true ) ) {
-				$settings_crm[] = array(
-					'name' => __( 'URL', 'formscrm' ),
-					'type' => 'text',
-					'desc' => __( 'CRM URL', 'formscrm' ),
-					'id'   => 'wc_formscrm[fc_crm_url]',
+			foreach ( formscrm_get_crm_field_definitions() as $def ) {
+				$dependency = call_user_func( $def['dependency'] );
+				if ( ! in_array( $wc_formscrm['fc_crm_type'], $dependency, true ) ) {
+					continue;
+				}
+				$field_id   = 'fc_crm_' . $def['name'];
+				$field_type = 'api_key' === $def['type'] ? 'password' : ( 'select' === $def['type'] ? 'select' : 'text' );
+				$setting    = array(
+					'name' => $def['label'],
+					'type' => $field_type,
+					'desc' => ! empty( $def['tooltip'] ) ? $def['tooltip'] : '',
+					'id'   => 'wc_formscrm[' . $field_id . ']',
 				);
-			}
-			if ( false !== array_search( $wc_formscrm['fc_crm_type'], formscrm_get_dependency_username(), true ) ) {
-				$settings_crm[] = array(
-					'name' => __( 'Username', 'formscrm' ),
-					'type' => 'text',
-					'desc' => __( 'CRM Username', 'formscrm' ),
-					'id'   => 'wc_formscrm[fc_crm_username]',
-				);
-			}
-			if ( false !== array_search( $wc_formscrm['fc_crm_type'], formscrm_get_dependency_password(), true ) ) {
-				$settings_crm[] = array(
-					'name' => __( 'Password', 'formscrm' ),
-					'type' => 'password',
-					'desc' => __( 'Password of CRM', 'formscrm' ),
-					'id'   => 'wc_formscrm[fc_crm_password]',
-				);
-			}
-			if ( false !== array_search( $wc_formscrm['fc_crm_type'], formscrm_get_dependency_apipassword(), true ) ) {
-				$settings_crm[] = array(
-					'name' => __( 'API Password', 'formscrm' ),
-					'type' => 'password',
-					'desc' => __( 'API Password of CRM', 'formscrm' ),
-					'id'   => 'wc_formscrm[fc_crm_apipassword]',
-				);
-			}
-			if ( false !== array_search( $wc_formscrm['fc_crm_type'], formscrm_get_dependency_apisales(), true ) ) {
-				$settings_crm[] = array(
-					'name' => __( 'API Sales', 'formscrm' ),
-					'type' => 'text',
-					'desc' => __( 'API Sales of CRM', 'formscrm' ),
-					'id'   => 'wc_formscrm[fc_crm_apisales]',
-				);
-			}
-			if ( false !== array_search( $wc_formscrm['fc_crm_type'], formscrm_get_dependency_odoodb(), true ) ) {
-				$settings_crm[] = array(
-					'name' => __( 'Odoo Db', 'formscrm' ),
-					'type' => 'text',
-					'desc' => __( 'Odoo DB name', 'formscrm' ),
-					'id'   => 'wc_formscrm[fc_crm_odoodb]',
-				);
+				if ( 'select' === $field_type && ! empty( $def['choices'] ) ) {
+					$setting['options'] = array();
+					foreach ( $def['choices'] as $choice ) {
+						$setting['options'][ $choice['value'] ] = $choice['label'];
+					}
+				}
+				$settings_crm[] = $setting;
 			}
 
 			// Module.
@@ -277,7 +250,9 @@ class FormsCRM_WooCommerce {
 
 				formscrm_alert_error( $wc_formscrm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, '', '', $form_info );
 			} else {
-				error_log( $response_result['id'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for debugging.
+				// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
+				$crm_name = formscrm_get_crm_display_name( $response_result, $wc_formscrm['fc_crm_type'] );
+				formscrm_debug_message( 'Success creating ' . $crm_name . ' Entry ID: ' . $response_result['id'] );
 			}
 		}
 	}

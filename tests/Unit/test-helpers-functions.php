@@ -573,4 +573,139 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 		$result = formscrm_normalize_date_format( '25/13/1990' );
 		$this->assertFalse( $result );
 	}
+
+	/**
+	 * Test formscrm_get_crm_field_definitions returns array with required structure.
+	 */
+	public function test_get_crm_field_definitions_returns_array() {
+		$definitions = formscrm_get_crm_field_definitions();
+
+		$this->assertIsArray( $definitions );
+		$this->assertNotEmpty( $definitions );
+	}
+
+	/**
+	 * Test formscrm_get_crm_field_definitions each item has required keys.
+	 */
+	public function test_get_crm_field_definitions_required_keys() {
+		$definitions = formscrm_get_crm_field_definitions();
+		$required   = array( 'name', 'label', 'type', 'dependency' );
+
+		foreach ( $definitions as $def ) {
+			$this->assertIsArray( $def );
+			foreach ( $required as $key ) {
+				$this->assertArrayHasKey( $key, $def, "Definition must have key: {$key}" );
+				$this->assertNotEmpty( $def[ $key ], "Definition key {$key} must not be empty" );
+			}
+			$this->assertContains( $def['type'], array( 'text', 'api_key', 'select' ), 'Type must be text, api_key or select' );
+			$this->assertTrue( is_callable( $def['dependency'] ), 'Dependency must be a callable function name' );
+		}
+	}
+
+	/**
+	 * Test formscrm_get_crm_field_definitions contains expected core and Redsys fields.
+	 */
+	public function test_get_crm_field_definitions_expected_fields() {
+		$definitions = formscrm_get_crm_field_definitions();
+		$names       = wp_list_pluck( $definitions, 'name' );
+
+		$expected = array(
+			'url',
+			'username',
+			'password',
+			'apipassword',
+			'apisales',
+			'odoodb',
+			'fuc',
+			'terminal',
+			'sha_secret',
+			'redsys_mode',
+		);
+		foreach ( $expected as $name ) {
+			$this->assertContains( $name, $names, "Definitions must include field: {$name}" );
+		}
+	}
+
+	/**
+	 * Test formscrm_get_crm_field_definitions select type has choices.
+	 */
+	public function test_get_crm_field_definitions_select_has_choices() {
+		$definitions = formscrm_get_crm_field_definitions();
+
+		foreach ( $definitions as $def ) {
+			if ( 'select' !== $def['type'] ) {
+				continue;
+			}
+			$this->assertArrayHasKey( 'choices', $def );
+			$this->assertIsArray( $def['choices'] );
+			$this->assertNotEmpty( $def['choices'] );
+			foreach ( $def['choices'] as $choice ) {
+				$this->assertArrayHasKey( 'label', $choice );
+				$this->assertArrayHasKey( 'value', $choice );
+			}
+		}
+	}
+
+	/**
+	 * Test formscrm_get_crm_field_definitions filter can add and modify definitions.
+	 */
+	public function test_get_crm_field_definitions_filter() {
+		add_filter(
+			'formscrm_crm_field_definitions',
+			function ( $definitions ) {
+				$definitions[] = array(
+					'name'       => 'custom_field',
+					'label'      => 'Custom Field',
+					'type'       => 'text',
+					'dependency' => 'formscrm_get_dependency_url',
+				);
+				return $definitions;
+			}
+		);
+
+		$definitions = formscrm_get_crm_field_definitions();
+		$names      = wp_list_pluck( $definitions, 'name' );
+
+		$this->assertContains( 'custom_field', $names );
+
+		remove_all_filters( 'formscrm_crm_field_definitions' );
+	}
+
+	// -------------------------------------------------------------------------
+	// formscrm_merge_feed_meta_into_settings tests.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Non Gravity Forms form types are returned unchanged.
+	 */
+	public function test_merge_feed_meta_ignores_non_gravityforms_form_type() {
+		$settings = array( 'fc_crm_apipassword' => 'secret' );
+
+		$result = formscrm_merge_feed_meta_into_settings( $settings, 'woocommerce', '5' );
+
+		$this->assertSame( $settings, $result );
+	}
+
+	/**
+	 * Empty form_id is returned unchanged, since there is no feed to look up.
+	 */
+	public function test_merge_feed_meta_ignores_empty_form_id() {
+		$settings = array( 'fc_crm_apipassword' => 'secret' );
+
+		$result = formscrm_merge_feed_meta_into_settings( $settings, 'gravityforms', '' );
+
+		$this->assertSame( $settings, $result );
+	}
+
+	/**
+	 * Without the Gravity Forms API available (e.g. GF inactive), settings are
+	 * returned unchanged rather than fatal-erroring on a missing class.
+	 */
+	public function test_merge_feed_meta_returns_unchanged_when_gfapi_missing() {
+		$settings = array( 'fc_crm_apipassword' => 'secret' );
+
+		$result = formscrm_merge_feed_meta_into_settings( $settings, 'gravityforms', '5' );
+
+		$this->assertSame( $settings, $result );
+	}
 }
