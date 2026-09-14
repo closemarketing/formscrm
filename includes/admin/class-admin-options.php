@@ -400,7 +400,7 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 							'url'   => false,
 						),
 						array(
-							'label' => 'Reach',
+							'label' => 'Hostinger Reach',
 							'url'   => false,
 						),
 						array(
