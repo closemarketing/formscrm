@@ -277,7 +277,7 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			$fields[] = array(
 				'name'     => 'visitor_key2',
 				'label'    => __( 'Analytics PLUS Visitor Key', 'formscrm' ),
-				'tooltip'  => __( 'Links the contact to the visit tracked by the Analytics PLUS pixel, for attribution. Value must come from the __<pixel_key>_visitor_uuid key in the browser localStorage.', 'formscrm' ),
+				'tooltip'  => __( 'Links the contact to the visit tracked by the Analytics PLUS pixel, for attribution. Map it to a Hidden field — FormsCRM fills its value automatically from the browser before submission; visitors and editors never enter this value themselves.', 'formscrm' ),
 				'required' => false,
 			);
 

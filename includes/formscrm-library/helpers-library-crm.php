@@ -351,3 +351,60 @@ if ( ! function_exists( 'formscrm_clientify_forward_vk_cookie' ) ) {
 		return $merge_vars;
 	}
 }
+
+add_action( 'wp_enqueue_scripts', 'formscrm_register_analytics_plus_tracking' );
+if ( ! function_exists( 'formscrm_register_analytics_plus_tracking' ) ) {
+	/**
+	 * Registers (without printing) the client-side capture of Clientify's
+	 * Analytics PLUS visitor_uuid. Only registered here because the list of
+	 * mapped selectors isn't known yet at this point — each form integration
+	 * (Gravity Forms, Contact Form 7, Elementor) only discovers/reports its
+	 * mapped field(s), via the `formscrm_analytics_plus_selectors` filter,
+	 * while actually rendering the form later in the page, after this hook.
+	 *
+	 * @return void
+	 */
+	function formscrm_register_analytics_plus_tracking() {
+		wp_register_script(
+			'formscrm-analytics-plus-tracking',
+			FORMSCRM_PLUGIN_URL . 'includes/formscrm-library/js/analytics-plus-tracking.js',
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
+	}
+}
+
+add_action( 'wp_footer', 'formscrm_enqueue_analytics_plus_tracking', 100 );
+if ( ! function_exists( 'formscrm_enqueue_analytics_plus_tracking' ) ) {
+	/**
+	 * Prints the Analytics PLUS tracking script, once every form on the page has
+	 * had a chance to report its visitor_key2-mapped field(s) via the
+	 * `formscrm_analytics_plus_selectors` filter. The DOM `name`/`id` an input
+	 * ends up with is integration-specific (Gravity Forms field id, Contact
+	 * Form 7 tag name, Elementor's `form_fields[id]` wrapper, etc.) and can't be
+	 * derived from the mapping config alone, so each integration resolves and
+	 * reports its own selector.
+	 *
+	 * @return void
+	 */
+	function formscrm_enqueue_analytics_plus_tracking() {
+		$selectors = apply_filters( 'formscrm_analytics_plus_selectors', array() );
+		$selectors = array_values( array_unique( array_filter( $selectors ) ) );
+
+		if ( empty( $selectors ) ) {
+			return;
+		}
+
+		wp_localize_script(
+			'formscrm-analytics-plus-tracking',
+			'formscrmAnalyticsPlus',
+			array(
+				'selectors'  => $selectors,
+				// Same host used by Clientify's own webform embed and by production, despite the "dev" in the name.
+				'pkEndpoint' => 'https://analyticsplusdev.clientify.net/analytics_plus/apiclientify',
+			)
+		);
+		wp_enqueue_script( 'formscrm-analytics-plus-tracking' );
+	}
+}

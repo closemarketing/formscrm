@@ -1,13 +1,118 @@
 <?php
 /**
  * Class ContactFormsTest
- * 
+ *
  * Command: composer test-debug --filter ContactFormsTest
  *
  * @package Formscrm
  */
 
+if ( ! class_exists( 'WPCF7_ContactForm' ) ) {
+	/**
+	 * Minimal stand-in for WPCF7_ContactForm, since Contact Form 7 isn't
+	 * installed in the test environment. Only get_current()/id() are used by
+	 * FORMSCRM_CF7_Settings::register_analytics_plus_selector().
+	 */
+	class WPCF7_ContactForm {
+
+		/**
+		 * Instance returned by get_current(), set per-test.
+		 *
+		 * @var WPCF7_ContactForm|null
+		 */
+		public static $current = null;
+
+		/**
+		 * Form ID this instance represents.
+		 *
+		 * @var int
+		 */
+		private $id;
+
+		/**
+		 * Constructor.
+		 *
+		 * @param int $id Form ID.
+		 */
+		public function __construct( $id ) {
+			$this->id = $id;
+		}
+
+		/**
+		 * Returns the form currently being rendered/processed, per test setup.
+		 *
+		 * @return WPCF7_ContactForm|null
+		 */
+		public static function get_current() {
+			return self::$current;
+		}
+
+		/**
+		 * Returns this form's ID.
+		 *
+		 * @return int
+		 */
+		public function id() {
+			return $this->id;
+		}
+	}
+}
+
 class ContactFormsTest extends WP_UnitTestCase {
+
+	/**
+	 * Tear down: reset the CF7 double and any registered selectors.
+	 */
+	public function tearDown(): void {
+		WPCF7_ContactForm::$current = null;
+		remove_all_filters( 'formscrm_analytics_plus_selectors' );
+		parent::tearDown();
+	}
+
+	/**
+	 * A form with visitor_key2 mapped to a Clientify feed must register a
+	 * selector for the tracking script to fill, scoped to that form field.
+	 */
+	public function test_register_analytics_plus_selector_registers_mapped_field() {
+		WPCF7_ContactForm::$current = new WPCF7_ContactForm( 123 );
+		update_option(
+			'cf7_crm_123',
+			array(
+				'fc_crm_type'                => 'clientify',
+				'fc_crm_field-visitor_key2'  => 'visitor-key2-field',
+			)
+		);
+
+		$settings = new FORMSCRM_CF7_Settings();
+		$settings->register_analytics_plus_selector( '<form></form>' );
+
+		$selectors = apply_filters( 'formscrm_analytics_plus_selectors', array() );
+		$this->assertSame( array( '.wpcf7-form [name="visitor-key2-field"]' ), $selectors );
+
+		delete_option( 'cf7_crm_123' );
+	}
+
+	/**
+	 * No selector should be registered when visitor_key2 isn't mapped, or the
+	 * form's CRM isn't Clientify.
+	 */
+	public function test_register_analytics_plus_selector_skips_when_not_mapped() {
+		WPCF7_ContactForm::$current = new WPCF7_ContactForm( 124 );
+		update_option(
+			'cf7_crm_124',
+			array(
+				'fc_crm_type'              => 'clientify',
+				'fc_crm_field-email'       => 'your-email',
+			)
+		);
+
+		$settings = new FORMSCRM_CF7_Settings();
+		$settings->register_analytics_plus_selector( '<form></form>' );
+
+		$this->assertSame( array(), apply_filters( 'formscrm_analytics_plus_selectors', array() ) );
+
+		delete_option( 'cf7_crm_124' );
+	}
 
 	public function test_get_merge_vars() {
 		$cf7_crm = array(

@@ -244,7 +244,7 @@ Since version 4.3.2, FormsCRM uses the Clientify API v2 (api-plus.clientify.com)
 If Clientify's own tracking script has set its `vk` cookie on the visitor's browser, FormsCRM forwards it automatically as `visitor_key` when the contact is created. No field mapping or extra setup is needed.
 
 **Analytics PLUS attribution (visitor_key2)**
-To attribute contacts to visits tracked by Clientify's Analytics PLUS pixel, map a field to `visitor_key2` with the value of the `__<pixel_key>_visitor_uuid` key from the browser's `localStorage` (captured client-side, since FormsCRM runs server-side and cannot read `localStorage` itself).
+To attribute contacts to visits tracked by Clientify's Analytics PLUS pixel, add a Hidden field to your form and map it to `visitor_key2`. FormsCRM automatically fills that field's value in the browser (from the `__<pixel_key>_visitor_uuid` key in `localStorage`, since it cannot be read server-side) right before the form is submitted — no manual entry, and no separate tracking snippet required.
 
 **Add Pipeline name or ID in Opportunities**
 You can add a new field that fits with the Pipeline name (pipeline_desc) or Pipeline ID (pipeline_id) in Opportunities in Clientify. You can also specify the Pipeline Stage Name (pipeline_stage_desc). You will need to use the same name or ID as the Pipeline in Clientify.
@@ -272,9 +272,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = next =
-* Added: Support for Clientify's Analytics PLUS contact attribution. Map a field to `visitor_key2` (from the `__<pixel_key>_visitor_uuid` localStorage key) to link created contacts to the visit tracked by the Analytics PLUS pixel.
+* Added: Support for Clientify's Analytics PLUS contact attribution. Map a Hidden field to `visitor_key2` and FormsCRM automatically captures the pixel's `visitor_uuid` from `localStorage` in the browser and fills it before submission, linking created contacts to the visit the Analytics PLUS pixel tracked.
 * Enhanced: Clientify's legacy `vk` tracking cookie is now forwarded automatically as `visitor_key` on contact creation, without requiring a hidden field in the form.
-* Removed: Automatic hidden-field injection for Gravity Forms, Contact Form 7, Elementor and WooCommerce previously used to carry the Clientify tracking cookie into the form (superseded by the automatic cookie forwarding above).
+* Removed: Automatic hidden-field injection for Gravity Forms, Contact Form 7, Elementor and WooCommerce previously used to carry the Clientify tracking cookie into the form (superseded by the automatic cookie forwarding above; a separate, targeted capture script now handles Analytics PLUS's `visitor_key2` field only, since it depends on `localStorage` rather than a cookie).
 * Enhanced: Added support for GravityForms 3.0's international Phone field format, normalizing the number (digits and leading "+") before sending it to the CRM.
 * Fixed: Elementor forms connected to Clientify always forced contact creation (`force_insert=true`), causing an HTTP 409 Conflict on every resubmission from an existing contact. The merge strategy field (used to search and update instead of create) is now available for Elementor, same as Gravity Forms.
 

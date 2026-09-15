@@ -160,6 +160,47 @@ class GFCRM extends GFFeedAddOn {
 		// this is the last point in the request where the submitter's cookies
 		// are still available for an asynchronous feed.
 		add_filter( 'gform_entry_post_save', array( $this, 'capture_vk_cookie_for_async_feed' ), 5, 2 );
+
+		// Reports the field mapped to visitor_key2 (Analytics PLUS) as it's about
+		// to render, so the tracking script knows which DOM input to fill.
+		add_filter( 'gform_pre_render', array( $this, 'register_analytics_plus_selector' ) );
+	}
+
+	/**
+	 * Adds this form's visitor_key2-mapped field, if any, to the list of DOM
+	 * selectors the Analytics PLUS tracking script fills with the pixel's
+	 * visitor_uuid before submission.
+	 *
+	 * @param array $form Form configuration, about to be rendered.
+	 * @return array Unmodified — this only reads the form to register a selector.
+	 */
+	public function register_analytics_plus_selector( $form ) {
+		if ( empty( $form['id'] ) ) {
+			return $form;
+		}
+
+		foreach ( $this->get_feeds( $form['id'] ) as $feed ) {
+			$settings = $this->get_api_settings_custom( $feed );
+			if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
+				continue;
+			}
+
+			$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
+			$field_id   = ! empty( $field_maps['visitor_key2'] ) ? $field_maps['visitor_key2'] : 0;
+
+			if ( ! empty( $field_id ) ) {
+				$selector = '#input_' . absint( $form['id'] ) . '_' . absint( $field_id );
+				add_filter(
+					'formscrm_analytics_plus_selectors',
+					function ( $selectors ) use ( $selector ) {
+						$selectors[] = $selector;
+						return $selectors;
+					}
+				);
+			}
+		}
+
+		return $form;
 	}
 
 	/**

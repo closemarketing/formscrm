@@ -34,6 +34,38 @@ class FORMSCRM_CF7_Settings {
 		add_action( 'wpcf7_after_save', array( $this, 'crm_save_options' ) );
 		add_action( 'wpcf7_before_send_mail', array( $this, 'crm_process_entry' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_autosubmit_assets' ) );
+		add_filter( 'wpcf7_form_elements', array( $this, 'register_analytics_plus_selector' ), 10, 1 );
+	}
+
+	/**
+	 * Reports the field mapped to visitor_key2 (Analytics PLUS) as this form
+	 * renders, so the tracking script knows which DOM input to fill.
+	 *
+	 * @param string $form_html Rendered form HTML.
+	 * @return string Unmodified — this only reads the current form to register a selector.
+	 */
+	public function register_analytics_plus_selector( $form_html ) {
+		$contact_form = WPCF7_ContactForm::get_current();
+		if ( ! $contact_form ) {
+			return $form_html;
+		}
+
+		$cf7_crm      = get_option( 'cf7_crm_' . $contact_form->id() );
+		$crm_type     = ! empty( $cf7_crm['fc_crm_type'] ) ? $cf7_crm['fc_crm_type'] : '';
+		$mapped_field = ! empty( $cf7_crm['fc_crm_field-visitor_key2'] ) ? $cf7_crm['fc_crm_field-visitor_key2'] : '';
+
+		if ( 'clientify' === $crm_type && $mapped_field ) {
+			$selector = '.wpcf7-form [name="' . esc_attr( $mapped_field ) . '"]';
+			add_filter(
+				'formscrm_analytics_plus_selectors',
+				function ( $selectors ) use ( $selector ) {
+					$selectors[] = $selector;
+					return $selectors;
+				}
+			);
+		}
+
+		return $form_html;
 	}
 
 	/**

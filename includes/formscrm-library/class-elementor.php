@@ -307,4 +307,39 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @param \ElementorPro\Modules\Forms\Classes\Form_Record $element Form element.
 	 */
 	public function on_export( $element ) {}
+
+	/**
+	 * Reports the field mapped to visitor_key2 (Analytics PLUS) as this form
+	 * renders, so the tracking script knows which DOM input to fill.
+	 *
+	 * @param string                                   $widget_content Rendered widget HTML.
+	 * @param \ElementorPro\Modules\Forms\Widgets\Form $widget          Widget instance.
+	 * @return string Unmodified — this only reads the widget's settings to register a selector.
+	 */
+	public static function register_analytics_plus_selector( $widget_content, $widget ) {
+		if ( ! $widget instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
+			return $widget_content;
+		}
+
+		$settings = $widget->get_settings_for_display();
+		if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] || empty( $settings['formscrm_settings_hidden'] ) ) {
+			return $widget_content;
+		}
+
+		$formscrm_fields = json_decode( $settings['formscrm_settings_hidden'], true );
+		$field_form      = ! empty( $formscrm_fields['fc_crm_field-visitor_key2'] ) ? $formscrm_fields['fc_crm_field-visitor_key2'] : '';
+
+		if ( $field_form ) {
+			$selector = '.elementor-form [name="form_fields[' . esc_attr( $field_form ) . ']"]';
+			add_filter(
+				'formscrm_analytics_plus_selectors',
+				function ( $selectors ) use ( $selector ) {
+					$selectors[] = $selector;
+					return $selectors;
+				}
+			);
+		}
+
+		return $widget_content;
+	}
 }
