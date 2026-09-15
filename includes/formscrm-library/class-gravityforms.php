@@ -154,6 +154,29 @@ class GFCRM extends GFFeedAddOn {
 		// redirect_url is available before Gravity Forms builds the confirmation.
 		add_filter( 'gform_is_feed_asynchronous', array( $this, 'maybe_sync_payment_feed' ), 10, 4 );
 		add_filter( 'gform_confirmation', array( $this, 'maybe_redirect_payment_confirmation' ), 20, 4 );
+
+		// Runs at priority 5, before GFFeedAddOn's own gform_entry_post_save hook
+		// (priority 10) hands feed processing off to the background processor —
+		// this is the last point in the request where the submitter's cookies
+		// are still available for an asynchronous feed.
+		add_filter( 'gform_entry_post_save', array( $this, 'capture_vk_cookie_for_async_feed' ), 5, 2 );
+	}
+
+	/**
+	 * Persists Clientify's legacy `vk` tracking cookie on the entry, synchronously,
+	 * so it survives into an asynchronous process_feed() run — which executes in
+	 * a background request where the submitter's cookies are not available.
+	 *
+	 * @param array $entry Entry data.
+	 * @param array $form  Form configuration.
+	 * @return array
+	 */
+	public function capture_vk_cookie_for_async_feed( $entry, $form ) {
+		if ( ! empty( $_COOKIE['vk'] ) && ! empty( $entry['id'] ) ) {
+			gform_update_meta( $entry['id'], 'formscrm_vk_cookie', sanitize_text_field( wp_unslash( $_COOKIE['vk'] ) ) );
+		}
+
+		return $entry;
 	}
 
 	/**
@@ -929,9 +952,8 @@ class GFCRM extends GFFeedAddOn {
 		$feed_type    = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$this->crmlib = formscrm_get_api_class( $feed_type );
 
-		$merge_vars         = array();
-		$field_maps         = $this->get_field_map_fields( $feed, 'listFields' );
-		$field_clientify_id = 0;
+		$merge_vars = array();
+		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
 
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
@@ -967,17 +989,6 @@ class GFCRM extends GFFeedAddOn {
 					);
 				}
 			}
-			if ( 'clientify' === $feed_type && isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
-				$field_clientify_id = $field->id;
-			}
-		}
-
-		// Adds Clientify visitor key.
-		if ( ! empty( $field_clientify_id ) && ! empty( $entry[ $field_clientify_id ] ) ) {
-			$merge_vars[] = array(
-				'name'  => 'visitor_key',
-				'value' => $entry[ $field_clientify_id ],
-			);
 		}
 
 		$override_custom_fields = apply_filters( 'formscrm_override_blank_custom_fields', false, $entry, $form, $feed );

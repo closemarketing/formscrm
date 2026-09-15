@@ -291,3 +291,63 @@ if ( ! function_exists( 'formscrm_visitorkey_session' ) ) {
 		}
 	}
 }
+
+add_filter( 'formscrm_merge_vars_before_send', 'formscrm_clientify_forward_vk_cookie', 10, 3 );
+if ( ! function_exists( 'formscrm_clientify_forward_vk_cookie' ) ) {
+	/**
+	 * Forwards Clientify's legacy `vk` tracking cookie into merge_vars as
+	 * visitor_key, once, at submission time (when the submitter's cookie is
+	 * actually available). Doing this here — instead of inside
+	 * CRMLIB_Clientify::create_entry() on every call — ensures the resolved
+	 * value is part of the data persisted for error-log retries and admin
+	 * resends, which run without the original request's cookie.
+	 *
+	 * Falls back to the `formscrm_vk_cookie` entry meta (Gravity Forms only)
+	 * when the cookie itself is unavailable, which is the case for feeds that
+	 * process asynchronously: the cookie is captured into that meta
+	 * synchronously, before the background hand-off, by
+	 * GFCRM::capture_vk_cookie_for_async_feed().
+	 *
+	 * @param array $merge_vars Merge vars about to be sent to the CRM.
+	 * @param array $settings   Feed/CRM settings.
+	 * @param array $entry      Form entry, when available (e.g. Gravity Forms).
+	 * @return array
+	 */
+	function formscrm_clientify_forward_vk_cookie( $merge_vars, $settings, $entry = array() ) {
+		if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
+			return $merge_vars;
+		}
+
+		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
+		$module = str_replace( '-deals', '', sanitize_title( $module ) );
+
+		if ( 'contacts' !== $module ) {
+			return $merge_vars;
+		}
+
+		if ( ! empty( $_COOKIE['vk'] ) ) {
+			$vk_cookie = sanitize_text_field( wp_unslash( $_COOKIE['vk'] ) );
+		} elseif ( ! empty( $entry['id'] ) && function_exists( 'gform_get_meta' ) ) {
+			$vk_cookie = gform_get_meta( $entry['id'], 'formscrm_vk_cookie' );
+		} else {
+			$vk_cookie = '';
+		}
+
+		if ( empty( $vk_cookie ) ) {
+			return $merge_vars;
+		}
+
+		foreach ( $merge_vars as $merge_var ) {
+			if ( isset( $merge_var['name'] ) && 'visitor_key' === $merge_var['name'] ) {
+				return $merge_vars;
+			}
+		}
+
+		$merge_vars[] = array(
+			'name'  => 'visitor_key',
+			'value' => $vk_cookie,
+		);
+
+		return $merge_vars;
+	}
+}
