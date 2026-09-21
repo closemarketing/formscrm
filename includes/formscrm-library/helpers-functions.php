@@ -763,6 +763,100 @@ if ( ! function_exists( 'formscrm_normalize_date_format' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_get_encryption_key' ) ) {
+	/**
+	 * Returns a 256-bit binary key derived from WordPress' own auth salts, used
+	 * to encrypt CRM secrets (e.g. Salesforce OAuth tokens) at rest.
+	 *
+	 * @return string Raw 32-byte binary key.
+	 */
+	function formscrm_get_encryption_key() {
+		$key_material = '';
+
+		if ( defined( 'AUTH_KEY' ) && AUTH_KEY ) {
+			$key_material .= AUTH_KEY;
+		}
+		if ( defined( 'SECURE_AUTH_KEY' ) && SECURE_AUTH_KEY ) {
+			$key_material .= SECURE_AUTH_KEY;
+		}
+
+		if ( '' === $key_material ) {
+			// Sites without custom salts (e.g. local/dev installs) still get a
+			// stable, site-specific key so encryption keeps working.
+			$key_material = 'formscrm-' . get_site_url();
+		}
+
+		return hash( 'sha256', $key_material, true );
+	}
+}
+
+if ( ! function_exists( 'formscrm_encrypt' ) ) {
+	/**
+	 * Encrypts a string for storage at rest (e.g. CRM OAuth tokens/secrets).
+	 *
+	 * Uses AES-256-CBC when the openssl extension is available. Falls back to
+	 * base64 (not real encryption, but still avoids storing raw plaintext) on
+	 * servers without openssl, which never blocks a form submission.
+	 *
+	 * @param string $plaintext Value to encrypt.
+	 * @return string Encrypted value (base64-encoded), or empty string for empty input.
+	 */
+	function formscrm_encrypt( $plaintext ) {
+		$plaintext = (string) $plaintext;
+
+		if ( '' === $plaintext ) {
+			return '';
+		}
+
+		if ( ! function_exists( 'openssl_encrypt' ) || ! function_exists( 'openssl_random_pseudo_bytes' ) ) {
+			return base64_encode( $plaintext ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Fallback only when openssl is unavailable.
+		}
+
+		$key    = formscrm_get_encryption_key();
+		$iv     = openssl_random_pseudo_bytes( 16 );
+		$cipher = openssl_encrypt( $plaintext, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv );
+
+		if ( false === $cipher ) {
+			return '';
+		}
+
+		return base64_encode( $iv . $cipher ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Encoding binary ciphertext for storage, not obfuscation.
+	}
+}
+
+if ( ! function_exists( 'formscrm_decrypt' ) ) {
+	/**
+	 * Decrypts a value previously encrypted with formscrm_encrypt().
+	 *
+	 * @param string $encrypted Encrypted value (base64-encoded).
+	 * @return string Decrypted plaintext, or empty string on failure/empty input.
+	 */
+	function formscrm_decrypt( $encrypted ) {
+		$encrypted = (string) $encrypted;
+
+		if ( '' === $encrypted ) {
+			return '';
+		}
+
+		if ( ! function_exists( 'openssl_decrypt' ) ) {
+			return base64_decode( $encrypted ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Matches the openssl-unavailable fallback in formscrm_encrypt().
+		}
+
+		$raw = base64_decode( $encrypted, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decoding binary ciphertext, not de-obfuscating.
+
+		if ( false === $raw || strlen( $raw ) < 17 ) {
+			return '';
+		}
+
+		$iv         = substr( $raw, 0, 16 );
+		$ciphertext = substr( $raw, 16 );
+		$key        = formscrm_get_encryption_key();
+		$plaintext  = openssl_decrypt( $ciphertext, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv );
+
+		return false === $plaintext ? '' : $plaintext;
+	}
+}
+
 if ( ! function_exists( 'formscrm_get_svg_icon' ) ) {
 	/**
 	 * Get SVG icon content.

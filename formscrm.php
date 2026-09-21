@@ -61,6 +61,11 @@ add_filter(
 			'value' => 'mailerlite',
 		);
 
+		$choices[] = array(
+			'label' => 'Salesforce',
+			'value' => 'salesforce',
+		);
+
 		return $choices;
 	}
 );
@@ -80,6 +85,16 @@ add_filter(
 );
 
 add_filter(
+	'formscrm_dependency_oauth',
+	function ( $choices ) {
+
+		$choices[] = 'salesforce';
+
+		return $choices;
+	}
+);
+
+add_filter(
 	'formscrm_crmlib_path',
 	function ( $choices ) {
 
@@ -88,6 +103,7 @@ add_filter(
 		$choices['acumbamail'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
 		$choices['mailerlite'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite.php';
 		$choices['brevo']      = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-brevo.php';
+		$choices['salesforce'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-salesforce.php';
 
 		return $choices;
 	}
@@ -96,6 +112,7 @@ add_filter(
 // Include files.
 require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
+require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-salesforce-oauth.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log-page.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-review-notice.php';

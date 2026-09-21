@@ -1,0 +1,96 @@
+{
+	"name": "Lead",
+	"label": "Lead",
+	"fields": [
+		{
+			"name": "Id",
+			"label": "Lead ID",
+			"type": "id",
+			"createable": false,
+			"updateable": false,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "LastName",
+			"label": "Last Name",
+			"type": "string",
+			"createable": true,
+			"updateable": true,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "Company",
+			"label": "Company",
+			"type": "string",
+			"createable": true,
+			"updateable": true,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "Email",
+			"label": "Email",
+			"type": "email",
+			"createable": true,
+			"updateable": true,
+			"nillable": true,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "Status",
+			"label": "Lead Status",
+			"type": "picklist",
+			"createable": true,
+			"updateable": true,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": true
+		},
+		{
+			"name": "Address",
+			"label": "Address",
+			"type": "address",
+			"createable": false,
+			"updateable": false,
+			"nillable": true,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "CreatedDate",
+			"label": "Created Date",
+			"type": "datetime",
+			"createable": false,
+			"updateable": false,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "LastModifiedDate",
+			"label": "Last Modified Date",
+			"type": "datetime",
+			"createable": false,
+			"updateable": false,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "SystemModstamp",
+			"label": "System Modstamp",
+			"type": "datetime",
+			"createable": false,
+			"updateable": false,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		}
+	]
+}

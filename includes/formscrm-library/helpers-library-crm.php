@@ -81,7 +81,6 @@ if ( ! function_exists( 'formscrm_get_dependency_username' ) ) {
 				'msdyn',
 				'mspfe',
 				'odoo',
-				'salesforce',
 				'solve360',
 				'sugarcrm6',
 				'sugarcrm7',
@@ -138,18 +137,35 @@ if ( ! function_exists( 'formscrm_get_dependency_apipassword' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_get_dependency_oauth' ) ) {
+	/**
+	 * Returns CRMs that authenticate via OAuth 2.0 (authorization-code flow)
+	 * instead of the URL/username/password or API-key settings fields. These
+	 * CRMs render a connect/disconnect UI in the settings screen instead.
+	 *
+	 * @return array
+	 */
+	function formscrm_get_dependency_oauth() {
+		return apply_filters(
+			'formscrm_dependency_oauth',
+			array()
+		);
+	}
+}
+
 if ( ! function_exists( 'formscrm_get_dependency_apisales' ) ) {
 	/**
 	 * Returns dependecies API Password for forms depending of CRM.
+	 *
+	 * Note: the built-in Salesforce integration (see `formscrm_dependency_oauth`)
+	 * authenticates via OAuth 2.0, not this API-password/security-token field.
 	 *
 	 * @return array
 	 */
 	function formscrm_get_dependency_apisales() {
 		return apply_filters(
 			'formscrm_dependency_apisales',
-			array(
-				'salesforce',
-			)
+			array()
 		);
 	}
 }

@@ -422,6 +422,10 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 							'url'   => false,
 						),
 						array(
+							'label' => 'Salesforce',
+							'url'   => false,
+						),
+						array(
 							'label' => 'Odoo',
 							'url'   => true,
 						),
