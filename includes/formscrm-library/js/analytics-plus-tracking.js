@@ -12,17 +12,23 @@
 	var pkEndpoint = 'https://analyticsplusdev.clientify.net/analytics_plus/apiclientify';
 
 	/**
-	 * Writes a value into every field matching the given selector.
+	 * Writes a value into the hidden input carrying the given class — whether
+	 * the class is on the input itself (Contact Form 7, Elementor) or on a
+	 * wrapping container around it (Gravity Forms renders the class on the
+	 * field's wrapping <div>, not the <input>).
 	 *
-	 * @param {string}      selector
+	 * @param {string}      className Class name, without the leading dot.
 	 * @param {string|null} value
 	 */
-	function fillFields( selector, value ) {
+	function fillFields( className, value ) {
 		if ( ! value ) {
 			return;
 		}
-		document.querySelectorAll( selector ).forEach( function ( field ) {
-			field.value = value;
+		document.querySelectorAll( '.' + className ).forEach( function ( field ) {
+			var input = 'INPUT' === field.tagName ? field : field.querySelector( 'input' );
+			if ( input ) {
+				input.value = value;
+			}
 		} );
 	}
 
@@ -84,14 +90,14 @@
 			} );
 	}
 
-	fillFields( '.formscrm-vk', readVkCookie() );
+	fillFields( 'formscrm-vk', readVkCookie() );
 
 	var visitorUuid = readVisitorUuidBySuffix();
 	if ( visitorUuid ) {
-		fillFields( '.formscrm-vk2', visitorUuid );
+		fillFields( 'formscrm-vk2', visitorUuid );
 	} else {
 		readVisitorUuidByPixelKey( function ( uuid ) {
-			fillFields( '.formscrm-vk2', uuid );
+			fillFields( 'formscrm-vk2', uuid );
 		} );
 	}
 } )();
