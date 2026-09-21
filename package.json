@@ -29,12 +29,12 @@
     "csv-parse": "^7.0.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
-    "@types/node": "^26.4.0",
-    "@wordpress/scripts": "^34.2.0",
-    "@wp-playground/cli": "^3.1.52",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.5.1",
+    "@wordpress/scripts": "^35.0.0",
+    "@wp-playground/cli": "^3.1.54",
     "fetch-cookie": "^3.1.0",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.0"
   },
   "core": "WordPress/WordPress",
   "plugins": [
