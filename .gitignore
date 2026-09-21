@@ -8,3 +8,4 @@ node_modules/
 .idea/
 tests/Data/credentials/*
 .claude/settings.local.json
+.claude/worktrees/
