@@ -11,7 +11,7 @@ if ( ! class_exists( 'WPCF7_ContactForm' ) ) {
 	/**
 	 * Minimal stand-in for WPCF7_ContactForm, since Contact Form 7 isn't
 	 * installed in the test environment. Only get_current()/id() are used by
-	 * FORMSCRM_CF7_Settings::register_analytics_plus_selector().
+	 * FORMSCRM_CF7_Settings::inject_analytics_plus_fields().
 	 */
 	class WPCF7_ContactForm {
 
@@ -61,57 +61,66 @@ if ( ! class_exists( 'WPCF7_ContactForm' ) ) {
 class ContactFormsTest extends WP_UnitTestCase {
 
 	/**
-	 * Tear down: reset the CF7 double and any registered selectors.
+	 * Tear down: reset the CF7 double and the shared tracking-needed filter.
 	 */
 	public function tearDown(): void {
 		WPCF7_ContactForm::$current = null;
-		remove_all_filters( 'formscrm_analytics_plus_selectors' );
+		remove_all_filters( 'formscrm_needs_analytics_plus_tracking' );
 		parent::tearDown();
 	}
 
 	/**
-	 * A form with visitor_key2 mapped to a Clientify feed must register a
-	 * selector for the tracking script to fill, scoped to that form field.
+	 * A Clientify-connected form must get both fixed-name hidden fields
+	 * injected before its submit button, and report needing the tracking script.
 	 */
-	public function test_register_analytics_plus_selector_registers_mapped_field() {
+	public function test_inject_analytics_plus_fields_adds_both_hidden_fields() {
 		WPCF7_ContactForm::$current = new WPCF7_ContactForm( 123 );
-		update_option(
-			'cf7_crm_123',
-			array(
-				'fc_crm_type'                => 'clientify',
-				'fc_crm_field-visitor_key2'  => 'visitor-key2-field',
-			)
-		);
+		update_option( 'cf7_crm_123', array( 'fc_crm_type' => 'clientify' ) );
 
-		$settings = new FORMSCRM_CF7_Settings();
-		$settings->register_analytics_plus_selector( '<form></form>' );
+		$settings  = new FORMSCRM_CF7_Settings();
+		$form_html = $settings->inject_analytics_plus_fields( '<form><input type="submit" value="Send" /></form>' );
 
-		$selectors = apply_filters( 'formscrm_analytics_plus_selectors', array() );
-		$this->assertSame( array( '.wpcf7-form [name="visitor-key2-field"]' ), $selectors );
+		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />', $form_html );
+		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk2" class="formscrm-vk2" />', $form_html );
+		$this->assertTrue( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
 
 		delete_option( 'cf7_crm_123' );
 	}
 
 	/**
-	 * No selector should be registered when visitor_key2 isn't mapped, or the
-	 * form's CRM isn't Clientify.
+	 * Fields must not be injected, nor the tracking script requested, for a
+	 * form whose CRM isn't Clientify.
 	 */
-	public function test_register_analytics_plus_selector_skips_when_not_mapped() {
+	public function test_inject_analytics_plus_fields_skips_non_clientify_forms() {
 		WPCF7_ContactForm::$current = new WPCF7_ContactForm( 124 );
-		update_option(
-			'cf7_crm_124',
-			array(
-				'fc_crm_type'              => 'clientify',
-				'fc_crm_field-email'       => 'your-email',
-			)
-		);
+		update_option( 'cf7_crm_124', array( 'fc_crm_type' => 'holded' ) );
 
-		$settings = new FORMSCRM_CF7_Settings();
-		$settings->register_analytics_plus_selector( '<form></form>' );
+		$settings  = new FORMSCRM_CF7_Settings();
+		$original  = '<form><input type="submit" value="Send" /></form>';
+		$form_html = $settings->inject_analytics_plus_fields( $original );
 
-		$this->assertSame( array(), apply_filters( 'formscrm_analytics_plus_selectors', array() ) );
+		$this->assertSame( $original, $form_html );
+		$this->assertFalse( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
 
 		delete_option( 'cf7_crm_124' );
+	}
+
+	/**
+	 * Re-rendering the same form (e.g. AJAX re-validation) must not duplicate
+	 * the hidden fields.
+	 */
+	public function test_inject_analytics_plus_fields_does_not_duplicate_fields() {
+		WPCF7_ContactForm::$current = new WPCF7_ContactForm( 125 );
+		update_option( 'cf7_crm_125', array( 'fc_crm_type' => 'clientify' ) );
+
+		$settings  = new FORMSCRM_CF7_Settings();
+		$form_html = '<form><input type="hidden" name="formscrm_vk" class="formscrm-vk" /><input type="hidden" name="formscrm_vk2" class="formscrm-vk2" /><input type="submit" value="Send" /></form>';
+		$form_html = $settings->inject_analytics_plus_fields( $form_html );
+
+		$this->assertSame( 1, substr_count( $form_html, 'name="formscrm_vk"' ) );
+		$this->assertSame( 1, substr_count( $form_html, 'name="formscrm_vk2"' ) );
+
+		delete_option( 'cf7_crm_125' );
 	}
 
 	public function test_get_merge_vars() {

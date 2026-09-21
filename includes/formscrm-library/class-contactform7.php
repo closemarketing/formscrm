@@ -34,38 +34,54 @@ class FORMSCRM_CF7_Settings {
 		add_action( 'wpcf7_after_save', array( $this, 'crm_save_options' ) );
 		add_action( 'wpcf7_before_send_mail', array( $this, 'crm_process_entry' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_autosubmit_assets' ) );
-		add_filter( 'wpcf7_form_elements', array( $this, 'register_analytics_plus_selector' ), 10, 1 );
+		add_filter( 'wpcf7_form_elements', array( $this, 'inject_analytics_plus_fields' ) );
 	}
 
 	/**
-	 * Reports the field mapped to visitor_key2 (Analytics PLUS) as this form
-	 * renders, so the tracking script knows which DOM input to fill.
+	 * Injects FormsCRM's own hidden fields for Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) into any form with
+	 * Clientify configured, so the tracking script has somewhere to write the
+	 * values it captures in the browser. Field values are read directly from
+	 * the submitted data in crm_process_entry(), never through the admin
+	 * field-map UI. Also reports, via the shared filter, that the tracking
+	 * script is needed on this page.
 	 *
 	 * @param string $form_html Rendered form HTML.
-	 * @return string Unmodified — this only reads the current form to register a selector.
+	 * @return string Form HTML, with the tracking fields injected if needed.
 	 */
-	public function register_analytics_plus_selector( $form_html ) {
+	public function inject_analytics_plus_fields( $form_html ) {
 		$contact_form = WPCF7_ContactForm::get_current();
 		if ( ! $contact_form ) {
 			return $form_html;
 		}
 
-		$cf7_crm      = get_option( 'cf7_crm_' . $contact_form->id() );
-		$crm_type     = ! empty( $cf7_crm['fc_crm_type'] ) ? $cf7_crm['fc_crm_type'] : '';
-		$mapped_field = ! empty( $cf7_crm['fc_crm_field-visitor_key2'] ) ? $cf7_crm['fc_crm_field-visitor_key2'] : '';
+		$cf7_crm  = get_option( 'cf7_crm_' . $contact_form->id() );
+		$crm_type = ! empty( $cf7_crm['fc_crm_type'] ) ? $cf7_crm['fc_crm_type'] : '';
 
-		if ( 'clientify' === $crm_type && $mapped_field ) {
-			$selector = '.wpcf7-form [name="' . esc_attr( $mapped_field ) . '"]';
-			add_filter(
-				'formscrm_analytics_plus_selectors',
-				function ( $selectors ) use ( $selector ) {
-					$selectors[] = $selector;
-					return $selectors;
-				}
-			);
+		if ( 'clientify' !== $crm_type ) {
+			return $form_html;
 		}
 
-		return $form_html;
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		$hidden_fields = '';
+		if ( false === strpos( $form_html, 'name="formscrm_vk"' ) ) {
+			$hidden_fields .= '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />';
+		}
+		if ( false === strpos( $form_html, 'name="formscrm_vk2"' ) ) {
+			$hidden_fields .= '<input type="hidden" name="formscrm_vk2" class="formscrm-vk2" />';
+		}
+
+		if ( '' === $hidden_fields ) {
+			return $form_html;
+		}
+
+		$pos_submit = strpos( $form_html, '<input type="submit"' );
+		if ( false === $pos_submit ) {
+			return $form_html . $hidden_fields;
+		}
+
+		return substr_replace( $form_html, $hidden_fields, $pos_submit, 0 );
 	}
 
 	/**
@@ -318,7 +334,9 @@ class FORMSCRM_CF7_Settings {
 			formscrm_alert_error( $crm_type, sprintf( __( 'CRM class not found for type: %s', 'formscrm' ), $crm_type ), array(), '', '', $form_info );
 			return;
 		}
-		$merge_vars                    = self::get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+		$posted_data                   = $submission->get_posted_data();
+		$merge_vars                    = self::get_merge_vars( $cf7_crm, $posted_data );
+		$merge_vars                    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $crm_type, $posted_data ) );
 		$merge_vars                    = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $cf7_crm, array() );
 		$cf7_crm['formscrm_form_type'] = 'contactform7';
 		$response_result               = $this->crmlib->create_entry( $cf7_crm, $merge_vars );

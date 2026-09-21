@@ -8,80 +8,95 @@
  */
 
 /**
- * Tests for the Analytics PLUS (visitor_key2) client-side capture wiring.
+ * Tests for the Clientify tracking identifiers (vk cookie / visitor_key2)
+ * client-side capture wiring.
  *
  * @see formscrm_enqueue_analytics_plus_tracking()
+ * @see formscrm_get_analytics_plus_merge_vars()
  */
 class AnalyticsPlusTrackingTest extends WP_UnitTestCase {
 
 	/**
-	 * Set up: register the script, same as formscrm_register_analytics_plus_tracking()
-	 * does on wp_enqueue_scripts (not fired in isolation here).
-	 */
-	public function setUp(): void {
-		parent::setUp();
-		formscrm_register_analytics_plus_tracking();
-	}
-
-	/**
-	 * Tear down: reset registered selectors and dequeue/deregister the script.
+	 * Tear down: reset the shared filter and dequeue/deregister the script.
 	 */
 	public function tearDown(): void {
-		remove_all_filters( 'formscrm_analytics_plus_selectors' );
+		remove_all_filters( 'formscrm_needs_analytics_plus_tracking' );
 		wp_dequeue_script( 'formscrm-analytics-plus-tracking' );
 		wp_deregister_script( 'formscrm-analytics-plus-tracking' );
 		parent::tearDown();
 	}
 
 	/**
-	 * With no form on the page reporting a visitor_key2-mapped field, the
-	 * tracking script must not be enqueued — nothing to fill, no reason to load it.
+	 * With no form on the page reporting a Clientify feed, the tracking
+	 * script must not be enqueued.
 	 */
-	public function test_script_not_enqueued_without_selectors() {
+	public function test_script_not_enqueued_when_not_needed() {
 		formscrm_enqueue_analytics_plus_tracking();
 
 		$this->assertFalse( wp_script_is( 'formscrm-analytics-plus-tracking', 'enqueued' ) );
 	}
 
 	/**
-	 * Once an integration reports a mapped field via the selectors filter, the
-	 * script must be enqueued and localized with that selector.
+	 * Once an integration reports needing it, the script must be enqueued.
 	 */
-	public function test_script_enqueued_and_localized_with_reported_selector() {
-		add_filter(
-			'formscrm_analytics_plus_selectors',
-			function ( $selectors ) {
-				$selectors[] = '#input_1_5';
-				return $selectors;
-			}
-		);
+	public function test_script_enqueued_when_reported_needed() {
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
 
 		formscrm_enqueue_analytics_plus_tracking();
 
 		$this->assertTrue( wp_script_is( 'formscrm-analytics-plus-tracking', 'enqueued' ) );
-
-		$data = wp_scripts()->get_data( 'formscrm-analytics-plus-tracking', 'data' );
-		$this->assertStringContainsString( '#input_1_5', $data );
-		$this->assertStringContainsString( 'analyticsplusdev.clientify.net', $data );
 	}
 
 	/**
-	 * Duplicate selectors reported by more than one integration must be
-	 * collapsed, not sent to the browser twice.
+	 * Both tracking identifiers, read from FormsCRM's fixed-name hidden
+	 * fields, must be forwarded as visitor_key / visitor_key2 merge vars.
 	 */
-	public function test_duplicate_selectors_are_deduplicated() {
-		add_filter(
-			'formscrm_analytics_plus_selectors',
-			function ( $selectors ) {
-				$selectors[] = '#input_1_5';
-				$selectors[] = '#input_1_5';
-				return $selectors;
-			}
+	public function test_get_analytics_plus_merge_vars_forwards_both_identifiers() {
+		$merge_vars = formscrm_get_analytics_plus_merge_vars(
+			'clientify',
+			array(
+				'formscrm_vk'  => 'legacy-cookie-value',
+				'formscrm_vk2' => 'analytics-plus-uuid-value',
+			)
 		);
 
-		formscrm_enqueue_analytics_plus_tracking();
+		$this->assertSame(
+			array(
+				array( 'name' => 'visitor_key', 'value' => 'legacy-cookie-value' ),
+				array( 'name' => 'visitor_key2', 'value' => 'analytics-plus-uuid-value' ),
+			),
+			$merge_vars
+		);
+	}
 
-		$data = wp_scripts()->get_data( 'formscrm-analytics-plus-tracking', 'data' );
-		$this->assertSame( 1, substr_count( $data, '#input_1_5' ) );
+	/**
+	 * Missing/empty identifiers must simply be omitted, not sent as blanks.
+	 */
+	public function test_get_analytics_plus_merge_vars_omits_missing_identifiers() {
+		$merge_vars = formscrm_get_analytics_plus_merge_vars(
+			'clientify',
+			array( 'formscrm_vk' => 'legacy-cookie-value' )
+		);
+
+		$this->assertSame(
+			array( array( 'name' => 'visitor_key', 'value' => 'legacy-cookie-value' ) ),
+			$merge_vars
+		);
+	}
+
+	/**
+	 * Non-Clientify CRMs must never get these merge vars, even if the
+	 * fixed-name fields happen to be present.
+	 */
+	public function test_get_analytics_plus_merge_vars_ignores_other_crms() {
+		$merge_vars = formscrm_get_analytics_plus_merge_vars(
+			'holded',
+			array(
+				'formscrm_vk'  => 'legacy-cookie-value',
+				'formscrm_vk2' => 'analytics-plus-uuid-value',
+			)
+		);
+
+		$this->assertSame( array(), $merge_vars );
 	}
 }

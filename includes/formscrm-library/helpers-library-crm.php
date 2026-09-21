@@ -274,137 +274,72 @@ if ( ! function_exists( 'formscrm_get_crm_field_definitions' ) ) {
 	}
 }
 
-// Visitor Key.
-add_action( 'init', 'formscrm_visitorkey_session', 1 );
-if ( ! function_exists( 'formscrm_visitorkey_session' ) ) {
+if ( ! function_exists( 'formscrm_get_analytics_plus_merge_vars' ) ) {
 	/**
-	 * Adds visitor key to the session.
+	 * Reads Clientify's tracking identifiers (legacy `vk` cookie and Analytics
+	 * PLUS visitor_uuid) from FormsCRM's own auto-injected, fixed-name hidden
+	 * fields (`formscrm_vk` / `formscrm_vk2`), filled client-side by
+	 * analytics-plus-tracking.js. Shared by integrations (Contact Form 7,
+	 * Elementor) whose submitted data is a flat, name-keyed array; Gravity
+	 * Forms reads its own entry data by field id instead.
 	 *
-	 * @return void
+	 * These are never part of the admin field-map UI — the value is dynamic
+	 * per visit, so a person could never fill it in correctly by hand.
+	 *
+	 * @param string $crm_type    CRM type slug for this feed/form.
+	 * @param array  $posted_data Submitted data, keyed by field name.
+	 * @return array Merge vars for whichever identifiers were present.
 	 */
-	function formscrm_visitorkey_session() {
-		global $wp_session; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- External session library variable.
-
-		$visitor_key = isset( $_COOKIE['vk'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['vk'] ) ) : '';
-		if ( $visitor_key && ! isset( $wp_session['clientify_visitor_key'] ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- External session library variable.
-			$wp_session['clientify_visitor_key'] = $visitor_key; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- External session library variable.
-		}
-	}
-}
-
-add_filter( 'formscrm_merge_vars_before_send', 'formscrm_clientify_forward_vk_cookie', 10, 3 );
-if ( ! function_exists( 'formscrm_clientify_forward_vk_cookie' ) ) {
-	/**
-	 * Forwards Clientify's legacy `vk` tracking cookie into merge_vars as
-	 * visitor_key, once, at submission time (when the submitter's cookie is
-	 * actually available). Doing this here — instead of inside
-	 * CRMLIB_Clientify::create_entry() on every call — ensures the resolved
-	 * value is part of the data persisted for error-log retries and admin
-	 * resends, which run without the original request's cookie.
-	 *
-	 * Falls back to the `formscrm_vk_cookie` entry meta (Gravity Forms only)
-	 * when the cookie itself is unavailable, which is the case for feeds that
-	 * process asynchronously: the cookie is captured into that meta
-	 * synchronously, before the background hand-off, by
-	 * GFCRM::capture_vk_cookie_for_async_feed().
-	 *
-	 * @param array $merge_vars Merge vars about to be sent to the CRM.
-	 * @param array $settings   Feed/CRM settings.
-	 * @param array $entry      Form entry, when available (e.g. Gravity Forms).
-	 * @return array
-	 */
-	function formscrm_clientify_forward_vk_cookie( $merge_vars, $settings, $entry = array() ) {
-		if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
-			return $merge_vars;
+	function formscrm_get_analytics_plus_merge_vars( $crm_type, $posted_data ) {
+		if ( 'clientify' !== $crm_type ) {
+			return array();
 		}
 
-		$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
-		$module = str_replace( '-deals', '', sanitize_title( $module ) );
-
-		if ( 'contacts' !== $module ) {
-			return $merge_vars;
-		}
-
-		if ( ! empty( $_COOKIE['vk'] ) ) {
-			$vk_cookie = sanitize_text_field( wp_unslash( $_COOKIE['vk'] ) );
-		} elseif ( ! empty( $entry['id'] ) && function_exists( 'gform_get_meta' ) ) {
-			$vk_cookie = gform_get_meta( $entry['id'], 'formscrm_vk_cookie' );
-		} else {
-			$vk_cookie = '';
-		}
-
-		if ( empty( $vk_cookie ) ) {
-			return $merge_vars;
-		}
-
-		foreach ( $merge_vars as $merge_var ) {
-			if ( isset( $merge_var['name'] ) && 'visitor_key' === $merge_var['name'] ) {
-				return $merge_vars;
+		$merge_vars = array();
+		foreach ( array(
+			'formscrm_vk'  => 'visitor_key',
+			'formscrm_vk2' => 'visitor_key2',
+		) as $field_name => $crm_field ) {
+			if ( ! empty( $posted_data[ $field_name ] ) ) {
+				$merge_vars[] = array(
+					'name'  => $crm_field,
+					'value' => sanitize_text_field( $posted_data[ $field_name ] ),
+				);
 			}
 		}
 
-		$merge_vars[] = array(
-			'name'  => 'visitor_key',
-			'value' => $vk_cookie,
-		);
-
 		return $merge_vars;
-	}
-}
-
-add_action( 'wp_enqueue_scripts', 'formscrm_register_analytics_plus_tracking' );
-if ( ! function_exists( 'formscrm_register_analytics_plus_tracking' ) ) {
-	/**
-	 * Registers (without printing) the client-side capture of Clientify's
-	 * Analytics PLUS visitor_uuid. Only registered here because the list of
-	 * mapped selectors isn't known yet at this point — each form integration
-	 * (Gravity Forms, Contact Form 7, Elementor) only discovers/reports its
-	 * mapped field(s), via the `formscrm_analytics_plus_selectors` filter,
-	 * while actually rendering the form later in the page, after this hook.
-	 *
-	 * @return void
-	 */
-	function formscrm_register_analytics_plus_tracking() {
-		wp_register_script(
-			'formscrm-analytics-plus-tracking',
-			FORMSCRM_PLUGIN_URL . 'includes/formscrm-library/js/analytics-plus-tracking.js',
-			array(),
-			FORMSCRM_VERSION,
-			true
-		);
 	}
 }
 
 add_action( 'wp_footer', 'formscrm_enqueue_analytics_plus_tracking', 100 );
 if ( ! function_exists( 'formscrm_enqueue_analytics_plus_tracking' ) ) {
 	/**
-	 * Prints the Analytics PLUS tracking script, once every form on the page has
-	 * had a chance to report its visitor_key2-mapped field(s) via the
-	 * `formscrm_analytics_plus_selectors` filter. The DOM `name`/`id` an input
-	 * ends up with is integration-specific (Gravity Forms field id, Contact
-	 * Form 7 tag name, Elementor's `form_fields[id]` wrapper, etc.) and can't be
-	 * derived from the mapping config alone, so each integration resolves and
-	 * reports its own selector.
+	 * Enqueues the client-side capture of Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid), once every form on
+	 * the page has had a chance to report that it injected the `.formscrm-vk`
+	 * / `.formscrm-vk2` hidden fields it fills, via the
+	 * `formscrm_needs_analytics_plus_tracking` filter. Runs in the footer
+	 * because that reporting only happens as each form actually renders,
+	 * earlier in the page.
+	 *
+	 * Neither identifier can be resolved server-side: the `vk` cookie can be
+	 * set/refreshed by the pixel after the page was already served, and the
+	 * Analytics PLUS visitor_uuid lives only in the browser's localStorage.
 	 *
 	 * @return void
 	 */
 	function formscrm_enqueue_analytics_plus_tracking() {
-		$selectors = apply_filters( 'formscrm_analytics_plus_selectors', array() );
-		$selectors = array_values( array_unique( array_filter( $selectors ) ) );
-
-		if ( empty( $selectors ) ) {
+		if ( ! apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) ) {
 			return;
 		}
 
-		wp_localize_script(
+		wp_enqueue_script(
 			'formscrm-analytics-plus-tracking',
-			'formscrmAnalyticsPlus',
-			array(
-				'selectors'  => $selectors,
-				// Same host used by Clientify's own webform embed and by production, despite the "dev" in the name.
-				'pkEndpoint' => 'https://analyticsplusdev.clientify.net/analytics_plus/apiclientify',
-			)
+			FORMSCRM_PLUGIN_URL . 'includes/formscrm-library/js/analytics-plus-tracking.js',
+			array(),
+			FORMSCRM_VERSION,
+			true
 		);
-		wp_enqueue_script( 'formscrm-analytics-plus-tracking' );
 	}
 }

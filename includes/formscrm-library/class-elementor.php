@@ -243,6 +243,12 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		// Normalize the Form data.
 		$merge_vars = self::get_merge_vars( $formscrm_fields, $raw_fields );
 
+		$tracking_data = array(
+			'formscrm_vk'  => $raw_fields['formscrm_vk']['value'] ?? '',
+			'formscrm_vk2' => $raw_fields['formscrm_vk2']['value'] ?? '',
+		);
+		$merge_vars    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $crm_type, $tracking_data ) );
+
 		// Create contact in CRM.
 		$settings                       = formscrm_elementor_process_settings( $settings, $module );
 		$settings['fc_crm_merge_entry'] = $merge_entry;
@@ -309,37 +315,47 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	public function on_export( $element ) {}
 
 	/**
-	 * Reports the field mapped to visitor_key2 (Analytics PLUS) as this form
-	 * renders, so the tracking script knows which DOM input to fill.
+	 * Injects FormsCRM's own hidden fields for Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) into any form with
+	 * Clientify configured, so the tracking script has somewhere to write the
+	 * values it captures in the browser. Field values are read directly from
+	 * the submitted fields in run(), never through the admin field-map UI.
+	 * Also reports, via the shared filter, that the tracking script is needed
+	 * on this page.
 	 *
 	 * @param string                                   $widget_content Rendered widget HTML.
 	 * @param \ElementorPro\Modules\Forms\Widgets\Form $widget          Widget instance.
-	 * @return string Unmodified — this only reads the widget's settings to register a selector.
+	 * @return string Widget HTML, with the tracking fields injected if needed.
 	 */
-	public static function register_analytics_plus_selector( $widget_content, $widget ) {
+	public static function inject_analytics_plus_fields( $widget_content, $widget ) {
 		if ( ! $widget instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
 			return $widget_content;
 		}
 
 		$settings = $widget->get_settings_for_display();
-		if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] || empty( $settings['formscrm_settings_hidden'] ) ) {
+		if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
 			return $widget_content;
 		}
 
-		$formscrm_fields = json_decode( $settings['formscrm_settings_hidden'], true );
-		$field_form      = ! empty( $formscrm_fields['fc_crm_field-visitor_key2'] ) ? $formscrm_fields['fc_crm_field-visitor_key2'] : '';
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
 
-		if ( $field_form ) {
-			$selector = '.elementor-form [name="form_fields[' . esc_attr( $field_form ) . ']"]';
-			add_filter(
-				'formscrm_analytics_plus_selectors',
-				function ( $selectors ) use ( $selector ) {
-					$selectors[] = $selector;
-					return $selectors;
-				}
-			);
+		$hidden_fields = '';
+		if ( false === strpos( $widget_content, 'name="form_fields[formscrm_vk]"' ) ) {
+			$hidden_fields .= '<input type="hidden" name="form_fields[formscrm_vk]" class="formscrm-vk" />';
+		}
+		if ( false === strpos( $widget_content, 'name="form_fields[formscrm_vk2]"' ) ) {
+			$hidden_fields .= '<input type="hidden" name="form_fields[formscrm_vk2]" class="formscrm-vk2" />';
 		}
 
-		return $widget_content;
+		if ( '' === $hidden_fields ) {
+			return $widget_content;
+		}
+
+		$pos_button = strpos( $widget_content, '<button' );
+		if ( false === $pos_button ) {
+			return $widget_content;
+		}
+
+		return substr_replace( $widget_content, $hidden_fields, $pos_button, 0 );
 	}
 }

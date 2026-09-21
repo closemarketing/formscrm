@@ -104,7 +104,7 @@ if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 			\ElementorPro\Plugin::instance()->modules_manager->get_modules( 'forms' )->add_form_action( $formscrm_action->get_name(), $formscrm_action );
 
 			// Report the visitor_key2-mapped field, if any, as each form renders.
-			add_filter( 'elementor/widget/render_content', array( 'FormsCRM_Elementor_Action_After_Submit', 'register_analytics_plus_selector' ), 10, 2 );
+			add_filter( 'elementor/widget/render_content', array( 'FormsCRM_Elementor_Action_After_Submit', 'inject_analytics_plus_fields' ), 10, 2 );
 		}
 	);
 

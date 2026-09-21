@@ -155,47 +155,48 @@ class GFCRM extends GFFeedAddOn {
 		add_filter( 'gform_is_feed_asynchronous', array( $this, 'maybe_sync_payment_feed' ), 10, 4 );
 		add_filter( 'gform_confirmation', array( $this, 'maybe_redirect_payment_confirmation' ), 20, 4 );
 
-		// Runs at priority 5, before GFFeedAddOn's own gform_entry_post_save hook
-		// (priority 10) hands feed processing off to the background processor —
-		// this is the last point in the request where the submitter's cookies
-		// are still available for an asynchronous feed.
-		add_filter( 'gform_entry_post_save', array( $this, 'capture_vk_cookie_for_async_feed' ), 5, 2 );
-
-		// Reports the field mapped to visitor_key2 (Analytics PLUS) as it's about
-		// to render, so the tracking script knows which DOM input to fill.
-		add_filter( 'gform_pre_render', array( $this, 'register_analytics_plus_selector' ) );
+		// Injects the hidden fields the Analytics PLUS tracking script fills
+		// with Clientify's tracking identifiers before submission.
+		add_filter( 'gform_pre_render', array( $this, 'inject_analytics_plus_fields' ) );
 	}
 
 	/**
-	 * Adds this form's visitor_key2-mapped field, if any, to the list of DOM
-	 * selectors the Analytics PLUS tracking script fills with the pixel's
-	 * visitor_uuid before submission.
+	 * Adds FormsCRM's own hidden fields for Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) to any form with a
+	 * Clientify Contacts feed, so the tracking script has somewhere to write
+	 * the values it captures in the browser. Field values are read directly
+	 * from the entry in process_feed(), never through the admin field-map UI.
+	 * Also reports, via the shared filter, that the tracking script is needed
+	 * on this page.
 	 *
 	 * @param array $form Form configuration, about to be rendered.
-	 * @return array Unmodified — this only reads the form to register a selector.
+	 * @return array Form configuration, with the tracking fields added if needed.
 	 */
-	public function register_analytics_plus_selector( $form ) {
-		if ( empty( $form['id'] ) ) {
+	public function inject_analytics_plus_fields( $form ) {
+		if ( empty( $form['id'] ) || ! $this->form_has_clientify_contacts_feed( $form['id'] ) ) {
 			return $form;
 		}
 
-		foreach ( $this->get_feeds( $form['id'] ) as $feed ) {
-			$settings = $this->get_api_settings_custom( $feed );
-			if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
-				continue;
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		foreach ( array( 'formscrm_vk', 'formscrm_vk2' ) as $admin_label ) {
+			$exists = false;
+			foreach ( $form['fields'] as $field ) {
+				if ( isset( $field->adminLabel ) && $admin_label === $field->adminLabel ) {
+					$exists = true;
+					break;
+				}
 			}
 
-			$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
-			$field_id   = ! empty( $field_maps['visitor_key2'] ) ? $field_maps['visitor_key2'] : 0;
-
-			if ( ! empty( $field_id ) ) {
-				$selector = '#input_' . absint( $form['id'] ) . '_' . absint( $field_id );
-				add_filter(
-					'formscrm_analytics_plus_selectors',
-					function ( $selectors ) use ( $selector ) {
-						$selectors[] = $selector;
-						return $selectors;
-					}
+			if ( ! $exists ) {
+				$form['fields'][] = GF_Fields::create(
+					array(
+						'id'         => GFFormsModel::get_next_field_id( $form['fields'] ),
+						'formId'     => $form['id'],
+						'type'       => 'hidden',
+						'cssClass'   => 'formscrm_vk2' === $admin_label ? 'formscrm-vk2' : 'formscrm-vk',
+						'adminLabel' => $admin_label,
+					)
 				);
 			}
 		}
@@ -204,20 +205,27 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
-	 * Persists Clientify's legacy `vk` tracking cookie on the entry, synchronously,
-	 * so it survives into an asynchronous process_feed() run — which executes in
-	 * a background request where the submitter's cookies are not available.
+	 * Whether a Clientify Contacts feed exists on this form.
 	 *
-	 * @param array $entry Entry data.
-	 * @param array $form  Form configuration.
-	 * @return array
+	 * @param int $form_id Form ID.
+	 * @return bool
 	 */
-	public function capture_vk_cookie_for_async_feed( $entry, $form ) {
-		if ( ! empty( $_COOKIE['vk'] ) && ! empty( $entry['id'] ) ) {
-			gform_update_meta( $entry['id'], 'formscrm_vk_cookie', sanitize_text_field( wp_unslash( $_COOKIE['vk'] ) ) );
+	public function form_has_clientify_contacts_feed( $form_id ) {
+		foreach ( $this->get_feeds( $form_id ) as $feed ) {
+			$settings = $this->get_api_settings_custom( $feed );
+			if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
+				continue;
+			}
+
+			$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
+			$module = str_replace( '-deals', '', sanitize_title( $module ) );
+
+			if ( 'contacts' === $module ) {
+				return true;
+			}
 		}
 
-		return $entry;
+		return false;
 	}
 
 	/**
@@ -1001,6 +1009,23 @@ class GFCRM extends GFFeedAddOn {
 			foreach ( $field_maps as $var_key => $field_id ) {
 				if ( ! empty( $field_id ) ) {
 					$merge_vars[] = $this->get_value_from_field( $var_key, $field_id, $entry, $form );
+				}
+			}
+		}
+
+		// Clientify tracking identifiers, auto-injected by inject_analytics_plus_fields()
+		// and filled client-side — never part of the admin field-map UI.
+		if ( 'clientify' === $feed_type ) {
+			$tracking_fields = array(
+				'formscrm_vk'  => 'visitor_key',
+				'formscrm_vk2' => 'visitor_key2',
+			);
+			foreach ( $form['fields'] as $field ) {
+				if ( isset( $field->adminLabel ) && isset( $tracking_fields[ $field->adminLabel ] ) && ! empty( $entry[ $field->id ] ) ) {
+					$merge_vars[] = array(
+						'name'  => $tracking_fields[ $field->adminLabel ],
+						'value' => $entry[ $field->id ],
+					);
 				}
 			}
 		}

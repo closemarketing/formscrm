@@ -1,16 +1,40 @@
-// Reads the Analytics PLUS pixel's persistent visitor_uuid from localStorage and
-// writes it into the form field(s) mapped to Clientify's visitor_key2, right
-// before submission. FormsCRM runs server-side and cannot read localStorage
-// itself, so this capture step has to happen in the browser.
+// Captures Clientify's two tracking identifiers in the browser and writes them
+// into the hidden fields FormsCRM auto-injects into every Clientify-connected
+// form, right before submission. Both identifiers live client-side only:
+// - `vk`: Clientify's legacy tracking cookie (set/refreshed by the pixel after
+//   the page has already been served, so only the browser's own copy at
+//   submit time is reliable).
+// - Analytics PLUS visitor_uuid: written to localStorage by the pixel, never
+//   sent to the server at all — PHP cannot read it under any circumstance.
 ( function () {
 	'use strict';
 
-	if ( typeof window.formscrmAnalyticsPlus === 'undefined' || ! Array.isArray( window.formscrmAnalyticsPlus.selectors ) || ! window.formscrmAnalyticsPlus.selectors.length ) {
-		return;
+	var pkEndpoint = 'https://analyticsplusdev.clientify.net/analytics_plus/apiclientify';
+
+	/**
+	 * Writes a value into every field matching the given selector.
+	 *
+	 * @param {string}      selector
+	 * @param {string|null} value
+	 */
+	function fillFields( selector, value ) {
+		if ( ! value ) {
+			return;
+		}
+		document.querySelectorAll( selector ).forEach( function ( field ) {
+			field.value = value;
+		} );
 	}
 
-	var selectors  = window.formscrmAnalyticsPlus.selectors;
-	var pkEndpoint = window.formscrmAnalyticsPlus.pkEndpoint || '';
+	/**
+	 * Reads Clientify's legacy `vk` tracking cookie.
+	 *
+	 * @return {string|null}
+	 */
+	function readVkCookie() {
+		var match = document.cookie.match( /(?:^|; )vk=([^;]*)/ );
+		return match ? decodeURIComponent( match[ 1 ] ) : null;
+	}
 
 	/**
 	 * Finds the visitor_uuid localStorage key without needing the pixel_key,
@@ -40,8 +64,7 @@
 	 * @param {Function} onDone Callback receiving the visitor_uuid or null.
 	 */
 	function readVisitorUuidByPixelKey( onDone ) {
-		var domain = window.location.origin;
-		fetch( pkEndpoint + '?request_type=get_pk_cached&domain=' + encodeURIComponent( domain ) )
+		fetch( pkEndpoint + '?request_type=get_pk_cached&domain=' + encodeURIComponent( window.location.origin ) )
 			.then( function ( response ) {
 				return response.text();
 			} )
@@ -61,26 +84,14 @@
 			} );
 	}
 
-	/**
-	 * Writes the resolved visitor_uuid into every field matching the mapped selectors.
-	 *
-	 * @param {string|null} visitorUuid
-	 */
-	function fillFields( visitorUuid ) {
-		if ( ! visitorUuid ) {
-			return;
-		}
-		selectors.forEach( function ( selector ) {
-			document.querySelectorAll( selector ).forEach( function ( field ) {
-				field.value = visitorUuid;
-			} );
-		} );
-	}
+	fillFields( '.formscrm-vk', readVkCookie() );
 
 	var visitorUuid = readVisitorUuidBySuffix();
 	if ( visitorUuid ) {
-		fillFields( visitorUuid );
-	} else if ( pkEndpoint ) {
-		readVisitorUuidByPixelKey( fillFields );
+		fillFields( '.formscrm-vk2', visitorUuid );
+	} else {
+		readVisitorUuidByPixelKey( function ( uuid ) {
+			fillFields( '.formscrm-vk2', uuid );
+		} );
 	}
 } )();

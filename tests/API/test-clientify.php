@@ -771,23 +771,32 @@ class ClientifyTests extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// visitor_key2 (Analytics PLUS) and legacy vk cookie tests.
+	// visitor_key / visitor_key2 (Clientify tracking identifiers) tests.
+	//
+	// Both are captured client-side (browser cookie / localStorage) by
+	// analytics-plus-tracking.js and forwarded as regular merge vars by each
+	// form integration — never exposed as a mappable field, since a person
+	// could never fill either value in correctly by hand. See
+	// formscrm_get_analytics_plus_merge_vars() for the capture/forwarding tests.
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Contacts module field list must expose visitor_key2 for Analytics PLUS attribution.
+	 * Neither tracking identifier should appear in the mappable field list —
+	 * their value is dynamic per visit and must never be set by hand.
 	 */
-	public function test_list_fields_contacts_includes_visitor_key2() {
+	public function test_list_fields_contacts_excludes_tracking_identifiers() {
 		$this->crm_clientify->login( $this->settings );
 
 		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
 		$field_names = array_column( $fields, 'name' );
 
-		$this->assertContains( 'visitor_key2', $field_names );
+		$this->assertNotContains( 'visitor_key', $field_names );
+		$this->assertNotContains( 'visitor_key2', $field_names );
 	}
 
 	/**
-	 * visitor_key2 mapped from a form field must be sent to the API as-is.
+	 * visitor_key2, once forwarded into merge_vars by a form integration,
+	 * must be sent to the API as-is.
 	 */
 	public function test_create_entry_visitor_key2_from_merge_vars_is_sent() {
 		$this->last_contact_body = null;
@@ -805,58 +814,22 @@ class ClientifyTests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Clientify's legacy `vk` cookie must be forwarded automatically as visitor_key,
-	 * without requiring a field mapped in the form.
+	 * visitor_key, once forwarded into merge_vars by a form integration, must
+	 * be sent to the API as-is.
 	 */
-	public function test_create_entry_vk_cookie_forwarded_as_visitor_key() {
+	public function test_create_entry_visitor_key_from_merge_vars_is_sent() {
 		$this->last_contact_body = null;
-		$_COOKIE['vk']           = 'cookie-visitor-key-value';
 
 		$merge_vars = array(
-			array( 'name' => 'email', 'value' => 'test@example.com' ),
+			array( 'name' => 'email',       'value' => 'test@example.com' ),
+			array( 'name' => 'visitor_key', 'value' => 'legacy-cookie-value' ),
 		);
 
 		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
 
 		$body = $this->last_contact_body ?? array();
 		$this->assertArrayHasKey( 'visitor_key', $body );
-		$this->assertSame( 'cookie-visitor-key-value', $body['visitor_key'] );
-	}
-
-	/**
-	 * A visitor_key already present in merge_vars must not be overridden by the vk cookie.
-	 */
-	public function test_create_entry_visitor_key_from_merge_vars_not_overridden_by_cookie() {
-		$this->last_contact_body = null;
-		$_COOKIE['vk']           = 'cookie-visitor-key-value';
-
-		$merge_vars = array(
-			array( 'name' => 'email',        'value' => 'test@example.com' ),
-			array( 'name' => 'visitor_key',  'value' => 'mapped-visitor-key-value' ),
-		);
-
-		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
-
-		$body = $this->last_contact_body ?? array();
-		$this->assertSame( 'mapped-visitor-key-value', $body['visitor_key'] );
-	}
-
-	/**
-	 * The vk cookie must not be forwarded when creating Companies, only Contacts.
-	 */
-	public function test_create_entry_vk_cookie_not_forwarded_for_companies() {
-		$this->last_contact_body         = null;
-		$_COOKIE['vk']                    = 'cookie-visitor-key-value';
-		$this->settings['fc_crm_module'] = 'Companies';
-
-		$merge_vars = array(
-			array( 'name' => 'business_name', 'value' => 'ACME Corp' ),
-		);
-
-		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
-
-		$body = $this->last_contact_body ?? array();
-		$this->assertArrayNotHasKey( 'visitor_key', $body );
+		$this->assertSame( 'legacy-cookie-value', $body['visitor_key'] );
 	}
 
 	// -------------------------------------------------------------------------
