@@ -1,0 +1,126 @@
+{
+	"name": "Contact",
+	"label": "Contact",
+	"fields": [
+		{
+			"name": "Id",
+			"label": "Contact ID",
+			"type": "id",
+			"createable": false,
+			"updateable": false,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "FirstName",
+			"label": "First Name",
+			"type": "string",
+			"createable": true,
+			"updateable": true,
+			"nillable": true,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "LastName",
+			"label": "Last Name",
+			"type": "string",
+			"createable": true,
+			"updateable": true,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "Email",
+			"label": "Email",
+			"type": "email",
+			"createable": true,
+			"updateable": true,
+			"nillable": true,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "Phone",
+			"label": "Business Phone",
+			"type": "phone",
+			"createable": true,
+			"updateable": true,
+			"nillable": true,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "MailingAddress",
+			"label": "Mailing Address",
+			"type": "address",
+			"createable": false,
+			"updateable": false,
+			"nillable": true,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "MailingStreet",
+			"label": "Mailing Street",
+			"type": "textarea",
+			"createable": true,
+			"updateable": true,
+			"nillable": true,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "OwnerId",
+			"label": "Owner ID",
+			"type": "reference",
+			"createable": true,
+			"updateable": true,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": true
+		},
+		{
+			"name": "CreatedDate",
+			"label": "Created Date",
+			"type": "datetime",
+			"createable": false,
+			"updateable": false,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "LastModifiedDate",
+			"label": "Last Modified Date",
+			"type": "datetime",
+			"createable": false,
+			"updateable": false,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "SystemModstamp",
+			"label": "System Modstamp",
+			"type": "datetime",
+			"createable": false,
+			"updateable": false,
+			"nillable": false,
+			"calculated": false,
+			"defaultedOnCreate": false
+		},
+		{
+			"name": "FullName__c",
+			"label": "Full Name (calculated)",
+			"type": "string",
+			"createable": false,
+			"updateable": false,
+			"nillable": true,
+			"calculated": true,
+			"defaultedOnCreate": false
+		}
+	]
+}

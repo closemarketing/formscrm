@@ -1,0 +1,6 @@
+[
+	{
+		"message": "No such column 'NotAField__c' on entity 'Lead'",
+		"errorCode": "INVALID_FIELD"
+	}
+]

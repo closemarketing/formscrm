@@ -1,0 +1,11 @@
+{
+	"access_token": "FAKE-TEST-ACCESS-TOKEN-INITIAL-NOT-A-REAL-CREDENTIAL",
+	"refresh_token": "FAKE-TEST-REFRESH-TOKEN-NOT-A-REAL-CREDENTIAL",
+	"signature": "FAKE-TEST-SIGNATURE-NOT-A-REAL-CREDENTIAL",
+	"scope": "api refresh_token",
+	"id_token": "",
+	"instance_url": "https://mycompany.my.salesforce.com",
+	"id": "https://login.salesforce.com/id/FAKE-ORG-ID/FAKE-USER-ID",
+	"token_type": "Bearer",
+	"issued_at": "1700000000000"
+}
