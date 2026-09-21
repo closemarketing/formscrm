@@ -7,64 +7,28 @@
  * @package Formscrm
  */
 
-if ( ! class_exists( 'WPCF7_ContactForm' ) ) {
-	/**
-	 * Minimal stand-in for WPCF7_ContactForm, since Contact Form 7 isn't
-	 * installed in the test environment. Only get_current()/id() are used by
-	 * FORMSCRM_CF7_Settings::inject_analytics_plus_fields().
-	 */
-	class WPCF7_ContactForm {
-
-		/**
-		 * Instance returned by get_current(), set per-test.
-		 *
-		 * @var WPCF7_ContactForm|null
-		 */
-		public static $current = null;
-
-		/**
-		 * Form ID this instance represents.
-		 *
-		 * @var int
-		 */
-		private $id;
-
-		/**
-		 * Constructor.
-		 *
-		 * @param int $id Form ID.
-		 */
-		public function __construct( $id ) {
-			$this->id = $id;
-		}
-
-		/**
-		 * Returns the form currently being rendered/processed, per test setup.
-		 *
-		 * @return WPCF7_ContactForm|null
-		 */
-		public static function get_current() {
-			return self::$current;
-		}
-
-		/**
-		 * Returns this form's ID.
-		 *
-		 * @return int
-		 */
-		public function id() {
-			return $this->id;
-		}
-	}
-}
-
 class ContactFormsTest extends WP_UnitTestCase {
 
 	/**
-	 * Tear down: reset the CF7 double and the shared tracking-needed filter.
+	 * Creates a real wpcf7_contact_form post and makes it CF7's "current"
+	 * form via WPCF7_ContactForm::get_instance(), the same way CF7 itself
+	 * sets it while rendering/processing a form. WPCF7_ContactForm's
+	 * constructor is private and $current isn't settable directly, so this
+	 * is the only way to get FORMSCRM_CF7_Settings::inject_analytics_plus_fields()
+	 * — which reads WPCF7_ContactForm::get_current() — into a known state.
+	 *
+	 * @return int The created post's ID.
+	 */
+	private function make_current_contact_form() {
+		$post_id = $this->factory()->post->create( array( 'post_type' => 'wpcf7_contact_form' ) );
+		WPCF7_ContactForm::get_instance( $post_id );
+		return $post_id;
+	}
+
+	/**
+	 * Tear down: reset the shared tracking-needed filter.
 	 */
 	public function tearDown(): void {
-		WPCF7_ContactForm::$current = null;
 		remove_all_filters( 'formscrm_needs_analytics_plus_tracking' );
 		parent::tearDown();
 	}
@@ -74,8 +38,8 @@ class ContactFormsTest extends WP_UnitTestCase {
 	 * injected before its submit button, and report needing the tracking script.
 	 */
 	public function test_inject_analytics_plus_fields_adds_both_hidden_fields() {
-		WPCF7_ContactForm::$current = new WPCF7_ContactForm( 123 );
-		update_option( 'cf7_crm_123', array( 'fc_crm_type' => 'clientify' ) );
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
 
 		$settings  = new FORMSCRM_CF7_Settings();
 		$form_html = $settings->inject_analytics_plus_fields( '<form><input type="submit" value="Send" /></form>' );
@@ -83,8 +47,6 @@ class ContactFormsTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />', $form_html );
 		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk2" class="formscrm-vk2" />', $form_html );
 		$this->assertTrue( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
-
-		delete_option( 'cf7_crm_123' );
 	}
 
 	/**
@@ -92,8 +54,8 @@ class ContactFormsTest extends WP_UnitTestCase {
 	 * form whose CRM isn't Clientify.
 	 */
 	public function test_inject_analytics_plus_fields_skips_non_clientify_forms() {
-		WPCF7_ContactForm::$current = new WPCF7_ContactForm( 124 );
-		update_option( 'cf7_crm_124', array( 'fc_crm_type' => 'holded' ) );
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'holded' ) );
 
 		$settings  = new FORMSCRM_CF7_Settings();
 		$original  = '<form><input type="submit" value="Send" /></form>';
@@ -101,8 +63,6 @@ class ContactFormsTest extends WP_UnitTestCase {
 
 		$this->assertSame( $original, $form_html );
 		$this->assertFalse( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
-
-		delete_option( 'cf7_crm_124' );
 	}
 
 	/**
@@ -110,8 +70,8 @@ class ContactFormsTest extends WP_UnitTestCase {
 	 * the hidden fields.
 	 */
 	public function test_inject_analytics_plus_fields_does_not_duplicate_fields() {
-		WPCF7_ContactForm::$current = new WPCF7_ContactForm( 125 );
-		update_option( 'cf7_crm_125', array( 'fc_crm_type' => 'clientify' ) );
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
 
 		$settings  = new FORMSCRM_CF7_Settings();
 		$form_html = '<form><input type="hidden" name="formscrm_vk" class="formscrm-vk" /><input type="hidden" name="formscrm_vk2" class="formscrm-vk2" /><input type="submit" value="Send" /></form>';
@@ -119,8 +79,6 @@ class ContactFormsTest extends WP_UnitTestCase {
 
 		$this->assertSame( 1, substr_count( $form_html, 'name="formscrm_vk"' ) );
 		$this->assertSame( 1, substr_count( $form_html, 'name="formscrm_vk2"' ) );
-
-		delete_option( 'cf7_crm_125' );
 	}
 
 	public function test_get_merge_vars() {
