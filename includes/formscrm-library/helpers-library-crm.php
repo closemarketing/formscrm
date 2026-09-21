@@ -312,16 +312,18 @@ if ( ! function_exists( 'formscrm_get_analytics_plus_merge_vars' ) ) {
 	}
 }
 
-add_action( 'wp_footer', 'formscrm_enqueue_analytics_plus_tracking', 100 );
+add_action( 'wp_footer', 'formscrm_enqueue_analytics_plus_tracking', 1 );
 if ( ! function_exists( 'formscrm_enqueue_analytics_plus_tracking' ) ) {
 	/**
 	 * Enqueues the client-side capture of Clientify's tracking identifiers
 	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid), once every form on
 	 * the page has had a chance to report that it injected the `.formscrm-vk`
 	 * / `.formscrm-vk2` hidden fields it fills, via the
-	 * `formscrm_needs_analytics_plus_tracking` filter. Runs in the footer
+	 * `formscrm_needs_analytics_plus_tracking` filter. Runs in the footer,
 	 * because that reporting only happens as each form actually renders,
-	 * earlier in the page.
+	 * earlier in the page — but at priority 1, so it enqueues before core's
+	 * own `wp_print_footer_scripts` (priority 20) actually prints the footer
+	 * script queue; enqueuing any later would be too late to be output at all.
 	 *
 	 * Neither identifier can be resolved server-side: the `vk` cookie can be
 	 * set/refreshed by the pixel after the page was already served, and the
