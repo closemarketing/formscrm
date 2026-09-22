@@ -1,11 +1,18 @@
-// Captures Clientify's two tracking identifiers in the browser and writes them
-// into the hidden fields FormsCRM auto-injects into every Clientify-connected
-// form, right before submission. Both identifiers live client-side only:
-// - `vk`: Clientify's legacy tracking cookie (set/refreshed by the pixel after
-//   the page has already been served, so only the browser's own copy at
-//   submit time is reliable).
-// - Analytics PLUS visitor_uuid: written to localStorage by the pixel, never
-//   sent to the server at all — PHP cannot read it under any circumstance.
+// Captures Clientify's visitor tracking identifier in the browser and writes
+// it into the hidden field FormsCRM auto-injects into every Clientify-
+// connected form, right before submission. Both possible sources live
+// client-side only:
+// - Analytics PLUS visitor_uuid (preferred): written to localStorage by the
+//   pixel, never sent to the server at all — PHP cannot read it under any
+//   circumstance.
+// - `vk`: Clientify's legacy tracking cookie (set/refreshed by the pixel
+//   after the page has already been served, so only the browser's own copy
+//   at submit time is reliable), used as a fallback when there's no
+//   Analytics PLUS visitor_uuid.
+//
+// Both are sent to Clientify as the same field, `visitor_key` — Clientify's
+// API doesn't process `visitor_key2` in production yet, so Analytics PLUS
+// attribution rides on `visitor_key` too, same as the legacy cookie.
 ( function () {
 	'use strict';
 
@@ -90,14 +97,12 @@
 			} );
 	}
 
-	fillFields( 'formscrm-vk', readVkCookie() );
-
 	var visitorUuid = readVisitorUuidBySuffix();
 	if ( visitorUuid ) {
-		fillFields( 'formscrm-vk2', visitorUuid );
+		fillFields( 'formscrm-vk', visitorUuid );
 	} else {
 		readVisitorUuidByPixelKey( function ( uuid ) {
-			fillFields( 'formscrm-vk2', uuid );
+			fillFields( 'formscrm-vk', uuid || readVkCookie() );
 		} );
 	}
 } )();

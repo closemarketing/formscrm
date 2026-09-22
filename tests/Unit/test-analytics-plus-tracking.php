@@ -8,8 +8,9 @@
  */
 
 /**
- * Tests for the Clientify tracking identifiers (vk cookie / visitor_key2)
- * client-side capture wiring.
+ * Tests for the Clientify visitor tracking identifier (Analytics PLUS
+ * visitor_uuid, falling back to the legacy vk cookie — both sent as
+ * visitor_key) client-side capture wiring.
  *
  * @see formscrm_enqueue_analytics_plus_tracking()
  * @see formscrm_get_analytics_plus_merge_vars()
@@ -48,53 +49,38 @@ class AnalyticsPlusTrackingTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Both tracking identifiers, read from FormsCRM's fixed-name hidden
-	 * fields, must be forwarded as visitor_key / visitor_key2 merge vars.
+	 * The tracking identifier, read from FormsCRM's fixed-name hidden field,
+	 * must be forwarded as a visitor_key merge var.
 	 */
-	public function test_get_analytics_plus_merge_vars_forwards_both_identifiers() {
+	public function test_get_analytics_plus_merge_vars_forwards_identifier() {
 		$merge_vars = formscrm_get_analytics_plus_merge_vars(
 			'clientify',
-			array(
-				'formscrm_vk'  => 'legacy-cookie-value',
-				'formscrm_vk2' => 'analytics-plus-uuid-value',
-			)
+			array( 'formscrm_vk' => 'tracking-value' )
 		);
 
 		$this->assertSame(
-			array(
-				array( 'name' => 'visitor_key', 'value' => 'legacy-cookie-value' ),
-				array( 'name' => 'visitor_key2', 'value' => 'analytics-plus-uuid-value' ),
-			),
+			array( array( 'name' => 'visitor_key', 'value' => 'tracking-value' ) ),
 			$merge_vars
 		);
 	}
 
 	/**
-	 * Missing/empty identifiers must simply be omitted, not sent as blanks.
+	 * A missing/empty identifier must simply be omitted, not sent as blank.
 	 */
-	public function test_get_analytics_plus_merge_vars_omits_missing_identifiers() {
-		$merge_vars = formscrm_get_analytics_plus_merge_vars(
-			'clientify',
-			array( 'formscrm_vk' => 'legacy-cookie-value' )
-		);
+	public function test_get_analytics_plus_merge_vars_omits_missing_identifier() {
+		$merge_vars = formscrm_get_analytics_plus_merge_vars( 'clientify', array() );
 
-		$this->assertSame(
-			array( array( 'name' => 'visitor_key', 'value' => 'legacy-cookie-value' ) ),
-			$merge_vars
-		);
+		$this->assertSame( array(), $merge_vars );
 	}
 
 	/**
-	 * Non-Clientify CRMs must never get these merge vars, even if the
-	 * fixed-name fields happen to be present.
+	 * Non-Clientify CRMs must never get this merge var, even if the
+	 * fixed-name field happens to be present.
 	 */
 	public function test_get_analytics_plus_merge_vars_ignores_other_crms() {
 		$merge_vars = formscrm_get_analytics_plus_merge_vars(
 			'holded',
-			array(
-				'formscrm_vk'  => 'legacy-cookie-value',
-				'formscrm_vk2' => 'analytics-plus-uuid-value',
-			)
+			array( 'formscrm_vk' => 'tracking-value' )
 		);
 
 		$this->assertSame( array(), $merge_vars );

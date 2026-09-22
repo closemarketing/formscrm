@@ -64,17 +64,11 @@ class FORMSCRM_CF7_Settings {
 
 		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
 
-		$hidden_fields = '';
-		if ( false === strpos( $form_html, 'name="formscrm_vk"' ) ) {
-			$hidden_fields .= '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />';
-		}
-		if ( false === strpos( $form_html, 'name="formscrm_vk2"' ) ) {
-			$hidden_fields .= '<input type="hidden" name="formscrm_vk2" class="formscrm-vk2" />';
-		}
-
-		if ( '' === $hidden_fields ) {
+		if ( false !== strpos( $form_html, 'name="formscrm_vk"' ) ) {
 			return $form_html;
 		}
+
+		$hidden_fields = '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />';
 
 		$pos_submit = strpos( $form_html, '<input type="submit"' );
 		if ( false === $pos_submit ) {

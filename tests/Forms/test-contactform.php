@@ -34,10 +34,10 @@ class ContactFormsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A Clientify-connected form must get both fixed-name hidden fields
+	 * A Clientify-connected form must get the fixed-name hidden field
 	 * injected before its submit button, and report needing the tracking script.
 	 */
-	public function test_inject_analytics_plus_fields_adds_both_hidden_fields() {
+	public function test_inject_analytics_plus_fields_adds_hidden_field() {
 		$post_id = $this->make_current_contact_form();
 		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
 
@@ -45,7 +45,6 @@ class ContactFormsTest extends WP_UnitTestCase {
 		$form_html = $settings->inject_analytics_plus_fields( '<form><input type="submit" value="Send" /></form>' );
 
 		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />', $form_html );
-		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk2" class="formscrm-vk2" />', $form_html );
 		$this->assertTrue( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
 	}
 
@@ -67,18 +66,17 @@ class ContactFormsTest extends WP_UnitTestCase {
 
 	/**
 	 * Re-rendering the same form (e.g. AJAX re-validation) must not duplicate
-	 * the hidden fields.
+	 * the hidden field.
 	 */
-	public function test_inject_analytics_plus_fields_does_not_duplicate_fields() {
+	public function test_inject_analytics_plus_fields_does_not_duplicate_field() {
 		$post_id = $this->make_current_contact_form();
 		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
 
 		$settings  = new FORMSCRM_CF7_Settings();
-		$form_html = '<form><input type="hidden" name="formscrm_vk" class="formscrm-vk" /><input type="hidden" name="formscrm_vk2" class="formscrm-vk2" /><input type="submit" value="Send" /></form>';
+		$form_html = '<form><input type="hidden" name="formscrm_vk" class="formscrm-vk" /><input type="submit" value="Send" /></form>';
 		$form_html = $settings->inject_analytics_plus_fields( $form_html );
 
 		$this->assertSame( 1, substr_count( $form_html, 'name="formscrm_vk"' ) );
-		$this->assertSame( 1, substr_count( $form_html, 'name="formscrm_vk2"' ) );
 	}
 
 	public function test_get_merge_vars() {

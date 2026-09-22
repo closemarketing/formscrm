@@ -179,26 +179,24 @@ class GFCRM extends GFFeedAddOn {
 
 		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
 
-		foreach ( array( 'formscrm_vk', 'formscrm_vk2' ) as $admin_label ) {
-			$exists = false;
-			foreach ( $form['fields'] as $field ) {
-				if ( isset( $field->adminLabel ) && $admin_label === $field->adminLabel ) {
-					$exists = true;
-					break;
-				}
+		$exists = false;
+		foreach ( $form['fields'] as $field ) {
+			if ( isset( $field->adminLabel ) && 'formscrm_vk' === $field->adminLabel ) {
+				$exists = true;
+				break;
 			}
+		}
 
-			if ( ! $exists ) {
-				$form['fields'][] = GF_Fields::create(
-					array(
-						'id'         => GFFormsModel::get_next_field_id( $form['fields'] ),
-						'formId'     => $form['id'],
-						'type'       => 'hidden',
-						'cssClass'   => 'formscrm_vk2' === $admin_label ? 'formscrm-vk2' : 'formscrm-vk',
-						'adminLabel' => $admin_label,
-					)
-				);
-			}
+		if ( ! $exists ) {
+			$form['fields'][] = GF_Fields::create(
+				array(
+					'id'         => GFFormsModel::get_next_field_id( $form['fields'] ),
+					'formId'     => $form['id'],
+					'type'       => 'hidden',
+					'cssClass'   => 'formscrm-vk',
+					'adminLabel' => 'formscrm_vk',
+				)
+			);
 		}
 
 		return $form;
@@ -1013,19 +1011,17 @@ class GFCRM extends GFFeedAddOn {
 			}
 		}
 
-		// Clientify tracking identifiers, auto-injected by inject_analytics_plus_fields()
-		// and filled client-side — never part of the admin field-map UI.
+		// Clientify's visitor tracking identifier, auto-injected by
+		// inject_analytics_plus_fields() and filled client-side — never part
+		// of the admin field-map UI.
 		if ( 'clientify' === $feed_type ) {
-			$tracking_fields = array(
-				'formscrm_vk'  => 'visitor_key',
-				'formscrm_vk2' => 'visitor_key2',
-			);
 			foreach ( $form['fields'] as $field ) {
-				if ( isset( $field->adminLabel ) && isset( $tracking_fields[ $field->adminLabel ] ) && ! empty( $entry[ $field->id ] ) ) {
+				if ( isset( $field->adminLabel ) && 'formscrm_vk' === $field->adminLabel && ! empty( $entry[ $field->id ] ) ) {
 					$merge_vars[] = array(
-						'name'  => $tracking_fields[ $field->adminLabel ],
+						'name'  => 'visitor_key',
 						'value' => $entry[ $field->id ],
 					);
+					break;
 				}
 			}
 		}

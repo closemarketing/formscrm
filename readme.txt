@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 4.4.4-beta.5
-Version: 4.4.4-beta.5
+Stable tag: 4.4.4-beta.6
+Version: 4.4.4-beta.6
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -240,10 +240,8 @@ Each Markdown file includes:
 **Important: API v2 Migration**
 Since version 4.3.2, FormsCRM uses the Clientify API v2 (api-plus.clientify.com). Your existing API key will continue to work without changes. The migration is fully backward compatible with existing feed configurations.
 
-**Clientify tracking and attribution (visitor_key / visitor_key2)**
-FormsCRM automatically captures both of Clientify's tracking identifiers in the visitor's browser and forwards them when the contact is created — no field mapping, hidden field, or extra setup needed on any Clientify-connected form:
-- The legacy `vk` tracking cookie, forwarded as `visitor_key`.
-- The Analytics PLUS pixel's `visitor_uuid` (from the `__<pixel_key>_visitor_uuid` key in the browser's `localStorage`), forwarded as `visitor_key2`, for attribution to the visit Analytics PLUS tracked.
+**Clientify tracking and attribution (visitor_key)**
+FormsCRM automatically captures Clientify's visitor tracking identifier in the visitor's browser and forwards it as `visitor_key` when the contact is created — no field mapping, hidden field, or extra setup needed on any Clientify-connected form. It prefers the Analytics PLUS pixel's `visitor_uuid` (from the `__<pixel_key>_visitor_uuid` key in the browser's `localStorage`), for attribution to the visit Analytics PLUS tracked, falling back to the legacy `vk` tracking cookie when Analytics PLUS isn't present. (Clientify's `visitor_key2` field isn't processed by their production API yet, so Analytics PLUS attribution goes through `visitor_key` for now.)
 
 Neither value can be read reliably on the server (the cookie may be set/refreshed by the pixel after the page loads, and `localStorage` is browser-only), so both are read by a small script FormsCRM adds automatically to any page with a Clientify-connected form.
 
@@ -273,9 +271,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = next =
-* Added: Support for Clientify's Analytics PLUS contact attribution. FormsCRM automatically captures the pixel's `visitor_uuid` from `localStorage` in the browser and forwards it as `visitor_key2` on contact creation, linking the contact to the visit the Analytics PLUS pixel tracked.
-* Enhanced: Clientify's legacy `vk` tracking cookie is now captured client-side (the cookie may be set/refreshed by the pixel after the page has already loaded, so the server-side copy isn't reliable) and forwarded automatically as `visitor_key` on contact creation.
-* Changed: Every Clientify-connected form (Gravity Forms, Contact Form 7, Elementor) now gets FormsCRM's own hidden fields injected automatically to carry both tracking identifiers, filled by a small script FormsCRM enqueues on demand. Neither identifier is a mappable field — their value is dynamic per visit and can't be entered by hand.
+* Added: Support for Clientify's Analytics PLUS contact attribution. FormsCRM automatically captures the pixel's `visitor_uuid` from `localStorage` in the browser and forwards it as `visitor_key` on contact creation, linking the contact to the visit the Analytics PLUS pixel tracked. (Clientify's `visitor_key2` field isn't processed by their production API yet, so this rides on `visitor_key` for now — confirmed directly against the API.)
+* Enhanced: Clientify's legacy `vk` tracking cookie is now captured client-side (the cookie may be set/refreshed by the pixel after the page has already loaded, so the server-side copy isn't reliable) and forwarded automatically as `visitor_key` too, as a fallback when there's no Analytics PLUS visitor_uuid.
+* Changed: Every Clientify-connected form (Gravity Forms, Contact Form 7, Elementor) now gets FormsCRM's own hidden field injected automatically to carry the tracking identifier, filled by a small script FormsCRM enqueues on demand. It's not a mappable field — its value is dynamic per visit and can't be entered by hand.
 * Fixed: Clientify merge strategy could update the wrong contact/company. Clientify's `query` search param is a substring match (e.g. searching "molina@gmail.com" could match "aestepamolina@gmail.com"), and the merge strategy took the first search result without verifying it was an exact match. It now only updates when there is exactly one exact match for the searched field, and creates a new entry otherwise.
 * Fixed: the "Email Main" field-mapping option and the "Email Main" typed-email option showed the same label, so mapping the wrong one silently defeated the merge strategy (fell back to creating instead of updating) with no warning. The native field is now labeled "Email Main (single field)".
 * Fixed: `marketing_status` defaulted to "Marketing Contact" was also sent when updating an existing contact via the merge strategy, silently overwriting a contact intentionally set as "Sales Contact". The default is now only applied when creating a new contact.

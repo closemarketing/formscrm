@@ -243,10 +243,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		// Normalize the Form data.
 		$merge_vars = self::get_merge_vars( $formscrm_fields, $raw_fields );
 
-		$tracking_data = array(
-			'formscrm_vk'  => $raw_fields['formscrm_vk']['value'] ?? '',
-			'formscrm_vk2' => $raw_fields['formscrm_vk2']['value'] ?? '',
-		);
+		$tracking_data = array( 'formscrm_vk' => $raw_fields['formscrm_vk']['value'] ?? '' );
 		$merge_vars    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $crm_type, $tracking_data ) );
 
 		// Create contact in CRM.
@@ -337,19 +334,13 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			return $widget_content;
 		}
 
-		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
-
-		$hidden_fields = '';
-		if ( false === strpos( $widget_content, 'name="form_fields[formscrm_vk]"' ) ) {
-			$hidden_fields .= '<input type="hidden" name="form_fields[formscrm_vk]" class="formscrm-vk" />';
-		}
-		if ( false === strpos( $widget_content, 'name="form_fields[formscrm_vk2]"' ) ) {
-			$hidden_fields .= '<input type="hidden" name="form_fields[formscrm_vk2]" class="formscrm-vk2" />';
-		}
-
-		if ( '' === $hidden_fields ) {
+		if ( false !== strpos( $widget_content, 'name="form_fields[formscrm_vk]"' ) ) {
 			return $widget_content;
 		}
+
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		$hidden_fields = '<input type="hidden" name="form_fields[formscrm_vk]" class="formscrm-vk" />';
 
 		$pos_button = strpos( $widget_content, '<button' );
 		if ( false === $pos_button ) {
