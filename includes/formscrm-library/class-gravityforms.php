@@ -154,6 +154,76 @@ class GFCRM extends GFFeedAddOn {
 		// redirect_url is available before Gravity Forms builds the confirmation.
 		add_filter( 'gform_is_feed_asynchronous', array( $this, 'maybe_sync_payment_feed' ), 10, 4 );
 		add_filter( 'gform_confirmation', array( $this, 'maybe_redirect_payment_confirmation' ), 20, 4 );
+
+		// Injects the hidden fields the Analytics PLUS tracking script fills
+		// with Clientify's tracking identifiers before submission.
+		add_filter( 'gform_pre_render', array( $this, 'inject_analytics_plus_fields' ) );
+	}
+
+	/**
+	 * Adds FormsCRM's own hidden fields for Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) to any form with a
+	 * Clientify Contacts feed, so the tracking script has somewhere to write
+	 * the values it captures in the browser. Field values are read directly
+	 * from the entry in process_feed(), never through the admin field-map UI.
+	 * Also reports, via the shared filter, that the tracking script is needed
+	 * on this page.
+	 *
+	 * @param array $form Form configuration, about to be rendered.
+	 * @return array Form configuration, with the tracking fields added if needed.
+	 */
+	public function inject_analytics_plus_fields( $form ) {
+		if ( empty( $form['id'] ) || ! $this->form_has_clientify_contacts_feed( $form['id'] ) ) {
+			return $form;
+		}
+
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		$exists = false;
+		foreach ( $form['fields'] as $field ) {
+			if ( isset( $field->adminLabel ) && 'formscrm_vk' === $field->adminLabel ) {
+				$exists = true;
+				break;
+			}
+		}
+
+		if ( ! $exists ) {
+			$form['fields'][] = GF_Fields::create(
+				array(
+					'id'         => GFFormsModel::get_next_field_id( $form['fields'] ),
+					'formId'     => $form['id'],
+					'type'       => 'hidden',
+					'cssClass'   => 'formscrm-vk',
+					'adminLabel' => 'formscrm_vk',
+				)
+			);
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Whether a Clientify Contacts feed exists on this form.
+	 *
+	 * @param int $form_id Form ID.
+	 * @return bool
+	 */
+	public function form_has_clientify_contacts_feed( $form_id ) {
+		foreach ( $this->get_feeds( $form_id ) as $feed ) {
+			$settings = $this->get_api_settings_custom( $feed );
+			if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
+				continue;
+			}
+
+			$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
+			$module = str_replace( '-deals', '', sanitize_title( $module ) );
+
+			if ( 'contacts' === $module ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -929,15 +999,29 @@ class GFCRM extends GFFeedAddOn {
 		$feed_type    = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$this->crmlib = formscrm_get_api_class( $feed_type );
 
-		$merge_vars         = array();
-		$field_maps         = $this->get_field_map_fields( $feed, 'listFields' );
-		$field_clientify_id = 0;
+		$merge_vars = array();
+		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
 
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
 			foreach ( $field_maps as $var_key => $field_id ) {
 				if ( ! empty( $field_id ) ) {
 					$merge_vars[] = $this->get_value_from_field( $var_key, $field_id, $entry, $form );
+				}
+			}
+		}
+
+		// Clientify's visitor tracking identifier, auto-injected by
+		// inject_analytics_plus_fields() and filled client-side — never part
+		// of the admin field-map UI.
+		if ( 'clientify' === $feed_type ) {
+			foreach ( $form['fields'] as $field ) {
+				if ( isset( $field->adminLabel ) && 'formscrm_vk' === $field->adminLabel && ! empty( $entry[ $field->id ] ) ) {
+					$merge_vars[] = array(
+						'name'  => 'visitor_key',
+						'value' => $entry[ $field->id ],
+					);
+					break;
 				}
 			}
 		}
@@ -967,17 +1051,6 @@ class GFCRM extends GFFeedAddOn {
 					);
 				}
 			}
-			if ( 'clientify' === $feed_type && isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
-				$field_clientify_id = $field->id;
-			}
-		}
-
-		// Adds Clientify visitor key.
-		if ( ! empty( $field_clientify_id ) && ! empty( $entry[ $field_clientify_id ] ) ) {
-			$merge_vars[] = array(
-				'name'  => 'visitor_key',
-				'value' => $entry[ $field_clientify_id ],
-			);
 		}
 
 		$override_custom_fields = apply_filters( 'formscrm_override_blank_custom_fields', false, $entry, $form, $feed );
