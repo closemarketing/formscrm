@@ -61,6 +61,11 @@ if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) && ! class_exist
 	require_once 'class-contactform7.php';
 }
 
+// Formidable Forms.
+if ( is_plugin_active( 'formidable/formidable.php' ) && ! class_exists( 'FORMSCRM_FormidableForms' ) ) {
+	require_once 'class-formidableforms.php';
+}
+
 // WooCommerce.
 if ( is_plugin_active( 'woocommerce/woocommerce.php' ) && ! class_exists( 'FormsCRM_WooCommerce' ) ) {
 	require_once 'class-woocommerce.php';

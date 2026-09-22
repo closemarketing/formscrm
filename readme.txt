@@ -23,6 +23,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
 - [JetForms](https://wordpress.org/plugins/jetformbuilder/)
+- [Formidable Forms](https://wordpress.org/plugins/formidable/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -269,6 +270,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = next =
+* Added: Formidable Forms integration. Map any Formidable form's fields to a CRM from a new FormsCRM settings page under the Formidable Forms admin menu; entries are sent to the CRM right after they are created, with file fields resolved to their attachment URL and checkbox/multi-select fields flattened to a comma-separated value.
 * Fixed: Clientify merge strategy could update the wrong contact/company. Clientify's `query` search param is a substring match (e.g. searching "molina@gmail.com" could match "aestepamolina@gmail.com"), and the merge strategy took the first search result without verifying it was an exact match. It now only updates when there is exactly one exact match for the searched field, and creates a new entry otherwise.
 * Fixed: the "Email Main" field-mapping option and the "Email Main" typed-email option showed the same label, so mapping the wrong one silently defeated the merge strategy (fell back to creating instead of updating) with no warning. The native field is now labeled "Email Main (single field)".
 * Fixed: `marketing_status` defaulted to "Marketing Contact" was also sent when updating an existing contact via the merge strategy, silently overwriting a contact intentionally set as "Sales Contact". The default is now only applied when creating a new contact.
