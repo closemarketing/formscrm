@@ -67,12 +67,23 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		 * @return void
 		 */
 		private function schedule_action_scheduler_retry( $log_id ) {
+			$log_id      = absint( $log_id );
 			$retry_delay = HOUR_IN_SECONDS;
 			$timestamp   = time() + $retry_delay;
 
 			if ( function_exists( 'as_schedule_single_action' ) ) {
-				// Skip if a pending AS action already exists for this log.
-				if ( as_has_scheduled_action( 'formscrm_retry_failed_entry', array( $log_id ) ) ) {
+				// Skip only if a pending AS action exists. as_has_scheduled_action() also matches
+				// the in-progress action, which would block rescheduling from inside the retry itself.
+				$pending = as_get_scheduled_actions(
+					array(
+						'hook'     => 'formscrm_retry_failed_entry',
+						'args'     => array( $log_id ),
+						'status'   => ActionScheduler_Store::STATUS_PENDING,
+						'per_page' => 1,
+					),
+					'ids'
+				);
+				if ( ! empty( $pending ) ) {
 					return;
 				}
 				try {
@@ -96,6 +107,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		 * @return void
 		 */
 		private function cancel_scheduled_retry( $log_id ) {
+			$log_id = absint( $log_id );
 			if ( function_exists( 'as_unschedule_all_actions' ) ) {
 				as_unschedule_all_actions( 'formscrm_retry_failed_entry', array( $log_id ) );
 			}
@@ -706,8 +718,18 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		 * @return int|false Timestamp or false if not scheduled.
 		 */
 		public function get_next_retry_time( $log_id ) {
-			$timestamp = wp_next_scheduled( 'formscrm_retry_failed_entry', array( $log_id ) );
-			return $timestamp;
+			// Actions are scheduled with an int arg; $wpdb returns IDs as strings and AS matches args strictly.
+			$log_id = absint( $log_id );
+
+			// Action Scheduler returns true for an in-progress action; only a timestamp is useful here.
+			if ( function_exists( 'as_next_scheduled_action' ) ) {
+				$timestamp = as_next_scheduled_action( 'formscrm_retry_failed_entry', array( $log_id ) );
+				if ( is_int( $timestamp ) ) {
+					return $timestamp;
+				}
+			}
+
+			return wp_next_scheduled( 'formscrm_retry_failed_entry', array( $log_id ) );
 		}
 
 		/**

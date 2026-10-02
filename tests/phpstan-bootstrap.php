@@ -473,6 +473,43 @@ if ( ! function_exists( 'as_has_scheduled_action' ) ) {
 	}
 }
 
+if ( ! function_exists( 'as_next_scheduled_action' ) ) {
+	/**
+	 * Get the timestamp of the next scheduled action.
+	 *
+	 * @param string $hook  Action hook.
+	 * @param array  $args  Action arguments.
+	 * @param string $group Action group.
+	 * @return int|bool
+	 */
+	function as_next_scheduled_action( $hook, $args = null, $group = '' ) {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'as_get_scheduled_actions' ) ) {
+	/**
+	 * Get scheduled actions.
+	 *
+	 * @param array  $args             Query arguments.
+	 * @param string $return_format    Return format.
+	 * @return array
+	 */
+	function as_get_scheduled_actions( $args = array(), $return_format = OBJECT ) {
+		return array();
+	}
+}
+
+if ( ! class_exists( 'ActionScheduler_Store' ) ) {
+	/**
+	 * Action Scheduler store stub.
+	 */
+	abstract class ActionScheduler_Store {
+		const STATUS_PENDING = 'pending';
+		const STATUS_RUNNING = 'in-progress';
+	}
+}
+
 if ( ! function_exists( 'as_unschedule_all_actions' ) ) {
 	/**
 	 * Unschedule all pending actions for a hook.
