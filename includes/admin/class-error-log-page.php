@@ -83,6 +83,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 					'resending'            => __( 'Resending...', 'formscrm' ),
 					'clearing'             => __( 'Clearing...', 'formscrm' ),
 					'clearAll'             => __( 'Clear All Logs', 'formscrm' ),
+					'exporting'            => __( 'Exporting...', 'formscrm' ),
 					'viewDetails'          => __( 'Details', 'formscrm' ),
 					'hideDetails'          => __( 'Hide', 'formscrm' ),
 					'successText'          => __( 'Success', 'formscrm' ),
@@ -189,11 +190,12 @@ if ( ! class_exists( 'FORMSCRM_Error_Log_Page' ) ) {
 						</form>
 
 						<div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
-							<input type="text" id="fcrm-export-date-from" class="fcrm-form-input" placeholder="<?php esc_attr_e( 'From', 'formscrm' ); ?>" style="width: 150px;">
-							<input type="text" id="fcrm-export-date-to" class="fcrm-form-input" placeholder="<?php esc_attr_e( 'To', 'formscrm' ); ?>" style="width: 150px;">
+							<input type="date" id="fcrm-export-date-from" class="fcrm-form-input" title="<?php esc_attr_e( 'From', 'formscrm' ); ?>" style="width: 150px;">
+							<input type="date" id="fcrm-export-date-to" class="fcrm-form-input" title="<?php esc_attr_e( 'To', 'formscrm' ); ?>" style="width: 150px;">
 							<button type="button" class="fcrm-button fcrm-button-secondary" id="fcrm-export-csv">
 								<?php esc_html_e( 'Export CSV', 'formscrm' ); ?>
 							</button>
+							<span class="spinner" id="fcrm-export-csv-spinner" style="float: none; margin: 0;"></span>
 						</div>
 
 						<button type="button" class="fcrm-button fcrm-button-danger" id="fcrm-clear-all-logs" style="margin-top: 10px;">

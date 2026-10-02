@@ -445,6 +445,15 @@
 	border-color: var(--fcrm-gray-400);
 }
 
+.fcrm-button:disabled,
+.fcrm-button[aria-busy="true"] {
+	opacity: 0.6;
+	cursor: not-allowed;
+	pointer-events: none;
+	transform: none;
+	box-shadow: none;
+}
+
 .fcrm-button svg {
 	width: 1.25rem;
 	height: 1.25rem;

@@ -311,6 +311,61 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 
+	// Export CSV.
+	const exportCsvBtn = document.getElementById('fcrm-export-csv');
+	if (exportCsvBtn) {
+		exportCsvBtn.addEventListener('click', function() {
+			if (this.disabled) {
+				return;
+			}
+
+			const spinner = document.getElementById('fcrm-export-csv-spinner');
+			const originalText = this.textContent;
+			this.disabled = true;
+			this.setAttribute('aria-busy', 'true');
+			this.textContent = formscrmErrorLog.exporting || 'Exporting...';
+			if (spinner) {
+				spinner.classList.add('is-active');
+			}
+
+			const formData = new FormData();
+			formData.append('action', 'formscrm_export_csv');
+			formData.append('nonce', formscrmErrorLog.nonce);
+			formData.append('date_from', document.getElementById('fcrm-export-date-from').value);
+			formData.append('date_to', document.getElementById('fcrm-export-date-to').value);
+
+			fetch(formscrmErrorLog.ajaxurl, {
+				method: 'POST',
+				body: formData
+			})
+				.then(response => response.json())
+				.then(response => {
+					if (response.success) {
+						const blob = new Blob(['﻿' + response.data.csv_content], { type: 'text/csv;charset=utf-8;' });
+						const url = URL.createObjectURL(blob);
+						const link = document.createElement('a');
+						link.href = url;
+						link.download = response.data.filename;
+						document.body.appendChild(link);
+						link.click();
+						link.remove();
+						URL.revokeObjectURL(url);
+					} else {
+						alert('Error: ' + (response.data.message || 'Failed to export logs'));
+					}
+				})
+				.catch(error => alert(formscrmErrorLog.ajaxError + ': ' + error))
+				.finally(() => {
+					this.disabled = false;
+					this.removeAttribute('aria-busy');
+					this.textContent = originalText;
+					if (spinner) {
+						spinner.classList.remove('is-active');
+					}
+				});
+		});
+	}
+
 	// Cancel all scheduled retries.
 	const cancelAllRetriesBtn = document.getElementById('fcrm-cancel-all-retries');
 	if (cancelAllRetriesBtn) {
