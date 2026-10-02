@@ -154,6 +154,20 @@ class GFCRM extends GFFeedAddOn {
 		// redirect_url is available before Gravity Forms builds the confirmation.
 		add_filter( 'gform_is_feed_asynchronous', array( $this, 'maybe_sync_payment_feed' ), 10, 4 );
 		add_filter( 'gform_confirmation', array( $this, 'maybe_redirect_payment_confirmation' ), 20, 4 );
+
+		// GF's background queue lock defaults to 60s, shorter than a slow CRM call (120s timeout).
+		// When it expires another runner picks up the same task and the entry is sent twice.
+		add_filter( 'wp_gf_' . $this->_slug . '_feed_processor_queue_lock_time', array( $this, 'feed_processor_lock_time' ) );
+	}
+
+	/**
+	 * Keeps the background queue locked longer than the slowest CRM request.
+	 *
+	 * @param int $lock_duration Lock duration in seconds.
+	 * @return int
+	 */
+	public function feed_processor_lock_time( $lock_duration ) {
+		return max( (int) $lock_duration, 5 * MINUTE_IN_SECONDS );
 	}
 
 	/**
@@ -166,6 +180,11 @@ class GFCRM extends GFFeedAddOn {
 	 * @return bool
 	 */
 	public function maybe_sync_payment_feed( $is_asynchronous, $feed, $entry, $form ) {
+		// This filter runs for every add-on's feeds (e.g. Stripe); only touch our own.
+		if ( rgar( $feed, 'addon_slug' ) !== $this->_slug ) {
+			return $is_asynchronous;
+		}
+
 		$settings = $this->get_api_settings_custom( $feed );
 
 		if ( empty( $settings['fc_crm_type'] ) || 'redsys' !== $settings['fc_crm_type'] ) {
@@ -925,6 +944,35 @@ class GFCRM extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function process_feed( $feed, $entry, $form ) {
+		$lock_key = 'formscrm_feed_lock_' . absint( rgar( $entry, 'id' ) ) . '_' . absint( rgar( $feed, 'id' ) );
+
+		// Atomic lock: add_option() fails if another runner is already sending this entry/feed.
+		if ( ! add_option( $lock_key, time(), '', false ) ) {
+			$locked_at = (int) get_option( $lock_key );
+			if ( $locked_at && ( time() - $locked_at ) < 10 * MINUTE_IN_SECONDS ) {
+				formscrm_debug_message( "Skipping duplicate processing for {$lock_key}: already in progress" );
+				return;
+			}
+			// Stale lock left by a crashed run; take it over.
+			update_option( $lock_key, time(), false );
+		}
+
+		try {
+			$this->send_feed( $feed, $entry, $form );
+		} finally {
+			delete_option( $lock_key );
+		}
+	}
+
+	/**
+	 * Builds the merge vars and sends the entry to the CRM.
+	 *
+	 * @param array  $feed  Feed data.
+	 * @param array  $entry Entry data.
+	 * @param object $form  Form data.
+	 * @return void
+	 */
+	private function send_feed( $feed, $entry, $form ) {
 		$settings     = $this->get_api_settings_custom( $feed );
 		$feed_type    = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$this->crmlib = formscrm_get_api_class( $feed_type );

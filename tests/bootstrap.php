@@ -43,6 +43,12 @@ function _manually_load_plugin() {
 	// Only require Contact Form 7 if it exists.
 	$cf7_path = WP_CORE_DIR . '/wp-content/plugins/contact-form-7/wp-contact-form-7.php';
 	if ( file_exists( $cf7_path ) ) {
+		// CF7 6.2+ does `require 'vendor/autoload.php'` with a relative path, which resolves
+		// against the CWD (this plugin's own vendor/) first. Load CF7's autoloader explicitly.
+		$cf7_autoload = dirname( $cf7_path ) . '/vendor/autoload.php';
+		if ( file_exists( $cf7_autoload ) ) {
+			require_once $cf7_autoload;
+		}
 		require_once $cf7_path;
 	}
 	// Load form integration classes used in tests (normally loaded conditionally by loader.php).
@@ -51,6 +57,11 @@ function _manually_load_plugin() {
 	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-elementor.php';
 	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-contactform7.php';
 	require __DIR__ . '/../formscrm.php';
+	// GFCRM is normally loaded on gform_loaded; load it against the GF stubs when GF is absent.
+	if ( ! class_exists( 'GFCRM' ) ) {
+		require_once TESTS_PLUGIN_DIR . '/tests/stubs/stub-gravityforms.php';
+		require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-gravityforms.php';
+	}
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
