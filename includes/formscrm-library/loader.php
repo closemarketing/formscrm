@@ -12,7 +12,6 @@ defined( 'ABSPATH' ) || exit;
 
 require_once 'helpers-functions.php';
 require_once 'helpers-library-crm.php';
-require_once 'class-forms-clientify.php';
 
 // Prevents fatal error is_plugin_active.
 if ( ! function_exists( 'is_plugin_active' ) ) {
@@ -103,6 +102,9 @@ if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 
 			// Register the action with form widget.
 			\ElementorPro\Plugin::instance()->modules_manager->get_modules( 'forms' )->add_form_action( $formscrm_action->get_name(), $formscrm_action );
+
+			// Injects the tracking hidden field as each Clientify-connected form renders.
+			add_filter( 'elementor/widget/render_content', array( 'FormsCRM_Elementor_Action_After_Submit', 'inject_analytics_plus_fields' ), 10, 2 );
 		}
 	);
 
