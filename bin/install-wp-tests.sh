@@ -198,8 +198,14 @@ install_db() {
 install_plugins() {
 	local PLUGIN_DIR="$WP_CORE_DIR/wp-content/plugins"
 	mkdir -p "$PLUGIN_DIR"
-WOOCOMMERCE_URL="https://downloads.wordpress.org/plugin/contact-form-7.zip"
-	download "$WOOCOMMERCE_URL" "$TMPDIR/contact-form-7.zip"
+	# Contact Form 7 >= 6.2 requires PHP 8.3; pin the last 7.4-compatible
+	# release on older runtimes so the test matrix can still bootstrap.
+	local CF7_ZIP="contact-form-7.zip"
+	if ! php -r 'exit( version_compare( PHP_VERSION, "8.3", ">=" ) ? 0 : 1 );'; then
+		CF7_ZIP="contact-form-7.6.1.7.zip"
+	fi
+	local CF7_URL="https://downloads.wordpress.org/plugin/$CF7_ZIP"
+	download "$CF7_URL" "$TMPDIR/contact-form-7.zip"
 	unzip -q "$TMPDIR/contact-form-7.zip" -d "$TMPDIR/"
 	rm -rf "$PLUGIN_DIR/contact-form-7"
 	mv "$TMPDIR/contact-form-7" "$PLUGIN_DIR/contact-form-7"
