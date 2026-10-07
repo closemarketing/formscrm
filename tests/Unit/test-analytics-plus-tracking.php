@@ -85,4 +85,17 @@ class AnalyticsPlusTrackingTest extends WP_UnitTestCase {
 
 		$this->assertSame( array(), $merge_vars );
 	}
+
+	/**
+	 * The identifier comes straight from a submitted field, so it must be
+	 * sanitized before being sent to the CRM.
+	 */
+	public function test_get_analytics_plus_merge_vars_sanitizes_identifier() {
+		$merge_vars = formscrm_get_analytics_plus_merge_vars(
+			'clientify',
+			array( 'formscrm_vk' => " <b>tracking</b>-value\n" )
+		);
+
+		$this->assertSame( 'tracking-value', $merge_vars[0]['value'] );
+	}
 }
