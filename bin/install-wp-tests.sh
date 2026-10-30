@@ -16,8 +16,13 @@ TMPDIR=${TMPDIR-/tmp}
 TMPDIR=$(echo $TMPDIR | sed -e "s/\/$//")
 WP_TESTS_DIR=${WP_TESTS_DIR-$TMPDIR/wordpress-tests-lib}
 WP_CORE_DIR=${WP_CORE_DIR-$TMPDIR/wordpress}
-# Contact Form 7 6.2+ requires PHP 8.3; 6.1.7 is the last release supporting PHP 7.4.
-CF7_VERSION=${CF7_VERSION-6.1.7}
+# Contact Form 7 6.2+ requires PHP 8.3; pin the last 7.4-compatible
+# release on older runtimes so the test matrix can still bootstrap.
+if php -r 'exit( version_compare( PHP_VERSION, "8.3", ">=" ) ? 0 : 1 );'; then
+	CF7_VERSION=${CF7_VERSION-latest}
+else
+	CF7_VERSION=${CF7_VERSION-6.1.7}
+fi
 
 download() {
     if [ `which curl` ]; then

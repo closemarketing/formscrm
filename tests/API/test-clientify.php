@@ -55,6 +55,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	 */
 	public function tearDown(): void {
 		remove_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10 );
+		unset( $_COOKIE['vk'] );
 		parent::tearDown();
 	}
 
@@ -998,6 +999,68 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		$this->assertNotContains( 'empty_field', $field_keys, 'Empty deal custom_field must not be sent.' );
 		$this->assertContains( 'filled_field', $field_keys, 'Non-empty deal custom_field must be sent.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// visitor_key / visitor_key2 (Clientify tracking identifiers) tests.
+	//
+	// Both are captured client-side (browser cookie / localStorage) by
+	// analytics-plus-tracking.js and forwarded as regular merge vars by each
+	// form integration — never exposed as a mappable field, since a person
+	// could never fill either value in correctly by hand. See
+	// formscrm_get_analytics_plus_merge_vars() for the capture/forwarding tests.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Neither tracking identifier should appear in the mappable field list —
+	 * their value is dynamic per visit and must never be set by hand.
+	 */
+	public function test_list_fields_contacts_excludes_tracking_identifiers() {
+		$this->crm_clientify->login( $this->settings );
+
+		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
+		$field_names = array_column( $fields, 'name' );
+
+		$this->assertNotContains( 'visitor_key', $field_names );
+		$this->assertNotContains( 'visitor_key2', $field_names );
+	}
+
+	/**
+	 * visitor_key2, once forwarded into merge_vars by a form integration,
+	 * must be sent to the API as-is.
+	 */
+	public function test_create_entry_visitor_key2_from_merge_vars_is_sent() {
+		$this->last_contact_body = null;
+
+		$merge_vars = array(
+			array( 'name' => 'email',        'value' => 'test@example.com' ),
+			array( 'name' => 'visitor_key2', 'value' => 'MTIzYWJjLi4uMjAyNS0wNy0wNg==' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body = $this->last_contact_body ?? array();
+		$this->assertArrayHasKey( 'visitor_key2', $body );
+		$this->assertSame( 'MTIzYWJjLi4uMjAyNS0wNy0wNg==', $body['visitor_key2'] );
+	}
+
+	/**
+	 * visitor_key, once forwarded into merge_vars by a form integration, must
+	 * be sent to the API as-is.
+	 */
+	public function test_create_entry_visitor_key_from_merge_vars_is_sent() {
+		$this->last_contact_body = null;
+
+		$merge_vars = array(
+			array( 'name' => 'email',       'value' => 'test@example.com' ),
+			array( 'name' => 'visitor_key', 'value' => 'legacy-cookie-value' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body = $this->last_contact_body ?? array();
+		$this->assertArrayHasKey( 'visitor_key', $body );
+		$this->assertSame( 'legacy-cookie-value', $body['visitor_key'] );
 	}
 
 	// -------------------------------------------------------------------------

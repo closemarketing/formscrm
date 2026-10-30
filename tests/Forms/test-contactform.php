@@ -1,13 +1,83 @@
 <?php
 /**
  * Class ContactFormsTest
- * 
+ *
  * Command: composer test-debug --filter ContactFormsTest
  *
  * @package Formscrm
  */
 
 class ContactFormsTest extends WP_UnitTestCase {
+
+	/**
+	 * Creates a real wpcf7_contact_form post and makes it CF7's "current"
+	 * form via WPCF7_ContactForm::get_instance(), the same way CF7 itself
+	 * sets it while rendering/processing a form. WPCF7_ContactForm's
+	 * constructor is private and $current isn't settable directly, so this
+	 * is the only way to get FORMSCRM_CF7_Settings::inject_analytics_plus_fields()
+	 * — which reads WPCF7_ContactForm::get_current() — into a known state.
+	 *
+	 * @return int The created post's ID.
+	 */
+	private function make_current_contact_form() {
+		$post_id = $this->factory()->post->create( array( 'post_type' => 'wpcf7_contact_form' ) );
+		WPCF7_ContactForm::get_instance( $post_id );
+		return $post_id;
+	}
+
+	/**
+	 * Tear down: reset the shared tracking-needed filter.
+	 */
+	public function tearDown(): void {
+		remove_all_filters( 'formscrm_needs_analytics_plus_tracking' );
+		parent::tearDown();
+	}
+
+	/**
+	 * A Clientify-connected form must get the fixed-name hidden field
+	 * injected before its submit button, and report needing the tracking script.
+	 */
+	public function test_inject_analytics_plus_fields_adds_hidden_field() {
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
+
+		$settings  = new FORMSCRM_CF7_Settings();
+		$form_html = $settings->inject_analytics_plus_fields( '<form><input type="submit" value="Send" /></form>' );
+
+		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />', $form_html );
+		$this->assertTrue( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
+	}
+
+	/**
+	 * Fields must not be injected, nor the tracking script requested, for a
+	 * form whose CRM isn't Clientify.
+	 */
+	public function test_inject_analytics_plus_fields_skips_non_clientify_forms() {
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'holded' ) );
+
+		$settings  = new FORMSCRM_CF7_Settings();
+		$original  = '<form><input type="submit" value="Send" /></form>';
+		$form_html = $settings->inject_analytics_plus_fields( $original );
+
+		$this->assertSame( $original, $form_html );
+		$this->assertFalse( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
+	}
+
+	/**
+	 * Re-rendering the same form (e.g. AJAX re-validation) must not duplicate
+	 * the hidden field.
+	 */
+	public function test_inject_analytics_plus_fields_does_not_duplicate_field() {
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
+
+		$settings  = new FORMSCRM_CF7_Settings();
+		$form_html = '<form><input type="hidden" name="formscrm_vk" class="formscrm-vk" /><input type="submit" value="Send" /></form>';
+		$form_html = $settings->inject_analytics_plus_fields( $form_html );
+
+		$this->assertSame( 1, substr_count( $form_html, 'name="formscrm_vk"' ) );
+	}
 
 	public function test_get_merge_vars() {
 		$cf7_crm = array(

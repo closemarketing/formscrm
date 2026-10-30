@@ -708,6 +708,13 @@ class WPCF7_ContactForm {
 	public static function get_instance( $post_id = 0 ) {}
 
 	/**
+	 * Get the form currently being rendered/processed.
+	 *
+	 * @return WPCF7_ContactForm|null
+	 */
+	public static function get_current() {}
+
+	/**
 	 * Get ID
 	 *
 	 * @return int

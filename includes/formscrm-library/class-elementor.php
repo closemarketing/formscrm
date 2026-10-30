@@ -243,14 +243,9 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		// Normalize the Form data.
 		$merge_vars = self::get_merge_vars( $formscrm_fields, $raw_fields );
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
-		if ( ! empty( $_POST['visitor_key'] ) ) {
-			$merge_vars['visitor_key'] = array(
-				'name'  => 'visitor_key',
-				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),
-			);
-		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$tracking_data = array( 'formscrm_vk' => $raw_fields['formscrm_vk']['value'] ?? '' );
+		$merge_vars    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $crm_type, $tracking_data ) );
+
 		// Create contact in CRM.
 		$settings                       = formscrm_elementor_process_settings( $settings, $module );
 		$settings['fc_crm_merge_entry'] = $merge_entry;
@@ -315,4 +310,43 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @param \ElementorPro\Modules\Forms\Classes\Form_Record $element Form element.
 	 */
 	public function on_export( $element ) {}
+
+	/**
+	 * Injects FormsCRM's own hidden fields for Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) into any form with
+	 * Clientify configured, so the tracking script has somewhere to write the
+	 * values it captures in the browser. Field values are read directly from
+	 * the submitted fields in run(), never through the admin field-map UI.
+	 * Also reports, via the shared filter, that the tracking script is needed
+	 * on this page.
+	 *
+	 * @param string                                   $widget_content Rendered widget HTML.
+	 * @param \ElementorPro\Modules\Forms\Widgets\Form $widget          Widget instance.
+	 * @return string Widget HTML, with the tracking fields injected if needed.
+	 */
+	public static function inject_analytics_plus_fields( $widget_content, $widget ) {
+		if ( ! $widget instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
+			return $widget_content;
+		}
+
+		$settings = $widget->get_settings_for_display();
+		if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
+			return $widget_content;
+		}
+
+		if ( false !== strpos( $widget_content, 'name="form_fields[formscrm_vk]"' ) ) {
+			return $widget_content;
+		}
+
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		$hidden_fields = '<input type="hidden" name="form_fields[formscrm_vk]" class="formscrm-vk" />';
+
+		$pos_button = strpos( $widget_content, '<button' );
+		if ( false === $pos_button ) {
+			return $widget_content;
+		}
+
+		return substr_replace( $widget_content, $hidden_fields, $pos_button, 0 );
+	}
 }
