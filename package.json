@@ -29,7 +29,7 @@
     "csv-parse": "^7.0.3"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
     "@wordpress/scripts": "^35.0.0",
     "@wp-playground/cli": "^3.1.60",
