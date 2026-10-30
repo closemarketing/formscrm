@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 4.4.4-beta.6
-Version: 4.4.4-beta.6
+Stable tag: 4.4.4
+Version: 4.4.4
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -270,7 +270,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
-= next =
+= 4.4.4 =
 * Added: Support for Clientify's Analytics PLUS contact attribution. FormsCRM automatically captures the pixel's `visitor_uuid` from `localStorage` in the browser and forwards it as `visitor_key` on contact creation, linking the contact to the visit the Analytics PLUS pixel tracked. (Clientify's `visitor_key2` field isn't processed by their production API yet, so this rides on `visitor_key` for now — confirmed directly against the API.)
 * Enhanced: Clientify's legacy `vk` tracking cookie is now captured client-side (the cookie may be set/refreshed by the pixel after the page has already loaded, so the server-side copy isn't reliable) and forwarded automatically as `visitor_key` too, as a fallback when there's no Analytics PLUS visitor_uuid.
 * Changed: Every Clientify-connected form (Gravity Forms, Contact Form 7, Elementor) now gets FormsCRM's own hidden field injected automatically to carry the tracking identifier, filled by a small script FormsCRM enqueues on demand. It's not a mappable field — its value is dynamic per visit and can't be entered by hand.
@@ -279,6 +279,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 * Fixed: `marketing_status` defaulted to "Marketing Contact" was also sent when updating an existing contact via the merge strategy, silently overwriting a contact intentionally set as "Sales Contact". The default is now only applied when creating a new contact.
 * Enhanced: Added support for GravityForms 3.0's international Phone field format, normalizing the number (digits and leading "+") before sending it to the CRM.
 * Fixed: Elementor forms connected to Clientify always forced contact creation (`force_insert=true`), causing an HTTP 409 Conflict on every resubmission from an existing contact. The merge strategy field (used to search and update instead of create) is now available for Elementor, same as Gravity Forms.
+* Developers: New `formscrm_alert_error_labels` filter to customize the wording of error alerts (email subject, headers, Slack title and labels), so addons can describe their own failure types (e.g. a payment error) instead of the generic lead creation error.
+* Tests: Pinned Contact Form 7 to 6.1.7 in the PHPUnit installer, since Contact Form 7 6.2+ requires PHP 8.3 and broke the test suite on PHP 7.4 and 8.1.
 
 = 4.4.3 =
 * Fixed: Clientify API v1 requests occasionally failing with `HTTP 504 Gateway Timeout` on `api.clientify.net`. All requests (reads, lead/contact creation, updates, deals) now retry once against the `api.clientify.com` fallback before failing; this is a temporary workaround suggested by Clientify support while they investigate the root cause.
