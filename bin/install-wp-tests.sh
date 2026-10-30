@@ -16,6 +16,13 @@ TMPDIR=${TMPDIR-/tmp}
 TMPDIR=$(echo $TMPDIR | sed -e "s/\/$//")
 WP_TESTS_DIR=${WP_TESTS_DIR-$TMPDIR/wordpress-tests-lib}
 WP_CORE_DIR=${WP_CORE_DIR-$TMPDIR/wordpress}
+# Contact Form 7 6.2+ requires PHP 8.3; pin the last 7.4-compatible
+# release on older runtimes so the test matrix can still bootstrap.
+if php -r 'exit( version_compare( PHP_VERSION, "8.3", ">=" ) ? 0 : 1 );'; then
+	CF7_VERSION=${CF7_VERSION-latest}
+else
+	CF7_VERSION=${CF7_VERSION-6.1.7}
+fi
 
 download() {
     if [ `which curl` ]; then
@@ -198,18 +205,16 @@ install_db() {
 install_plugins() {
 	local PLUGIN_DIR="$WP_CORE_DIR/wp-content/plugins"
 	mkdir -p "$PLUGIN_DIR"
-	# Contact Form 7 >= 6.2 requires PHP 8.3; pin the last 7.4-compatible
-	# release on older runtimes so the test matrix can still bootstrap.
-	local CF7_ZIP="contact-form-7.zip"
-	if ! php -r 'exit( version_compare( PHP_VERSION, "8.3", ">=" ) ? 0 : 1 );'; then
-		CF7_ZIP="contact-form-7.6.1.7.zip"
+	if [ "$CF7_VERSION" = "latest" ]; then
+		CF7_URL="https://downloads.wordpress.org/plugin/contact-form-7.zip"
+	else
+		CF7_URL="https://downloads.wordpress.org/plugin/contact-form-7.$CF7_VERSION.zip"
 	fi
-	local CF7_URL="https://downloads.wordpress.org/plugin/$CF7_ZIP"
 	download "$CF7_URL" "$TMPDIR/contact-form-7.zip"
 	unzip -q "$TMPDIR/contact-form-7.zip" -d "$TMPDIR/"
 	rm -rf "$PLUGIN_DIR/contact-form-7"
 	mv "$TMPDIR/contact-form-7" "$PLUGIN_DIR/contact-form-7"
-	echo "Contact Form 7 plugin installed successfully."
+	echo "Contact Form 7 plugin ($CF7_VERSION) installed successfully."
 }
 
 install_wp
