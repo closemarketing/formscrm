@@ -52,10 +52,29 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 				array( 'sanitize_callback' => 'esc_url_raw' )
 			);
 			register_setting(
+				'formscrm_entry_columns_settings',
+				'formscrm_entry_list_columns',
+				array(
+					'type'              => 'string',
+					'default'           => '',
+					'sanitize_callback' => array( $this, 'sanitize_checkbox' ),
+				)
+			);
+			register_setting(
 				'formscrm_settings',
 				'formscrm_error_notification_email',
 				array( 'sanitize_callback' => array( $this, 'sanitize_notification_emails' ) )
 			);
+		}
+
+		/**
+		 * Sanitizes a checkbox value.
+		 *
+		 * @param mixed $value Raw value.
+		 * @return string '1' when checked, empty string otherwise.
+		 */
+		public function sanitize_checkbox( $value ) {
+			return empty( $value ) ? '' : '1';
 		}
 
 		/**
@@ -343,6 +362,39 @@ if ( ! class_exists( 'FORMSCRM_Admin' ) ) {
 			$source_shop_url = 'es' === strtok( get_locale(), '_' ) ? 'https://close.technology/' : 'https://close.technology/en/';
 			$utm_source      = '?utm_source=WordPress+Settings&utm_medium=plugin&utm_campaign=link';
 			?>
+
+		<!-- Entry list columns Section -->
+		<div class="fcrm-section">
+			<div class="fcrm-section-header">
+				<h2 class="fcrm-section-title">
+					<?php
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content from file.
+					echo formscrm_get_svg_icon( 'icon-document' );
+					?>
+					<?php esc_html_e( 'Entry list columns', 'formscrm' ); ?>
+				</h2>
+				<p class="fcrm-section-description">
+					<?php esc_html_e( 'Make the CRM sync result available as columns in the entries list of your forms', 'formscrm' ); ?>
+				</p>
+			</div>
+			<div class="fcrm-section-content">
+				<form method="post" action="options.php">
+					<?php settings_fields( 'formscrm_entry_columns_settings' ); ?>
+					<div class="fcrm-form-group">
+						<label class="fcrm-form-label" for="formscrm_entry_list_columns">
+							<input type="checkbox" id="formscrm_entry_list_columns" name="formscrm_entry_list_columns" value="1" <?php checked( '1', get_option( 'formscrm_entry_list_columns', '' ) ); ?> />
+							<?php esc_html_e( 'Enable CRM status and contact ID columns in the entries list', 'formscrm' ); ?>
+						</label>
+						<span class="fcrm-form-hint">
+							<?php esc_html_e( 'For each CRM connected to a form, two columns become available: the status of the latest send (updated on resends and automatic retries) and the ID of the contact in the CRM. Choose which ones to show, form by form, with the gear icon of the entries list (Select Entry Table Columns). Currently available for Gravity Forms.', 'formscrm' ); ?>
+						</span>
+					</div>
+					<button type="submit" class="fcrm-button fcrm-button-primary">
+						<?php esc_html_e( 'Save Settings', 'formscrm' ); ?>
+					</button>
+				</form>
+			</div>
+		</div>
 
 		<!-- Forms Supported Section -->
 		<div class="fcrm-section">
