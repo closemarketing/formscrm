@@ -112,7 +112,7 @@ class AcumbaMailTest extends WP_UnitTestCase {
 	 * The lists become the CRM Module choices, after the dynamic option.
 	 */
 	public function test_list_modules_returns_account_lists() {
-		$crm     = new CRMLIB_AcumbaMail();
+		$crm     = formscrm_get_api_class( 'acumbamail' );
 		$modules = $crm->list_modules( array( 'fc_crm_apipassword' => 'KEY' ) );
 
 		$this->assertSame( array( 'Newsletter', 'Clientes' ), array_slice( wp_list_pluck( $modules, 'label' ), 1 ) );
@@ -123,7 +123,7 @@ class AcumbaMailTest extends WP_UnitTestCase {
 	 * Login, modules and fields share one getLists request.
 	 */
 	public function test_lists_are_requested_once() {
-		$crm      = new CRMLIB_AcumbaMail();
+		$crm      = formscrm_get_api_class( 'acumbamail' );
 		$settings = array(
 			'fc_crm_apipassword' => 'KEY',
 			'fc_crm_module'      => 'Newsletter',
@@ -142,7 +142,7 @@ class AcumbaMailTest extends WP_UnitTestCase {
 	public function test_throttled_request_is_retried() {
 		$this->throttled = 1;
 
-		$crm     = new CRMLIB_AcumbaMail();
+		$crm     = formscrm_get_api_class( 'acumbamail' );
 		$modules = $crm->list_modules( array( 'fc_crm_apipassword' => 'KEY' ) );
 
 		$this->assertCount( 3, $modules );
@@ -153,7 +153,7 @@ class AcumbaMailTest extends WP_UnitTestCase {
 	 * Without an API key there is nothing to list.
 	 */
 	public function test_no_key_no_modules() {
-		$crm = new CRMLIB_AcumbaMail();
+		$crm = formscrm_get_api_class( 'acumbamail' );
 		$this->assertSame( array(), $crm->list_modules( array() ) );
 	}
 }
