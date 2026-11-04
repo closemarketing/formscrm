@@ -271,7 +271,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = Unreleased =
-* Added: CRM columns in the Gravity Forms entries list. For every CRM connected to a form, a status column and a contact ID column show the result of the latest send, resend or automatic retry. Opt-in from Settings > FormsCRM > Entry list columns; each column is then picked individually with Gravity Forms' own column selector.
+* Added: CRM columns in the Gravity Forms entries list. For every CRM connected to a form, a status column and a contact ID column show the result of the latest send, resend or automatic retry. Nothing is shown by default: each column is added manually from Gravity Forms' own column selector (gear icon of the entries list).
 * Added: FormsCRM now records the latest sync result (status, contact ID, CRM name, message) per entry and CRM in its own table, for Gravity Forms and WPForms.
 
 = 4.4.4 =

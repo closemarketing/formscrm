@@ -261,15 +261,13 @@ class SyncStatusTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Disabled by default; the filter and the option turn it on.
+	 * Offered by default; the filter can turn it off.
 	 */
 	public function test_is_enabled() {
-		delete_option( FormsCRM_GravityForms_Entry_Columns::OPTION );
-		$this->assertFalse( FormsCRM_GravityForms_Entry_Columns::is_enabled() );
-
-		update_option( FormsCRM_GravityForms_Entry_Columns::OPTION, '1' );
 		$this->assertTrue( FormsCRM_GravityForms_Entry_Columns::is_enabled() );
 
-		delete_option( FormsCRM_GravityForms_Entry_Columns::OPTION );
+		add_filter( 'formscrm_entry_list_columns_enabled', '__return_false' );
+		$this->assertFalse( FormsCRM_GravityForms_Entry_Columns::is_enabled() );
+		remove_filter( 'formscrm_entry_list_columns_enabled', '__return_false' );
 	}
 }

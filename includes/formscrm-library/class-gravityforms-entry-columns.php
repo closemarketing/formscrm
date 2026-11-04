@@ -7,8 +7,8 @@
  * come from the sync status store, so they always reflect the latest send,
  * resend or automatic retry.
  *
- * Opt-in: enabled from Settings > FormsCRM. Each column is then chosen one by
- * one with Gravity Forms' own column selector.
+ * Nothing is shown by default: each column is chosen one by one with Gravity
+ * Forms' own column selector (gear icon of the entries list).
  *
  * @package    WordPress
  * @author     Close Marketing <info@closemarketing.com>
@@ -23,13 +23,6 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 	 * Class FormsCRM_GravityForms_Entry_Columns
 	 */
 	class FormsCRM_GravityForms_Entry_Columns {
-
-		/**
-		 * Option that enables the columns.
-		 *
-		 * @var string
-		 */
-		const OPTION = 'formscrm_entry_list_columns';
 
 		/**
 		 * Prefix of the column keys.
@@ -61,19 +54,20 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 		}
 
 		/**
-		 * Whether the columns are enabled in settings.
+		 * Whether the columns are offered in the column selector.
+		 *
+		 * They are always offered; nothing is shown until a user picks a column
+		 * with the gear icon of the entries list.
 		 *
 		 * @return bool
 		 */
 		public static function is_enabled() {
-			$enabled = '1' === (string) get_option( self::OPTION, '' );
-
 			/**
-			 * Filters whether the CRM columns show in the Gravity Forms entry list.
+			 * Filters whether the CRM columns are offered in the Gravity Forms column selector.
 			 *
-			 * @param bool $enabled Enabled in settings.
+			 * @param bool $enabled Enabled by default.
 			 */
-			return (bool) apply_filters( 'formscrm_entry_list_columns_enabled', $enabled );
+			return (bool) apply_filters( 'formscrm_entry_list_columns_enabled', true );
 		}
 
 		/**
