@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 4.4.4
-Version: 4.4.4
+Stable tag: 4.4.5
+Version: 4.4.5
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -273,6 +273,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 = Unreleased =
 * Added: CRM columns in the Gravity Forms entries list. For every CRM connected to a form, a status column and a contact ID column show the result of the latest send, resend or automatic retry. Nothing is shown by default: each column is added manually from Gravity Forms' own column selector (gear icon of the entries list). The columns are offered for every CRM connected through the form's feeds, and entries sent before this version are filled in automatically from their FormsCRM notes the first time they are listed.
 * Added: FormsCRM now records the latest sync result (status, contact ID, CRM name, message) per entry and CRM in its own table, for Gravity Forms and WPForms.
+
+= 4.4.5 =
+* Fixed: Gravity Forms entries on forms with a Clientify feed were flagged as spam by the honeypot since 4.4.4. The Clientify tracking field was added as a Gravity Forms field only when rendering the form, which shifted the honeypot field ID, so the honeypot check read the filled tracking field. It is now a plain hidden input stored as entry meta, which also restores `visitor_key` attribution for Gravity Forms. Entries already flagged as spam can be marked as not spam and their feeds resent.
 
 = 4.4.4 =
 * Added: Support for Clientify's Analytics PLUS contact attribution. FormsCRM automatically captures the pixel's `visitor_uuid` from `localStorage` in the browser and forwards it as `visitor_key` on contact creation, linking the contact to the visit the Analytics PLUS pixel tracked. (Clientify's `visitor_key2` field isn't processed by their production API yet, so this rides on `visitor_key` for now — confirmed directly against the API.)

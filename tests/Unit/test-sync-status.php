@@ -9,6 +9,11 @@
  * @package Formscrm
  */
 
+// The columns class is only loaded with Gravity Forms active, which CI does not have.
+if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
+	require_once FORMSCRM_PLUGIN_PATH . 'includes/formscrm-library/class-gravityforms-entry-columns.php';
+}
+
 /**
  * Test case for FormsCRM_Sync_Status and FormsCRM_GravityForms_Entry_Columns.
  */

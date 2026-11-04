@@ -155,51 +155,57 @@ class GFCRM extends GFFeedAddOn {
 		add_filter( 'gform_is_feed_asynchronous', array( $this, 'maybe_sync_payment_feed' ), 10, 4 );
 		add_filter( 'gform_confirmation', array( $this, 'maybe_redirect_payment_confirmation' ), 20, 4 );
 
-		// Injects the hidden fields the Analytics PLUS tracking script fills
-		// with Clientify's tracking identifiers before submission.
-		add_filter( 'gform_pre_render', array( $this, 'inject_analytics_plus_fields' ) );
+		// Injects the hidden input the Analytics PLUS tracking script fills
+		// with Clientify's tracking identifier before submission, and stores
+		// its value as entry meta so (async) feeds can read it later.
+		add_filter( 'gform_form_tag', array( $this, 'inject_analytics_plus_fields' ), 10, 2 );
+		add_action( 'gform_entry_created', array( $this, 'save_analytics_plus_entry_meta' ) );
 	}
 
 	/**
-	 * Adds FormsCRM's own hidden fields for Clientify's tracking identifiers
-	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) to any form with a
+	 * Appends FormsCRM's own hidden input for Clientify's tracking identifier
+	 * (Analytics PLUS visitor_uuid or legacy `vk` cookie) to any form with a
 	 * Clientify Contacts feed, so the tracking script has somewhere to write
-	 * the values it captures in the browser. Field values are read directly
-	 * from the entry in process_feed(), never through the admin field-map UI.
-	 * Also reports, via the shared filter, that the tracking script is needed
-	 * on this page.
+	 * the value it captures in the browser. Also reports, via the shared
+	 * filter, that the tracking script is needed on this page.
 	 *
-	 * @param array $form Form configuration, about to be rendered.
-	 * @return array Form configuration, with the tracking fields added if needed.
+	 * This is a raw input outside Gravity Forms' field list on purpose: adding
+	 * a GF field at render time only (gform_pre_render) shifts the honeypot
+	 * field ID (max field ID + 1) between render and validation, so the
+	 * honeypot check ends up reading this filled input and flags every entry
+	 * as spam.
+	 *
+	 * @param string $form_tag Form opening tag.
+	 * @param array  $form     Form configuration.
+	 * @return string Form tag, with the tracking input appended if needed.
 	 */
-	public function inject_analytics_plus_fields( $form ) {
+	public function inject_analytics_plus_fields( $form_tag, $form ) {
 		if ( empty( $form['id'] ) || ! $this->form_has_clientify_contacts_feed( $form['id'] ) ) {
-			return $form;
+			return $form_tag;
 		}
 
 		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
 
-		$exists = false;
-		foreach ( $form['fields'] as $field ) {
-			if ( isset( $field->adminLabel ) && 'formscrm_vk' === $field->adminLabel ) {
-				$exists = true;
-				break;
-			}
+		return $form_tag . '<input type="hidden" name="formscrm_vk" class="formscrm-vk" value="" />';
+	}
+
+	/**
+	 * Stores the submitted Clientify tracking identifier as entry meta, since
+	 * the input is not a Gravity Forms field and feeds may run asynchronously
+	 * (without the original $_POST). The input is only rendered on forms with
+	 * a Clientify Contacts feed, so no feed lookup is needed here.
+	 *
+	 * @param array $entry Entry just created.
+	 * @return void
+	 */
+	public function save_analytics_plus_entry_meta( $entry ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+		$visitor_key = isset( $_POST['formscrm_vk'] ) ? sanitize_text_field( wp_unslash( $_POST['formscrm_vk'] ) ) : '';
+		if ( '' === $visitor_key || empty( $entry['id'] ) ) {
+			return;
 		}
 
-		if ( ! $exists ) {
-			$form['fields'][] = GF_Fields::create(
-				array(
-					'id'         => GFFormsModel::get_next_field_id( $form['fields'] ),
-					'formId'     => $form['id'],
-					'type'       => 'hidden',
-					'cssClass'   => 'formscrm-vk',
-					'adminLabel' => 'formscrm_vk',
-				)
-			);
-		}
-
-		return $form;
+		gform_update_meta( $entry['id'], 'formscrm_vk', $visitor_key );
 	}
 
 	/**
@@ -1012,18 +1018,11 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		// Clientify's visitor tracking identifier, auto-injected by
-		// inject_analytics_plus_fields() and filled client-side — never part
-		// of the admin field-map UI.
-		if ( 'clientify' === $feed_type ) {
-			foreach ( $form['fields'] as $field ) {
-				if ( isset( $field->adminLabel ) && 'formscrm_vk' === $field->adminLabel && ! empty( $entry[ $field->id ] ) ) {
-					$merge_vars[] = array(
-						'name'  => 'visitor_key',
-						'value' => $entry[ $field->id ],
-					);
-					break;
-				}
-			}
+		// inject_analytics_plus_fields(), filled client-side and stored as
+		// entry meta — never part of the admin field-map UI.
+		if ( ! empty( $entry['id'] ) ) {
+			$tracking_data = array( 'formscrm_vk' => (string) gform_get_meta( $entry['id'], 'formscrm_vk' ) );
+			$merge_vars    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $feed_type, $tracking_data ) );
 		}
 
 		// Dynamic Fields.
