@@ -83,6 +83,29 @@ if ( ! function_exists( 'load_plugin_textdomain' ) ) {
  * ============================================================================
  */
 
+if ( ! function_exists( 'gform_get_meta' ) ) {
+	/**
+	 * Gets entry meta.
+	 *
+	 * @param int    $entry_id Entry ID.
+	 * @param string $meta_key Meta key.
+	 * @return mixed
+	 */
+	function gform_get_meta( $entry_id, $meta_key ) {}
+}
+
+if ( ! function_exists( 'gform_update_meta' ) ) {
+	/**
+	 * Updates entry meta.
+	 *
+	 * @param int    $entry_id   Entry ID.
+	 * @param string $meta_key   Meta key.
+	 * @param mixed  $meta_value Meta value.
+	 * @return void
+	 */
+	function gform_update_meta( $entry_id, $meta_key, $meta_value ) {}
+}
+
 /**
  * Gravity Forms Model class
  */
