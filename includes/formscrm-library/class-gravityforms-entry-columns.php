@@ -113,6 +113,47 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 		}
 
 		/**
+		 * Returns the CRMs connected to a form: those of its active feeds plus the
+		 * ones that already have recorded results.
+		 *
+		 * @param int $form_id Form ID.
+		 * @return array<string, string> CRM slug => label.
+		 */
+		public static function get_form_crm_types( $form_id ) {
+			static $cache = array();
+			$form_id      = (int) $form_id;
+
+			if ( isset( $cache[ $form_id ] ) ) {
+				return $cache[ $form_id ];
+			}
+
+			$slugs = FormsCRM_Sync_Status::get_crm_types_for_form( 'gravityforms', $form_id );
+
+			if ( $form_id > 0 && class_exists( 'GFAPI' ) ) {
+				$feeds = GFAPI::get_feeds( null, $form_id, 'formscrm', true );
+				if ( is_array( $feeds ) ) {
+					$global = get_option( 'gravityformsaddon_formscrm_settings', array() );
+					foreach ( $feeds as $feed ) {
+						$custom = isset( $feed['meta']['fc_crm_custom_type'] ) ? (string) $feed['meta']['fc_crm_custom_type'] : '';
+						$slug   = ( '' !== $custom && 'no' !== $custom ) ? $custom : ( isset( $global['fc_crm_type'] ) ? (string) $global['fc_crm_type'] : '' );
+						if ( '' !== $slug ) {
+							$slugs[] = sanitize_key( $slug );
+						}
+					}
+				}
+			}
+
+			$types = array();
+			foreach ( array_unique( $slugs ) as $slug ) {
+				$types[ $slug ] = self::crm_label( $slug );
+			}
+			ksort( $types );
+
+			$cache[ $form_id ] = $types;
+			return $types;
+		}
+
+		/**
 		 * Registers the CRM columns as Gravity Forms entry meta.
 		 *
 		 * Entry meta shows up in Gravity Forms' own column selector (the gear icon
@@ -125,10 +166,7 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 		 * @return array
 		 */
 		public function register_entry_meta( $entry_meta, $form_id ) {
-			$crm_types = FormsCRM_Sync_Status::get_crm_types_for_form( 'gravityforms', (int) $form_id );
-
-			foreach ( $crm_types as $crm_type ) {
-				$label = self::crm_label( $crm_type );
+			foreach ( self::get_form_crm_types( (int) $form_id ) as $crm_type => $label ) {
 
 				$entry_meta[ self::column_key( $crm_type, 'status' ) ] = array(
 					/* translators: %s: CRM name */
@@ -166,11 +204,48 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 			$entry_id                = (int) $entry['id'];
 
 			if ( ! isset( $this->cache[ $entry_id ] ) ) {
-				$this->cache[ $entry_id ] = FormsCRM_Sync_Status::get_for_entry( 'gravityforms', $entry_id );
+				$rows = FormsCRM_Sync_Status::get_for_entry( 'gravityforms', $entry_id );
+				if ( empty( $rows ) ) {
+					$rows = $this->backfill_entry( $entry_id, (int) $form_id );
+				}
+				$this->cache[ $entry_id ] = $rows;
 			}
 			$row = isset( $this->cache[ $entry_id ][ $crm_type ] ) ? $this->cache[ $entry_id ][ $crm_type ] : null;
 
 			return 'status' === $kind ? self::render_status( $row ) : self::render_contact_id( $row );
+		}
+
+		/**
+		 * Rebuilds, once, the stored results of an entry sent before the store existed.
+		 *
+		 * Runs lazily for the entries shown in the list, from the FormsCRM entry notes
+		 * and the contact ID meta, and saves the result so it is not computed again.
+		 *
+		 * @param int $entry_id Entry ID.
+		 * @param int $form_id  Form ID.
+		 * @return array<string, object> Stored rows by CRM slug (empty when there is nothing to rebuild).
+		 */
+		private function backfill_entry( $entry_id, $form_id ) {
+			if ( ! class_exists( 'GFFormsModel' ) ) {
+				return array();
+			}
+
+			$crm_types = self::get_form_crm_types( $form_id );
+			if ( empty( $crm_types ) ) {
+				return array();
+			}
+
+			$contact_ids = array();
+			foreach ( array_keys( $crm_types ) as $slug ) {
+				$contact_ids[ $slug ] = gform_get_meta( $entry_id, $slug );
+			}
+
+			$results = FormsCRM_Sync_Status::build_from_notes( (array) GFFormsModel::get_lead_notes( $entry_id ), $crm_types, $contact_ids );
+			foreach ( $results as $slug => $data ) {
+				formscrm_record_sync_status( 'gravityforms', $form_id, $entry_id, $slug, $data );
+			}
+
+			return empty( $results ) ? array() : FormsCRM_Sync_Status::get_for_entry( 'gravityforms', $entry_id );
 		}
 
 		/**

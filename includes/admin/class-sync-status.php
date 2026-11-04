@@ -119,7 +119,7 @@ if ( ! class_exists( 'FormsCRM_Sync_Status' ) ) {
 		 * @param int    $form_id   Form ID.
 		 * @param int    $entry_id  Entry ID.
 		 * @param string $crm_type  CRM slug (e.g. 'clientify').
-		 * @param array  $data      Keys: status, contact_id, crm_name, message.
+		 * @param array  $data      Keys: status, contact_id, crm_name, message, updated_at (GMT, optional).
 		 * @return bool True when stored.
 		 */
 		public static function record( $form_type, $form_id, $entry_id, $crm_type, array $data = array() ) {
@@ -150,13 +150,87 @@ if ( ! class_exists( 'FormsCRM_Sync_Status' ) ) {
 				'contact_id' => $contact_id,
 				'crm_name'   => wp_strip_all_tags( $crm_name ),
 				'message'    => isset( $data['message'] ) ? wp_strip_all_tags( (string) $data['message'] ) : '',
-				'updated_at' => current_time( 'mysql', true ),
+				'updated_at' => ! empty( $data['updated_at'] ) ? (string) $data['updated_at'] : current_time( 'mysql', true ),
 			);
 
 			// REPLACE relies on the unique key (form_type, entry_id, crm_type).
 			$result = $wpdb->replace( self::table_name(), $row ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 			return false !== $result;
+		}
+
+		/**
+		 * Rebuilds the latest result per CRM from FormsCRM entry notes (history sent
+		 * before the store existed).
+		 *
+		 * Notes do not carry the CRM slug as data, so in forms with several CRMs a
+		 * note is attributed to the CRM whose slug or label appears in its text or
+		 * author; in forms with a single CRM every note belongs to it. The contact ID
+		 * comes from the entry meta that FormsCRM saves under the CRM slug.
+		 *
+		 * @param array $notes       Notes (objects or arrays) with note_type, sub_type, value, user_name, date_created.
+		 * @param array $crm_types   CRM slugs connected to the form, slug => label.
+		 * @param array $contact_ids Contact IDs by CRM slug.
+		 * @return array<string, array> Result data by CRM slug, ready for record().
+		 */
+		public static function build_from_notes( array $notes, array $crm_types, array $contact_ids = array() ) {
+			$only_one = 1 === count( $crm_types );
+			$latest   = array();
+
+			foreach ( $notes as $note ) {
+				$note = (array) $note;
+				if ( 'formscrm' !== ( isset( $note['note_type'] ) ? $note['note_type'] : '' ) ) {
+					continue;
+				}
+				$sub_type = isset( $note['sub_type'] ) ? $note['sub_type'] : '';
+				if ( ! in_array( $sub_type, array( 'success', 'error' ), true ) ) {
+					continue;
+				}
+
+				$haystack = strtolower( ( isset( $note['value'] ) ? $note['value'] : '' ) . ' ' . ( isset( $note['user_name'] ) ? $note['user_name'] : '' ) );
+
+				foreach ( $crm_types as $slug => $label ) {
+					$matches = $only_one || false !== strpos( $haystack, strtolower( (string) $slug ) ) || ( '' !== (string) $label && false !== strpos( $haystack, strtolower( (string) $label ) ) );
+					if ( ! $matches ) {
+						continue;
+					}
+					$date = isset( $note['date_created'] ) ? (string) $note['date_created'] : '';
+					$id   = isset( $note['id'] ) ? (int) $note['id'] : 0;
+					if ( ! isset( $latest[ $slug ] ) || $date > $latest[ $slug ]['date'] || ( $date === $latest[ $slug ]['date'] && $id > $latest[ $slug ]['id'] ) ) {
+						$latest[ $slug ] = array(
+							'date'     => $date,
+							'id'       => $id,
+							'sub_type' => $sub_type,
+							'value'    => isset( $note['value'] ) ? $note['value'] : '',
+						);
+					}
+				}
+			}
+
+			$results = array();
+			foreach ( $crm_types as $slug => $label ) {
+				$contact_id = isset( $contact_ids[ $slug ] ) && is_scalar( $contact_ids[ $slug ] ) ? (string) $contact_ids[ $slug ] : '';
+
+				if ( isset( $latest[ $slug ] ) ) {
+					$results[ $slug ] = array(
+						'status'     => $latest[ $slug ]['sub_type'],
+						'contact_id' => $contact_id,
+						'crm_name'   => (string) $label,
+						'message'    => wp_strip_all_tags( $latest[ $slug ]['value'] ),
+						'updated_at' => $latest[ $slug ]['date'],
+					);
+				} elseif ( '' !== $contact_id ) {
+					// Created in the CRM, but the note is gone: the ID proves it was sent.
+					$results[ $slug ] = array(
+						'status'     => 'success',
+						'contact_id' => $contact_id,
+						'crm_name'   => (string) $label,
+						'message'    => '',
+					);
+				}
+			}
+
+			return $results;
 		}
 
 		/**

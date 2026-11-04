@@ -261,6 +261,127 @@ class SyncStatusTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * History is rebuilt from FormsCRM notes: latest note wins, contact ID comes from meta.
+	 */
+	public function test_build_from_notes_single_crm() {
+		$notes = array(
+			array(
+				'id'           => 1,
+				'note_type'    => 'formscrm',
+				'sub_type'     => 'error',
+				'value'        => 'Error creating',
+				'user_name'    => 'FormsCRM',
+				'date_created' => '2026-01-01 10:00:00',
+			),
+			array(
+				'id'           => 2,
+				'note_type'    => 'formscrm',
+				'sub_type'     => 'success',
+				'value'        => '<b>Success</b> created',
+				'user_name'    => 'FormsCRM',
+				'date_created' => '2026-01-02 10:00:00',
+			),
+			array(
+				'id'           => 3,
+				'note_type'    => 'notification',
+				'sub_type'     => 'error',
+				'value'        => 'Other note',
+				'user_name'    => 'GF',
+				'date_created' => '2026-01-03 10:00:00',
+			),
+		);
+
+		$out = FormsCRM_Sync_Status::build_from_notes( $notes, array( 'clientify' => 'Clientify' ), array( 'clientify' => 321 ) );
+
+		$this->assertSame( 'success', $out['clientify']['status'] );
+		$this->assertSame( '321', $out['clientify']['contact_id'] );
+		$this->assertSame( 'Success created', $out['clientify']['message'] );
+		$this->assertSame( '2026-01-02 10:00:00', $out['clientify']['updated_at'] );
+	}
+
+	/**
+	 * With several CRMs each note is attributed to the CRM it mentions.
+	 */
+	public function test_build_from_notes_multiple_crms() {
+		$notes = array(
+			array(
+				'id'           => 1,
+				'note_type'    => 'formscrm',
+				'sub_type'     => 'success',
+				'value'        => 'Success (clientify)',
+				'user_name'    => 'FormsCRM',
+				'date_created' => '2026-01-01 10:00:00',
+			),
+			array(
+				'id'           => 2,
+				'note_type'    => 'formscrm',
+				'sub_type'     => 'error',
+				'value'        => 'Error creating Brevo',
+				'user_name'    => 'FormsCRM',
+				'date_created' => '2026-01-01 11:00:00',
+			),
+			array(
+				'id'           => 3,
+				'note_type'    => 'formscrm',
+				'sub_type'     => 'error',
+				'value'        => 'Unrelated text',
+				'user_name'    => 'FormsCRM',
+				'date_created' => '2026-01-01 12:00:00',
+			),
+		);
+
+		$out = FormsCRM_Sync_Status::build_from_notes(
+			$notes,
+			array(
+				'brevo'     => 'Brevo',
+				'clientify' => 'Clientify',
+			),
+			array()
+		);
+
+		$this->assertSame( 'success', $out['clientify']['status'] );
+		$this->assertSame( 'error', $out['brevo']['status'] );
+	}
+
+	/**
+	 * A contact ID without notes still proves the entry was sent.
+	 */
+	public function test_build_from_notes_uses_contact_id_without_notes() {
+		$out = FormsCRM_Sync_Status::build_from_notes( array(), array( 'clientify' => 'Clientify' ), array( 'clientify' => 55 ) );
+		$this->assertSame( 'success', $out['clientify']['status'] );
+		$this->assertSame( '55', $out['clientify']['contact_id'] );
+
+		$this->assertSame( array(), FormsCRM_Sync_Status::build_from_notes( array(), array( 'clientify' => 'Clientify' ), array() ) );
+	}
+
+	/**
+	 * The backfilled date is kept when recording.
+	 */
+	public function test_record_keeps_given_updated_at() {
+		formscrm_record_sync_status(
+			'gravityforms',
+			7,
+			300,
+			'clientify',
+			array(
+				'status'     => 'success',
+				'updated_at' => '2025-05-05 05:05:05',
+			)
+		);
+		$this->assertSame( '2025-05-05 05:05:05', FormsCRM_Sync_Status::get_one( 'gravityforms', 300, 'clientify' )->updated_at );
+	}
+
+	/**
+	 * Columns are offered for CRMs that only have recorded results too.
+	 */
+	public function test_form_crm_types_include_recorded_results() {
+		formscrm_record_sync_status( 'gravityforms', 4242, 400, 'holded', array( 'status' => 'success' ) );
+		$types = FormsCRM_GravityForms_Entry_Columns::get_form_crm_types( 4242 );
+		$this->assertArrayHasKey( 'holded', $types );
+		$this->assertSame( 'Holded', $types['holded'] );
+	}
+
+	/**
 	 * Offered by default; the filter can turn it off.
 	 */
 	public function test_is_enabled() {
