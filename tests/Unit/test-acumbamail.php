@@ -39,6 +39,12 @@ class AcumbaMailTest extends WP_UnitTestCase {
 		$this->lists_calls = 0;
 		$this->throttled   = 0;
 		delete_transient( 'formscrm_acumba_lists_' . md5( 'KEY' ) );
+
+		// The connector keeps the lists per request in a static property: reset it between tests.
+		formscrm_get_api_class( 'acumbamail' );
+		$cache = new ReflectionProperty( 'CRMLIB_AcumbaMail', 'lists_cache' );
+		$cache->setAccessible( true );
+		$cache->setValue( null, array() );
 		add_filter( 'pre_http_request', array( $this, 'mock_api' ), 10, 3 );
 	}
 
