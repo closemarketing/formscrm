@@ -270,6 +270,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= Unreleased =
+* Fixed: the CRM Module dropdown of AcumbaMail feeds came out empty. Building the feed screen asked AcumbaMail for the lists several times in a row (login, modules, fields) and its API only allows 5 requests per second, so the extra requests were rejected. The lists are now requested once and cached for a minute, and a throttled request is retried once.
+* Fixed: the AcumbaMail connector logged every request to the PHP error log, including the API token and the subscriber data. It no longer does.
+
 = 4.4.5 =
 * Fixed: Gravity Forms entries on forms with a Clientify feed were flagged as spam by the honeypot since 4.4.4. The Clientify tracking field was added as a Gravity Forms field only when rendering the form, which shifted the honeypot field ID, so the honeypot check read the filled tracking field. It is now a plain hidden input stored as entry meta, which also restores `visitor_key` attribution for Gravity Forms. Entries already flagged as spam can be marked as not spam and their feeds resent.
 
