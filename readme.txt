@@ -270,6 +270,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.4.5 =
+* Fixed: Gravity Forms entries on forms with a Clientify feed were flagged as spam by the honeypot since 4.4.4. The Clientify tracking field was added as a Gravity Forms field only when rendering the form, which shifted the honeypot field ID, so the honeypot check read the filled tracking field. It is now a plain hidden input stored as entry meta, which also restores `visitor_key` attribution for Gravity Forms. Entries already flagged as spam can be marked as not spam and their feeds resent.
+
 = 4.4.4 =
 * Added: Support for Clientify's Analytics PLUS contact attribution. FormsCRM automatically captures the pixel's `visitor_uuid` from `localStorage` in the browser and forwards it as `visitor_key` on contact creation, linking the contact to the visit the Analytics PLUS pixel tracked. (Clientify's `visitor_key2` field isn't processed by their production API yet, so this rides on `visitor_key` for now — confirmed directly against the API.)
 * Enhanced: Clientify's legacy `vk` tracking cookie is now captured client-side (the cookie may be set/refreshed by the pixel after the page has already loaded, so the server-side copy isn't reliable) and forwarded automatically as `visitor_key` too, as a fallback when there's no Analytics PLUS visitor_uuid.
