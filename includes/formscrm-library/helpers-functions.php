@@ -997,6 +997,73 @@ if ( ! function_exists( 'formscrm_build_status_html' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_merge_custom_crm_credentials' ) ) {
+	/**
+	 * Merges the per-feed custom CRM credentials into the plugin settings.
+	 *
+	 * Order of precedence: posted feed setting, saved feed meta, then the
+	 * "fc_crm_custom_*" plugin setting. Empty values are skipped so a blank
+	 * field (e.g. a password input that is never pre-filled) does not wipe the
+	 * credential the feed inherits. Otherwise the CRM login fails while saving
+	 * the feed and Gravity Forms stores the field map in an unusable format.
+	 *
+	 * @param array $settings  Plugin settings.
+	 * @param array $posted    Unslashed posted values.
+	 * @param array $feed_meta Saved feed meta.
+	 * @return array Settings with "fc_crm_*" credentials resolved.
+	 */
+	function formscrm_merge_custom_crm_credentials( array $settings, array $posted, array $feed_meta ) {
+		$variables = defined( 'FORMSCRM_CRED_VARIABLES' ) ? FORMSCRM_CRED_VARIABLES : array();
+
+		foreach ( $variables as $variable ) {
+			$custom_key = 'fc_crm_custom_' . $variable;
+			$posted_key = '_gform_setting_' . $custom_key;
+
+			if ( isset( $posted[ $posted_key ] ) && is_scalar( $posted[ $posted_key ] ) && '' !== trim( (string) $posted[ $posted_key ] ) ) {
+				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( (string) $posted[ $posted_key ] );
+			} elseif ( isset( $feed_meta[ $custom_key ] ) && '' !== $feed_meta[ $custom_key ] ) {
+				$settings[ 'fc_crm_' . $variable ] = $feed_meta[ $custom_key ];
+			} elseif ( isset( $settings[ $custom_key ] ) ) {
+				$settings[ 'fc_crm_' . $variable ] = $settings[ $custom_key ];
+				unset( $settings[ $custom_key ] );
+			}
+		}
+
+		return $settings;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_get_nested_field_map' ) ) {
+	/**
+	 * Reads a field map stored as a nested array of mappings.
+	 *
+	 * Gravity Forms stores "{name}_{key}" entries, but feeds saved while the
+	 * map field was not registered keep the raw list of
+	 * array( 'key' => ..., 'value' => ... ) mappings under "{name}".
+	 *
+	 * @param array  $feed_meta Feed meta.
+	 * @param string $name      Field map setting name.
+	 * @return array CRM field key => form field ID.
+	 */
+	function formscrm_gf_get_nested_field_map( $feed_meta, $name ) {
+		$field_map = array();
+
+		if ( ! is_array( $feed_meta ) || empty( $feed_meta[ $name ] ) || ! is_array( $feed_meta[ $name ] ) ) {
+			return $field_map;
+		}
+
+		foreach ( $feed_meta[ $name ] as $mapping ) {
+			if ( ! is_array( $mapping ) || empty( $mapping['key'] ) || ! isset( $mapping['value'] ) || ! is_scalar( $mapping['value'] ) ) {
+				continue;
+			}
+
+			$field_map[ (string) $mapping['key'] ] = (string) $mapping['value'];
+		}
+
+		return $field_map;
+	}
+}
+
 if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	/**
 	 * Returns the label text for a GravityForms choice matching the given value.
