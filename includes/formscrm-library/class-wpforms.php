@@ -208,14 +208,46 @@ class FormsCRM_WPForms extends WPForms_Provider {
 					);
 					formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
 					$message = __( 'Error', 'formscrm' );
+					formscrm_record_sync_status(
+						'wpforms',
+						$form_id,
+						$entry_id,
+						$settings['fc_crm_type'],
+						array(
+							'status'  => 'error',
+							'message' => $api_message,
+						)
+					);
 				} else {
 					// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
 					$crm_name = formscrm_format_crm_success_label( $response_result, $settings['fc_crm_type'] );
 					$message  = __( 'Success creating:', 'formscrm' ) . ' ' . $crm_name . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
+					formscrm_record_sync_status(
+						'wpforms',
+						$form_id,
+						$entry_id,
+						$settings['fc_crm_type'],
+						array(
+							'status'     => 'success',
+							'contact_id' => $response_result['id'],
+							'crm_name'   => formscrm_get_crm_display_name( $response_result, '' ),
+							'message'    => $api_message,
+						)
+					);
 				}
 				$message .= ' ' . $api_message;
 			} catch ( Exception $e ) {
 				$message = __( 'Error sending information to CRM.', 'formscrm' ) . ' ' . $e->getMessage();
+				formscrm_record_sync_status(
+					'wpforms',
+					$form_id,
+					$entry_id,
+					$settings['fc_crm_type'],
+					array(
+						'status'  => 'error',
+						'message' => $e->getMessage(),
+					)
+				);
 			}
 
 			// Add note final.

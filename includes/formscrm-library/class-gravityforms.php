@@ -1090,6 +1090,16 @@ class GFCRM extends GFFeedAddOn {
 				'entry_id'        => isset( $entry['id'] ) ? $entry['id'] : '',
 			);
 			formscrm_alert_error( $settings['fc_crm_type'], __( 'The CRM did not return a valid response.', 'formscrm' ), $merge_vars, '', '', $form_info );
+			formscrm_record_sync_status(
+				'gravityforms',
+				isset( $form['id'] ) ? $form['id'] : 0,
+				isset( $entry['id'] ) ? $entry['id'] : 0,
+				$feed_type,
+				array(
+					'status'  => 'error',
+					'message' => __( 'The CRM did not return a valid response.', 'formscrm' ),
+				)
+			);
 			return;
 		}
 
@@ -1119,6 +1129,17 @@ class GFCRM extends GFFeedAddOn {
 				$query
 			);
 			$this->add_note( $entry['id'], $response_message, 'error', $this->get_note_author( $settings, $response_result ) );
+			formscrm_record_sync_status(
+				'gravityforms',
+				$form['id'],
+				$entry['id'],
+				$feed_type,
+				array(
+					'status'   => 'error',
+					'crm_name' => isset( $settings['fc_crm_name'] ) ? $settings['fc_crm_name'] : '',
+					'message'  => $message,
+				)
+			);
 		} else {
 			if ( ! empty( $response_result['redirect_url'] ) ) {
 				// Hosted payment gateways, such as Redsys, return a local
@@ -1157,6 +1178,18 @@ class GFCRM extends GFFeedAddOn {
 				);
 			}
 			$this->add_note( $entry['id'], $response_message, 'success', $this->get_note_author( $settings, $response_result ) );
+			formscrm_record_sync_status(
+				'gravityforms',
+				$form['id'],
+				$entry['id'],
+				$feed_type,
+				array(
+					'status'     => 'success',
+					'contact_id' => isset( $response_result['id'] ) ? $response_result['id'] : '',
+					'crm_name'   => isset( $settings['fc_crm_name'] ) ? $settings['fc_crm_name'] : '',
+					'message'    => wp_strip_all_tags( $response_message ),
+				)
+			);
 			formscrm_debug_message( $response_result['id'] );
 			formscrm_send_webhook( $settings, $response_result );
 			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );
