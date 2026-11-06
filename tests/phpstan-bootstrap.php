@@ -111,6 +111,19 @@ if ( ! function_exists( 'gform_update_meta' ) ) {
  */
 class GFFormsModel {
 	/**
+	 * Add note
+	 *
+	 * @param int         $entry_id   Entry ID.
+	 * @param int         $user_id    User ID.
+	 * @param string      $user_name  User name.
+	 * @param string      $note       Note text.
+	 * @param string      $note_type  Note type.
+	 * @param string|null $sub_type   Note sub type.
+	 * @return int|false
+	 */
+	public static function add_note( $entry_id, $user_id, $user_name, $note, $note_type = 'note', $sub_type = null ) {}
+
+	/**
 	 * Get form
 	 *
 	 * @param int $form_id Form ID.
@@ -200,10 +213,21 @@ class GF_Fields {
  */
 class GFAPI {
 	/**
+	 * Get feeds
+	 *
+	 * @param int|null    $feed_id    Feed ID.
+	 * @param int|null    $form_id    Form ID.
+	 * @param string|null $addon_slug Add-on slug.
+	 * @param bool        $is_active  Only active feeds.
+	 * @return array|\WP_Error
+	 */
+	public static function get_feeds( $feed_id = null, $form_id = null, $addon_slug = null, $is_active = true ) {}
+
+	/**
 	 * Get form
 	 *
 	 * @param int $form_id Form ID.
-	 * @return array|null
+	 * @return array|false|\WP_Error
 	 */
 	public static function get_form( $form_id ) {}
 
@@ -211,7 +235,7 @@ class GFAPI {
 	 * Get entry
 	 *
 	 * @param int $entry_id Entry ID.
-	 * @return array|null
+	 * @return array|\WP_Error
 	 */
 	public static function get_entry( $entry_id ) {}
 
@@ -326,6 +350,20 @@ class GFForms {
  */
 class GFAddOn {
 	/**
+	 * Get add-on slug
+	 *
+	 * @return string
+	 */
+	public function get_slug() {}
+
+	/**
+	 * Init
+	 *
+	 * @return void
+	 */
+	public function init() {}
+
+	/**
 	 * Get form settings
 	 *
 	 * @param array $form Form data.
@@ -353,6 +391,16 @@ class GFAddOn {
  * Gravity Forms Feed Add-On class
  */
 class GFFeedAddOn extends GFAddOn {
+	/**
+	 * Save feed settings
+	 *
+	 * @param int   $feed_id  Feed ID.
+	 * @param int   $form_id  Form ID.
+	 * @param array $settings Settings.
+	 * @return int|false
+	 */
+	public function save_feed_settings( $feed_id, $form_id, $settings ) {}
+
 	/**
 	 * Init admin
 	 *
@@ -424,7 +472,7 @@ class GFFeedAddOn extends GFAddOn {
 /**
  * Gravity Forms CRM class
  */
-class GFCRM {}
+class GFCRM extends GFFeedAddOn {}
 
 /**
  * Get array value by key
@@ -624,6 +672,16 @@ function woocommerce_update_options( $options ) {}
  */
 class WPForms_Provider {
 	/**
+	 * Output fields
+	 *
+	 * @param string $connection_id Connection ID.
+	 * @param array  $connection    Connection data.
+	 * @param mixed  $form          Form data.
+	 * @return string|\WP_Error
+	 */
+	public function output_fields( $connection_id = '', $connection = array(), $form = '' ) {}
+
+	/**
 	 * Provider version
 	 *
 	 * @var string
@@ -803,4 +861,43 @@ if ( ! class_exists( 'ElementorPro\Plugin' ) ) {
 		public static function instance() {}
 	}
 	class_alias( 'ElementorPro_Plugin', 'ElementorPro\Plugin' );
+}
+
+// JetFormBuilder classes (namespaced aliases of global stubs).
+if ( ! class_exists( 'Jet_Form_Builder\Actions\Types\Base' ) ) {
+	class JFB_Stub_Action_Base {
+		public function global_settings( $defaults = array() ) {}
+	}
+	class_alias( 'JFB_Stub_Action_Base', 'Jet_Form_Builder\Actions\Types\Base' );
+}
+
+if ( ! class_exists( 'Jet_Form_Builder\Actions\Action_Handler' ) ) {
+	class JFB_Stub_Action_Handler {
+		public $form_id = 0;
+	}
+	class_alias( 'JFB_Stub_Action_Handler', 'Jet_Form_Builder\Actions\Action_Handler' );
+}
+
+if ( ! class_exists( 'Jet_Form_Builder\Exceptions\Action_Exception' ) ) {
+	class JFB_Stub_Action_Exception extends Exception {}
+	class_alias( 'JFB_Stub_Action_Exception', 'Jet_Form_Builder\Exceptions\Action_Exception' );
+}
+
+if ( ! class_exists( 'Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler' ) ) {
+	class JFB_Stub_Base_Handler {
+		const PREFIX = 'jet_form_builder_settings__';
+
+		public function update_options( $data ) {}
+		public function send_response( $result ) {}
+		public function get_options( $defaults = array() ) {}
+	}
+	class_alias( 'JFB_Stub_Base_Handler', 'Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler' );
+}
+
+if ( ! class_exists( 'Jet_Form_Builder\Admin\Tabs_Handlers\Tab_Handler_Manager' ) ) {
+	class JFB_Stub_Tab_Handler_Manager {
+		public static function instance() {}
+		public function install( $handler ) {}
+	}
+	class_alias( 'JFB_Stub_Tab_Handler_Manager', 'Jet_Form_Builder\Admin\Tabs_Handlers\Tab_Handler_Manager' );
 }

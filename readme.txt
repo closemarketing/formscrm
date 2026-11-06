@@ -270,6 +270,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= Unreleased =
+* Fixed: Saving a Gravity Forms feed that uses its own CRM settings with a blank credential field (e.g. API password) no longer breaks the field mapping. The blank field overrode the inherited credential, the CRM login failed while saving, and the mapping was stored in a format the feed could not read, so entries were sent without mapped fields. Feeds already saved this way are read correctly again, and a mapping saved while the CRM login fails is now stored in the right format instead of the broken one.
+
 = 4.4.6 =
 * Fixed: the CRM Module dropdown of AcumbaMail feeds came out empty. Building the feed screen asked AcumbaMail for the lists several times in a row (login, modules, fields) and its API only allows 5 requests per second, so the extra requests were rejected. The lists are now requested once and cached for a minute, and a throttled request is retried once.
 * Fixed: the AcumbaMail connector logged every request to the PHP error log, including the API token and the subscriber data. It no longer does.
