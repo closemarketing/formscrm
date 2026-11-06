@@ -1001,7 +1001,7 @@ class GFCRM extends GFFeedAddOn {
 		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
 		if ( empty( $field_maps ) ) {
 			// Feeds saved while the CRM login failed store the raw field map.
-			$field_maps = formscrm_gf_get_nested_field_map( rgar( $feed, 'meta', array() ), 'listFields' );
+			$field_maps = formscrm_gf_get_nested_field_map( rgar( $feed, 'meta' ), 'listFields' );
 		}
 
 		if ( ! empty( $field_maps ) ) {
