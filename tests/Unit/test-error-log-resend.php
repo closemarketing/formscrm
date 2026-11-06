@@ -18,7 +18,7 @@ class ErrorLogResendTest extends WP_UnitTestCase {
 	/**
 	 * Error log instance.
 	 *
-	 * @var FORMSCRM_Error_Log
+	 * @var \CLOSE\FormsCRM\Admin\ErrorLog
 	 */
 	private $error_log;
 
@@ -63,7 +63,7 @@ class ErrorLogResendTest extends WP_UnitTestCase {
 		// Initialize error log class.
 		global $formscrm_error_log;
 		if ( ! $formscrm_error_log ) {
-			$formscrm_error_log = new FORMSCRM_Error_Log();
+			$formscrm_error_log = new \CLOSE\FormsCRM\Admin\ErrorLog();
 		}
 		$this->error_log = $formscrm_error_log;
 

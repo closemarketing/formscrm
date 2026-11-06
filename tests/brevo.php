@@ -14,10 +14,9 @@ require '../../../../wp-load.php';
 $credentials = file_get_contents( 'Data/credentials/brevo.json' );
 $settings    = json_decode( $credentials, true );
 
-require '../includes/crm-library/class-crmlib-brevo.php';
 
 
-$crm = new CRMLIB_Brevo();
+$crm = new \CLOSE\FormsCRM\CRM\Brevo();
 
 echo '<h1>Brevo CRM:</h1>';
 echo '<p>Login Brevo CRM:</p>';

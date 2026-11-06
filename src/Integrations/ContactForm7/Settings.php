@@ -8,7 +8,12 @@
  * @version   3.3
  */
 
+namespace CLOSE\FormsCRM\Integrations\ContactForm7;
+
 defined( 'ABSPATH' ) || exit;
+
+use WPCF7_ContactForm;
+use WPCF7_Submission;
 
 	/**
 	 * Library for Contact Forms Settings
@@ -18,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
 	 * @copyright  2019 Closemarketing
 	 * @version    1.0
 	 */
-class FORMSCRM_CF7_Settings {
+class Settings {
 	/**
 	 * CRM LIB external
 	 *
@@ -480,5 +485,3 @@ class FORMSCRM_CF7_Settings {
 		return $field_value;
 	}
 }
-
-new FORMSCRM_CF7_Settings();

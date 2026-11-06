@@ -14,7 +14,7 @@ All commands run from this directory (`wp-content/plugins/formscrm/`):
 |---|---|
 | `composer lint` | Run PHP_CodeSniffer (WordPress coding standards) |
 | `composer format` | Auto-fix coding standard issues |
-| `composer phpstan` | Run PHPStan static analysis (level 1, `includes/` only) |
+| `composer phpstan` | Run PHPStan static analysis (level 1, `formscrm.php`, `includes/`, `src/`) |
 | `composer test` | Run PHPUnit integration tests (requires MySQL with `wordpress_test` DB) |
 | `composer test-debug` | Run PHPUnit with Xdebug enabled |
 | `composer test-install` | Install WordPress test suite and create test DB |
@@ -40,27 +40,32 @@ If tests hang during teardown, use: `timeout 120 vendor/bin/phpunit`
 The plugin uses WordPress filters as extension points. Built-in CRMs register themselves in `formscrm.php`. External CRM plugins hook into the same filters:
 
 - `formscrm_choices` — adds CRM label/value pairs to the settings dropdown
-- `formscrm_crmlib_path` — maps CRM slug to the path of its class file
+- `formscrm_crmlib_classes` — maps CRM slug to an autoloaded (namespaced) class; used by the built-in CRMs
+- `formscrm_crmlib_path` — maps CRM slug to the path of a file declaring a global `CRMLIB_*` class (add-ons); takes precedence over `formscrm_crmlib_classes` for the same slug
 - `formscrm_dependency_apipassword` — CRMs using API key auth (vs. URL+username+password)
 - `formscrm_dependency_url` — CRMs that require a URL field in settings
 
 ### CRM Class Interface
 
-Every CRM class (e.g. `CRMLIB_Clientify`) must implement:
+Every CRM class (e.g. `CLOSE\FormsCRM\CRM\Clientify`) must implement:
 - `login( $settings )` — validate credentials, return bool
 - `list_modules( $settings )` — return array of CRM modules/lists
 - `list_fields( $settings, $module )` — return fields for a given module
 - `create_entry( $settings, $module, $data )` — push form data to the CRM
 
-CRM class name convention: `CRMLIB_` + ucfirst(slug), e.g. `CRMLIB_Holded`. The `formscrm_get_api_class( $crm_type )` helper in `helpers-functions.php` handles dynamic loading.
+Built-in CRMs live in `src/CRM/` and are resolved through `formscrm_crmlib_classes`. Add-on CRMs keep the legacy convention `CRMLIB_` + ucfirst(slug), e.g. `CRMLIB_Odoo`, loaded from the file registered in `formscrm_crmlib_path`. The `formscrm_get_api_class( $crm_type )` helper in `helpers-functions.php` handles both.
+
+### Namespaces and autoloading
+
+All classes live in `src/` under `CLOSE\FormsCRM\` (PSR-4, Composer autoloader; `vendor/` ships with the plugin, built with `composer install --no-dev`). Procedural helpers stay in `includes/formscrm-library/`. The pre-namespace class names (`CRMLIB_*`, `GFCRM`, `FORMSCRM_*`, `FormsCRM_*`) are aliased on demand by `src/LegacyAliases.php`; never remove an entry there, add-ons depend on them. `includes/crm-library/class-crmlib-*.php` are stubs kept for add-ons that `require_once` the old paths.
 
 ### Form Integration Loading
 
-`includes/formscrm-library/loader.php` checks `is_plugin_active()` for each supported form plugin and conditionally requires the matching class. This means form integration classes are only loaded when their dependency is active.
+`src/Plugin.php` (`Plugin::boot()`) checks `is_plugin_active()` for each supported form plugin and conditionally instantiates the matching integration from `src/Integrations/`. This means form integration classes are only loaded when their dependency is active.
 
 ### Error Log System
 
-`includes/admin/class-error-log.php` — custom DB table (`{prefix}_formscrm_error_log`) storing failed CRM submissions. Provides AJAX handlers for resend, delete, and clear-all. UI rendered by `class-error-log-page.php`. CRM failures must never surface to form submitters — all errors are caught, logged, and can be retried.
+`src/Admin/ErrorLog.php` — custom DB table (`{prefix}_formscrm_error_log`) storing failed CRM submissions. Provides AJAX handlers for resend, delete, and clear-all. UI rendered by `src/Admin/ErrorLogPage.php`. CRM failures must never surface to form submitters — all errors are caught, logged, and can be retried.
 
 ## Coding Standards
 
@@ -69,11 +74,12 @@ Enforced by `.phpcs.xml.dist` (WordPress Coding Standards):
 - **Tabs** for indentation (never spaces)
 - **Yoda conditions** always (`if ( 'value' === $var )`)
 - PHP inline comments start with capital letter, end with period; keep them concise
+- Namespace: `CLOSE\FormsCRM` for every new class (one class per file in `src/`, file name = class name)
 - Global prefixes: `formscrm_`, `FormsCRM_`, `CRMLIB_`, `GFCRM`, `fcrm_`, `FCRM_`
 - Text domain: `formscrm`
 - Align consecutive `=` assignments vertically — use the minimum spaces needed to reach column alignment, one space on each side of the operator
 - **JavaScript**: Vanilla JS only — no jQuery
-- PHPStan runs at level 1 against `includes/` using bootstrap at `tests/phpstan-bootstrap.php`
+- PHPStan runs at level 1 against `formscrm.php`, `includes/` and `src/` using bootstrap at `tests/phpstan-bootstrap.php`
 - Ensure lint tests pass before considering a change complete
 - Create unit tests for new functions/code when applicable
 
@@ -87,12 +93,13 @@ Enforced by `.phpcs.xml.dist` (WordPress Coding Standards):
 
 ## Key Files
 
-- `formscrm.php` — Plugin entry point; registers built-in CRMs via filters, requires admin and loader
-- `includes/formscrm-library/loader.php` — Conditionally loads form integrations
+- `formscrm.php` — Plugin entry point; registers CRM choices, loads the Composer autoloader and calls `Plugin::boot()`
+- `src/Plugin.php` — Conditionally loads form integrations and admin screens
+- `src/LegacyAliases.php` — Aliases for the pre-namespace class names
 - `includes/formscrm-library/helpers-functions.php` — `formscrm_get_api_class()`, settings helpers, debug logging
 - `includes/formscrm-library/helpers-library-crm.php` — Filter wrappers (`formscrm_get_choices()`, `formscrm_get_crmlib_path()`, etc.)
-- `includes/admin/class-admin-options.php` — Settings page UI
-- `includes/admin/class-error-log.php` — Error log DB operations and AJAX handlers
+- `src/Admin/AdminOptions.php` — Settings page UI
+- `src/Admin/ErrorLog.php` — Error log DB operations and AJAX handlers
 
 ## CI/CD
 

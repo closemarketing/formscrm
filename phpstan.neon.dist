@@ -1,12 +1,15 @@
 parameters:
 	level: 1
 	paths:
+		- formscrm.php
 		- includes
+		- src
 	excludePaths:
 		- tests/*
 		- vendor/*
 	scanDirectories:
 		- includes
+		- src
 	bootstrapFiles:
 		- tests/phpstan-bootstrap.php
 

@@ -79,25 +79,21 @@ add_filter(
 	}
 );
 
-add_filter(
-	'formscrm_crmlib_path',
-	function ( $choices ) {
+// Page size of the Holded API, kept global for add-ons such as Holded PRO.
+if ( ! defined( 'FORMSCRM_MAX_LIMIT_HOLDED_API' ) ) {
+	define( 'FORMSCRM_MAX_LIMIT_HOLDED_API', 500 );
+}
 
-		$choices['holded']     = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-holded.php';
-		$choices['clientify']  = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-clientify.php';
-		$choices['acumbamail'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-acumbamail.php';
-		$choices['mailerlite'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-mailerlite.php';
-		$choices['brevo']      = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-brevo.php';
+if ( ! file_exists( FORMSCRM_PLUGIN_PATH . 'vendor/autoload.php' ) ) {
+	add_action(
+		'admin_notices',
+		function () {
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'FormsCRM is missing its Composer autoloader. Run "composer install" in the plugin folder or reinstall the plugin.', 'formscrm' ) . '</p></div>';
+		}
+	);
+	return;
+}
 
-		return $choices;
-	}
-);
+require_once FORMSCRM_PLUGIN_PATH . 'vendor/autoload.php';
 
-// Include files.
-require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
-require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
-require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log.php';
-require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log-page.php';
-require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-review-notice.php';
-
-new FORMSCRM_Review_Notice();
+\CLOSE\FormsCRM\Plugin::boot();

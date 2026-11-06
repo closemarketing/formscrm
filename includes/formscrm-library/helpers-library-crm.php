@@ -38,6 +38,29 @@ if ( ! function_exists( 'formscrm_get_crmlib_path' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_get_crmlib_classes' ) ) {
+	/**
+	 * Returns the autoloaded CRM classes keyed by CRM slug.
+	 *
+	 * Add-ons can register a namespaced class here instead of a file in
+	 * `formscrm_crmlib_path`.
+	 *
+	 * @return array<string,string>
+	 */
+	function formscrm_get_crmlib_classes() {
+		return apply_filters(
+			'formscrm_crmlib_classes',
+			array(
+				'holded'     => \CLOSE\FormsCRM\CRM\Holded::class,
+				'clientify'  => \CLOSE\FormsCRM\CRM\Clientify::class,
+				'acumbamail' => \CLOSE\FormsCRM\CRM\AcumbaMail::class,
+				'mailerlite' => \CLOSE\FormsCRM\CRM\Mailerlite::class,
+				'brevo'      => \CLOSE\FormsCRM\CRM\Brevo::class,
+			)
+		);
+	}
+}
+
 if ( ! function_exists( 'formscrm_get_dependency_url' ) ) {
 	/**
 	 * Returns dependecies URL for forms depending of CRM.

@@ -9,12 +9,20 @@
  * @since     1.0.0
  */
 
+namespace CLOSE\FormsCRM\Integrations\WPForms;
+
+defined( 'ABSPATH' ) || exit;
+
+use Exception;
+use WPForms_Provider;
+use WP_Error;
+
 /**
  * FormsCRM integration.
  *
  * @since 1.0.0
  */
-class FormsCRM_WPForms extends WPForms_Provider {
+class Provider extends WPForms_Provider {
 	/**
 	 * CRM library instance.
 	 *
@@ -58,7 +66,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		$this->name     = 'FormsCRM';
 		$this->slug     = 'formscrm';
 		$this->priority = 14;
-		$this->icon     = plugins_url( '../assets/addon-icon-wpforms.png', __FILE__ );
+		$this->icon     = FORMSCRM_PLUGIN_URL . 'includes/assets/addon-icon-wpforms.png';
 		add_filter( 'wpforms_process_entry_confirmation_redirect_confirmations', array( $this, 'payment_confirmation_redirect' ), 20, 4 );
 	}
 
@@ -719,5 +727,3 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
-
-new FormsCRM_WPForms();

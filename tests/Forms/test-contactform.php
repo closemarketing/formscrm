@@ -14,7 +14,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 	 * form via WPCF7_ContactForm::get_instance(), the same way CF7 itself
 	 * sets it while rendering/processing a form. WPCF7_ContactForm's
 	 * constructor is private and $current isn't settable directly, so this
-	 * is the only way to get FORMSCRM_CF7_Settings::inject_analytics_plus_fields()
+	 * is the only way to get \CLOSE\FormsCRM\Integrations\ContactForm7\Settings::inject_analytics_plus_fields()
 	 * — which reads WPCF7_ContactForm::get_current() — into a known state.
 	 *
 	 * @return int The created post's ID.
@@ -41,7 +41,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 		$post_id = $this->make_current_contact_form();
 		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
 
-		$settings  = new FORMSCRM_CF7_Settings();
+		$settings  = new \CLOSE\FormsCRM\Integrations\ContactForm7\Settings();
 		$form_html = $settings->inject_analytics_plus_fields( '<form><input type="submit" value="Send" /></form>' );
 
 		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />', $form_html );
@@ -56,7 +56,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 		$post_id = $this->make_current_contact_form();
 		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'holded' ) );
 
-		$settings  = new FORMSCRM_CF7_Settings();
+		$settings  = new \CLOSE\FormsCRM\Integrations\ContactForm7\Settings();
 		$original  = '<form><input type="submit" value="Send" /></form>';
 		$form_html = $settings->inject_analytics_plus_fields( $original );
 
@@ -72,7 +72,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 		$post_id = $this->make_current_contact_form();
 		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
 
-		$settings  = new FORMSCRM_CF7_Settings();
+		$settings  = new \CLOSE\FormsCRM\Integrations\ContactForm7\Settings();
 		$form_html = '<form><input type="hidden" name="formscrm_vk" class="formscrm-vk" /><input type="submit" value="Send" /></form>';
 		$form_html = $settings->inject_analytics_plus_fields( $form_html );
 
@@ -103,7 +103,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 			'clientify_cookie' => '',
 		);
 
-		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
+		$merge_vars = \CLOSE\FormsCRM\Integrations\ContactForm7\Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals( $merge_vars, array(
 			array( 'name' => 'first_name', 'value' => 'david' ),
 			array( 'name' => 'email', 'value' => 'david@close.marketing' ),
@@ -128,7 +128,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 			'extra-info' => array(), // Unchecked checkbox returns empty array in CF7.
 		);
 
-		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
+		$merge_vars = \CLOSE\FormsCRM\Integrations\ContactForm7\Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals(
 			array( array( 'name' => 'gdpr_accept', 'value' => false ) ),
 			$merge_vars
@@ -150,7 +150,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 			'extra-info' => array( 'Me gustaría estar al tanto de las novedades de Ipace' ),
 		);
 
-		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
+		$merge_vars = \CLOSE\FormsCRM\Integrations\ContactForm7\Settings::get_merge_vars( $cf7_crm, $submitted_data );
 		$this->assertEquals(
 			array( array( 'name' => 'gdpr_accept', 'value' => true ) ),
 			$merge_vars
@@ -194,7 +194,7 @@ class ContactFormsTest extends WP_UnitTestCase {
 			'extra-info' => $submitted_value,
 		);
 
-		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
+		$merge_vars = \CLOSE\FormsCRM\Integrations\ContactForm7\Settings::get_merge_vars( $cf7_crm, $submitted_data );
 
 		$this->assertCount( 1, $merge_vars );
 		$this->assertSame( 'gdpr_accept', $merge_vars[0]['name'] );

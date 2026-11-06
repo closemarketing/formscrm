@@ -12,6 +12,8 @@
  * @version   2.0
  */
 
+namespace CLOSE\FormsCRM\Integrations\JetFormBuilder;
+
 defined( 'ABSPATH' ) || exit;
 
 use Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler;
@@ -19,7 +21,7 @@ use Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler;
 /**
  * Handles saving/loading global FormsCRM credentials inside JFB settings.
  */
-class FORMSCRM_JFB_Tab_Handler extends Base_Handler {
+class TabHandler extends Base_Handler {
 
 	const SLUG = 'formscrm-tab';
 

@@ -393,13 +393,13 @@ class HelpersFunctionsTest extends WP_UnitTestCase {
 		add_filter(
 			'formscrm_crmlib_path',
 			function( $choices ) {
-				$choices['test_crm'] = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-test.php';
+				$choices['test_crm'] = get_temp_dir() . 'formscrm-tests/class-crmlib-test.php';
 				return $choices;
 			}
 		);
 
 		// Create a mock class file.
-		$mock_class_file = FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-test.php';
+		$mock_class_file = get_temp_dir() . 'formscrm-tests/class-crmlib-test.php';
 		if ( ! file_exists( dirname( $mock_class_file ) ) ) {
 			wp_mkdir_p( dirname( $mock_class_file ) );
 		}

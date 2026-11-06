@@ -9,6 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        tools: composer:v2
+        coverage: none
+    # vendor/ ships with the plugin: it holds the Composer autoloader.
+    - name: Install production Composer dependencies
+      run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
     - name: WordPress Plugin Deploy
       uses: 10up/action-wordpress-plugin-deploy@stable
       env:

@@ -21,14 +21,11 @@ function formscrm_jfb_init() {
 		return;
 	}
 
-	require_once __DIR__ . '/class-jetformbuilder-tab-handler.php';
-	require_once __DIR__ . '/class-jetformbuilder-action.php';
-
 	// Register the action type so it appears in "Add new action" modal.
 	add_action(
 		'jet-form-builder/actions/register',
 		function ( $manager ) {
-			$manager->register_action_type( new FORMSCRM_JFB_Action() );
+			$manager->register_action_type( new \CLOSE\FormsCRM\Integrations\JetFormBuilder\Action() );
 		}
 	);
 
@@ -40,7 +37,7 @@ function formscrm_jfb_init() {
 		'jet-form-builder/after-init',
 		function () {
 			\Jet_Form_Builder\Admin\Tabs_Handlers\Tab_Handler_Manager::instance()->install(
-				new FORMSCRM_JFB_Tab_Handler()
+				new \CLOSE\FormsCRM\Integrations\JetFormBuilder\TabHandler()
 			);
 		}
 	);
@@ -55,7 +52,7 @@ function formscrm_jfb_init() {
 			$prefix = \Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler::PREFIX;
 			register_setting(
 				trim( $prefix, '_' ),
-				$prefix . FORMSCRM_JFB_Tab_Handler::SLUG,
+				$prefix . \CLOSE\FormsCRM\Integrations\JetFormBuilder\TabHandler::SLUG,
 				array(
 					'type'         => 'string',
 					'show_in_rest' => true,
@@ -172,7 +169,7 @@ function formscrm_jfb_settings_assets() {
  */
 function formscrm_jfb_resolve_settings( array $settings ): array {
 	if ( ! empty( $settings['use_global'] ) ) {
-		$option_name = \Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler::PREFIX . FORMSCRM_JFB_Tab_Handler::SLUG;
+		$option_name = \Jet_Form_Builder\Admin\Tabs_Handlers\Base_Handler::PREFIX . \CLOSE\FormsCRM\Integrations\JetFormBuilder\TabHandler::SLUG;
 		$raw_global  = get_option( $option_name, '{}' );
 		$global      = json_decode( $raw_global, true );
 		if ( ! is_array( $global ) ) {

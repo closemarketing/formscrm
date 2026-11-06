@@ -22,7 +22,7 @@ class BrevoTests extends WP_UnitTestCase {
 	/**
 	 * API connection for testing.
 	 *
-	 * @var CRMLIB_Brevo
+	 * @var \CLOSE\FormsCRM\CRM\Brevo
 	 */
 	protected $crm_brevo;
 

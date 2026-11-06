@@ -10,12 +10,18 @@
  * @version    1.0
  */
 
+namespace CLOSE\FormsCRM\Integrations\GravityForms;
+
 defined( 'ABSPATH' ) || exit;
+
+use GFAPI;
+use GFCommon;
+use ZipArchive;
 
 /**
  * Class for Markdown Export
  */
-class FormsCRM_GravityForms_Markdown_Export {
+class MarkdownExport {
 
 	/**
 	 * Construct of Class
@@ -563,5 +569,3 @@ class FormsCRM_GravityForms_Markdown_Export {
 		exit;
 	}
 }
-
-new FormsCRM_GravityForms_Markdown_Export();

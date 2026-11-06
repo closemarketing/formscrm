@@ -10,7 +10,7 @@
 /**
  * Class ElementorFormsTest
  *
- * @see FormsCRM_Elementor_Action_After_Submit::get_merge_vars()
+ * @see \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit::get_merge_vars()
  */
 class ElementorFormsTest extends WP_UnitTestCase {
 
@@ -28,7 +28,7 @@ class ElementorFormsTest extends WP_UnitTestCase {
 			'form-email' => array( 'value' => 'david@example.com' ),
 		);
 
-		$merge_vars = FormsCRM_Elementor_Action_After_Submit::get_merge_vars( $formscrm_settings, $raw_fields );
+		$merge_vars = \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit::get_merge_vars( $formscrm_settings, $raw_fields );
 
 		$this->assertEquals(
 			array(
@@ -67,7 +67,7 @@ class ElementorFormsTest extends WP_UnitTestCase {
 			'form-category' => array( 'value' => 'Technology' ),
 		);
 
-		$merge_vars = FormsCRM_Elementor_Action_After_Submit::get_merge_vars( $formscrm_settings, $raw_fields );
+		$merge_vars = \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit::get_merge_vars( $formscrm_settings, $raw_fields );
 
 		$this->assertCount( 4, $merge_vars );
 		$this->assertEquals(
@@ -112,7 +112,7 @@ class ElementorFormsTest extends WP_UnitTestCase {
 			'form-interests' => array( 'value' => array( 'Sports', 'Music', 'Tech' ) ),
 		);
 
-		$merge_vars = FormsCRM_Elementor_Action_After_Submit::get_merge_vars( $formscrm_settings, $raw_fields );
+		$merge_vars = \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit::get_merge_vars( $formscrm_settings, $raw_fields );
 
 		$this->assertEquals(
 			array(
@@ -135,7 +135,7 @@ class ElementorFormsTest extends WP_UnitTestCase {
 
 		$raw_fields = array(); // Field not present in submission.
 
-		$merge_vars = FormsCRM_Elementor_Action_After_Submit::get_merge_vars( $formscrm_settings, $raw_fields );
+		$merge_vars = \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit::get_merge_vars( $formscrm_settings, $raw_fields );
 
 		$this->assertEquals(
 			array(

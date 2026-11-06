@@ -12,7 +12,7 @@
  */
 
 /**
- * Test case for CRMLIB_AcumbaMail.
+ * Test case for \CLOSE\FormsCRM\CRM\AcumbaMail.
  */
 class AcumbaMailTest extends WP_UnitTestCase {
 
@@ -42,7 +42,7 @@ class AcumbaMailTest extends WP_UnitTestCase {
 
 		// The connector keeps the lists per request in a static property: reset it between tests.
 		formscrm_get_api_class( 'acumbamail' );
-		$cache = new ReflectionProperty( 'CRMLIB_AcumbaMail', 'lists_cache' );
+		$cache = new ReflectionProperty( \CLOSE\FormsCRM\CRM\AcumbaMail::class, 'lists_cache' );
 		$cache->setAccessible( true );
 		$cache->setValue( null, array() );
 		add_filter( 'pre_http_request', array( $this, 'mock_api' ), 10, 3 );

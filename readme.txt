@@ -270,6 +270,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= 4.5.0 =
+* Developers: the plugin classes now live in `src/` under the `CLOSE\FormsCRM` namespace and are loaded by the Composer autoloader (PSR-4). The old class names (`CRMLIB_HOLDED`, `GFCRM`, `FORMSCRM_Error_Log`…) keep working as aliases, and the old `includes/crm-library/class-crmlib-*.php` files remain as stubs for add-ons that require them.
+* Developers: new `formscrm_crmlib_classes` filter to register a namespaced CRM class by slug, as an alternative to `formscrm_crmlib_path`.
+
 = 4.4.6 =
 * Fixed: the CRM Module dropdown of AcumbaMail feeds came out empty. Building the feed screen asked AcumbaMail for the lists several times in a row (login, modules, fields) and its API only allows 5 requests per second, so the extra requests were rejected. The lists are now requested once and cached for a minute, and a throttled request is retried once.
 * Fixed: the AcumbaMail connector logged every request to the PHP error log, including the API token and the subscriber data. It no longer does.

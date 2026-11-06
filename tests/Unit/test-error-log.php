@@ -18,7 +18,7 @@ class ErrorLogTest extends WP_UnitTestCase {
 	/**
 	 * Error log instance
 	 *
-	 * @var FORMSCRM_Error_Log
+	 * @var \CLOSE\FormsCRM\Admin\ErrorLog
 	 */
 	private $error_log;
 
@@ -33,7 +33,7 @@ class ErrorLogTest extends WP_UnitTestCase {
 		// Initialize error log class.
 		global $formscrm_error_log;
 		if ( ! $formscrm_error_log ) {
-			$formscrm_error_log = new FORMSCRM_Error_Log();
+			$formscrm_error_log = new \CLOSE\FormsCRM\Admin\ErrorLog();
 		}
 		$this->error_log = $formscrm_error_log;
 
@@ -118,7 +118,7 @@ class ErrorLogTest extends WP_UnitTestCase {
 	 * Test that Error Log class exists.
 	 */
 	public function test_error_log_class_exists() {
-		$this->assertTrue( class_exists( 'FORMSCRM_Error_Log' ) );
+		$this->assertTrue( class_exists( \CLOSE\FormsCRM\Admin\ErrorLog::class ) );
 	}
 
 	/**
@@ -579,6 +579,6 @@ class ErrorLogTest extends WP_UnitTestCase {
 	 * Test Error Log Page class exists.
 	 */
 	public function test_error_log_page_class_exists() {
-		$this->assertTrue( class_exists( 'FORMSCRM_Error_Log_Page' ) );
+		$this->assertTrue( class_exists( \CLOSE\FormsCRM\Admin\ErrorLogPage::class ) );
 	}
 }

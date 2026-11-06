@@ -16,10 +16,9 @@ require '../../../../wp-load.php';
 $credentials = file_get_contents( 'credentials/clientify.json' );
 $settings    = json_decode( $credentials, true );
 
-require '../includes/crm-library/class-crmlib-clientify.php';
 //////////
 
-$crm_clientify = new CRMLIB_Clientify();
+$crm_clientify = new \CLOSE\FormsCRM\CRM\Clientify();
 
 echo '<h1>Clientify CRM:</h1>';
 echo '<p>Login clientify CRM:</p>';

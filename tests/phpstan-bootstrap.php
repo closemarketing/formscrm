@@ -422,11 +422,6 @@ class GFFeedAddOn extends GFAddOn {
 }
 
 /**
- * Gravity Forms CRM class
- */
-class GFCRM {}
-
-/**
  * Get array value by key
  *
  * @param array  $array Array to search.

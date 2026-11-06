@@ -11,6 +11,8 @@
  * @version   2.0
  */
 
+namespace CLOSE\FormsCRM\Integrations\JetFormBuilder;
+
 defined( 'ABSPATH' ) || exit;
 
 use Jet_Form_Builder\Actions\Action_Handler;
@@ -20,14 +22,14 @@ use Jet_Form_Builder\Exceptions\Action_Exception;
 /**
  * FormsCRM action type for JetFormBuilder.
  */
-class FORMSCRM_JFB_Action extends Base {
+class Action extends Base {
 
 	/**
-	 * Links this action to the global settings tab saved by FORMSCRM_JFB_Tab_Handler.
+	 * Links this action to the global settings tab saved by TabHandler.
 	 *
 	 * @var string
 	 */
-	public $option_name = FORMSCRM_JFB_Tab_Handler::SLUG;
+	public $option_name = TabHandler::SLUG;
 
 	/**
 	 * Returns the action type ID.

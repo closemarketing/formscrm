@@ -8,7 +8,11 @@
  * @version   3.3
  */
 
+namespace CLOSE\FormsCRM\Integrations\WooCommerce;
+
 defined( 'ABSPATH' ) || exit;
+
+use WC_Order;
 
 /**
  * Library for Contact Forms Settings
@@ -18,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
  * @copyright  2019 Closemarketing
  * @version    1.0
  */
-class FormsCRM_WooCommerce {
+class WooCommerce {
 	/**
 	 * CRM LIB external
 	 *
@@ -302,5 +306,3 @@ class FormsCRM_WooCommerce {
 		return $merge_vars;
 	}
 }
-
-new FormsCRM_WooCommerce();
