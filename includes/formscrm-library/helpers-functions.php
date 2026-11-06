@@ -1007,12 +1007,17 @@ if ( ! function_exists( 'formscrm_merge_custom_crm_credentials' ) ) {
 	 * credential the feed inherits. Otherwise the CRM login fails while saving
 	 * the feed and Gravity Forms stores the field map in an unusable format.
 	 *
-	 * @param array $settings  Plugin settings.
-	 * @param array $posted    Unslashed posted values.
-	 * @param array $feed_meta Saved feed meta.
+	 * The global "fc_crm_*" credentials are only inherited when the feed uses
+	 * the same CRM type as the plugin settings, so one CRM's credentials are
+	 * never sent to another CRM's API.
+	 *
+	 * @param array $settings       Plugin settings.
+	 * @param array $posted         Unslashed posted values.
+	 * @param array $feed_meta      Saved feed meta.
+	 * @param bool  $inherit_global Whether the global credentials can be inherited.
 	 * @return array Settings with "fc_crm_*" credentials resolved.
 	 */
-	function formscrm_merge_custom_crm_credentials( array $settings, array $posted, array $feed_meta ) {
+	function formscrm_merge_custom_crm_credentials( array $settings, array $posted, array $feed_meta, $inherit_global = true ) {
 		$variables = defined( 'FORMSCRM_CRED_VARIABLES' ) ? FORMSCRM_CRED_VARIABLES : array();
 
 		foreach ( $variables as $variable ) {
@@ -1026,6 +1031,8 @@ if ( ! function_exists( 'formscrm_merge_custom_crm_credentials' ) ) {
 			} elseif ( isset( $settings[ $custom_key ] ) ) {
 				$settings[ 'fc_crm_' . $variable ] = $settings[ $custom_key ];
 				unset( $settings[ $custom_key ] );
+			} elseif ( ! $inherit_global ) {
+				unset( $settings[ 'fc_crm_' . $variable ] );
 			}
 		}
 

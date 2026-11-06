@@ -127,6 +127,34 @@ class GravityFormsFeedCredentialsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A different CRM type never inherits the global credential.
+	 */
+	public function test_other_crm_type_does_not_inherit_global_credential() {
+		$result = formscrm_merge_custom_crm_credentials(
+			$this->settings,
+			array( '_gform_setting_fc_crm_custom_apipassword' => '' ),
+			array(),
+			false
+		);
+
+		$this->assertArrayNotHasKey( 'fc_crm_apipassword', $result );
+	}
+
+	/**
+	 * A different CRM type still uses its own feed credential.
+	 */
+	public function test_other_crm_type_uses_feed_credential() {
+		$result = formscrm_merge_custom_crm_credentials(
+			$this->settings,
+			array(),
+			array( 'fc_crm_custom_apipassword' => 'feed-key' ),
+			false
+		);
+
+		$this->assertSame( 'feed-key', $result['fc_crm_apipassword'] );
+	}
+
+	/**
 	 * Reads a nested field map.
 	 */
 	public function test_reads_nested_field_map() {

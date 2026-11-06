@@ -750,12 +750,13 @@ class GFCRM extends GFFeedAddOn {
 		if ( 'no' === $custom_crm ) {
 			return $settings;
 		}
+		$global_crm              = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$settings['fc_crm_type'] = $custom_crm;
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms; values are sanitized in the helper.
 		$posted    = wp_unslash( $_POST );
 		$feed_meta = ! empty( $feed['meta'] ) && is_array( $feed['meta'] ) ? $feed['meta'] : array();
 
-		return formscrm_merge_custom_crm_credentials( $settings, is_array( $posted ) ? $posted : array(), $feed_meta );
+		return formscrm_merge_custom_crm_credentials( $settings, is_array( $posted ) ? $posted : array(), $feed_meta, $global_crm === $custom_crm );
 	}
 
 	/**
