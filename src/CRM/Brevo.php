@@ -1,0 +1,322 @@
+<?php
+/**
+ * Brevo connect library
+ *
+ * Has functions to login, list fields and create contact
+ *
+ * Documentation: https://developers.brevo.com/reference/
+ *
+ * @author    David Perez <david@closemarketing.es>
+ * @category  Functions
+ * @package   FormsCRM
+ * @version   4.0.0
+ * @copyright 2021 Closemarketing
+ *
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+ */
+
+namespace CLOSE\FormsCRM\CRM;
+
+defined( 'ABSPATH' ) || exit;
+
+
+/**
+ * Brevo CRM Library
+ */
+class Brevo {
+ // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
+	/**
+	 * Brevo Connector API
+	 *
+	 * @param string $method Method to connect: GET, POST..
+	 * @param string $module URL endpoint.
+	 * @param string $apikey API Key credential.
+	 * @param array  $query  Body data.
+	 * @return array
+	 */
+	private function api( $method, $module, $apikey, $query = array() ) {
+		if ( empty( $apikey ) ) {
+			return;
+		}
+		$args = array(
+			'method'  => $method,
+			'headers' => array(
+				'api-key'      => $apikey,
+				'Accept'       => 'application/json',
+				'Content-Type' => 'application/json',
+			),
+		);
+		if ( ! empty( $query ) ) {
+			$args['body'] = wp_json_encode( $query );
+		}
+
+		if ( 'GET' === $method ) {
+			$limit        = 50;
+			$offset       = 0;
+			$result_data  = array();
+			$repeat_query = false;
+
+			do {
+				$paginated_module = $module . '?limit=' . $limit . '&offset=' . $offset;
+				$result           = $this->request( $paginated_module, $args );
+
+				if ( 'ok' === $result['status'] && ! empty( $result['data'] ) && is_array( $result['data'] ) ) {
+					$items        = isset( $result['data']['lists'] ) ? $result['data']['lists'] : $result['data'];
+					$offset      += count( $items );
+					$result_data  = array_merge( $result_data, $items );
+					$total        = isset( $result['data']['count'] ) ? (int) $result['data']['count'] : 0;
+					$repeat_query = $offset < $total;
+				} else {
+					return $result;
+				}
+			} while ( $repeat_query );
+			return array(
+				'status' => 'ok',
+				'data'   => $result_data,
+			);
+		} else {
+			return $this->request( $module, $args );
+		}
+	}
+
+	/**
+	 * Request to Brevo API
+	 *
+	 * @param string $module URL endpoint with parameters.
+	 * @param array  $args  Body data.
+	 * @return array
+	 */
+	private function request( $module, $args ) {
+		$url         = 'https://api.brevo.com/v3/' . $module;
+		$result      = wp_remote_request( $url, $args );
+		$result_code = wp_remote_retrieve_response_code( $result );
+		$body        = wp_remote_retrieve_body( $result );
+		$api_data    = json_decode( $body, true );
+		$result_code = intval( $result_code / 100 );
+
+		if ( is_wp_error( $result ) || 2 !== $result_code ) {
+			$message = 'Error: ';
+			foreach ( $api_data as $key => $value ) {
+				$message .= $key . ': ' . $value . ' ';
+			}
+			formscrm_error_admin_message( 'ERROR', $message );
+			return array(
+				'status' => 'error',
+				'data'   => $message,
+			);
+		} else {
+			return array(
+				'status' => 'ok',
+				'data'   => $api_data,
+			);
+		}
+	}
+	/**
+	 * Logins to a CRM
+	 *
+	 * @param  array $settings settings from Gravity Forms options.
+	 * @return false or id     returns false if cannot login and string if gets token
+	 */
+	public function login( $settings ) {
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		try {
+			$results = $this->api( 'GET', 'contacts/lists', $apikey );
+
+			if ( 'ok' === $results['status'] ) {
+				return true;
+			}
+
+			$error_msg = isset( $results['data'] ) ? $results['data'] : __( 'Unable to connect to Brevo API', 'formscrm' );
+			return array(
+				'status'  => 'error',
+				'message' => $error_msg,
+			);
+		} catch ( \Exception $e ) {
+
+			// Log that authentication test failed.
+			error_log( __METHOD__ . '(): API credentials are invalid; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for API errors.
+
+			return array(
+				'status'  => 'error',
+				'message' => __( 'Invalid API credentials', 'formscrm' ),
+			);
+		}
+	}
+
+	/**
+	 * List modules of a CRM
+	 *
+	 * @param  array $settings settings from Gravity Forms options.
+	 * @return array           returns an array of mudules
+	 */
+	public function list_modules( $settings ) {
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+
+		// If API cannot be initialized, return array.
+		$login_check = $this->login( $settings );
+		if ( true !== $login_check ) {
+			return array();
+		}
+
+		// Initialize choices array.
+		$choices      = array();
+		$result_lists = $this->api( 'GET', 'contacts/lists', $apikey );
+
+		// If no lists were found, return.
+		if ( 'error' === $result_lists['status'] || empty( $result_lists['data'] ) ) {
+			return array();
+		}
+
+		// Loop through array.
+		foreach ( $result_lists['data'] as $list ) {
+
+			// Add list as choice.
+			$choices[] = array(
+				'label' => esc_html( $list['name'] ),
+				'value' => (int) $list['id'],
+			);
+		}
+
+		return $choices;
+	}
+
+	/**
+	 * List fields for given module of a CRM
+	 *
+	 * @param  array  $settings settings from Gravity Forms options.
+	 * @param  string $module settings from Gravity Forms options.
+	 * @return array           returns an array of mudules
+	 */
+	public function list_fields( $settings, $module ) {
+		$apikey = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$module = ! empty( $module ) ? $module : '';
+
+		// Initialize field map.
+		$field_map = array();
+
+		try {
+			$custom_fields = $this->api( 'GET', 'contacts/attributes', $apikey );
+		} catch ( \Exception $e ) {
+
+			// Log that we could not retrieve custom fields.
+			error_log( __METHOD__ . '(): Unable to retrieve custom fields; ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging for API errors.
+
+			return $field_map;
+		}
+
+		$field_map[] = array(
+			'label' => 'Email',
+			'name'  => 'email',
+		);
+
+		$field_map[] = array(
+			'label' => 'EXT_ID',
+			'name'  => 'ext_id',
+		);
+
+		if ( 'error' === $custom_fields['status'] || empty( $custom_fields['data']['attributes'] ) ) {
+			return $field_map;
+		}
+
+		// Loop through custom fields.
+		foreach ( $custom_fields['data']['attributes'] as $custom_field ) {
+			if ( isset( $custom_field['category'] ) && 'global' === $custom_field['category'] ) {
+				continue;
+			}
+
+			if ( 'EXT_ID' === $custom_field['name'] ) {
+				continue;
+			}
+
+			$field_name = isset( $custom_field['name'] ) ? $custom_field['name'] : '';
+
+			// Add custom field to field map.
+			$field_map[] = array(
+				'label' => $field_name,
+				'name'  => $field_name,
+			);
+		}
+		return $field_map;
+	}
+
+	/**
+	 * Creates an entry for given module of a CRM
+	 *
+	 * @param  array $settings settings from Gravity Forms options.
+	 * @param  array $merge_vars array of values for the entry.
+	 * @return array           id or false
+	 */
+	public function create_entry( $settings, $merge_vars ) {
+		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
+		$list_id = isset( $settings['fc_crm_module'] ) ? (int) $settings['fc_crm_module'] : '';
+
+		// List of standard Brevo contact fields that should be at root level.
+		// All other fields are automatically treated as custom attributes.
+		// See https://developers.brevo.com/reference/createcontact.
+		$standard_fields = array(
+			'email',
+			'ext_id',
+			'emailBlacklisted',
+			'smsBlacklisted',
+			'listIds',
+			'unlinkListIds',
+			'updateEnabled',
+			'smtpBlacklistSender',
+		);
+
+		$subscriber                  = array();
+		$subscriber['listIds']       = array( $list_id );
+		$subscriber['updateEnabled'] = true;
+		foreach ( $merge_vars as $element ) {
+			$field_name  = $element['name'];
+			$field_value = $element['value'];
+
+			// Check if field contains pipe separator (attributes|FIELDNAME).
+			if ( false === strpos( $field_name, '|' ) ) {
+				// No pipe - check if it's a standard field.
+				if ( in_array( $field_name, $standard_fields, true ) ) {
+					// Standard field - add to root level.
+					$subscriber[ $field_name ] = $field_value;
+				} else {
+					// Custom attribute - add to attributes object.
+					$subscriber['attributes'][ $field_name ] = $field_value;
+				}
+			} else {
+				// Pipe found - extract attribute name and add to attributes.
+				$key                              = str_replace( 'attributes|', '', $field_name );
+				$subscriber['attributes'][ $key ] = $field_value;
+			}
+		}
+
+		try {
+			// Create or update contact.
+			$result = $this->api( 'POST', 'contacts', $apikey, $subscriber );
+
+			if ( 'ok' === $result['status'] ) {
+				$contact_id      = isset( $result['data']['id'] ) ? $result['data']['id'] : '';
+				$response_result = array(
+					'status'  => 'ok',
+					'message' => 'success',
+					'id'      => $contact_id,
+				);
+			} else {
+				$message         = isset( $result['data'] ) ? $result['data'] : '';
+				$response_result = array(
+					'status'  => 'error',
+					'message' => $message,
+					'url'     => isset( $result['url'] ) ? $result['url'] : '',
+					'query'   => isset( $result['query'] ) ? $result['query'] : '',
+				);
+			}
+		} catch ( \Exception $e ) {
+			$response_result = array(
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+				'url'     => '',
+				'query'   => '',
+			);
+		}
+
+		return $response_result;
+	}
+}

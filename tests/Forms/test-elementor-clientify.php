@@ -10,7 +10,7 @@
 /**
  * Minimal stand-in for \ElementorPro\Modules\Forms\Classes\Form_Record.
  *
- * FormsCRM_Elementor_Action_After_Submit::run() only calls get( $key ) on the
+ * \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit::run() only calls get( $key ) on the
  * record, so this duck-typed double is enough without depending on Elementor Pro.
  */
 class FormsCRM_Test_Fake_Form_Record {
@@ -58,7 +58,7 @@ class FormsCRM_Test_Fake_Ajax_Handler {
 /**
  * Elementor + Clientify submission tests.
  *
- * @see FormsCRM_Elementor_Action_After_Submit::run()
+ * @see \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit::run()
  * @see https://wordpress.org/support/topic/bug-formscrm-4-4-1-elementor-clientify-http-409-conflict/
  */
 class ElementorClientifyTest extends WP_UnitTestCase {
@@ -196,7 +196,7 @@ class ElementorClientifyTest extends WP_UnitTestCase {
 		);
 		$ajax_handler = new FormsCRM_Test_Fake_Ajax_Handler();
 
-		( new FormsCRM_Elementor_Action_After_Submit() )->run( $record, $ajax_handler );
+		( new \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit() )->run( $record, $ajax_handler );
 
 		$create_requests = $this->get_create_or_update_requests();
 
@@ -222,7 +222,7 @@ class ElementorClientifyTest extends WP_UnitTestCase {
 		);
 		$ajax_handler = new FormsCRM_Test_Fake_Ajax_Handler();
 
-		( new FormsCRM_Elementor_Action_After_Submit() )->run( $record, $ajax_handler );
+		( new \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit() )->run( $record, $ajax_handler );
 
 		$create_requests = $this->get_create_or_update_requests();
 
@@ -249,7 +249,7 @@ class ElementorClientifyTest extends WP_UnitTestCase {
 		);
 		$ajax_handler = new FormsCRM_Test_Fake_Ajax_Handler();
 
-		( new FormsCRM_Elementor_Action_After_Submit() )->run( $record, $ajax_handler );
+		( new \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit() )->run( $record, $ajax_handler );
 
 		$create_requests = $this->get_create_or_update_requests();
 
@@ -274,7 +274,7 @@ class ElementorClientifyTest extends WP_UnitTestCase {
 			)
 		);
 
-		( new FormsCRM_Elementor_Action_After_Submit() )->run( $record, new FormsCRM_Test_Fake_Ajax_Handler() );
+		( new \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit() )->run( $record, new FormsCRM_Test_Fake_Ajax_Handler() );
 
 		$create_requests = $this->get_create_or_update_requests();
 
@@ -297,7 +297,7 @@ class ElementorClientifyTest extends WP_UnitTestCase {
 			)
 		);
 
-		( new FormsCRM_Elementor_Action_After_Submit() )->run( $record, new FormsCRM_Test_Fake_Ajax_Handler() );
+		( new \CLOSE\FormsCRM\Integrations\Elementor\ActionAfterSubmit() )->run( $record, new FormsCRM_Test_Fake_Ajax_Handler() );
 
 		$create_requests = $this->get_create_or_update_requests();
 

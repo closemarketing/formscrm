@@ -54,10 +54,10 @@ function _manually_load_plugin() {
 	}
 	// Load form integration classes used in tests (normally loaded conditionally by loader.php).
 	require_once TESTS_PLUGIN_DIR . '/tests/stubs/stub-elementor.php';
-	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/elementor-ajax.php';
-	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-elementor.php';
-	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-contactform7.php';
 	require __DIR__ . '/../formscrm.php';
+	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/elementor-ajax.php';
+	// The integration classes are autoloaded; CF7 hooks its settings on construct.
+	new \CLOSE\FormsCRM\Integrations\ContactForm7\Settings();
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );

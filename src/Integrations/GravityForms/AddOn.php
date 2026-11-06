@@ -10,13 +10,21 @@
  * @version    1.0
  */
 
-GFForms::include_feed_addon_framework();
-global $formscrm_api;
+namespace CLOSE\FormsCRM\Integrations\GravityForms;
+
+defined( 'ABSPATH' ) || exit;
+
+use Exception;
+use GFCommon;
+use GFFeedAddOn;
+use GFFormsModel;
+use GPDFAPI;
+use RGFormsModel;
 
 /**
  * Class for Addon GravityForms
  */
-class GFCRM extends GFFeedAddOn {
+class AddOn extends GFFeedAddOn {
 	/**
 	 * Plugin version.
 	 *
@@ -46,7 +54,7 @@ class GFCRM extends GFFeedAddOn {
 	 *
 	 * @var string
 	 */
-	protected $_full_path = __FILE__;
+	protected $_full_path = FORMSCRM_PLUGIN;
 	/**
 	 * Plugin URL.
 	 *
@@ -111,7 +119,7 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Singleton instance.
 	 *
-	 * @var GFCRM
+	 * @var AddOn
 	 */
 	private static $_instance = null; // phpcs:ignore PSR2.Classes.PropertyDeclaration.Underscore
 
@@ -132,11 +140,11 @@ class GFCRM extends GFFeedAddOn {
 	/**
 	 * Get singleton instance.
 	 *
-	 * @return GFCRM
+	 * @return AddOn
 	 */
 	public static function get_instance() {
 		if ( null === self::$_instance ) {
-			self::$_instance = new GFCRM();
+			self::$_instance = new AddOn();
 		}
 
 		return self::$_instance;
@@ -1424,4 +1432,4 @@ class GFCRM extends GFFeedAddOn {
 
 		return $login_result;
 	}
-} //from main class
+}

@@ -34,6 +34,7 @@
 		<properties>
 			<property name="prefixes" type="array">
 				<element value="formscrm"/>
+				<element value="CLOSE\FormsCRM"/>
 				<element value="FormsCRM"/>
 				<element value="CRMLIB"/>
 				<element value="GFCRM"/>
@@ -63,6 +64,8 @@
 	<!-- Asset manifest files use dot notation (e.g. jfb-editor.asset.php) as required by @wordpress/scripts -->
 	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
 		<exclude-pattern>*.asset.php</exclude-pattern>
+		<!-- PSR-4 autoloaded classes: file name must match the class name. -->
+		<exclude-pattern>/src/*</exclude-pattern>
 	</rule>
 	
 	<!-- Allow underscore prefix in properties for framework compatibility -->

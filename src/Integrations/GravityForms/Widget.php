@@ -8,14 +8,18 @@
  * @version    1.0
  */
 
+namespace CLOSE\FormsCRM\Integrations\GravityForms;
+
 defined( 'ABSPATH' ) || exit;
+
+use Exception;
 
 /**
  * Widget.
  *
  * @since 3.14
  */
-class FormsCRM_GravityForms_Widget {
+class Widget {
 	/**
 	 * Construct of Class
 	 */
@@ -44,7 +48,7 @@ class FormsCRM_GravityForms_Widget {
 					set_time_limit( 60 );
 				}
 
-				$feeds = GFCRM::get_instance()->get_feeds( null, $form_id, 'formscrm', true );
+				$feeds = AddOn::get_instance()->get_feeds( null, $form_id, 'formscrm', true );
 
 				// Restore original time limit.
 				if ( function_exists( 'set_time_limit' ) && false === strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) ) {
@@ -139,7 +143,7 @@ class FormsCRM_GravityForms_Widget {
 
 					// Process feed if "all" is selected or if this specific feed is selected.
 					if ( $process_all || in_array( (string) $feed['id'], $selected_feeds, true ) ) {
-						GFCRM::get_instance()->process_feed( $feed, $entry, $form );
+						AddOn::get_instance()->process_feed( $feed, $entry, $form );
 						$html .= '<li>';
 						$html .= sprintf(
 							// translators: %s is the name of the feed.
@@ -239,4 +243,3 @@ class FormsCRM_GravityForms_Widget {
 		);
 	}
 }
-new FormsCRM_GravityForms_Widget();

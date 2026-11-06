@@ -79,7 +79,7 @@ echo "📁 FILE STRUCTURE TEST\n";
 echo str_repeat( '-', 70 ) . "\n";
 
 // Test 1: Brevo class file exists.
-$brevo_file = $base_path . '/includes/crm-library/class-crmlib-brevo.php';
+$brevo_file = $base_path . '/src/CRM/Brevo.php';
 run_test(
 	'Brevo Class File',
 	file_exists( $brevo_file ),

@@ -22,7 +22,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	/**
 	 * API connection for testing.
 	 *
-	 * @var CRMLIB_Clientify
+	 * @var \CLOSE\FormsCRM\CRM\Clientify
 	 */
 	protected $crm_clientify;
 

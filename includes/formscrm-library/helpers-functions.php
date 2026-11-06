@@ -26,7 +26,19 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 
 		formscrm_debug_message( 'Attempting to load CRM: ' . $crmname );
 
-		$array_path = formscrm_get_crmlib_path();
+		$array_path  = formscrm_get_crmlib_path();
+		$array_class = formscrm_get_crmlib_classes();
+
+		// Namespaced CRM classes are autoloaded by Composer. A file registered
+		// through formscrm_crmlib_path for the same slug still takes precedence.
+		if ( ! isset( $array_path[ $crmname ] ) && isset( $array_class[ $crmname ] ) && class_exists( $array_class[ $crmname ] ) ) {
+			$crmclassname = $array_class[ $crmname ];
+			formscrm_debug_message( 'Successfully created instance of: ' . $crmclassname );
+
+			return apply_filters( 'formscrm_get_api_class', new $crmclassname(), $crm_type );
+		}
+
+		// Legacy add-ons register the file that declares a global CRMLIB_* class.
 
 		// Log available CRM paths for debugging.
 		formscrm_debug_message( 'Available CRM paths: ' . wp_json_encode( array_keys( $array_path ) ) );
@@ -35,9 +47,6 @@ if ( ! function_exists( 'formscrm_get_api_class' ) ) {
 
 		if ( isset( $array_path[ $crmname ] ) ) {
 			$file_path = $array_path[ $crmname ];
-
-			// Include the abstract class before the CRM class that extends it.
-			require_once FORMSCRM_PLUGIN_PATH . 'includes/crm-library/class-crmlib-abstract.php';
 
 			// Verify file exists before including.
 			if ( file_exists( $file_path ) ) {
@@ -141,12 +150,12 @@ if ( ! function_exists( 'formscrm_merge_feed_meta_into_settings' ) ) {
 
 		$matched_feed = null;
 
-		if ( ! empty( $entry_id ) && class_exists( 'GFCRM' ) ) {
+		if ( ! empty( $entry_id ) && class_exists( 'GFFeedAddOn' ) ) {
 			$form  = GFAPI::get_form( $form_id );
 			$entry = GFAPI::get_entry( $entry_id );
 
 			if ( ! is_wp_error( $form ) && ! is_wp_error( $entry ) ) {
-				$addon = GFCRM::get_instance();
+				$addon = \CLOSE\FormsCRM\Integrations\GravityForms\AddOn::get_instance();
 
 				foreach ( $active_feeds as $feed ) {
 					if ( $addon->is_feed_condition_met( $feed, $form, $entry ) ) {

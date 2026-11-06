@@ -19,7 +19,7 @@ class Test_Brevo_Integration extends WP_UnitTestCase {
 	/**
 	 * Brevo CRM instance
 	 *
-	 * @var CRMLIB_Brevo
+	 * @var \CLOSE\FormsCRM\CRM\Brevo
 	 */
 	private $brevo;
 
@@ -29,9 +29,7 @@ class Test_Brevo_Integration extends WP_UnitTestCase {
 	public function setUp(): void {
 		parent::setUp();
 		
-		// Load the Brevo class.
-		require_once TESTS_PLUGIN_DIR . '/includes/crm-library/class-crmlib-brevo.php';
-		$this->brevo = new CRMLIB_Brevo();
+		$this->brevo = new \CLOSE\FormsCRM\CRM\Brevo();
 	}
 
 	/**

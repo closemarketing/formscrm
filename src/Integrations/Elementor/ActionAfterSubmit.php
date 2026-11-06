@@ -10,15 +10,14 @@
  * DOC: https://developers.elementor.com/docs/form-actions/
  */
 
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+namespace CLOSE\FormsCRM\Integrations\Elementor;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Action Class
  */
-class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\Action_Base {
+class ActionAfterSubmit extends \ElementorPro\Modules\Forms\Classes\Action_Base {
 	/**
 	 * CRM Library Object
 	 *

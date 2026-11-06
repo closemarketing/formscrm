@@ -8,9 +8,9 @@
  */
 
 /**
- * Holded (API v2) integration tests for the base CRMLIB_HOLDED class.
+ * Holded (API v2) integration tests for the base \CLOSE\FormsCRM\CRM\Holded class.
  *
- * CRMLIB_HOLDED supports both v1 and v2 through a single class, detecting the
+ * \CLOSE\FormsCRM\CRM\Holded supports both v1 and v2 through a single class, detecting the
  * API version from the key's shape: keys prefixed with `pat_` use v2 (Bearer
  * auth, snake_case fields, cursor pagination); anything else uses v1 (key
  * header, camelCase fields, page-based pagination). See test-holded.php for
@@ -28,7 +28,7 @@ class HoldedV2Tests extends WP_UnitTestCase {
 	/**
 	 * API connection for testing.
 	 *
-	 * @var CRMLIB_HOLDED
+	 * @var \CLOSE\FormsCRM\CRM\Holded
 	 */
 	protected $crm_holded;
 

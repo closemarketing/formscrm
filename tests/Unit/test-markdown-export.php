@@ -15,7 +15,7 @@ class MarkdownExportTest extends WP_UnitTestCase {
 	/**
 	 * Markdown export instance.
 	 *
-	 * @var FormsCRM_GravityForms_Markdown_Export
+	 * @var \CLOSE\FormsCRM\Integrations\GravityForms\MarkdownExport
 	 */
 	private $markdown_export;
 
@@ -25,11 +25,8 @@ class MarkdownExportTest extends WP_UnitTestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		// Load required files.
-		require_once FORMSCRM_PLUGIN_PATH . 'includes/formscrm-library/class-gravityforms-markdown-export.php';
-
 		// Create instance using reflection to access private methods.
-		$this->markdown_export = new FormsCRM_GravityForms_Markdown_Export();
+		$this->markdown_export = new \CLOSE\FormsCRM\Integrations\GravityForms\MarkdownExport();
 	}
 
 	/**

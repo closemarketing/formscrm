@@ -22,7 +22,7 @@ class HoldedTests extends WP_UnitTestCase {
 	/**
 	 * API connection for testing.
 	 *
-	 * @var CRMLIB_HOLDED
+	 * @var \CLOSE\FormsCRM\CRM\Holded
 	 */
 	protected $crm_holded;
 
