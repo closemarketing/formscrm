@@ -92,6 +92,17 @@ class GravityFormsFeedCredentialsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Whitespace-only or non-scalar feed meta keeps the inherited credential.
+	 */
+	public function test_whitespace_feed_meta_keeps_inherited_credential() {
+		$whitespace = formscrm_merge_custom_crm_credentials( $this->settings, array(), array( 'fc_crm_custom_apipassword' => '  ' ) );
+		$non_scalar = formscrm_merge_custom_crm_credentials( $this->settings, array(), array( 'fc_crm_custom_apipassword' => array( 'x' ) ) );
+
+		$this->assertSame( 'global-key', $whitespace['fc_crm_apipassword'] );
+		$this->assertSame( 'global-key', $non_scalar['fc_crm_apipassword'] );
+	}
+
+	/**
 	 * Falls back to the "fc_crm_custom_*" plugin setting and removes it.
 	 */
 	public function test_falls_back_to_custom_plugin_setting() {
@@ -131,10 +142,23 @@ class GravityFormsFeedCredentialsTest extends WP_UnitTestCase {
 			array(
 				'name'  => '1',
 				'email' => '2',
-				'phone' => '',
 			),
 			formscrm_gf_get_nested_field_map( $meta, 'listFields' )
 		);
+	}
+
+	/**
+	 * A map with only unmapped rows is empty, so the adminLabel fallback runs.
+	 */
+	public function test_nested_field_map_with_only_blank_rows_is_empty() {
+		$meta = array(
+			'listFields' => array(
+				array( 'key' => 'name', 'value' => '' ),
+				array( 'key' => 'email', 'value' => '' ),
+			),
+		);
+
+		$this->assertSame( array(), formscrm_gf_get_nested_field_map( $meta, 'listFields' ) );
 	}
 
 	/**

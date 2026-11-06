@@ -1002,7 +1002,7 @@ if ( ! function_exists( 'formscrm_merge_custom_crm_credentials' ) ) {
 	 * Merges the per-feed custom CRM credentials into the plugin settings.
 	 *
 	 * Order of precedence: posted feed setting, saved feed meta, then the
-	 * "fc_crm_custom_*" plugin setting. Empty values are skipped so a blank
+	 * "fc_crm_custom_*" plugin setting. Empty or whitespace-only values are skipped so a blank
 	 * field (e.g. a password input that is never pre-filled) does not wipe the
 	 * credential the feed inherits. Otherwise the CRM login fails while saving
 	 * the feed and Gravity Forms stores the field map in an unusable format.
@@ -1021,7 +1021,7 @@ if ( ! function_exists( 'formscrm_merge_custom_crm_credentials' ) ) {
 
 			if ( isset( $posted[ $posted_key ] ) && is_scalar( $posted[ $posted_key ] ) && '' !== trim( (string) $posted[ $posted_key ] ) ) {
 				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( (string) $posted[ $posted_key ] );
-			} elseif ( isset( $feed_meta[ $custom_key ] ) && '' !== $feed_meta[ $custom_key ] ) {
+			} elseif ( isset( $feed_meta[ $custom_key ] ) && is_scalar( $feed_meta[ $custom_key ] ) && '' !== trim( (string) $feed_meta[ $custom_key ] ) ) {
 				$settings[ 'fc_crm_' . $variable ] = $feed_meta[ $custom_key ];
 			} elseif ( isset( $settings[ $custom_key ] ) ) {
 				$settings[ 'fc_crm_' . $variable ] = $settings[ $custom_key ];
@@ -1043,7 +1043,7 @@ if ( ! function_exists( 'formscrm_gf_get_nested_field_map' ) ) {
 	 *
 	 * @param array  $feed_meta Feed meta.
 	 * @param string $name      Field map setting name.
-	 * @return array CRM field key => form field ID.
+	 * @return array CRM field key => form field ID, mapped rows only.
 	 */
 	function formscrm_gf_get_nested_field_map( $feed_meta, $name ) {
 		$field_map = array();
@@ -1053,7 +1053,8 @@ if ( ! function_exists( 'formscrm_gf_get_nested_field_map' ) ) {
 		}
 
 		foreach ( $feed_meta[ $name ] as $mapping ) {
-			if ( ! is_array( $mapping ) || empty( $mapping['key'] ) || ! isset( $mapping['value'] ) || ! is_scalar( $mapping['value'] ) ) {
+			// Skip unmapped rows so an all-blank map still triggers the adminLabel fallback.
+			if ( ! is_array( $mapping ) || empty( $mapping['key'] ) || ! isset( $mapping['value'] ) || ! is_scalar( $mapping['value'] ) || '' === (string) $mapping['value'] ) {
 				continue;
 			}
 
