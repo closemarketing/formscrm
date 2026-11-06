@@ -1072,6 +1072,44 @@ if ( ! function_exists( 'formscrm_gf_get_nested_field_map' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_gf_flatten_nested_field_map' ) ) {
+	/**
+	 * Converts a nested field map into Gravity Forms' "{name}_{key}" settings.
+	 *
+	 * When the CRM login fails while saving a feed, the field map is not
+	 * registered and Gravity Forms keeps the raw list of
+	 * array( 'key' => ..., 'value' => ... ) mappings under "{name}". This
+	 * rewrites it in the format a registered field map is saved in, so the
+	 * mapping survives any login failure. Existing "{name}_{key}" values win.
+	 *
+	 * @param array  $settings Feed settings about to be saved.
+	 * @param string $name     Field map setting name.
+	 * @return array Settings with the nested map replaced by "{name}_{key}" entries.
+	 */
+	function formscrm_gf_flatten_nested_field_map( $settings, $name ) {
+		if ( ! is_array( $settings ) || empty( $settings[ $name ] ) || ! is_array( $settings[ $name ] ) ) {
+			return $settings;
+		}
+
+		foreach ( $settings[ $name ] as $mapping ) {
+			if ( ! is_array( $mapping ) || empty( $mapping['key'] ) || ! is_scalar( $mapping['key'] ) ) {
+				continue;
+			}
+
+			$setting_key = $name . '_' . $mapping['key'];
+			if ( isset( $settings[ $setting_key ] ) ) {
+				continue;
+			}
+
+			$settings[ $setting_key ] = isset( $mapping['value'] ) && is_scalar( $mapping['value'] ) ? (string) $mapping['value'] : '';
+		}
+
+		unset( $settings[ $name ] );
+
+		return $settings;
+	}
+}
+
 if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	/**
 	 * Returns the label text for a GravityForms choice matching the given value.

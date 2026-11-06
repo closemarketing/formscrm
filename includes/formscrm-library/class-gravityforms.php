@@ -736,6 +736,24 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Saves the feed settings.
+	 *
+	 * If the CRM login fails while saving, the field map is not registered and
+	 * Gravity Forms would store it as a raw nested array that the feed can't read
+	 * later. It is stored as "listFields_{key}" instead, whatever the login result.
+	 *
+	 * @param int   $feed_id  Feed ID, 0 for a new feed.
+	 * @param int   $form_id  Form ID.
+	 * @param array $settings Feed settings.
+	 * @return int|false Feed ID or false on failure.
+	 */
+	public function save_feed_settings( $feed_id, $form_id, $settings ) {
+		$settings = formscrm_gf_flatten_nested_field_map( $settings, 'listFields' );
+
+		return parent::save_feed_settings( $feed_id, $form_id, $settings );
+	}
+
+	/**
 	 * Get Settings with custom CRM in feed
 	 *
 	 * @param array $feed Feed settings array.

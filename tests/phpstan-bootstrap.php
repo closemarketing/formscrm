@@ -392,6 +392,16 @@ class GFAddOn {
  */
 class GFFeedAddOn extends GFAddOn {
 	/**
+	 * Save feed settings
+	 *
+	 * @param int   $feed_id  Feed ID.
+	 * @param int   $form_id  Form ID.
+	 * @param array $settings Settings.
+	 * @return int|false
+	 */
+	public function save_feed_settings( $feed_id, $form_id, $settings ) {}
+
+	/**
 	 * Init admin
 	 *
 	 * @return void

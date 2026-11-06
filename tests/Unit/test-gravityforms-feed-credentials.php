@@ -206,4 +206,67 @@ class GravityFormsFeedCredentialsTest extends WP_UnitTestCase {
 		$this->assertSame( array(), formscrm_gf_get_nested_field_map( array( 'listFields' => '1' ), 'listFields' ) );
 		$this->assertSame( array(), formscrm_gf_get_nested_field_map( false, 'listFields' ) );
 	}
+
+	/**
+	 * A nested field map is rewritten as "{name}_{key}" settings.
+	 */
+	public function test_flatten_nested_field_map() {
+		$settings = array(
+			'feedName'   => 'Feed',
+			'listFields' => array(
+				array( 'key' => 'name', 'custom_key' => '', 'value' => '1', 'custom_value' => '' ),
+				array( 'key' => 'email', 'custom_key' => '', 'value' => '2', 'custom_value' => '' ),
+				array( 'key' => 'phone', 'custom_key' => '', 'value' => '', 'custom_value' => '' ),
+			),
+		);
+
+		$this->assertSame(
+			array(
+				'feedName'         => 'Feed',
+				'listFields_name'  => '1',
+				'listFields_email' => '2',
+				'listFields_phone' => '',
+			),
+			formscrm_gf_flatten_nested_field_map( $settings, 'listFields' )
+		);
+	}
+
+	/**
+	 * Settings already saved in the "{name}_{key}" format are left untouched.
+	 */
+	public function test_flatten_nested_field_map_keeps_registered_values() {
+		$settings = array( 'listFields_name' => '1' );
+		$this->assertSame( $settings, formscrm_gf_flatten_nested_field_map( $settings, 'listFields' ) );
+
+		$settings = array(
+			'listFields_name' => '5',
+			'listFields'      => array( array( 'key' => 'name', 'value' => '1' ) ),
+		);
+		$this->assertSame( array( 'listFields_name' => '5' ), formscrm_gf_flatten_nested_field_map( $settings, 'listFields' ) );
+	}
+
+	/**
+	 * Invalid mappings are skipped and non-array settings are returned as they are.
+	 */
+	public function test_flatten_nested_field_map_ignores_invalid_data() {
+		$settings = array(
+			'listFields' => array(
+				'not-an-array',
+				array( 'value' => '1' ),
+				array( 'key' => array( 'x' ), 'value' => '1' ),
+				array( 'key' => 'name', 'value' => array( '1' ) ),
+				array( 'key' => 'email', 'value' => 2 ),
+			),
+		);
+
+		$this->assertSame(
+			array(
+				'listFields_name'  => '',
+				'listFields_email' => '2',
+			),
+			formscrm_gf_flatten_nested_field_map( $settings, 'listFields' )
+		);
+		$this->assertSame( false, formscrm_gf_flatten_nested_field_map( false, 'listFields' ) );
+		$this->assertSame( array( 'listFields' => '1' ), formscrm_gf_flatten_nested_field_map( array( 'listFields' => '1' ), 'listFields' ) );
+	}
 }
