@@ -127,7 +127,7 @@ jQuery(document).ready(function($) {
 			let mappingName = fieldName.replace( 'fc_crm_custom-', 'fc_crm_field-' );
 			let fieldValue = $(this).val();
 
-			if ( fieldValue && 'formscrm_custom' === settings[mappingName] ) settings[fieldName] = fieldValue;
+			if ( fieldValue && '@formscrm_custom' === settings[mappingName] ) settings[fieldName] = fieldValue;
 		});
 
 		let settingsModel = elementor.getPanelView().getCurrentPageView().model;

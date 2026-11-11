@@ -237,7 +237,7 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 							?>
 						</select>
 						<?php
-						$saved_custom_val = ! empty( $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] ) ? (string) $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] : '';
+						$saved_custom_val = isset( $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] ) && is_scalar( $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] ) ? (string) $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] : '';
 						echo formscrm_custom_value_input_html( 'fc_crm_custom-' . $crm_field_name, $saved_custom_val, $saved_field_val ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
 						?>
 					</td>

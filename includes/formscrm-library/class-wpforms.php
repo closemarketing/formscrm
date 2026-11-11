@@ -135,7 +135,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 				// Fixed value typed in the builder for this CRM field.
 				if ( FORMSCRM_CUSTOM_VALUE === $conn_field ) {
-					$custom_value = isset( $connection['custom_values'][ $conn_field_name ] ) ? (string) $connection['custom_values'][ $conn_field_name ] : '';
+					$custom_value = isset( $connection['custom_values'][ $conn_field_name ] ) ? sanitize_text_field( (string) $connection['custom_values'][ $conn_field_name ] ) : '';
 					$merge_vars[] = array(
 						'name'  => $conn_field_name,
 						'value' => $this->fill_dynamic_value( $custom_value, $fields ),

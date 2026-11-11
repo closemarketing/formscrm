@@ -29,7 +29,7 @@ const { useFields } = window.jfb.blocksToActions;
 const { restUrl, nonce, choices: crmChoices, virtualFields: extraFields = [] } = window.formsCrmJfb || {};
 
 // Mapping value meaning "send the fixed text typed below the select".
-const CUSTOM_VALUE = 'formscrm_custom';
+const CUSTOM_VALUE = '@formscrm_custom';
 
 /**
  * Map the raw formscrm_get_choices() array into WP SelectControl options.
@@ -80,7 +80,7 @@ function CredentialFields( { settings, onChangeSettingObj } ) {
 			el( StyledSelectControl, {
 				value: type,
 				options: crmTypeOptions,
-				onChange: ( v ) => onChangeSettingObj( { fc_crm_type: v, fc_crm_module: '', fields_map: {} } ),
+				onChange: ( v ) => onChangeSettingObj( { fc_crm_type: v, fc_crm_module: '', fields_map: {}, custom_values: {} } ),
 			} )
 		),
 
@@ -203,7 +203,7 @@ function ModuleSelector( { settings, onChangeSettingObj } ) {
 				: el( StyledSelectControl, {
 					value: module,
 					options,
-					onChange: ( v ) => onChangeSettingObj( { fc_crm_module: v, fields_map: {} } ),
+					onChange: ( v ) => onChangeSettingObj( { fc_crm_module: v, fields_map: {}, custom_values: {} } ),
 				} )
 	);
 }

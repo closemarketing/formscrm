@@ -18,7 +18,7 @@ class CustomValueHelpersTest extends WP_UnitTestCase {
 	 * Option is marked selected only for the custom value.
 	 */
 	public function test_option_html_selected_state() {
-		$this->assertStringContainsString( 'value="formscrm_custom" selected="selected"', formscrm_custom_value_option_html( 'formscrm_custom' ) );
+		$this->assertStringContainsString( 'value="@formscrm_custom" selected="selected"', formscrm_custom_value_option_html( FORMSCRM_CUSTOM_VALUE ) );
 		$this->assertStringNotContainsString( 'selected', formscrm_custom_value_option_html( '3' ) );
 	}
 
@@ -26,7 +26,7 @@ class CustomValueHelpersTest extends WP_UnitTestCase {
 	 * Input is hidden unless the custom value is selected, and escapes its value.
 	 */
 	public function test_input_html_visibility_and_escaping() {
-		$visible = formscrm_custom_value_input_html( 'map[x]', 'A "quoted" <b>value</b>', 'formscrm_custom' );
+		$visible = formscrm_custom_value_input_html( 'map[x]', 'A "quoted" <b>value</b>', FORMSCRM_CUSTOM_VALUE );
 		$hidden  = formscrm_custom_value_input_html( 'map[x]', '', '' );
 
 		$this->assertStringNotContainsString( 'display:none', $visible );

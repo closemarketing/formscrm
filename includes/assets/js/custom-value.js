@@ -19,7 +19,7 @@
 			return;
 		}
 
-		var isCustom = 'formscrm_custom' === select.value;
+		var isCustom = '@formscrm_custom' === select.value;
 
 		input.style.display = isCustom ? '' : 'none';
 

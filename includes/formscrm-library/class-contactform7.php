@@ -302,7 +302,16 @@ class FORMSCRM_CF7_Settings {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput -- Nonce verification and sanitization handled by Contact Form 7.
 		if ( isset( $_POST['wpcf7-crm'] ) && is_array( $_POST['wpcf7-crm'] ) ) {
 			$crm_data = array_map( 'sanitize_text_field', wp_unslash( $_POST['wpcf7-crm'] ) );
-			update_option( 'cf7_crm_' . $args->id(), array_filter( $crm_data ) );
+			// Keep a fixed value of "0"; only drop empty strings.
+			update_option(
+				'cf7_crm_' . $args->id(),
+				array_filter(
+					$crm_data,
+					function ( $item ) {
+						return '' !== $item;
+					}
+				)
+			);
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput
 	}

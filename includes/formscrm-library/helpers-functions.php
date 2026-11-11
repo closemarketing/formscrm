@@ -1143,7 +1143,7 @@ if ( ! function_exists( 'formscrm_gf_get_custom_value_template' ) ) {
 	function formscrm_gf_get_custom_value_template( $feed, $key, $field_name = 'listFields' ) {
 		$meta_key = formscrm_gf_custom_value_meta_key( $field_name, $key );
 
-		if ( ! is_array( $feed ) || empty( $feed['meta'][ $meta_key ] ) || ! is_scalar( $feed['meta'][ $meta_key ] ) ) {
+		if ( ! is_array( $feed ) || ! isset( $feed['meta'][ $meta_key ] ) || ! is_scalar( $feed['meta'][ $meta_key ] ) ) {
 			return '';
 		}
 

@@ -31,7 +31,7 @@ define( 'FORMSCRM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 // Values which can be overridden per Gravity Forms feed. Keep gateway-specific
 // credentials here as well as the generic CRM credentials so a custom feed
 // does not silently fall back to the site-wide settings.
-define( 'FORMSCRM_CUSTOM_VALUE', 'formscrm_custom' );
+define( 'FORMSCRM_CUSTOM_VALUE', '@formscrm_custom' );
 define( 'FORMSCRM_CRED_VARIABLES', array( 'url', 'username', 'password', 'apipassword', 'odoodb', 'apisales', 'fuc', 'terminal', 'sha_secret', 'redsys_mode' ) );
 
 add_filter(

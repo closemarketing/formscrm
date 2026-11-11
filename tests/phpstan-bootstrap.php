@@ -33,7 +33,7 @@ if ( ! defined( 'FORMSCRM_CRED_VARIABLES' ) ) {
 }
 
 if ( ! defined( 'FORMSCRM_CUSTOM_VALUE' ) ) {
-	define( 'FORMSCRM_CUSTOM_VALUE', 'formscrm_custom' );
+	define( 'FORMSCRM_CUSTOM_VALUE', '@formscrm_custom' );
 }
 
 // Define WordPress constants that might be missing.

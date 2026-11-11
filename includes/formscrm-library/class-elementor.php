@@ -201,7 +201,7 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 					},
 					$raw_fields
 				);
-				$field_value = formscrm_replace_id_placeholders( (string) ( $formscrm_settings[ 'fc_crm_custom-' . $field_crm ] ?? '' ), $submitted );
+				$field_value = formscrm_replace_id_placeholders( sanitize_text_field( (string) ( $formscrm_settings[ 'fc_crm_custom-' . $field_crm ] ?? '' ) ), $submitted );
 			} else {
 				$field_value = $raw_fields[ $field_form ]['value'] ?? '';
 			}

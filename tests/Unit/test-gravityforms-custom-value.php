@@ -106,4 +106,13 @@ class GravityFormsCustomValueTest extends WP_UnitTestCase {
 
 		$this->assertSame( '42', formscrm_gf_get_custom_value_template( $feed, 'owner_id' ) );
 	}
+
+	/**
+	 * A fixed value of "0" is kept, not treated as empty.
+	 */
+	public function test_keeps_zero_value() {
+		$feed = $this->get_feed( array( 'listFieldsCustom_priority' => '0' ) );
+
+		$this->assertSame( '0', formscrm_gf_get_custom_value_template( $feed, 'priority' ) );
+	}
 }
