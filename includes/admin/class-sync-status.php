@@ -304,6 +304,35 @@ if ( ! class_exists( 'FormsCRM_Sync_Status' ) ) {
 		}
 
 		/**
+		 * Deletes the stored results of a form (form deleted).
+		 *
+		 * @param string $form_type Form type slug.
+		 * @param int    $form_id   Form ID.
+		 * @return void
+		 */
+		public static function delete_for_form( $form_type, $form_id ) {
+			global $wpdb;
+			$wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				self::table_name(),
+				array(
+					'form_type' => self::normalize_form_type( $form_type ),
+					'form_id'   => (int) $form_id,
+				)
+			);
+		}
+
+		/**
+		 * Drops the table and its version option (plugin uninstall).
+		 *
+		 * @return void
+		 */
+		public static function uninstall() {
+			global $wpdb;
+			$wpdb->query( 'DROP TABLE IF EXISTS ' . self::table_name() ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			delete_option( self::DB_VERSION_OPTION );
+		}
+
+		/**
 		 * Deletes the stored results of an entry (entry deleted).
 		 *
 		 * @param string $form_type Form type slug.

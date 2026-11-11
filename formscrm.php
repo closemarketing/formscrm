@@ -95,6 +95,9 @@ add_filter(
 
 // Include files.
 require_once FORMSCRM_PLUGIN_PATH . '/includes/formscrm-library/loader.php';
+
+// Remove the sync status table when the plugin is deleted.
+register_uninstall_hook( __FILE__, array( 'FormsCRM_Sync_Status', 'uninstall' ) );
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-admin-options.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log.php';
 require_once FORMSCRM_PLUGIN_PATH . '/includes/admin/class-error-log-page.php';

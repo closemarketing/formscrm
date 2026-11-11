@@ -396,4 +396,49 @@ class SyncStatusTest extends WP_UnitTestCase {
 		$this->assertFalse( FormsCRM_GravityForms_Entry_Columns::is_enabled() );
 		remove_filter( 'formscrm_entry_list_columns_enabled', '__return_false' );
 	}
+
+	/**
+	 * Deleting a form removes only its stored results.
+	 */
+	public function test_delete_for_form() {
+		FormsCRM_Sync_Status::record( 'gravityforms', 5, 100, 'clientify', array( 'status' => 'success' ) );
+		FormsCRM_Sync_Status::record( 'gravityforms', 5, 101, 'clientify', array( 'status' => 'error' ) );
+		FormsCRM_Sync_Status::record( 'gravityforms', 6, 200, 'clientify', array( 'status' => 'success' ) );
+
+		FormsCRM_Sync_Status::delete_for_form( 'gravityforms', 5 );
+
+		$this->assertEmpty( FormsCRM_Sync_Status::get_for_entry( 'gravityforms', 100 ) );
+		$this->assertEmpty( FormsCRM_Sync_Status::get_for_entry( 'gravityforms', 101 ) );
+		$this->assertNotEmpty( FormsCRM_Sync_Status::get_for_entry( 'gravityforms', 200 ) );
+	}
+
+	/**
+	 * The CRM columns are removed from the export fields, the rest are kept.
+	 */
+	public function test_remove_export_fields() {
+		$columns = new FormsCRM_GravityForms_Entry_Columns();
+		$form    = array(
+			'fields' => array(
+				array( 'id' => 'id' ),
+				array( 'id' => FormsCRM_GravityForms_Entry_Columns::column_key( 'clientify', 'status' ) ),
+				array( 'id' => FormsCRM_GravityForms_Entry_Columns::column_key( 'clientify', 'id' ) ),
+				array( 'id' => '1' ),
+			),
+		);
+
+		$result = $columns->remove_export_fields( $form );
+
+		$this->assertSame( array( 'id', '1' ), array_column( $result['fields'], 'id' ) );
+	}
+
+	/**
+	 * Uninstall removes the version option (the table drop is DDL, checked manually).
+	 */
+	public function test_uninstall_drops_table() {
+		FormsCRM_Sync_Status::uninstall();
+
+		$this->assertFalse( get_option( FormsCRM_Sync_Status::DB_VERSION_OPTION ) );
+
+		FormsCRM_Sync_Status::maybe_create_table();
+	}
 }

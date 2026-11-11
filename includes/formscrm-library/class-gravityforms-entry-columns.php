@@ -32,6 +32,14 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 		const COLUMN_PREFIX = 'formscrm_';
 
 		/**
+		 * Entry meta key set once the history of an entry has been checked, so the
+		 * backfill does not run again on every list load.
+		 *
+		 * @var string
+		 */
+		const BACKFILL_META_KEY = 'formscrm_sync_backfilled';
+
+		/**
 		 * Per-request cache of entry results.
 		 *
 		 * @var array
@@ -44,12 +52,14 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 		public function __construct() {
 			// Keep the store clean even when the columns are disabled.
 			add_action( 'gform_delete_entry', array( $this, 'delete_entry_status' ), 10, 1 );
+			add_action( 'gform_after_delete_form', array( $this, 'delete_form_status' ), 10, 1 );
 
 			if ( ! self::is_enabled() ) {
 				return;
 			}
 
 			add_filter( 'gform_entry_meta', array( $this, 'register_entry_meta' ), 20, 2 );
+			add_filter( 'gform_export_fields', array( $this, 'remove_export_fields' ), 20, 1 );
 			add_filter( 'gform_entries_field_value', array( $this, 'column_value' ), 20, 4 );
 		}
 
@@ -234,6 +244,10 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 				return array();
 			}
 
+			if ( gform_get_meta( $entry_id, self::BACKFILL_META_KEY ) ) {
+				return array();
+			}
+
 			$contact_ids = array();
 			foreach ( array_keys( $crm_types ) as $slug ) {
 				$contact_ids[ $slug ] = gform_get_meta( $entry_id, $slug );
@@ -244,7 +258,13 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 				formscrm_record_sync_status( 'gravityforms', $form_id, $entry_id, $slug, $data );
 			}
 
-			return empty( $results ) ? array() : FormsCRM_Sync_Status::get_for_entry( 'gravityforms', $entry_id );
+			if ( empty( $results ) ) {
+				// Nothing to rebuild: remember it so it is not checked again.
+				gform_update_meta( $entry_id, self::BACKFILL_META_KEY, 1 );
+				return array();
+			}
+
+			return FormsCRM_Sync_Status::get_for_entry( 'gravityforms', $entry_id );
 		}
 
 		/**
@@ -293,6 +313,42 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 				esc_attr( $title ),
 				esc_html( $row->contact_id )
 			);
+		}
+
+		/**
+		 * Removes the CRM columns from the entries export.
+		 *
+		 * The columns are registered as entry meta so they can be picked in the
+		 * column selector, but they hold no stored values, so an export would
+		 * only contain empty columns.
+		 *
+		 * @param array $form Form with the fields to export.
+		 * @return array
+		 */
+		public function remove_export_fields( $form ) {
+			if ( empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
+				return $form;
+			}
+
+			foreach ( $form['fields'] as $index => $field ) {
+				$id = is_object( $field ) ? ( $field->id ?? '' ) : ( is_array( $field ) ? ( $field['id'] ?? '' ) : '' );
+				if ( is_string( $id ) && null !== self::parse_column_key( $id ) ) {
+					unset( $form['fields'][ $index ] );
+				}
+			}
+			$form['fields'] = array_values( $form['fields'] );
+
+			return $form;
+		}
+
+		/**
+		 * Removes the stored results when a whole form is deleted.
+		 *
+		 * @param int $form_id Form ID.
+		 * @return void
+		 */
+		public function delete_form_status( $form_id ) {
+			FormsCRM_Sync_Status::delete_for_form( 'gravityforms', (int) $form_id );
 		}
 
 		/**
