@@ -716,7 +716,7 @@ class GFCRM extends GFFeedAddOn {
 				'label'      => __( 'Map Fields', 'formscrm' ),
 				'type'       => 'field_map',
 				'dependency' => 'fc_crm_module',
-				'field_map'  => $this->sanitize_field_map( $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ) ),
+				'field_map'  => formscrm_sanitize_field_map( $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ) ),
 				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
 			);
 
@@ -733,26 +733,6 @@ class GFCRM extends GFFeedAddOn {
 			);
 
 			return $crm_feed_fields;
-	}
-
-	/**
-	 * Ensures the field map is a list of field definitions.
-	 *
-	 * CRM libraries may return an error payload (status/data/message) instead of
-	 * fields, which makes Gravity Forms' Field_Map fatal.
-	 *
-	 * @param mixed $field_map Field map returned by the CRM library.
-	 * @return array
-	 */
-	private function sanitize_field_map( $field_map ) {
-		if ( ! is_array( $field_map ) ) {
-			return array();
-		}
-		if ( isset( $field_map['status'] ) && 'error' === $field_map['status'] ) {
-			formscrm_debug_message( 'CRM list_fields error: ' . wp_json_encode( $field_map ) );
-			return array();
-		}
-		return array_values( array_filter( $field_map, 'is_array' ) );
 	}
 
 	/**
