@@ -61,14 +61,25 @@ class GravityFormsFieldMapTest extends WP_UnitTestCase {
 	/**
 	 * Reproduces the production fatal: the raw error payload breaks Field_Map.
 	 *
+	 * PHP 8+ throws a TypeError; PHP 7.4 raises an "Illegal string offset"
+	 * warning, which PHPUnit converts to an exception.
+	 *
 	 * Guards the replica above: if this stops throwing, the replica no longer
 	 * matches Gravity Forms and the remaining tests prove nothing.
 	 */
 	public function test_raw_error_payload_reproduces_gravity_forms_fatal() {
-		$this->expectException( TypeError::class );
-		$this->expectExceptionMessage( 'Cannot access offset of type string on string' );
+		$error = null;
+		try {
+			$this->gf_field_map_prepare_choices( array( 'field_map' => $this->odoo_error_payload() ) );
+		} catch ( \Throwable $e ) {
+			$error = $e;
+		}
 
-		$this->gf_field_map_prepare_choices( array( 'field_map' => $this->odoo_error_payload() ) );
+		$this->assertNotNull( $error, 'The raw error payload should break the Gravity Forms field map.' );
+		$this->assertMatchesRegularExpression(
+			'/Cannot access offset of type string on string|Illegal string offset/',
+			$error->getMessage()
+		);
 	}
 
 	/**
