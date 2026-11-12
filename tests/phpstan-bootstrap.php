@@ -32,6 +32,10 @@ if ( ! defined( 'FORMSCRM_CRED_VARIABLES' ) ) {
 	define( 'FORMSCRM_CRED_VARIABLES', array( 'url', 'username', 'password', 'apipassword', 'odoodb', 'apisales', 'fuc', 'terminal', 'sha_secret', 'redsys_mode' ) );
 }
 
+if ( ! defined( 'FORMSCRM_CUSTOM_VALUE' ) ) {
+	define( 'FORMSCRM_CUSTOM_VALUE', '@formscrm_custom' );
+}
+
 // Define WordPress constants that might be missing.
 if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', '/path/to/wordpress/' );
@@ -275,6 +279,28 @@ class GFCommon {
 	 * @return string
 	 */
 	public static function format_number( $number, $format = '' ) {}
+
+	/**
+	 * Decode JSON when the value is a JSON string.
+	 *
+	 * @param mixed $value Value to decode.
+	 * @return mixed
+	 */
+	public static function maybe_decode_json( $value ) {}
+
+	/**
+	 * Replace merge tags.
+	 *
+	 * @param string $text       Text with merge tags.
+	 * @param array  $form       Form data.
+	 * @param array  $lead       Entry data.
+	 * @param bool   $url_encode URL encode values.
+	 * @param bool   $esc_html   Escape HTML.
+	 * @param bool   $nl2br      Convert new lines.
+	 * @param string $format     Output format.
+	 * @return string
+	 */
+	public static function replace_variables( $text, $form, $lead, $url_encode = false, $esc_html = true, $nl2br = true, $format = 'html' ) {}
 
 	/**
 	 * Get product fields

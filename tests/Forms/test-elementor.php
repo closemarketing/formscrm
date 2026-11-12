@@ -147,4 +147,50 @@ class ElementorFormsTest extends WP_UnitTestCase {
 			$merge_vars
 		);
 	}
+
+	/**
+	 * A mapping set to "Custom value" sends the fixed text and skips the custom key itself.
+	 */
+	public function test_get_merge_vars_custom_value() {
+		$formscrm_settings = array(
+			'fc_crm_field-source'  => FORMSCRM_CUSTOM_VALUE,
+			'fc_crm_custom-source' => 'Landing {id:name}',
+			'fc_crm_field-email'   => 'email',
+		);
+		$raw_fields        = array(
+			'name'  => array( 'value' => 'Ana' ),
+			'email' => array( 'value' => 'ana@example.com' ),
+		);
+
+		$merge_vars = FormsCRM_Elementor_Action_After_Submit::get_merge_vars( $formscrm_settings, $raw_fields );
+
+		$this->assertSame(
+			array(
+				array(
+					'name'  => 'source',
+					'value' => 'Landing Ana',
+				),
+				array(
+					'name'  => 'email',
+					'value' => 'ana@example.com',
+				),
+			),
+			$merge_vars
+		);
+	}
+
+	/**
+	 * A fixed value of "0" is sent, not dropped.
+	 */
+	public function test_get_merge_vars_custom_value_zero() {
+		$merge_vars = FormsCRM_Elementor_Action_After_Submit::get_merge_vars(
+			array(
+				'fc_crm_field-priority'  => FORMSCRM_CUSTOM_VALUE,
+				'fc_crm_custom-priority' => '0',
+			),
+			array()
+		);
+
+		$this->assertSame( '0', $merge_vars[0]['value'] );
+	}
 }
