@@ -1268,9 +1268,11 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 
 		$search_result = $this->request( $endpoint, $search_params, $apikey, 'GET', $this->api_version );
 		$entry_id      = null;
+		$candidates    = array();
 
 		if ( 'ok' === $search_result['status'] && ! empty( $search_result['data']['results'] ) ) {
-			$results = $search_result['data']['results'];
+			$results    = $search_result['data']['results'];
+			$candidates = $results;
 
 			// The v2 API never returns taxpayer_identification_number (it is not in its
 			// allowed fields), so the exact match below would never find anything and the
@@ -1301,11 +1303,63 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		}
 
 		// No (exact) match found: create.
+		$contact_to_update = $this->contact;
 		$this->apply_create_only_defaults();
 		$result             = $this->request( $endpoint, $this->contact, $apikey, 'POST', $this->api_version );
 		$result['action']   = 'created';
 		$result['strategy'] = $search_field . ': ' . $search_value;
+
+		// Clientify answers 409 when the contact already exists (same tax number or
+		// email) even though the exact match above found nothing, e.g. because the
+		// search field can't be read back from the API. Update that contact instead
+		// of leaving the submission in the error log.
+		if ( 'error' === $result['status'] && 0 === strpos( (string) $result['data'], 'HTTP 409' ) ) {
+			$conflict_id = $this->find_conflicting_entry_id( $endpoint, $data_array, $candidates, $apikey );
+
+			if ( null !== $conflict_id ) {
+				$result             = $this->request( $endpoint . $conflict_id . '/', $contact_to_update, $apikey, 'PATCH', $this->api_version );
+				$result['action']   = 'updated';
+				$result['strategy'] = $search_field . ': ' . $search_value . ' (after 409)';
+			}
+		}
+
 		return $result;
+	}
+
+	/**
+	 * Finds the entry a 409 Conflict refers to. An exact, single email match wins;
+	 * otherwise the merge search is trusted only when it returned one candidate.
+	 * Never picks between several candidates.
+	 *
+	 * @param string $endpoint   Module endpoint with trailing slash (e.g. 'contacts/').
+	 * @param array  $data_array Submitted values keyed by CRM field name.
+	 * @param array  $candidates Results of the merge-field search.
+	 * @param string $apikey     API authentication token.
+	 * @return string|int|null
+	 */
+	private function find_conflicting_entry_id( string $endpoint, array $data_array, array $candidates, string $apikey ) {
+		$email = isset( $data_array['email'] ) ? trim( (string) $data_array['email'] ) : '';
+
+		if ( '' !== $email ) {
+			$params = array( 'query' => $email );
+			if ( 'v2' === $this->api_version ) {
+				$params['fields'] = 'id,email,emails';
+			}
+
+			$search = $this->request( $endpoint, $params, $apikey, 'GET', $this->api_version );
+			if ( 'ok' === $search['status'] && ! empty( $search['data']['results'] ) ) {
+				$entry_id = $this->find_exact_match_id( $search['data']['results'], 'email', $email );
+				if ( null !== $entry_id ) {
+					return $entry_id;
+				}
+			}
+		}
+
+		if ( 1 === count( $candidates ) && ! empty( $candidates[0]['id'] ) ) {
+			return $candidates[0]['id'];
+		}
+
+		return null;
 	}
 
 	/**
