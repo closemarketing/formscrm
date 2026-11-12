@@ -107,6 +107,18 @@ class ClientifyTests extends WP_UnitTestCase {
 			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . $file ) );
 		}
 
+		// v1 contact detail: the only API that returns taxpayer_identification_number.
+		if ( preg_match( '#api\.clientify\.net/v1/contacts/(contact-[a-z0-9]+)/#', $url, $detail ) && 'GET' === $r['method'] ) {
+			$taxpayer = array(
+				'contact-789' => '50997453J',
+				'contact-790' => '50997454-K',
+			);
+			if ( isset( $taxpayer[ $detail[1] ] ) ) {
+				return $this->response( 200, wp_json_encode( array( 'id' => $detail[1], 'taxpayer_identification_number' => $taxpayer[ $detail[1] ] ) ) );
+			}
+			return $this->response( 404, '{"detail":"Not found."}' );
+		}
+
 		// Search endpoint (GET contacts/companies with query).
 		if ( false !== strpos( $url, 'contacts/' ) && 'GET' === $r['method'] && false === strpos( $url, 'contacts/deals' ) ) {
 			// The v2 API rejects any GET request without a `fields` param. Real
@@ -124,6 +136,10 @@ class ClientifyTests extends WP_UnitTestCase {
 			// generic `query` param matches it.
 			if ( false !== strpos( $url, 'query=50997453J' ) ) {
 				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-789', 'first_name' => 'Antonio', 'taxpayer_identification_number' => '50997453J' ) ) );
+			}
+			// Existing contact whose stored tax number is formatted differently.
+			if ( false !== strpos( $url, 'query=50997454K' ) ) {
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-790', 'first_name' => 'Marta' ) ) );
 			}
 			// Substring false-positive: `query` is a substring match on Clientify's
 			// side, so searching for an exact email must not silently adopt an
@@ -175,6 +191,9 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		if ( false !== strpos( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
+			if ( false !== strpos( $url, 'contacts/contact-790/' ) ) {
+				return $this->response( 200, '{"id":"contact-790","first_name":"Marta","updated":true}' );
+			}
 			if ( false !== strpos( $url, 'contacts/contact-789/' ) ) {
 				return $this->response( 200, '{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J","updated":true}' );
 			}
@@ -236,6 +255,10 @@ class ClientifyTests extends WP_UnitTestCase {
 			if ( preg_match( '/[?&]fields=([^&]+)/', $url, $matches ) ) {
 				$requested = array_unique( array_merge( $requested, explode( ',', urldecode( $matches[1] ) ) ) );
 			}
+
+			// The real v2 API does not expose taxpayer_identification_number at all,
+			// even when it is requested in `fields`.
+			$requested = array_diff( $requested, array( 'taxpayer_identification_number' ) );
 
 			$entries = array_map(
 				function ( $entry ) use ( $requested ) {
@@ -582,6 +605,33 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'id', $result );
 		$this->assertSame( 'contact-789', $result['id'] );
+	}
+
+	/**
+	 * v2: Merge by taxpayer_identification_number. The stored tax number has a dash
+	 * ("50997454-K") while the form sends "50997454K" — still the same person, so it
+	 * must be updated instead of created again (which Clientify answers with a 409).
+	 */
+	public function test_create_entry_v2_merge_nif_differently_formatted_patched() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Marta',
+			),
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997454K',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'contact-790', $result['id'] );
 	}
 
 	/**

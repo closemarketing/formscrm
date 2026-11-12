@@ -1272,6 +1272,14 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		if ( 'ok' === $search_result['status'] && ! empty( $search_result['data']['results'] ) ) {
 			$results = $search_result['data']['results'];
 
+			// The v2 API never returns taxpayer_identification_number (it is not in its
+			// allowed fields), so the exact match below would never find anything and the
+			// contact would be created again, getting a 409 from Clientify. Read it from
+			// the v1 contact instead.
+			if ( 'v2' === $this->api_version && 'taxpayer_identification_number' === $search_field ) {
+				$results = $this->add_taxpayer_number_from_v1( $results, $endpoint, $apikey );
+			}
+
 			// 'query' performs a substring search on Clientify's side (e.g. searching
 			// "molina@gmail.com" can match "aestepamolina@gmail.com"), so results[0]
 			// can't be trusted as an exact match before overwriting an existing record.
@@ -1328,8 +1336,12 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		$matches      = array();
 
 		foreach ( $results as $entry ) {
-			$is_match = $this->entry_field_matches( $entry, $response_key, $search_value )
-				|| ( 'email' === $search_field && $this->entry_emails_array_matches( $entry, $search_value ) );
+			if ( 'taxpayer_identification_number' === $search_field ) {
+				$is_match = $this->taxpayer_number_matches( $entry, $response_key, $search_value );
+			} else {
+				$is_match = $this->entry_field_matches( $entry, $response_key, $search_value )
+					|| ( 'email' === $search_field && $this->entry_emails_array_matches( $entry, $search_value ) );
+			}
 
 			if ( $is_match ) {
 				$matches[] = $entry;
@@ -1337,6 +1349,61 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		}
 
 		return 1 === count( $matches ) ? $matches[0]['id'] : null;
+	}
+
+	/**
+	 * Adds taxpayer_identification_number to each v2 search result that lacks it,
+	 * reading it from the v1 contact. Only the first few candidates are checked:
+	 * a tax number identifies one person, so a long list is a sign of a too-broad
+	 * substring match and is never auto-selected anyway.
+	 *
+	 * @param array  $results  Raw 'results' array from the v2 search request.
+	 * @param string $endpoint Module endpoint with trailing slash (e.g. 'contacts/').
+	 * @param string $apikey   API authentication token.
+	 * @return array Results with taxpayer_identification_number filled in when known.
+	 */
+	private function add_taxpayer_number_from_v1( array $results, string $endpoint, string $apikey ): array {
+		$checked = 0;
+
+		foreach ( $results as $index => $entry ) {
+			if ( isset( $entry['taxpayer_identification_number'] ) || empty( $entry['id'] ) ) {
+				continue;
+			}
+			if ( $checked >= 5 ) {
+				break;
+			}
+			++$checked;
+
+			$detail = $this->request( $endpoint . $entry['id'] . '/', array(), $apikey, 'GET', 'v1' );
+			if ( 'ok' === $detail['status'] && isset( $detail['data']['taxpayer_identification_number'] ) ) {
+				$results[ $index ]['taxpayer_identification_number'] = $detail['data']['taxpayer_identification_number'];
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Whether a search-result entry's tax number equals a value, ignoring case and
+	 * any spaces, dots or dashes (e.g. "50863057-Y" equals "50863057y").
+	 *
+	 * @param array  $entry Result entry.
+	 * @param string $key   Field key to compare.
+	 * @param string $value Value to compare against.
+	 * @return bool
+	 */
+	private function taxpayer_number_matches( array $entry, string $key, string $value ): bool {
+		if ( ! isset( $entry[ $key ] ) || ! is_scalar( $entry[ $key ] ) ) {
+			return false;
+		}
+
+		$normalize = static function ( string $number ): string {
+			return strtoupper( preg_replace( '/[^A-Za-z0-9]/', '', $number ) );
+		};
+
+		$entry_number = $normalize( (string) $entry[ $key ] );
+
+		return '' !== $entry_number && $entry_number === $normalize( $value );
 	}
 
 	/**
