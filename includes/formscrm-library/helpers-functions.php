@@ -243,7 +243,8 @@ if ( ! function_exists( 'formscrm_sanitize_field_map' ) ) {
 			return array();
 		}
 		if ( isset( $field_map['status'] ) && 'error' === $field_map['status'] ) {
-			formscrm_debug_message( 'CRM list_fields error: ' . wp_json_encode( $field_map ) );
+			// Always logged (not only with WP_DEBUG) so production keeps a record of the CRM response.
+			error_log( 'FORMSCRM: CRM list_fields error: ' . wp_json_encode( $field_map ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return array();
 		}
 		return array_values( array_filter( $field_map, 'is_array' ) );
@@ -1047,6 +1048,130 @@ if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 			}
 		}
 		return '';
+	}
+}
+
+if ( ! function_exists( 'formscrm_custom_value_option_html' ) ) {
+	/**
+	 * Returns the "Custom value" option appended to field mapping selects.
+	 *
+	 * @param string $selected_value Currently saved mapping value.
+	 * @return string Option HTML.
+	 */
+	function formscrm_custom_value_option_html( $selected_value ) {
+		return sprintf(
+			'<option value="%1$s"%2$s>%3$s</option>',
+			esc_attr( FORMSCRM_CUSTOM_VALUE ),
+			FORMSCRM_CUSTOM_VALUE === $selected_value ? ' selected="selected"' : '',
+			esc_html__( 'Custom value', 'formscrm' )
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_custom_value_input_html' ) ) {
+	/**
+	 * Returns the text input shown when "Custom value" is selected.
+	 *
+	 * The input is toggled by includes/assets/js/custom-value.js and must be a
+	 * sibling of the select that carries the data-formscrm-custom attribute.
+	 *
+	 * @param string $name           Input name.
+	 * @param string $value          Saved custom value.
+	 * @param string $selected_value Currently saved mapping value.
+	 * @return string Input HTML.
+	 */
+	function formscrm_custom_value_input_html( $name, $value, $selected_value ) {
+		return sprintf(
+			'<input type="text" class="formscrm-custom-value widefat" name="%1$s" value="%2$s" placeholder="%3$s" style="margin-top:4px;%4$s" />',
+			esc_attr( $name ),
+			esc_attr( $value ),
+			esc_attr__( 'Fixed value, e.g. Web or {id:field}', 'formscrm' ),
+			FORMSCRM_CUSTOM_VALUE === $selected_value ? '' : 'display:none;'
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_enqueue_custom_value_script' ) ) {
+	/**
+	 * Enqueues the script that shows the custom value input for mapping selects.
+	 *
+	 * @return void
+	 */
+	function formscrm_enqueue_custom_value_script() {
+		wp_enqueue_script(
+			'formscrm-custom-value',
+			FORMSCRM_PLUGIN_URL . 'includes/assets/js/custom-value.js',
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_replace_id_placeholders' ) ) {
+	/**
+	 * Replaces {id:field} placeholders with submitted values.
+	 *
+	 * @param string $value Value that may contain placeholders.
+	 * @param array  $data  Submitted values keyed by field ID or name.
+	 * @return string
+	 */
+	function formscrm_replace_id_placeholders( $value, array $data ) {
+		$value = (string) $value;
+
+		if ( false === strpos( $value, '{id:' ) ) {
+			return $value;
+		}
+
+		return preg_replace_callback(
+			'/\{id:([^}]+)\}/',
+			function ( $matches ) use ( $data ) {
+				if ( ! array_key_exists( $matches[1], $data ) ) {
+					return $matches[0];
+				}
+
+				$field_value = $data[ $matches[1] ];
+
+				return is_array( $field_value ) ? implode( ', ', $field_value ) : (string) $field_value;
+			},
+			$value
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_custom_value_meta_key' ) ) {
+	/**
+	 * Returns the feed meta key that stores the custom (fixed) value of a mapped CRM field.
+	 *
+	 * Uses a "{field}Custom_" prefix instead of "{field}_" so the stored values
+	 * are not returned by GFAddOn::get_field_map_fields() as mapped fields.
+	 *
+	 * @param string $field_name Field map setting name (e.g. "listFields").
+	 * @param string $key        CRM field key.
+	 * @return string Feed meta key.
+	 */
+	function formscrm_gf_custom_value_meta_key( $field_name, $key ) {
+		return $field_name . 'Custom_' . $key;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_get_custom_value_template' ) ) {
+	/**
+	 * Returns the custom (fixed) value template saved in a feed for a CRM field.
+	 *
+	 * @param array  $feed       Gravity Forms feed.
+	 * @param string $key        CRM field key.
+	 * @param string $field_name Field map setting name.
+	 * @return string Custom value template, or empty string when not set.
+	 */
+	function formscrm_gf_get_custom_value_template( $feed, $key, $field_name = 'listFields' ) {
+		$meta_key = formscrm_gf_custom_value_meta_key( $field_name, $key );
+
+		if ( ! is_array( $feed ) || ! isset( $feed['meta'][ $meta_key ] ) || ! is_scalar( $feed['meta'][ $meta_key ] ) ) {
+			return '';
+		}
+
+		return (string) $feed['meta'][ $meta_key ];
 	}
 }
 

@@ -253,20 +253,24 @@ class FORMSCRM_CF7_Settings {
 										</label>
 									</td>
 									<td class="cf7-map-column cf7-map-column-value">
-										<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>]" style="min-width:300px; margin-bottom: 10px;">
+										<?php $saved_mapping = isset( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] ) ? (string) $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] : ''; ?>
+										<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>]" data-formscrm-custom="1" style="min-width:300px; margin-bottom: 10px;">
 											<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 											<?php
 											foreach ( $form_fields as $form_field ) {
 												$field_value = isset( $form_field['name'] ) ? $form_field['name'] : '';
 												$field_label = ! empty( $form_field['label'] ) ? $form_field['label'] : $field_value;
 												echo '<option value="' . esc_attr( $field_value ) . '" ';
-												if ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] ) ) {
-													selected( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ], $field_value );
-												}
+												selected( $saved_mapping, $field_value );
 												echo '>' . esc_html( $field_label ) . '</option>';
 											}
+											echo formscrm_custom_value_option_html( $saved_mapping ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
 											?>
 										</select>
+										<?php
+										$custom_value = isset( $cf7_crm[ 'fc_crm_custom-' . $crm_field_name ] ) ? (string) $cf7_crm[ 'fc_crm_custom-' . $crm_field_name ] : '';
+										echo formscrm_custom_value_input_html( 'wpcf7-crm[fc_crm_custom-' . $crm_field_name . ']', $custom_value, $saved_mapping ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
+										?>
 									</td>
 							</tr>
 							<?php
@@ -298,7 +302,16 @@ class FORMSCRM_CF7_Settings {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput -- Nonce verification and sanitization handled by Contact Form 7.
 		if ( isset( $_POST['wpcf7-crm'] ) && is_array( $_POST['wpcf7-crm'] ) ) {
 			$crm_data = array_map( 'sanitize_text_field', wp_unslash( $_POST['wpcf7-crm'] ) );
-			update_option( 'cf7_crm_' . $args->id(), array_filter( $crm_data ) );
+			// Keep a fixed value of "0"; only drop empty strings.
+			update_option(
+				'cf7_crm_' . $args->id(),
+				array_filter(
+					$crm_data,
+					function ( $item ) {
+						return '' !== $item;
+					}
+				)
+			);
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput
 	}
@@ -378,7 +391,9 @@ class FORMSCRM_CF7_Settings {
 			}
 			$crm_key = str_replace( 'fc_crm_field-', '', $key );
 
-			if ( array_key_exists( $value, $submitted_data ) ) {
+			if ( FORMSCRM_CUSTOM_VALUE === $value ) {
+				$value = isset( $cf7_crm[ 'fc_crm_custom-' . $crm_key ] ) ? (string) $cf7_crm[ 'fc_crm_custom-' . $crm_key ] : '';
+			} elseif ( array_key_exists( $value, $submitted_data ) ) {
 				$value = $submitted_data[ $value ];
 			}
 
@@ -422,6 +437,8 @@ class FORMSCRM_CF7_Settings {
 			FORMSCRM_VERSION,
 			'all'
 		);
+
+		formscrm_enqueue_custom_value_script();
 
 		// Enqueue JavaScript.
 		wp_enqueue_script(

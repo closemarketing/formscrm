@@ -82,6 +82,26 @@ class GravityFormsFieldMapTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Error payload is written to the PHP error log even without WP_DEBUG,
+	 * so production sites keep a record of the CRM response.
+	 */
+	public function test_error_payload_is_logged_outside_debug_mode() {
+		$log_file     = wp_tempnam( 'formscrm-field-map' );
+		$previous_log = ini_set( 'error_log', $log_file ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+
+		try {
+			formscrm_sanitize_field_map( $this->odoo_error_payload() );
+			$log = file_get_contents( $log_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		} finally {
+			ini_set( 'error_log', $previous_log ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+			wp_delete_file( $log_file );
+		}
+
+		$this->assertStringContainsString( 'FORMSCRM: CRM list_fields error:', $log );
+		$this->assertStringContainsString( 'Some credentials are missing', $log );
+	}
+
+	/**
 	 * Valid fields are kept untouched and prepared by Field_Map.
 	 */
 	public function test_valid_fields_are_kept() {
