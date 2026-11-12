@@ -714,10 +714,10 @@ class GFCRM extends GFFeedAddOn {
 			$crm_feed_fields[] = array(
 				'name'       => 'listFields',
 				'label'      => __( 'Map Fields', 'formscrm' ),
-				'type'       => 'field_map',
+				'type'       => $this->get_field_map_type(),
 				'dependency' => 'fc_crm_module',
 				'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
-				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list. Choose "Add Custom Value" to send a fixed value; it can include merge tags and {id:X} / {label:X} placeholders.', 'formscrm' ),
 			);
 
 			$crm_feed_fields[] = array(
@@ -751,6 +751,30 @@ class GFCRM extends GFFeedAddOn {
 		$settings = formscrm_gf_flatten_nested_field_map( $settings, 'listFields' );
 
 		return parent::save_feed_settings( $feed_id, $form_id, $settings );
+	}
+
+	/**
+	 * Returns the field map setting type, registering the custom one when available.
+	 *
+	 * Falls back to the native field_map on Gravity Forms versions without the
+	 * 2.5+ Settings API.
+	 *
+	 * @return string Setting type.
+	 */
+	private function get_field_map_type() {
+		$fields_class = '\\Gravity_Forms\\Gravity_Forms\\Settings\\Fields';
+
+		if ( ! class_exists( $fields_class ) || ! class_exists( '\\Gravity_Forms\\Gravity_Forms\\Settings\\Fields\\Field_Map' ) ) {
+			return 'field_map';
+		}
+
+		require_once __DIR__ . '/class-gravityforms-field-map.php';
+
+		if ( ! $fields_class::exists( FormsCRM_GF_Field_Map::TYPE ) ) {
+			$fields_class::register( FormsCRM_GF_Field_Map::TYPE, 'FormsCRM_GF_Field_Map' );
+		}
+
+		return FormsCRM_GF_Field_Map::TYPE;
 	}
 
 	/**
@@ -1026,7 +1050,9 @@ class GFCRM extends GFFeedAddOn {
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
 			foreach ( $field_maps as $var_key => $field_id ) {
-				if ( ! empty( $field_id ) ) {
+				if ( 'gf_custom' === $field_id ) {
+					$merge_vars[] = $this->get_custom_value( $var_key, $feed, $entry, $form );
+				} elseif ( ! empty( $field_id ) ) {
 					$merge_vars[] = $this->get_value_from_field( $var_key, $field_id, $entry, $form );
 				}
 			}
@@ -1302,6 +1328,31 @@ class GFCRM extends GFFeedAddOn {
 				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
 			);
 		}
+	}
+
+	/**
+	 * Gets the fixed value mapped to a CRM field with "Add Custom Value".
+	 *
+	 * Resolves {id:X} / {label:X} placeholders and Gravity Forms merge tags.
+	 *
+	 * @param string $var_key CRM field key.
+	 * @param array  $feed    Feed configuration.
+	 * @param array  $entry   Entry data.
+	 * @param array  $form    Form configuration.
+	 * @return array Merge var with name and value.
+	 */
+	public function get_custom_value( $var_key, $feed, $entry, $form ) {
+		$value = formscrm_gf_get_custom_value_template( $feed, $var_key );
+		$value = $this->fill_dynamic_value( $value, $entry, $form );
+
+		if ( false !== strpos( $value, '{' ) ) {
+			$value = GFCommon::replace_variables( $value, $form, $entry, false, false, false, 'text' );
+		}
+
+		return array(
+			'name'  => $var_key,
+			'value' => apply_filters( 'formscrm_field_value_custom', $value, $form['id'], $var_key, $entry ),
+		);
 	}
 
 	/**

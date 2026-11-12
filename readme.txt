@@ -271,6 +271,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 == Changelog ==
 
 = Unreleased =
+* Added: Field mappings can send a fixed value to a CRM field instead of requiring a hidden form field. Choose "Add Custom Value" (Gravity Forms) or "Custom value" (Contact Form 7, Elementor, WPForms, JetFormBuilder) and type the value; it can include `{id:field}` placeholders, plus merge tags and `{label:X}` in Gravity Forms. Existing mappings keep working unchanged.
 * Fixed: Saving a Gravity Forms feed that uses its own CRM settings with a blank credential field (e.g. API password) no longer breaks the field mapping. The blank field overrode the inherited credential, the CRM login failed while saving, and the mapping was stored in a format the feed could not read, so entries were sent without mapped fields. Feeds already saved this way are read correctly again, and a mapping saved while the CRM login fails is now stored in the right format instead of the broken one.
 
 = 4.4.6 =

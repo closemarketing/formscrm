@@ -232,6 +232,27 @@ class GravityFormsFeedCredentialsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The text of an "Add Custom Value" mapping is kept in its own setting.
+	 */
+	public function test_flatten_nested_field_map_keeps_custom_value() {
+		$settings = array(
+			'listFields' => array(
+				array( 'key' => 'source', 'custom_key' => '', 'value' => 'gf_custom', 'custom_value' => 'Web <b>{id:1}</b>' ),
+				array( 'key' => 'name', 'custom_key' => '', 'value' => '1', 'custom_value' => 'ignored' ),
+			),
+		);
+
+		$this->assertSame(
+			array(
+				'listFields_source'       => 'gf_custom',
+				'listFieldsCustom_source' => 'Web {id:1}',
+				'listFields_name'         => '1',
+			),
+			formscrm_gf_flatten_nested_field_map( $settings, 'listFields' )
+		);
+	}
+
+	/**
 	 * Settings already saved in the "{name}_{key}" format are left untouched.
 	 */
 	public function test_flatten_nested_field_map_keeps_registered_values() {
