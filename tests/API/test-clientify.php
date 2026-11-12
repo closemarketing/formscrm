@@ -137,6 +137,23 @@ class ClientifyTests extends WP_UnitTestCase {
 			if ( false !== strpos( $url, 'query=50997453J' ) ) {
 				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-789', 'first_name' => 'Antonio', 'taxpayer_identification_number' => '50997453J' ) ) );
 			}
+			// Contact that mirrors its tax number in a custom field; v1 detail doesn't know it.
+			if ( false !== strpos( $url, 'query=50997458P' ) ) {
+				return $this->restricted_results_response(
+					$url,
+					$is_v2_base,
+					array(
+						array(
+							'id'            => 'contact-795',
+							'first_name'    => 'Nuria',
+							'custom_fields' => array(
+								array( 'field' => 'Otro campo', 'value' => 'x' ),
+								array( 'field' => 'NIF alterno', 'value' => '50997458-p' ),
+							),
+						),
+					)
+				);
+			}
 			// 409 fallback: tax number search finds nothing, the email does.
 			if ( false !== strpos( $url, 'query=conflict%40example.com' ) ) {
 				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-791', 'email' => 'conflict@example.com' ) ) );
@@ -210,7 +227,7 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		if ( false !== strpos( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
-			if ( preg_match( '#contacts/(contact-79[1-4])/#', $url, $patched ) ) {
+			if ( preg_match( '#contacts/(contact-79[1-5])/#', $url, $patched ) ) {
 				return $this->response( 200, wp_json_encode( array( 'id' => $patched[1], 'updated' => true ) ) );
 			}
 			if ( false !== strpos( $url, 'contacts/contact-790/' ) ) {
@@ -654,6 +671,59 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result );
 		$this->assertSame( 'contact-790', $result['id'] );
+	}
+
+	/**
+	 * v2: A site that mirrors the tax number in a custom field can opt in through the
+	 * formscrm_clientify_taxpayer_custom_field filter, which verifies the exact match
+	 * from the v2 result alone (the v1 detail doesn't know this contact).
+	 */
+	public function test_create_entry_v2_merge_nif_verified_with_custom_field_filter() {
+		add_filter(
+			'formscrm_clientify_taxpayer_custom_field',
+			function () {
+				return 'NIF alterno';
+			}
+		);
+
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997458P',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+		remove_all_filters( 'formscrm_clientify_taxpayer_custom_field' );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'contact-795', $result['id'] );
+	}
+
+	/**
+	 * v2: Without the filter nothing is assumed about custom fields: the same
+	 * contact is not matched and the entry is created, as before.
+	 */
+	public function test_create_entry_v2_merge_nif_ignores_custom_fields_without_filter() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997458P',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'contact-new', $result['id'] );
 	}
 
 	/**

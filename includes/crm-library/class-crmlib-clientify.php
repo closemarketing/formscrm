@@ -1263,6 +1263,9 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			if ( 'email' === $search_field ) {
 				$exact_match_fields[] = 'emails';
 			}
+			if ( 'taxpayer_identification_number' === $search_field && '' !== $this->taxpayer_custom_field_name() ) {
+				$exact_match_fields[] = 'custom_fields';
+			}
 			$search_params['fields'] = implode( ',', $exact_match_fields );
 		}
 
@@ -1277,9 +1280,10 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 			// The v2 API never returns taxpayer_identification_number (it is not in its
 			// allowed fields), so the exact match below would never find anything and the
 			// contact would be created again, getting a 409 from Clientify. Read it from
-			// the v1 contact instead.
+			// a custom field that mirrors it, if the site configured one, or else from
+			// the v1 contact.
 			if ( 'v2' === $this->api_version && 'taxpayer_identification_number' === $search_field ) {
-				$results = $this->add_taxpayer_number_from_v1( $results, $endpoint, $apikey );
+				$results = $this->add_taxpayer_number( $results, $endpoint, $apikey );
 			}
 
 			// 'query' performs a substring search on Clientify's side (e.g. searching
@@ -1406,25 +1410,58 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 	}
 
 	/**
-	 * Adds taxpayer_identification_number to each v2 search result that lacks it,
-	 * reading it from the v1 contact. Only the first few candidates are checked:
-	 * a tax number identifies one person, so a long list is a sign of a too-broad
-	 * substring match and is never auto-selected anyway.
+	 * Name of the Clientify custom field that mirrors the tax number, or an empty
+	 * string when the site has none. FormsCRM is used on many sites and none of
+	 * them is assumed to have such a field, so it is opt-in through a filter.
+	 *
+	 * Example: add_filter( 'formscrm_clientify_taxpayer_custom_field', fn() => 'NIF' );
+	 *
+	 * @return string
+	 */
+	private function taxpayer_custom_field_name(): string {
+		/**
+		 * Filters the name of the Clientify custom field that holds the same value as the
+		 * contact's taxpayer_identification_number. The v2 API doesn't return the native
+		 * field, but it does return custom fields, so this lets the merge strategy verify
+		 * an exact match without the v1 API.
+		 *
+		 * @param string $field_name Custom field name as shown in Clientify. Empty to disable.
+		 * @param array  $settings   Feed settings.
+		 */
+		$field_name = apply_filters( 'formscrm_clientify_taxpayer_custom_field', '', $this->settings );
+
+		return is_string( $field_name ) ? trim( $field_name ) : '';
+	}
+
+	/**
+	 * Adds taxpayer_identification_number to each v2 search result that lacks it.
+	 * It is taken from the configured custom field when the result has it, which
+	 * costs no extra request, and otherwise from the v1 contact. Only the first few
+	 * candidates are read from v1: a tax number identifies one person, so a long
+	 * list is a sign of a too-broad substring match and is never auto-selected.
 	 *
 	 * @param array  $results  Raw 'results' array from the v2 search request.
 	 * @param string $endpoint Module endpoint with trailing slash (e.g. 'contacts/').
 	 * @param string $apikey   API authentication token.
 	 * @return array Results with taxpayer_identification_number filled in when known.
 	 */
-	private function add_taxpayer_number_from_v1( array $results, string $endpoint, string $apikey ): array {
-		$checked = 0;
+	private function add_taxpayer_number( array $results, string $endpoint, string $apikey ): array {
+		$custom_field = $this->taxpayer_custom_field_name();
+		$checked      = 0;
 
 		foreach ( $results as $index => $entry ) {
 			if ( isset( $entry['taxpayer_identification_number'] ) || empty( $entry['id'] ) ) {
 				continue;
 			}
+
+			$from_custom_field = $this->custom_field_value( $entry, $custom_field );
+			if ( '' !== $from_custom_field ) {
+				$results[ $index ]['taxpayer_identification_number'] = $from_custom_field;
+				continue;
+			}
+
 			if ( $checked >= 5 ) {
-				break;
+				continue;
 			}
 			++$checked;
 
@@ -1435,6 +1472,27 @@ class CRMLIB_Clientify extends CRMLIB_Abstract {
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Value of a custom field in a v2 result entry, or an empty string.
+	 *
+	 * @param array  $entry Result entry.
+	 * @param string $name  Custom field name.
+	 * @return string
+	 */
+	private function custom_field_value( array $entry, string $name ): string {
+		if ( '' === $name || empty( $entry['custom_fields'] ) || ! is_array( $entry['custom_fields'] ) ) {
+			return '';
+		}
+
+		foreach ( $entry['custom_fields'] as $custom_field ) {
+			if ( isset( $custom_field['field'], $custom_field['value'] ) && is_scalar( $custom_field['value'] ) && $name === $custom_field['field'] ) {
+				return trim( (string) $custom_field['value'] );
+			}
+		}
+
+		return '';
 	}
 
 	/**
