@@ -1,0 +1,366 @@
+<?php
+/**
+ * Gravity Forms entry list columns
+ *
+ * Makes available, for every CRM connected to a form, a status column and a
+ * contact ID column in the Gravity Forms entry list column selector. The values
+ * come from the sync status store, so they always reflect the latest send,
+ * resend or automatic retry.
+ *
+ * Nothing is shown by default: each column is chosen one by one with Gravity
+ * Forms' own column selector (gear icon of the entries list).
+ *
+ * @package    WordPress
+ * @author     Close Marketing <info@closemarketing.com>
+ * @copyright  2026 Closemarketing
+ * @version    1.0
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
+	/**
+	 * Class FormsCRM_GravityForms_Entry_Columns
+	 */
+	class FormsCRM_GravityForms_Entry_Columns {
+
+		/**
+		 * Prefix of the column keys.
+		 *
+		 * @var string
+		 */
+		const COLUMN_PREFIX = 'formscrm_';
+
+		/**
+		 * Entry meta key set once the history of an entry has been checked, so the
+		 * backfill does not run again on every list load.
+		 *
+		 * @var string
+		 */
+		const BACKFILL_META_KEY = 'formscrm_sync_backfilled';
+
+		/**
+		 * Per-request cache of entry results.
+		 *
+		 * @var array
+		 */
+		private $cache = array();
+
+		/**
+		 * Construct of class
+		 */
+		public function __construct() {
+			// Keep the store clean even when the columns are disabled.
+			add_action( 'gform_delete_entry', array( $this, 'delete_entry_status' ), 10, 1 );
+			add_action( 'gform_after_delete_form', array( $this, 'delete_form_status' ), 10, 1 );
+
+			if ( ! self::is_enabled() ) {
+				return;
+			}
+
+			add_filter( 'gform_entry_meta', array( $this, 'register_entry_meta' ), 20, 2 );
+			add_filter( 'gform_export_fields', array( $this, 'remove_export_fields' ), 20, 1 );
+			add_filter( 'gform_entries_field_value', array( $this, 'column_value' ), 20, 4 );
+		}
+
+		/**
+		 * Whether the columns are offered in the column selector.
+		 *
+		 * They are always offered; nothing is shown until a user picks a column
+		 * with the gear icon of the entries list.
+		 *
+		 * @return bool
+		 */
+		public static function is_enabled() {
+			/**
+			 * Filters whether the CRM columns are offered in the Gravity Forms column selector.
+			 *
+			 * @param bool $enabled Enabled by default.
+			 */
+			return (bool) apply_filters( 'formscrm_entry_list_columns_enabled', true );
+		}
+
+		/**
+		 * Returns the display label of a CRM.
+		 *
+		 * @param string $crm_type CRM slug.
+		 * @return string
+		 */
+		public static function crm_label( $crm_type ) {
+			foreach ( (array) formscrm_get_choices() as $choice ) {
+				if ( is_array( $choice ) && isset( $choice['value'], $choice['label'] ) && (string) $choice['value'] === (string) $crm_type ) {
+					return (string) $choice['label'];
+				}
+			}
+			return ucfirst( (string) $crm_type );
+		}
+
+		/**
+		 * Builds the column key of a CRM and kind.
+		 *
+		 * @param string $crm_type CRM slug.
+		 * @param string $kind     'status' or 'id'.
+		 * @return string
+		 */
+		public static function column_key( $crm_type, $kind ) {
+			return self::COLUMN_PREFIX . $crm_type . '_' . $kind;
+		}
+
+		/**
+		 * Splits a column key into CRM slug and kind.
+		 *
+		 * @param string $key Column key.
+		 * @return array|null array( crm_type, kind ) or null when it is not ours.
+		 */
+		public static function parse_column_key( $key ) {
+			if ( 0 !== strpos( (string) $key, self::COLUMN_PREFIX ) ) {
+				return null;
+			}
+			if ( ! preg_match( '/^' . self::COLUMN_PREFIX . '(.+)_(status|id)$/', (string) $key, $matches ) ) {
+				return null;
+			}
+			return array( $matches[1], $matches[2] );
+		}
+
+		/**
+		 * Returns the CRMs connected to a form: those of its active feeds plus the
+		 * ones that already have recorded results.
+		 *
+		 * @param int $form_id Form ID.
+		 * @return array<string, string> CRM slug => label.
+		 */
+		public static function get_form_crm_types( $form_id ) {
+			static $cache = array();
+			$form_id      = (int) $form_id;
+
+			if ( isset( $cache[ $form_id ] ) ) {
+				return $cache[ $form_id ];
+			}
+
+			$slugs = FormsCRM_Sync_Status::get_crm_types_for_form( 'gravityforms', $form_id );
+
+			if ( $form_id > 0 && class_exists( 'GFAPI' ) ) {
+				$feeds = GFAPI::get_feeds( null, $form_id, 'formscrm', true );
+				if ( is_array( $feeds ) ) {
+					$global = get_option( 'gravityformsaddon_formscrm_settings', array() );
+					foreach ( $feeds as $feed ) {
+						$custom = isset( $feed['meta']['fc_crm_custom_type'] ) ? (string) $feed['meta']['fc_crm_custom_type'] : '';
+						$slug   = ( '' !== $custom && 'no' !== $custom ) ? $custom : ( isset( $global['fc_crm_type'] ) ? (string) $global['fc_crm_type'] : '' );
+						if ( '' !== $slug ) {
+							$slugs[] = sanitize_key( $slug );
+						}
+					}
+				}
+			}
+
+			$types = array();
+			foreach ( array_unique( $slugs ) as $slug ) {
+				$types[ $slug ] = self::crm_label( $slug );
+			}
+			ksort( $types );
+
+			$cache[ $form_id ] = $types;
+			return $types;
+		}
+
+		/**
+		 * Registers the CRM columns as Gravity Forms entry meta.
+		 *
+		 * Entry meta shows up in Gravity Forms' own column selector (the gear icon
+		 * of the entries list), so every column can be shown or hidden one by one,
+		 * per form, with the native drag and drop ordering. The values are not
+		 * stored as entry meta: they are served by column_value().
+		 *
+		 * @param array $entry_meta Registered entry meta.
+		 * @param int   $form_id    Form ID.
+		 * @return array
+		 */
+		public function register_entry_meta( $entry_meta, $form_id ) {
+			foreach ( self::get_form_crm_types( (int) $form_id ) as $crm_type => $label ) {
+				$entry_meta[ self::column_key( $crm_type, 'status' ) ] = array(
+					/* translators: %s: CRM name */
+					'label'             => sprintf( __( '%s status', 'formscrm' ), $label ),
+					'is_numeric'        => false,
+					'is_default_column' => false,
+				);
+				$entry_meta[ self::column_key( $crm_type, 'id' ) ]     = array(
+					/* translators: %s: CRM name */
+					'label'             => sprintf( __( '%s ID', 'formscrm' ), $label ),
+					'is_numeric'        => false,
+					'is_default_column' => false,
+				);
+			}
+
+			return $entry_meta;
+		}
+
+		/**
+		 * Returns the cell value of a CRM column.
+		 *
+		 * @param mixed      $value    Current value.
+		 * @param int        $form_id  Form ID.
+		 * @param int|string $field_id Field ID or column name.
+		 * @param array      $entry    Entry.
+		 * @return mixed
+		 */
+		public function column_value( $value, $form_id, $field_id, $entry ) {
+			$parsed = self::parse_column_key( (string) $field_id );
+			if ( null === $parsed || empty( $entry['id'] ) ) {
+				return $value;
+			}
+
+			list( $crm_type, $kind ) = $parsed;
+			$entry_id                = (int) $entry['id'];
+
+			if ( ! isset( $this->cache[ $entry_id ] ) ) {
+				$rows = FormsCRM_Sync_Status::get_for_entry( 'gravityforms', $entry_id );
+				if ( empty( $rows ) ) {
+					$rows = $this->backfill_entry( $entry_id, (int) $form_id );
+				}
+				$this->cache[ $entry_id ] = $rows;
+			}
+			$row = isset( $this->cache[ $entry_id ][ $crm_type ] ) ? $this->cache[ $entry_id ][ $crm_type ] : null;
+
+			return 'status' === $kind ? self::render_status( $row ) : self::render_contact_id( $row );
+		}
+
+		/**
+		 * Rebuilds, once, the stored results of an entry sent before the store existed.
+		 *
+		 * Runs lazily for the entries shown in the list, from the FormsCRM entry notes
+		 * and the contact ID meta, and saves the result so it is not computed again.
+		 *
+		 * @param int $entry_id Entry ID.
+		 * @param int $form_id  Form ID.
+		 * @return array<string, object> Stored rows by CRM slug (empty when there is nothing to rebuild).
+		 */
+		private function backfill_entry( $entry_id, $form_id ) {
+			if ( ! class_exists( 'GFFormsModel' ) ) {
+				return array();
+			}
+
+			$crm_types = self::get_form_crm_types( $form_id );
+			if ( empty( $crm_types ) ) {
+				return array();
+			}
+
+			if ( gform_get_meta( $entry_id, self::BACKFILL_META_KEY ) ) {
+				return array();
+			}
+
+			$contact_ids = array();
+			foreach ( array_keys( $crm_types ) as $slug ) {
+				$contact_ids[ $slug ] = gform_get_meta( $entry_id, $slug );
+			}
+
+			$results = FormsCRM_Sync_Status::build_from_notes( (array) GFFormsModel::get_lead_notes( $entry_id ), $crm_types, $contact_ids );
+			foreach ( $results as $slug => $data ) {
+				formscrm_record_sync_status( 'gravityforms', $form_id, $entry_id, $slug, $data );
+			}
+
+			if ( empty( $results ) ) {
+				// Nothing to rebuild: remember it so it is not checked again.
+				gform_update_meta( $entry_id, self::BACKFILL_META_KEY, 1 );
+				return array();
+			}
+
+			return FormsCRM_Sync_Status::get_for_entry( 'gravityforms', $entry_id );
+		}
+
+		/**
+		 * Renders the status cell (escaped HTML).
+		 *
+		 * @param object|null $row Stored result.
+		 * @return string
+		 */
+		public static function render_status( $row ) {
+			if ( empty( $row ) ) {
+				return '<span aria-label="' . esc_attr__( 'Not sent', 'formscrm' ) . '" style="opacity:.5">&mdash;</span>';
+			}
+
+			$is_success = 'success' === $row->status;
+			$label      = $is_success ? __( 'Sent', 'formscrm' ) : __( 'Error', 'formscrm' );
+			$color      = $is_success ? '#1a7f37' : '#b32d2e';
+			$icon       = $is_success ? '&#10003;' : '&#10007;';
+
+			$date  = ! empty( $row->updated_at ) ? get_date_from_gmt( $row->updated_at, get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) ) : '';
+			$title = trim( $date . ( ! empty( $row->message ) ? ' — ' . $row->message : '' ) );
+
+			return sprintf(
+				'<span title="%1$s" style="color:%2$s;font-weight:600;white-space:nowrap">%3$s %4$s</span>',
+				esc_attr( $title ),
+				esc_attr( $color ),
+				$icon, // Static entity.
+				esc_html( $label )
+			);
+		}
+
+		/**
+		 * Renders the contact ID cell (escaped HTML).
+		 *
+		 * @param object|null $row Stored result.
+		 * @return string
+		 */
+		public static function render_contact_id( $row ) {
+			if ( empty( $row ) || '' === (string) $row->contact_id ) {
+				return '<span style="opacity:.5">&mdash;</span>';
+			}
+
+			$title = ! empty( $row->crm_name ) ? $row->crm_name : '';
+
+			return sprintf(
+				'<code title="%1$s">%2$s</code>',
+				esc_attr( $title ),
+				esc_html( $row->contact_id )
+			);
+		}
+
+		/**
+		 * Removes the CRM columns from the entries export.
+		 *
+		 * The columns are registered as entry meta so they can be picked in the
+		 * column selector, but they hold no stored values, so an export would
+		 * only contain empty columns.
+		 *
+		 * @param array $form Form with the fields to export.
+		 * @return array
+		 */
+		public function remove_export_fields( $form ) {
+			if ( empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
+				return $form;
+			}
+
+			foreach ( $form['fields'] as $index => $field ) {
+				$id = is_object( $field ) ? ( $field->id ?? '' ) : ( is_array( $field ) ? ( $field['id'] ?? '' ) : '' );
+				if ( is_string( $id ) && null !== self::parse_column_key( $id ) ) {
+					unset( $form['fields'][ $index ] );
+				}
+			}
+			$form['fields'] = array_values( $form['fields'] );
+
+			return $form;
+		}
+
+		/**
+		 * Removes the stored results when a whole form is deleted.
+		 *
+		 * @param int $form_id Form ID.
+		 * @return void
+		 */
+		public function delete_form_status( $form_id ) {
+			FormsCRM_Sync_Status::delete_for_form( 'gravityforms', (int) $form_id );
+		}
+
+		/**
+		 * Removes the stored results when an entry is deleted.
+		 *
+		 * @param int $entry_id Entry ID.
+		 * @return void
+		 */
+		public function delete_entry_status( $entry_id ) {
+			FormsCRM_Sync_Status::delete_for_entry( 'gravityforms', (int) $entry_id );
+		}
+	}
+
+	new FormsCRM_GravityForms_Entry_Columns();
+}

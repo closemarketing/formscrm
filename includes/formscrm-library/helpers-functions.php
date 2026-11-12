@@ -1376,3 +1376,26 @@ if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 		echo wp_kses( formscrm_get_connection_status_html( $settings, $output_type, $help_text ), $allowed_html );
 	}
 }
+
+if ( ! function_exists( 'formscrm_record_sync_status' ) ) {
+	/**
+	 * Records the latest result of sending an entry to a CRM.
+	 *
+	 * Safe to call from any integration; it never throws.
+	 *
+	 * @param string $form_type Form type slug ('gravityforms', 'wpforms'...).
+	 * @param int    $form_id   Form ID.
+	 * @param int    $entry_id  Entry ID.
+	 * @param string $crm_type  CRM slug.
+	 * @param array  $data      Keys: status ('success'|'error'), contact_id, crm_name, message.
+	 * @return bool
+	 */
+	function formscrm_record_sync_status( $form_type, $form_id, $entry_id, $crm_type, array $data = array() ) {
+		try {
+			return FormsCRM_Sync_Status::record( $form_type, $form_id, $entry_id, $crm_type, $data );
+		} catch ( Throwable $e ) {
+			formscrm_debug_message( 'Sync status not recorded: ' . $e->getMessage() );
+			return false;
+		}
+	}
+}
