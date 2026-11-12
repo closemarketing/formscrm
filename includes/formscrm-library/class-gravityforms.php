@@ -736,6 +736,24 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Saves the feed settings.
+	 *
+	 * If the CRM login fails while saving, the field map is not registered and
+	 * Gravity Forms would store it as a raw nested array that the feed can't read
+	 * later. It is stored as "listFields_{key}" instead, whatever the login result.
+	 *
+	 * @param int   $feed_id  Feed ID, 0 for a new feed.
+	 * @param int   $form_id  Form ID.
+	 * @param array $settings Feed settings.
+	 * @return int|false Feed ID or false on failure.
+	 */
+	public function save_feed_settings( $feed_id, $form_id, $settings ) {
+		$settings = formscrm_gf_flatten_nested_field_map( $settings, 'listFields' );
+
+		return parent::save_feed_settings( $feed_id, $form_id, $settings );
+	}
+
+	/**
 	 * Returns the field map setting type, registering the custom one when available.
 	 *
 	 * Falls back to the native field_map on Gravity Forms versions without the
@@ -774,20 +792,13 @@ class GFCRM extends GFFeedAddOn {
 		if ( 'no' === $custom_crm ) {
 			return $settings;
 		}
+		$global_crm              = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$settings['fc_crm_type'] = $custom_crm;
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
-		foreach ( FORMSCRM_CRED_VARIABLES as $variable ) {
-			if ( isset( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) ) {
-				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( wp_unslash( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) );
-			} elseif ( isset( $feed['meta'][ 'fc_crm_custom_' . $variable ] ) ) {
-				$settings[ 'fc_crm_' . $variable ] = $feed['meta'][ 'fc_crm_custom_' . $variable ];
-			} elseif ( isset( $settings[ 'fc_crm_custom_' . $variable ] ) ) {
-				$settings[ 'fc_crm_' . $variable ] = $settings[ 'fc_crm_custom_' . $variable ];
-				unset( $settings[ 'fc_crm_custom_' . $variable ] );
-			}
-		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-		return $settings;
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms; values are sanitized in the helper.
+		$posted    = wp_unslash( $_POST );
+		$feed_meta = ! empty( $feed['meta'] ) && is_array( $feed['meta'] ) ? $feed['meta'] : array();
+
+		return formscrm_merge_custom_crm_credentials( $settings, is_array( $posted ) ? $posted : array(), $feed_meta, $global_crm === $custom_crm );
 	}
 
 	/**
@@ -1031,6 +1042,10 @@ class GFCRM extends GFFeedAddOn {
 
 		$merge_vars = array();
 		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
+		if ( empty( $field_maps ) ) {
+			// Feeds saved while the CRM login failed store the raw field map.
+			$field_maps = formscrm_gf_get_nested_field_map( rgar( $feed, 'meta' ), 'listFields' );
+		}
 
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
