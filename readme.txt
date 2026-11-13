@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 4.4.5
-Version: 4.4.5
+Stable tag: 4.4.6
+Version: 4.4.6
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -270,7 +270,8 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
-= Unreleased =
+= 4.4.6 =
+* Fixed: Gravity Forms feed settings no longer stop with a fatal error ("Cannot access offset of type string on string") when the CRM returns an error instead of its field list (e.g. invalid API key). The field map is shown empty and the CRM error is written to the PHP error log.
 * Added: CRM columns in the Gravity Forms entries list. For every CRM connected to a form, a status column and a contact ID column show the result of the latest send, resend or automatic retry. Nothing is shown by default: each column is added manually from Gravity Forms' own column selector (gear icon of the entries list). The columns are offered for every CRM connected through the form's feeds, and entries sent before this version are filled in automatically from their FormsCRM notes the first time they are listed.
 * Added: FormsCRM now records the latest sync result (status, contact ID, CRM name, message) per entry and CRM in its own table, for Gravity Forms and WPForms.
 * Fixed: Clientify contacts were not found by the "Taxpayer Identification number" merge strategy, so an existing contact was created again and Clientify answered with `HTTP 409: Conflict`, leaving the submission in the error log. The v2 API never returns the tax number in its search results, so the exact match could not succeed. It is now read from the contact in the v1 API, and compared ignoring case, spaces, dots and dashes. If Clientify still answers 409 on create (the contact exists but could not be matched), the contact is now found by its exact email, or by the merge search when it returned a single candidate, and updated instead of failing. With several candidates nothing is guessed and the submission stays in the error log.
