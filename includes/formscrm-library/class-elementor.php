@@ -187,8 +187,25 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	public static function get_merge_vars( $formscrm_settings, $raw_fields ) {
 		$merge_vars = array();
 		foreach ( $formscrm_settings as $field_crm => $field_form ) {
-			$field_crm    = str_replace( 'fc_crm_field-', '', $field_crm );
-			$field_value  = $raw_fields[ $field_form ]['value'] ?? '';
+			// Custom values are read below with their mapping, not as CRM fields.
+			if ( 0 === strpos( $field_crm, 'fc_crm_custom-' ) ) {
+				continue;
+			}
+
+			$field_crm = str_replace( 'fc_crm_field-', '', $field_crm );
+
+			if ( FORMSCRM_CUSTOM_VALUE === $field_form ) {
+				$submitted   = array_map(
+					function ( $raw_field ) {
+						return is_array( $raw_field ) && isset( $raw_field['value'] ) ? $raw_field['value'] : '';
+					},
+					$raw_fields
+				);
+				$field_value = formscrm_replace_id_placeholders( sanitize_text_field( (string) ( $formscrm_settings[ 'fc_crm_custom-' . $field_crm ] ?? '' ) ), $submitted );
+			} else {
+				$field_value = $raw_fields[ $field_form ]['value'] ?? '';
+			}
+
 			$merge_vars[] = array(
 				'name'  => $field_crm,
 				'value' => is_array( $field_value ) ? implode( ', ', $field_value ) : $field_value,

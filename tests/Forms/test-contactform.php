@@ -201,4 +201,80 @@ class ContactFormsTest extends WP_UnitTestCase {
 		$this->assertIsBool( $merge_vars[0]['value'] );
 		$this->assertSame( $expected_value, $merge_vars[0]['value'] );
 	}
+
+	/**
+	 * A mapping set to "Custom value" sends the fixed text with placeholders resolved.
+	 */
+	public function test_get_merge_vars_custom_value() {
+		$cf7_crm = array(
+			'fc_crm_type'          => 'clientify',
+			'fc_crm_field-source'  => FORMSCRM_CUSTOM_VALUE,
+			'fc_crm_custom-source' => 'Web - {id:your-name}',
+			'fc_crm_field-email'   => 'your-email',
+		);
+
+		$submitted_data = array(
+			'your-name'  => 'Ana',
+			'your-email' => 'ana@example.com',
+		);
+
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
+
+		$this->assertSame(
+			array(
+				array(
+					'name'  => 'source',
+					'value' => 'Web - Ana',
+				),
+				array(
+					'name'  => 'email',
+					'value' => 'ana@example.com',
+				),
+			),
+			$merge_vars
+		);
+	}
+
+	/**
+	 * A "Custom value" mapping without saved text sends an empty value.
+	 */
+	public function test_get_merge_vars_custom_value_missing_text() {
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( array( 'fc_crm_field-source' => FORMSCRM_CUSTOM_VALUE ), array() );
+
+		$this->assertSame( '', $merge_vars[0]['value'] );
+	}
+
+	/**
+	 * A fixed value of "0" is sent, not dropped.
+	 */
+	public function test_get_merge_vars_custom_value_zero() {
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars(
+			array(
+				'fc_crm_field-priority'  => FORMSCRM_CUSTOM_VALUE,
+				'fc_crm_custom-priority' => '0',
+			),
+			array()
+		);
+
+		$this->assertSame( '0', $merge_vars[0]['value'] );
+	}
+
+	/**
+	 * A real form field named "formscrm_custom" is still read from the submission.
+	 */
+	public function test_get_merge_vars_field_named_like_old_sentinel() {
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars(
+			array( 'fc_crm_field-source' => 'formscrm_custom' ),
+			array( 'formscrm_custom' => 'Submitted' )
+		);
+
+		$this->assertSame( 'Submitted', $merge_vars[0]['value'] );
+	}
+
+	/**
+	 * The custom value sentinel cannot be a valid form field name.
+	 */
+	public function test_custom_value_sentinel_is_not_a_valid_field_name() {
+		$this->assertSame( 0, preg_match( '/^[A-Za-z0-9_-]+$/', FORMSCRM_CUSTOM_VALUE ) );
+	}
 }

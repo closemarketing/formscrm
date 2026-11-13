@@ -113,6 +113,8 @@ if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 	add_action(
 		'elementor/editor/after_enqueue_scripts',
 		function () {
+			formscrm_enqueue_custom_value_script();
+
 			wp_enqueue_script(
 				'formcrm-elementor-editor-script',
 				FORMSCRM_PLUGIN_URL . 'includes/assets/elementor-editor.js',

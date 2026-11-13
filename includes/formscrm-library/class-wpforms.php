@@ -60,6 +60,7 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		$this->priority = 14;
 		$this->icon     = plugins_url( '../assets/addon-icon-wpforms.png', __FILE__ );
 		add_filter( 'wpforms_process_entry_confirmation_redirect_confirmations', array( $this, 'payment_confirmation_redirect' ), 20, 4 );
+		add_action( 'wpforms_builder_enqueues', 'formscrm_enqueue_custom_value_script' );
 	}
 
 	/**
@@ -129,6 +130,16 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			foreach ( $connection['fields'] as $conn_field_name => $conn_field ) {
 				// If the custom field isn't map, skip it.
 				if ( empty( $conn_field ) ) {
+					continue;
+				}
+
+				// Fixed value typed in the builder for this CRM field.
+				if ( FORMSCRM_CUSTOM_VALUE === $conn_field ) {
+					$custom_value = isset( $connection['custom_values'][ $conn_field_name ] ) ? sanitize_text_field( (string) $connection['custom_values'][ $conn_field_name ] ) : '';
+					$merge_vars[] = array(
+						'name'  => $conn_field_name,
+						'value' => $this->fill_dynamic_value( $custom_value, $fields ),
+					);
 					continue;
 				}
 
@@ -560,6 +571,8 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			return $output;
 		}
 
+		$output = $this->add_custom_value_controls( $output, $connection_id, $connection );
+
 		$virtual_fields = apply_filters( 'formscrm_wpforms_virtual_fields', array() );
 
 		if ( empty( $virtual_fields ) ) {
@@ -611,6 +624,40 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Adds the "Custom value" option and its text input to each field select.
+	 *
+	 * The fixed value is saved in the connection under custom_values[tag].
+	 *
+	 * @param string $output        Provider fields HTML.
+	 * @param string $connection_id Connection ID.
+	 * @param array  $connection    Connection data.
+	 * @return string
+	 */
+	private function add_custom_value_controls( $output, $connection_id, $connection ) {
+		$prefix = sprintf( 'providers[%s][%s][fields][', $this->slug, $connection_id );
+
+		return preg_replace_callback(
+			'/<select name="' . preg_quote( $prefix, '/' ) . '([^"]*)\]">(.*?)<\/select>/s',
+			function ( $matches ) use ( $connection_id, $connection ) {
+				$tag          = html_entity_decode( $matches[1], ENT_QUOTES );
+				$saved        = isset( $connection['fields'][ $tag ] ) ? (string) $connection['fields'][ $tag ] : '';
+				$custom_value = isset( $connection['custom_values'][ $tag ] ) ? (string) $connection['custom_values'][ $tag ] : '';
+				$input_name   = sprintf( 'providers[%s][%s][custom_values][%s]', $this->slug, $connection_id, $tag );
+
+				return sprintf(
+					'<select name="%1$s%2$s]" data-formscrm-custom="1">%3$s%4$s</select>%5$s',
+					esc_attr( sprintf( 'providers[%s][%s][fields][', $this->slug, $connection_id ) ),
+					$matches[1],
+					$matches[2],
+					formscrm_custom_value_option_html( $saved ),
+					formscrm_custom_value_input_html( $input_name, $custom_value, $saved )
+				);
+			},
+			$output
+		);
 	}
 
 	/*************************************************************************
