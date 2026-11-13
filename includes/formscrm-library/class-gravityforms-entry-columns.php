@@ -179,13 +179,13 @@ if ( ! class_exists( 'FormsCRM_GravityForms_Entry_Columns' ) ) {
 			foreach ( self::get_form_crm_types( (int) $form_id ) as $crm_type => $label ) {
 				$entry_meta[ self::column_key( $crm_type, 'status' ) ] = array(
 					/* translators: %s: CRM name */
-					'label'             => sprintf( __( '%s status', 'formscrm' ), $label ),
+					'label'             => sprintf( __( 'FormsCRM - %s status', 'formscrm' ), $label ),
 					'is_numeric'        => false,
 					'is_default_column' => false,
 				);
 				$entry_meta[ self::column_key( $crm_type, 'id' ) ]     = array(
 					/* translators: %s: CRM name */
-					'label'             => sprintf( __( '%s ID', 'formscrm' ), $label ),
+					'label'             => sprintf( __( 'FormsCRM - %s ID', 'formscrm' ), $label ),
 					'is_numeric'        => false,
 					'is_default_column' => false,
 				);
