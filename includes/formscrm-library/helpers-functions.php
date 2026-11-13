@@ -227,6 +227,30 @@ if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_sanitize_field_map' ) ) {
+	/**
+	 * Ensures a CRM field map is a list of field definitions.
+	 *
+	 * CRM libraries may return an error payload (status/data/message) from
+	 * list_fields() instead of fields. Passing it to Gravity Forms' Field_Map
+	 * throws "Cannot access offset of type string on string".
+	 *
+	 * @param mixed $field_map Field map returned by the CRM library.
+	 * @return array List of field definitions (arrays only).
+	 */
+	function formscrm_sanitize_field_map( $field_map ) {
+		if ( ! is_array( $field_map ) ) {
+			return array();
+		}
+		if ( isset( $field_map['status'] ) && 'error' === $field_map['status'] ) {
+			// Always logged (not only with WP_DEBUG) so production keeps a record of the CRM response.
+			error_log( 'FORMSCRM: CRM list_fields error: ' . wp_json_encode( $field_map ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			return array();
+		}
+		return array_values( array_filter( $field_map, 'is_array' ) );
+	}
+}
+
 if ( ! function_exists( 'formscrm_add_entry_note' ) ) {
 	/**
 	 * Adds a note to a form entry in a form-agnostic way.

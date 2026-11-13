@@ -128,6 +128,14 @@ class GFFormsModel {
 	public static function add_note( $entry_id, $user_id, $user_name, $note, $note_type = 'note', $sub_type = null ) {}
 
 	/**
+	 * Get entry notes
+	 *
+	 * @param int $entry_id Entry ID.
+	 * @return array<int, object>
+	 */
+	public static function get_lead_notes( $entry_id ) {}
+
+	/**
 	 * Get form
 	 *
 	 * @param int $form_id Form ID.

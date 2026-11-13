@@ -716,7 +716,7 @@ class GFCRM extends GFFeedAddOn {
 				'label'      => __( 'Map Fields', 'formscrm' ),
 				'type'       => $this->get_field_map_type(),
 				'dependency' => 'fc_crm_module',
-				'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
+				'field_map'  => formscrm_sanitize_field_map( $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ) ),
 				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list. Choose "Add Custom Value" to send a fixed value; it can include merge tags and {id:X} / {label:X} placeholders.', 'formscrm' ),
 			);
 
