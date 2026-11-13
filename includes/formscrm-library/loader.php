@@ -12,6 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 require_once 'helpers-functions.php';
 require_once 'helpers-library-crm.php';
+require_once dirname( __DIR__ ) . '/admin/class-sync-status.php';
 
 // Prevents fatal error is_plugin_active.
 if ( ! function_exists( 'is_plugin_active' ) ) {
@@ -53,6 +54,7 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 
 	require_once 'class-gravityforms-widget.php';
 	require_once 'class-gravityforms-markdown-export.php';
+	require_once 'class-gravityforms-entry-columns.php';
 }
 
 // ContactForms7.
