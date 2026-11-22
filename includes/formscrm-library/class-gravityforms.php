@@ -699,6 +699,7 @@ class GFCRM extends GFFeedAddOn {
 		$redirect_url = add_query_arg( $redirect_args, admin_url( 'admin.php' ) );
 
 		if ( empty( $form_id ) || empty( $feed_id ) || empty( $_FILES['formscrm_import_file']['tmp_name'] )
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Nonce verified above; this only reads the PHP-managed upload error code.
 			|| UPLOAD_ERR_OK !== $_FILES['formscrm_import_file']['error'] ) {
 			wp_safe_redirect( add_query_arg( 'formscrm_import_status', 'error', $redirect_url ) );
 			exit;
@@ -706,7 +707,7 @@ class GFCRM extends GFFeedAddOn {
 
 		$target_form = GFAPI::get_form( $form_id );
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_get_contents -- Reading an uploaded temp file, not a plugin/theme file.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Reading an uploaded temp file via its PHP-managed path, not a remote URL or user-controlled content; nonce verified above.
 		$contents    = file_get_contents( $_FILES['formscrm_import_file']['tmp_name'] );
 		$import_data = json_decode( (string) $contents, true );
 		$meta        = formscrm_gf_feed_meta_from_import( $import_data );
