@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 4.4.6
-Version: 4.4.6
+Stable tag: 4.5.0
+Version: 4.5.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -269,6 +269,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 4.5.0 =
+* Added: GravityForms feeds can now be exported and imported as JSON (connection type, module and field mapping), useful to back up a feed's mapping or move it between forms/sites.
+* Fixed: GravityForms field mapping is now preserved (matched by key, then by label) when a feed's CRM connection or module is changed, instead of being wiped out.
 
 = 4.4.6 =
 * Fixed: Gravity Forms feed settings no longer stop with a fatal error ("Cannot access offset of type string on string") when the CRM returns an error instead of its field list (e.g. invalid API key). The field map is shown empty and the CRM error is written to the PHP error log.
