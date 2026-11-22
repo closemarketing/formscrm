@@ -158,6 +158,36 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 			</tr>
 			<?php
 
+			// Merge strategy: lets the entry be searched and updated instead of always created.
+			$search_entry_fields = method_exists( $crmlib, 'list_fields_search_entry' ) ? $crmlib->list_fields_search_entry( $value ) : array();
+
+			if ( ! empty( $search_entry_fields ) ) {
+				$saved_merge_val = isset( $hidden_settings['fc_crm_merge_entry'] ) ? $hidden_settings['fc_crm_merge_entry'] : '';
+				?>
+				<tr class="elementor-map-row">
+					<td class="elementor-map-column elementor-map-column-key">
+						<label for="fc_crm_merge_entry-<?php echo esc_html( $value ); ?>"><?php esc_html_e( 'Merge strategy', 'formscrm' ); ?></label>
+					</td>
+					<td class="elementor-map-column elementor-map-column-value">
+						<select class="wide" id="fc_crm_merge_entry-<?php echo esc_html( $value ); ?>" name="fc_crm_merge_entry">
+							<option value=""><?php esc_html_e( 'No strategy (always create)', 'formscrm' ); ?></option>
+							<?php
+							foreach ( $search_entry_fields as $search_entry_field ) {
+								$field_value = isset( $search_entry_field['value'] ) ? $search_entry_field['value'] : ( $search_entry_field['name'] ?? '' );
+								if ( empty( $field_value ) || ! isset( $search_entry_field['label'] ) ) {
+									continue;
+								}
+								echo '<option value="' . esc_attr( $field_value ) . '" ';
+								selected( $saved_merge_val, $field_value );
+								echo '>' . esc_html( $search_entry_field['label'] ) . '</option>';
+							}
+							?>
+						</select>
+					</td>
+				</tr>
+				<?php
+			}
+
 			$count_fields = 0;
 
 			foreach ( $crm_fields as $crm_field ) {
@@ -183,7 +213,7 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 						</label>
 					</td>
 					<td class="elementor-map-column elementor-map-column-value">
-						<select class="wide" name="fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>" >
+						<select class="wide" name="fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>" data-formscrm-custom="1">
 							<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 							<?php
 							$form_fields     = isset( $_POST['formFields'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['formFields'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
@@ -202,8 +232,14 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 							 * @param string $crm_field_name  CRM field machine name.
 							 */
 							do_action( 'formscrm_elementor_field_select_options', $saved_field_val, $crm_field_name );
+
+							echo formscrm_custom_value_option_html( $saved_field_val ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
 							?>
 						</select>
+						<?php
+						$saved_custom_val = isset( $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] ) && is_scalar( $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] ) ? (string) $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] : '';
+						echo formscrm_custom_value_input_html( 'fc_crm_custom-' . $crm_field_name, $saved_custom_val, $saved_field_val ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
+						?>
 					</td>
 				</tr>
 				<?php

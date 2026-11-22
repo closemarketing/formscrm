@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 require_once 'helpers-functions.php';
 require_once 'helpers-library-crm.php';
-require_once 'class-forms-clientify.php';
+require_once dirname( __DIR__ ) . '/admin/class-sync-status.php';
 
 // Prevents fatal error is_plugin_active.
 if ( ! function_exists( 'is_plugin_active' ) ) {
@@ -54,6 +54,7 @@ if ( ( is_plugin_active( 'gravityforms/gravityforms.php' ) || is_plugin_active( 
 
 	require_once 'class-gravityforms-widget.php';
 	require_once 'class-gravityforms-markdown-export.php';
+	require_once 'class-gravityforms-entry-columns.php';
 }
 
 // ContactForms7.
@@ -103,12 +104,17 @@ if ( is_plugin_active( 'elementor/elementor.php' ) ) {
 
 			// Register the action with form widget.
 			\ElementorPro\Plugin::instance()->modules_manager->get_modules( 'forms' )->add_form_action( $formscrm_action->get_name(), $formscrm_action );
+
+			// Injects the tracking hidden field as each Clientify-connected form renders.
+			add_filter( 'elementor/widget/render_content', array( 'FormsCRM_Elementor_Action_After_Submit', 'inject_analytics_plus_fields' ), 10, 2 );
 		}
 	);
 
 	add_action(
 		'elementor/editor/after_enqueue_scripts',
 		function () {
+			formscrm_enqueue_custom_value_script();
+
 			wp_enqueue_script(
 				'formcrm-elementor-editor-script',
 				FORMSCRM_PLUGIN_URL . 'includes/assets/elementor-editor.js',

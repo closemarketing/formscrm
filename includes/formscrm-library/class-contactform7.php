@@ -34,6 +34,48 @@ class FORMSCRM_CF7_Settings {
 		add_action( 'wpcf7_after_save', array( $this, 'crm_save_options' ) );
 		add_action( 'wpcf7_before_send_mail', array( $this, 'crm_process_entry' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_autosubmit_assets' ) );
+		add_filter( 'wpcf7_form_elements', array( $this, 'inject_analytics_plus_fields' ) );
+	}
+
+	/**
+	 * Injects FormsCRM's own hidden fields for Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) into any form with
+	 * Clientify configured, so the tracking script has somewhere to write the
+	 * values it captures in the browser. Field values are read directly from
+	 * the submitted data in crm_process_entry(), never through the admin
+	 * field-map UI. Also reports, via the shared filter, that the tracking
+	 * script is needed on this page.
+	 *
+	 * @param string $form_html Rendered form HTML.
+	 * @return string Form HTML, with the tracking fields injected if needed.
+	 */
+	public function inject_analytics_plus_fields( $form_html ) {
+		$contact_form = WPCF7_ContactForm::get_current();
+		if ( ! $contact_form ) {
+			return $form_html;
+		}
+
+		$cf7_crm  = get_option( 'cf7_crm_' . $contact_form->id() );
+		$crm_type = ! empty( $cf7_crm['fc_crm_type'] ) ? $cf7_crm['fc_crm_type'] : '';
+
+		if ( 'clientify' !== $crm_type ) {
+			return $form_html;
+		}
+
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		if ( false !== strpos( $form_html, 'name="formscrm_vk"' ) ) {
+			return $form_html;
+		}
+
+		$hidden_fields = '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />';
+
+		$pos_submit = strpos( $form_html, '<input type="submit"' );
+		if ( false === $pos_submit ) {
+			return $form_html . $hidden_fields;
+		}
+
+		return substr_replace( $form_html, $hidden_fields, $pos_submit, 0 );
 	}
 
 	/**
@@ -86,48 +128,39 @@ class FORMSCRM_CF7_Settings {
 				</p>
 				<?php if ( isset( $cf7_crm['fc_crm_type'] ) && $cf7_crm['fc_crm_type'] ) { ?>
 
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_url(), true ) ) { ?>
+					<?php
+					foreach ( formscrm_get_crm_field_definitions() as $def ) {
+						$dependency = call_user_func( $def['dependency'] );
+						if ( ! in_array( $cf7_crm['fc_crm_type'], $dependency, true ) ) {
+							continue;
+						}
+						$field_name = 'fc_crm_' . $def['name'];
+						$field_id   = 'wpcf7-crm-' . $field_name;
+						$value      = isset( $cf7_crm[ $field_name ] ) ? $cf7_crm[ $field_name ] : '';
+						?>
 					<p>
-						<label for="wpcf7-crm-fc_crm_url"><?php esc_html_e( 'URL:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_url" name="wpcf7-crm[fc_crm_url]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM URL', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_url'] ) ) ? esc_attr( $cf7_crm['fc_crm_url'] ) : ''; ?>" />
+						<label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $def['label'] ); ?>:</label><br />
+						<?php
+						if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+							?>
+						<select id="<?php echo esc_attr( $field_id ); ?>" name="wpcf7-crm[<?php echo esc_attr( $field_name ); ?>]" class="wide" size="1">
+							<?php
+							foreach ( $def['choices'] as $choice ) {
+								echo '<option value="' . esc_attr( $choice['value'] ) . '" ' . selected( $value, $choice['value'], false ) . '>' . esc_html( $choice['label'] ) . '</option>';
+							}
+							?>
+						</select>
+							<?php
+						} else {
+							$input_type = 'api_key' === $def['type'] ? 'password' : 'text';
+							?>
+						<input type="<?php echo esc_attr( $input_type ); ?>" id="<?php echo esc_attr( $field_id ); ?>" name="wpcf7-crm[<?php echo esc_attr( $field_name ); ?>]" class="wide" size="70" placeholder="<?php echo esc_attr( $def['label'] ); ?>" value="<?php echo esc_attr( $value ); ?>" />
+							<?php
+						}
+						?>
 					</p>
 					<?php } ?>
 
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_username(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_username"><?php esc_html_e( 'Username:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_username" name="wpcf7-crm[fc_crm_username]" class="wide" size="70" placeholder="<?php esc_html_e( 'Username', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_username'] ) ) ? esc_attr( $cf7_crm['fc_crm_username'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_password(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_password"><?php esc_html_e( 'Password:', 'formscrm' ); ?></label><br />
-						<input type="password" id="wpcf7-crm-fc_crm_password" name="wpcf7-crm[fc_crm_password]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM Password', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_password'] ) ) ? esc_attr( $cf7_crm['fc_crm_password'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apipassword(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_apipassword"><?php esc_html_e( 'API Password:', 'formscrm' ); ?></label><br />
-						<input type="password" id="wpcf7-crm-fc_crm_apipassword" name="wpcf7-crm[fc_crm_apipassword]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM API Password', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_apipassword'] ) ) ? esc_attr( $cf7_crm['fc_crm_apipassword'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_apisales(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_apisales"><?php esc_html_e( 'API Sales:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_apisales" name="wpcf7-crm[fc_crm_apisales]" class="wide" size="70" placeholder="<?php esc_html_e( 'CRM Sales', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_apisales'] ) ) ? esc_attr( $cf7_crm['fc_crm_apisales'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-
-					<?php if ( false !== array_search( $cf7_crm['fc_crm_type'], formscrm_get_dependency_odoodb(), true ) ) { ?>
-					<p>
-						<label for="wpcf7-crm-fc_crm_odoodb"><?php esc_html_e( 'Odoo DB:', 'formscrm' ); ?></label><br />
-						<input type="text" id="wpcf7-crm-fc_crm_odoodb" name="wpcf7-crm[fc_crm_odoodb]" class="wide" size="70" placeholder="<?php esc_html_e( 'Odoo DB', 'formscrm' ); ?>" value="<?php echo ( isset( $cf7_crm['fc_crm_odoodb'] ) ) ? esc_attr( $cf7_crm['fc_crm_odoodb'] ) : ''; ?>" />
-					</p>
-					<?php } ?>
-					
 					<?php
 					$this->crmlib = formscrm_get_api_class( $cf7_crm['fc_crm_type'] );
 					?>
@@ -220,20 +253,24 @@ class FORMSCRM_CF7_Settings {
 										</label>
 									</td>
 									<td class="cf7-map-column cf7-map-column-value">
-										<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>]" style="min-width:300px; margin-bottom: 10px;">
+										<?php $saved_mapping = isset( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] ) ? (string) $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] : ''; ?>
+										<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>]" data-formscrm-custom="1" style="min-width:300px; margin-bottom: 10px;">
 											<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 											<?php
 											foreach ( $form_fields as $form_field ) {
 												$field_value = isset( $form_field['name'] ) ? $form_field['name'] : '';
 												$field_label = ! empty( $form_field['label'] ) ? $form_field['label'] : $field_value;
 												echo '<option value="' . esc_attr( $field_value ) . '" ';
-												if ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] ) ) {
-													selected( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ], $field_value );
-												}
+												selected( $saved_mapping, $field_value );
 												echo '>' . esc_html( $field_label ) . '</option>';
 											}
+											echo formscrm_custom_value_option_html( $saved_mapping ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
 											?>
 										</select>
+										<?php
+										$custom_value = isset( $cf7_crm[ 'fc_crm_custom-' . $crm_field_name ] ) ? (string) $cf7_crm[ 'fc_crm_custom-' . $crm_field_name ] : '';
+										echo formscrm_custom_value_input_html( 'wpcf7-crm[fc_crm_custom-' . $crm_field_name . ']', $custom_value, $saved_mapping ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
+										?>
 									</td>
 							</tr>
 							<?php
@@ -265,7 +302,16 @@ class FORMSCRM_CF7_Settings {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput -- Nonce verification and sanitization handled by Contact Form 7.
 		if ( isset( $_POST['wpcf7-crm'] ) && is_array( $_POST['wpcf7-crm'] ) ) {
 			$crm_data = array_map( 'sanitize_text_field', wp_unslash( $_POST['wpcf7-crm'] ) );
-			update_option( 'cf7_crm_' . $args->id(), array_filter( $crm_data ) );
+			// Keep a fixed value of "0"; only drop empty strings.
+			update_option(
+				'cf7_crm_' . $args->id(),
+				array_filter(
+					$crm_data,
+					function ( $item ) {
+						return '' !== $item;
+					}
+				)
+			);
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput
 	}
@@ -295,15 +341,35 @@ class FORMSCRM_CF7_Settings {
 			formscrm_alert_error( $crm_type, sprintf( __( 'CRM class not found for type: %s', 'formscrm' ), $crm_type ), array(), '', '', $form_info );
 			return;
 		}
-		$merge_vars      = self::get_merge_vars( $cf7_crm, $submission->get_posted_data() );
-		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $cf7_crm, array() );
-		$response_result = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
+		$posted_data                   = $submission->get_posted_data();
+		$merge_vars                    = self::get_merge_vars( $cf7_crm, $posted_data );
+		$merge_vars                    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $crm_type, $posted_data ) );
+		$merge_vars                    = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $cf7_crm, array() );
+		$cf7_crm['formscrm_form_type'] = 'contactform7';
+		$response_result               = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
 
-		if ( 'error' === $response_result['status'] ) {
+		if ( ! is_array( $response_result ) ) {
+			formscrm_alert_error( $crm_type, __( 'The CRM did not return a valid response.', 'formscrm' ), $merge_vars, '', '', $form_info );
+			return;
+		}
+
+		if ( ! empty( $response_result['redirect_url'] ) ) {
+			/**
+			 * Hosted payment gateways return a local, signed handoff URL. The
+			 * addon adds it to Contact Form 7's REST response for its frontend.
+			 */
+			do_action( 'formscrm_payment_redirect', $response_result['redirect_url'], 'contactform7', $contact_form->id() );
+		}
+
+		if ( isset( $response_result['status'] ) && 'error' === $response_result['status'] ) {
 			$url   = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query = isset( $response_result['query'] ) ? $response_result['query'] : '';
 
 			formscrm_alert_error( $cf7_crm['fc_crm_type'], 'Error ' . $response_result['message'], $merge_vars, $url, $query, $form_info );
+		} else {
+			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
+			$crm_name = formscrm_get_crm_display_name( $response_result, $cf7_crm['fc_crm_type'] );
+			formscrm_debug_message( 'Success creating ' . $crm_name . ' Entry ID: ' . ( $response_result['id'] ?? '' ) );
 		}
 	}
 
@@ -325,7 +391,9 @@ class FORMSCRM_CF7_Settings {
 			}
 			$crm_key = str_replace( 'fc_crm_field-', '', $key );
 
-			if ( array_key_exists( $value, $submitted_data ) ) {
+			if ( FORMSCRM_CUSTOM_VALUE === $value ) {
+				$value = isset( $cf7_crm[ 'fc_crm_custom-' . $crm_key ] ) ? (string) $cf7_crm[ 'fc_crm_custom-' . $crm_key ] : '';
+			} elseif ( array_key_exists( $value, $submitted_data ) ) {
 				$value = $submitted_data[ $value ];
 			}
 
@@ -369,6 +437,8 @@ class FORMSCRM_CF7_Settings {
 			FORMSCRM_VERSION,
 			'all'
 		);
+
+		formscrm_enqueue_custom_value_script();
 
 		// Enqueue JavaScript.
 		wp_enqueue_script(

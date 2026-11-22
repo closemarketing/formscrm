@@ -61,6 +61,29 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 		}
 
 		/**
+		 * Stores the latest result of a resend/retry so the entry list shows it.
+		 *
+		 * @param object $log    Error log row.
+		 * @param string $status 'success' or 'error'.
+		 * @param array  $data   CRM response (id, message, fc_crm_name) or array with message.
+		 * @return void
+		 */
+		private function record_sync_status( $log, $status, array $data = array() ) {
+			formscrm_record_sync_status(
+				(string) $log->form_type,
+				(int) $log->form_id,
+				(int) $log->entry_id,
+				(string) $log->crm_type,
+				array(
+					'status'     => $status,
+					'contact_id' => isset( $data['id'] ) ? $data['id'] : '',
+					'crm_name'   => formscrm_get_crm_display_name( $data, '' ),
+					'message'    => isset( $data['message'] ) ? $data['message'] : '',
+				)
+			);
+		}
+
+		/**
 		 * Schedule retry using Action Scheduler or WP-Cron fallback
 		 *
 		 * @param int $log_id Log ID to retry.
@@ -446,6 +469,10 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				);
 			}
 
+			// Merge the feed's own meta (e.g. merge strategy) so resends behave
+			// exactly like the original submission instead of always creating.
+			$settings = formscrm_merge_feed_meta_into_settings( $settings, (string) $log->form_type, (string) $log->form_id, (string) $log->entry_id );
+
 			// Get CRM API class.
 			$api_class = formscrm_get_api_class( $log->crm_type );
 
@@ -485,6 +512,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					// Cancel any scheduled retries.
 					$this->cancel_scheduled_retry( $log_id );
 
+					$this->record_sync_status( $log, 'success', is_array( $response ) ? $response : array() );
 					formscrm_add_entry_note(
 						$log->form_type,
 						$log->entry_id,
@@ -504,6 +532,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				} else {
 					$error_message = isset( $response['message'] ) ? $response['message'] : __( 'Unknown error occurred', 'formscrm' );
 
+					$this->record_sync_status( $log, 'error', is_array( $response ) ? $response : array() );
 					formscrm_add_entry_note(
 						$log->form_type,
 						$log->entry_id,
@@ -523,6 +552,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					);
 				}
 			} catch ( Exception $e ) {
+				$this->record_sync_status( $log, 'error', array( 'message' => $e->getMessage() ) );
 				formscrm_add_entry_note(
 					$log->form_type,
 					$log->entry_id,
@@ -817,6 +847,10 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 				return;
 			}
 
+			// Merge the feed's own meta (e.g. merge strategy) so retries behave
+			// exactly like the original submission instead of always creating.
+			$settings = formscrm_merge_feed_meta_into_settings( $settings, (string) $log->form_type, (string) $log->form_id, (string) $log->entry_id );
+
 			// Get CRM API class.
 			$api_class = formscrm_get_api_class( $log->crm_type );
 
@@ -840,6 +874,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					// Cancel any pending scheduled retries (AS + WP-Cron).
 					$this->cancel_scheduled_retry( $log_id );
 
+					$this->record_sync_status( $log, 'success', is_array( $response ) ? $response : array() );
 					formscrm_add_entry_note(
 						$log->form_type,
 						$log->entry_id,
@@ -858,6 +893,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 					$error_msg = isset( $response['message'] ) ? $response['message'] : 'Unknown error';
 					formscrm_debug_message( "Auto-retry FAILED for log {$log_id}: {$error_msg}" );
 
+					$this->record_sync_status( $log, 'error', is_array( $response ) ? $response : array() );
 					formscrm_add_entry_note(
 						$log->form_type,
 						$log->entry_id,
@@ -884,6 +920,7 @@ if ( ! class_exists( 'FORMSCRM_Error_Log' ) ) {
 			} catch ( Exception $e ) {
 				formscrm_debug_message( "Auto-retry EXCEPTION for log {$log_id}: {$e->getMessage()}" );
 
+				$this->record_sync_status( $log, 'error', array( 'message' => $e->getMessage() ) );
 				formscrm_add_entry_note(
 					$log->form_type,
 					$log->entry_id,

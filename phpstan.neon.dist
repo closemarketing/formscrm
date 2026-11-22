@@ -9,4 +9,5 @@ parameters:
 		- includes
 	bootstrapFiles:
 		- tests/phpstan-bootstrap.php
+		- tests/stubs/stub-gravityforms-settings.php
 

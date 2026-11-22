@@ -28,6 +28,9 @@ const { useFields } = window.jfb.blocksToActions;
 // ─── Data provided by wp_localize_script in class-jetformbuilder.php ──────────
 const { restUrl, nonce, choices: crmChoices, virtualFields: extraFields = [] } = window.formsCrmJfb || {};
 
+// Mapping value meaning "send the fixed text typed below the select".
+const CUSTOM_VALUE = '@formscrm_custom';
+
 /**
  * Map the raw formscrm_get_choices() array into WP SelectControl options.
  */
@@ -43,6 +46,7 @@ const needsPassword    = [ 'bitrix24', 'espo_crm', 'facturadirecta', 'msdyn', 'm
 const needsApiPassword = [ 'hubspot', 'solve360', 'vtiger_6', 'odoo', 'holded', 'clientify', 'brevo', 'acumbamail', 'mailerlite' ];
 const needsApiSales    = [ 'salesforce' ];
 const needsOdooDB      = [ 'odoo' ];
+const needsRedsys      = [ 'redsys' ];
 
 /**
  * POST to our REST endpoint and return parsed JSON.
@@ -76,7 +80,7 @@ function CredentialFields( { settings, onChangeSettingObj } ) {
 			el( StyledSelectControl, {
 				value: type,
 				options: crmTypeOptions,
-				onChange: ( v ) => onChangeSettingObj( { fc_crm_type: v, fc_crm_module: '', fields_map: {} } ),
+				onChange: ( v ) => onChangeSettingObj( { fc_crm_type: v, fc_crm_module: '', fields_map: {}, custom_values: {} } ),
 			} )
 		),
 
@@ -130,6 +134,23 @@ function CredentialFields( { settings, onChangeSettingObj } ) {
 				onChange: ( v ) => onChangeSettingObj( { fc_crm_odoodb: v } ),
 			} )
 		),
+
+		type && needsRedsys.includes( type ) && el( RowControl, null,
+			el( Label, null, __( 'Commerce number FUC', 'formscrm' ) ),
+			el( TextControl, { value: settings.fc_crm_fuc || '', onChange: ( v ) => onChangeSettingObj( { fc_crm_fuc: v } ) } )
+		),
+		type && needsRedsys.includes( type ) && el( RowControl, null,
+			el( Label, null, __( 'Terminal number', 'formscrm' ) ),
+			el( TextControl, { value: settings.fc_crm_terminal || '', onChange: ( v ) => onChangeSettingObj( { fc_crm_terminal: v } ) } )
+		),
+		type && needsRedsys.includes( type ) && el( RowControl, null,
+			el( Label, null, __( 'SHA Secret Key', 'formscrm' ) ),
+			el( TextControl, { type: 'password', value: settings.fc_crm_sha_secret || '', onChange: ( v ) => onChangeSettingObj( { fc_crm_sha_secret: v } ) } )
+		),
+		type && needsRedsys.includes( type ) && el( RowControl, null,
+			el( Label, null, __( 'Mode', 'formscrm' ) ),
+			el( SelectControl, { value: settings.fc_crm_redsys_mode || 'production', options: [ { value: 'test', label: __( 'Test', 'formscrm' ) }, { value: 'production', label: __( 'Production', 'formscrm' ) } ], onChange: ( v ) => onChangeSettingObj( { fc_crm_redsys_mode: v } ) } )
+		),
 	);
 }
 
@@ -162,7 +183,7 @@ function ModuleSelector( { settings, onChangeSettingObj } ) {
 			.catch( ( err ) => setError( err.message ) )
 			.finally( () => setLoading( false ) );
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ type, settings.use_global, settings.fc_crm_url, settings.fc_crm_username, settings.fc_crm_password, settings.fc_crm_apipassword ] );
+	}, [ type, settings.use_global, settings.fc_crm_url, settings.fc_crm_username, settings.fc_crm_password, settings.fc_crm_apipassword, settings.fc_crm_fuc, settings.fc_crm_terminal, settings.fc_crm_sha_secret, settings.fc_crm_redsys_mode ] );
 
 	if ( ! type ) {
 		return null;
@@ -182,7 +203,7 @@ function ModuleSelector( { settings, onChangeSettingObj } ) {
 				: el( StyledSelectControl, {
 					value: module,
 					options,
-					onChange: ( v ) => onChangeSettingObj( { fc_crm_module: v, fields_map: {} } ),
+					onChange: ( v ) => onChangeSettingObj( { fc_crm_module: v, fields_map: {}, custom_values: {} } ),
 				} )
 	);
 }
@@ -190,7 +211,7 @@ function ModuleSelector( { settings, onChangeSettingObj } ) {
 /**
  * Fields mapping table — shows CRM fields on the left, form fields on the right.
  */
-function FieldsMap( { settings, getMapField, setMapField } ) {
+function FieldsMap( { settings, onChangeSettingObj, getMapField, setMapField } ) {
 	const { useState, useEffect } = window.React;
 	const [ crmFields, setCrmFields ] = useState( [] );
 	const [ loading, setLoading ] = useState( false );
@@ -199,7 +220,9 @@ function FieldsMap( { settings, getMapField, setMapField } ) {
 	const formFields = [
 		...useFields( { withInner: false, placeholder: '--' } ),
 		...extraFields,
+		{ value: CUSTOM_VALUE, label: __( 'Custom value', 'formscrm' ) },
 	];
+	const customValues = settings.custom_values || {};
 
 	const type   = settings.fc_crm_type || '';
 	const module = settings.fc_crm_module || '';
@@ -216,7 +239,7 @@ function FieldsMap( { settings, getMapField, setMapField } ) {
 			.catch( ( err ) => setError( err.message ) )
 			.finally( () => setLoading( false ) );
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ type, module, settings.use_global, settings.fc_crm_url, settings.fc_crm_username, settings.fc_crm_password, settings.fc_crm_apipassword ] );
+	}, [ type, module, settings.use_global, settings.fc_crm_url, settings.fc_crm_username, settings.fc_crm_password, settings.fc_crm_apipassword, settings.fc_crm_fuc, settings.fc_crm_terminal, settings.fc_crm_sha_secret, settings.fc_crm_redsys_mode ] );
 
 	if ( ! type || ! module ) {
 		return null;
@@ -242,15 +265,27 @@ function FieldsMap( { settings, getMapField, setMapField } ) {
 			Flex,
 			{ direction: 'column', gap: 4 },
 			...crmFields.map( ( field ) =>
-				el( FieldsMapField, {
-					key: field.name,
-					tag: field.name,
-					label: field.label,
-					isRequired: field.required,
-					formFields,
-					value: getMapField( { name: field.name } ),
-					onChange: ( v ) => setMapField( { nameField: field.name, value: v } ),
-				} )
+				el(
+					'div',
+					{ key: field.name },
+					el( FieldsMapField, {
+						tag: field.name,
+						label: field.label,
+						isRequired: field.required,
+						formFields,
+						value: getMapField( { name: field.name } ),
+						onChange: ( v ) => setMapField( { nameField: field.name, value: v } ),
+					} ),
+					CUSTOM_VALUE === getMapField( { name: field.name } ) &&
+						el( TextControl, {
+							placeholder: __( 'Fixed value, e.g. Web or {id:field}', 'formscrm' ),
+							value: customValues[ field.name ] || '',
+							onChange: ( v ) =>
+								onChangeSettingObj( {
+									custom_values: { ...customValues, [ field.name ]: v },
+								} ),
+						} )
+				)
 			)
 		)
 	);
@@ -305,7 +340,7 @@ function FormsCrmEdit( { settings, onChangeSettingObj, getMapField, setMapField 
 		( settings.fc_crm_module ) && el( WideLine, null ),
 
 		// Field mapping.
-		el( FieldsMap, { settings: effectiveSettings, getMapField, setMapField } ),
+		el( FieldsMap, { settings: effectiveSettings, onChangeSettingObj, getMapField, setMapField } ),
 	);
 }
 

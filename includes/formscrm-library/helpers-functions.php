@@ -94,6 +94,122 @@ if ( ! function_exists( 'formscrm_get_crm_settings' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_merge_feed_meta_into_settings' ) ) {
+	/**
+	 * Merge a Gravity Forms feed's meta (e.g. fc_crm_merge_entry, fc_crm_module)
+	 * into the given settings array, matching what process_feed() does on the
+	 * original submission. Needed for resends/retries, which only start from the
+	 * plugin's global CRM settings and otherwise never see per-feed settings like
+	 * the merge strategy.
+	 *
+	 * A form can have multiple FormsCRM feeds (e.g. different CRMs/modules per
+	 * feed_condition), and feeds don't reliably carry their own CRM type in meta
+	 * (fc_crm_type is resolved at runtime from fc_crm_custom_type, usually unset
+	 * when a feed just uses the plugin's globally configured CRM). So instead of
+	 * matching on CRM type, this evaluates each feed's condition against the
+	 * actual entry, matching the addon framework's own feed selection.
+	 *
+	 * @param array  $settings  Settings array to merge into.
+	 * @param string $form_type Type of form (gravity, woocommerce, etc).
+	 * @param string $form_id   Gravity Forms form ID.
+	 * @param string $entry_id  Gravity Forms entry ID for the original submission.
+	 * @return array Settings array with feed meta merged in.
+	 */
+	function formscrm_merge_feed_meta_into_settings( array $settings, string $form_type, string $form_id, string $entry_id = '' ): array {
+		if ( ! in_array( $form_type, array( 'gravity', 'gravityforms' ), true ) || empty( $form_id ) || ! class_exists( 'GFAPI' ) ) {
+			return $settings;
+		}
+
+		$feeds = GFAPI::get_feeds( null, $form_id, 'formscrm' );
+
+		if ( is_wp_error( $feeds ) || empty( $feeds ) ) {
+			return $settings;
+		}
+
+		$active_feeds = array_values(
+			array_filter(
+				$feeds,
+				function ( $feed ) {
+					return ! empty( $feed['is_active'] );
+				}
+			)
+		);
+
+		if ( empty( $active_feeds ) ) {
+			return $settings;
+		}
+
+		$matched_feed = null;
+
+		if ( ! empty( $entry_id ) && class_exists( 'GFCRM' ) ) {
+			$form  = GFAPI::get_form( $form_id );
+			$entry = GFAPI::get_entry( $entry_id );
+
+			if ( ! is_wp_error( $form ) && ! is_wp_error( $entry ) ) {
+				$addon = GFCRM::get_instance();
+
+				foreach ( $active_feeds as $feed ) {
+					if ( $addon->is_feed_condition_met( $feed, $form, $entry ) ) {
+						$matched_feed = $feed;
+						break;
+					}
+				}
+			}
+		}
+
+		// Fall back to the first active feed if the entry-based match failed
+		// (e.g. missing entry_id, or no feed's condition matched).
+		if ( null === $matched_feed ) {
+			$matched_feed = $active_feeds[0];
+		}
+
+		foreach ( $matched_feed['meta'] as $key => $value ) {
+			if ( ! empty( $value ) ) {
+				$settings[ $key ] = $value;
+			}
+		}
+
+		return $settings;
+	}
+}
+
+if ( ! function_exists( 'formscrm_get_crm_display_name' ) ) {
+	/**
+	 * Returns the CRM display name reported by a login()/create_entry() result,
+	 * falling back to the CRM type when the CRM class doesn't report one.
+	 *
+	 * @param array  $result   Result array from login() or create_entry(), may contain 'crm_name' or 'fc_crm_name'.
+	 * @param string $fallback CRM type to use when no display name is reported.
+	 * @return string
+	 */
+	function formscrm_get_crm_display_name( $result, $fallback ) {
+		if ( ! empty( $result['fc_crm_name'] ) ) {
+			return $result['fc_crm_name'];
+		}
+		if ( ! empty( $result['crm_name'] ) ) {
+			return $result['crm_name'];
+		}
+		return $fallback;
+	}
+}
+
+if ( ! function_exists( 'formscrm_format_crm_success_label' ) ) {
+	/**
+	 * Formats the CRM label for success messages: "Name (Type)" when the CRM
+	 * class reports a distinct display name, or bare "Type" otherwise.
+	 *
+	 * @param array  $result Result array from login() or create_entry(), may contain 'crm_name' or 'fc_crm_name'.
+	 * @param string $type   CRM type slug/label.
+	 * @return string
+	 */
+	function formscrm_format_crm_success_label( $result, $type ) {
+		if ( empty( $result['fc_crm_name'] ) && empty( $result['crm_name'] ) ) {
+			return $type;
+		}
+		return formscrm_get_crm_display_name( $result, $type ) . ' (' . $type . ')';
+	}
+}
+
 if ( ! function_exists( 'formscrm_debug_message' ) ) {
 	/**
 	 * Debug message in log
@@ -108,6 +224,30 @@ if ( ! function_exists( 'formscrm_debug_message' ) ) {
 			}
 			error_log( 'FORMSCRM: ' . esc_html__( 'Message Debug Mode', 'formscrm' ) . ' ' . esc_html( $message ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
+	}
+}
+
+if ( ! function_exists( 'formscrm_sanitize_field_map' ) ) {
+	/**
+	 * Ensures a CRM field map is a list of field definitions.
+	 *
+	 * CRM libraries may return an error payload (status/data/message) from
+	 * list_fields() instead of fields. Passing it to Gravity Forms' Field_Map
+	 * throws "Cannot access offset of type string on string".
+	 *
+	 * @param mixed $field_map Field map returned by the CRM library.
+	 * @return array List of field definitions (arrays only).
+	 */
+	function formscrm_sanitize_field_map( $field_map ) {
+		if ( ! is_array( $field_map ) ) {
+			return array();
+		}
+		if ( isset( $field_map['status'] ) && 'error' === $field_map['status'] ) {
+			// Always logged (not only with WP_DEBUG) so production keeps a record of the CRM response.
+			error_log( 'FORMSCRM: CRM list_fields error: ' . wp_json_encode( $field_map ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			return array();
+		}
+		return array_values( array_filter( $field_map, 'is_array' ) );
 	}
 }
 
@@ -214,12 +354,25 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 		$custom_email = get_option( 'formscrm_error_notification_email', '' );
 		$to           = ! empty( $custom_email ) ? $custom_email : get_option( 'admin_email' );
 
+		// Allow CRM addons (e.g. payment gateways) to override the error report wording.
+		$labels = apply_filters(
+			'formscrm_alert_error_labels',
+			array(
+				'subject_reason' => __( 'Error creating the Lead', 'formscrm' ),
+				'report_title'   => __( 'FormsCRM Error Report', 'formscrm' ),
+				'data_section'   => __( 'Lead Data', 'formscrm' ),
+				'slack_title'    => __( '⚠️ FormsCRM Error Report', 'formscrm' ),
+				'slack_data'     => __( 'Lead:', 'formscrm' ),
+			),
+			$crm
+		);
+
 		// Subject with site name.
 		$site_name = get_bloginfo( 'name' );
 		$subject   = sprintf(
 			'[%s] FormsCRM - %s',
 			$site_name,
-			__( 'Error creating the Lead', 'formscrm' )
+			$labels['subject_reason']
 		);
 
 		// Body with site information.
@@ -227,7 +380,7 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 		$body .= '<div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">';
 
 		// Header.
-		$body .= '<h2 style="color: #d32f2f; margin-top: 0;">' . __( 'FormsCRM Error Report', 'formscrm' ) . '</h2>';
+		$body .= '<h2 style="color: #d32f2f; margin-top: 0;">' . esc_html( $labels['report_title'] ) . '</h2>';
 
 		// Site Information.
 		$body .= '<div style="background-color: #f5f5f5; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
@@ -273,7 +426,7 @@ if ( ! function_exists( 'formscrm_alert_error' ) ) {
 
 		// Lead Data.
 		$body .= '<div style="background-color: #fff3e0; padding: 15px; border-radius: 3px; margin-bottom: 20px;">';
-		$body .= '<h3 style="margin-top: 0; color: #f57c00;">' . __( 'Lead Data', 'formscrm' ) . '</h3>';
+		$body .= '<h3 style="margin-top: 0; color: #f57c00;">' . esc_html( $labels['data_section'] ) . '</h3>';
 		$body .= '<table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">';
 		foreach ( $data as $dataitem ) {
 			$body .= '<tr style="border-bottom: 1px solid #eee;">';
@@ -356,6 +509,19 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			return false;
 		}
 
+		// Allow CRM addons (e.g. payment gateways) to override the error report wording.
+		$labels = apply_filters(
+			'formscrm_alert_error_labels',
+			array(
+				'subject_reason' => __( 'Error creating the Lead', 'formscrm' ),
+				'report_title'   => __( 'FormsCRM Error Report', 'formscrm' ),
+				'data_section'   => __( 'Lead Data', 'formscrm' ),
+				'slack_title'    => __( '⚠️ FormsCRM Error Report', 'formscrm' ),
+				'slack_data'     => __( 'Lead:', 'formscrm' ),
+			),
+			$crm
+		);
+
 		// Build the Slack message.
 		$site_name = get_bloginfo( 'name' );
 		$site_url  = get_site_url();
@@ -404,7 +570,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 			}
 
 			if ( ! empty( $lead_parts ) ) {
-				$message_text .= '*' . __( 'Lead:', 'formscrm' ) . '* ' . implode( ' | ', $lead_parts );
+				$message_text .= '*' . $labels['slack_data'] . '* ' . implode( ' | ', $lead_parts );
 
 				if ( count( $data ) > 3 ) {
 					/* translators: %d: number of additional fields not shown */
@@ -433,7 +599,7 @@ if ( ! function_exists( 'formscrm_send_slack_notification' ) ) {
 						$error
 					),
 					'color'       => 'danger',
-					'title'       => __( '⚠️ FormsCRM Error Report', 'formscrm' ),
+					'title'       => $labels['slack_title'],
 					'text'        => $message_text,
 					'footer'      => 'FormsCRM',
 					'footer_icon' => 'https://close.technology/wp-content/uploads/2023/12/close-technology-logo.png',
@@ -691,6 +857,11 @@ if ( ! function_exists( 'formscrm_check_connection_status' ) ) {
 		$login_result = $crmlib->login( $settings );
 		$login_status = isset( $login_result['status'] ) ? $login_result['status'] : '';
 
+		// CRM classes may report a display name (e.g. "Holded v2") via the login() message.
+		if ( is_array( $login_result ) && ! empty( $login_result['crm_name'] ) ) {
+			$data['crm_type'] = $login_result['crm_name'];
+		}
+
 		if ( ! $login_result || ( is_array( $login_result ) && isset( $login_result['status'] ) && 'error' === $login_result['status'] ) ) {
 			$data['status']        = 'error';
 			$data['text']          = __( 'Error', 'formscrm' );
@@ -850,6 +1021,125 @@ if ( ! function_exists( 'formscrm_build_status_html' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_merge_custom_crm_credentials' ) ) {
+	/**
+	 * Merges the per-feed custom CRM credentials into the plugin settings.
+	 *
+	 * Order of precedence: posted feed setting, saved feed meta, then the
+	 * "fc_crm_custom_*" plugin setting. Empty or whitespace-only values are skipped so a blank
+	 * field (e.g. a password input that is never pre-filled) does not wipe the
+	 * credential the feed inherits. Otherwise the CRM login fails while saving
+	 * the feed and Gravity Forms stores the field map in an unusable format.
+	 *
+	 * The global "fc_crm_*" credentials are only inherited when the feed uses
+	 * the same CRM type as the plugin settings, so one CRM's credentials are
+	 * never sent to another CRM's API.
+	 *
+	 * @param array $settings       Plugin settings.
+	 * @param array $posted         Unslashed posted values.
+	 * @param array $feed_meta      Saved feed meta.
+	 * @param bool  $inherit_global Whether the global credentials can be inherited.
+	 * @return array Settings with "fc_crm_*" credentials resolved.
+	 */
+	function formscrm_merge_custom_crm_credentials( array $settings, array $posted, array $feed_meta, $inherit_global = true ) {
+		$variables = defined( 'FORMSCRM_CRED_VARIABLES' ) ? FORMSCRM_CRED_VARIABLES : array();
+
+		foreach ( $variables as $variable ) {
+			$custom_key = 'fc_crm_custom_' . $variable;
+			$posted_key = '_gform_setting_' . $custom_key;
+
+			if ( isset( $posted[ $posted_key ] ) && is_scalar( $posted[ $posted_key ] ) && '' !== trim( (string) $posted[ $posted_key ] ) ) {
+				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( (string) $posted[ $posted_key ] );
+			} elseif ( isset( $feed_meta[ $custom_key ] ) && is_scalar( $feed_meta[ $custom_key ] ) && '' !== trim( (string) $feed_meta[ $custom_key ] ) ) {
+				$settings[ 'fc_crm_' . $variable ] = $feed_meta[ $custom_key ];
+			} elseif ( isset( $settings[ $custom_key ] ) ) {
+				$settings[ 'fc_crm_' . $variable ] = $settings[ $custom_key ];
+				unset( $settings[ $custom_key ] );
+			} elseif ( ! $inherit_global ) {
+				unset( $settings[ 'fc_crm_' . $variable ] );
+			}
+		}
+
+		return $settings;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_get_nested_field_map' ) ) {
+	/**
+	 * Reads a field map stored as a nested array of mappings.
+	 *
+	 * Gravity Forms stores "{name}_{key}" entries, but feeds saved while the
+	 * map field was not registered keep the raw list of
+	 * array( 'key' => ..., 'value' => ... ) mappings under "{name}".
+	 *
+	 * @param array  $feed_meta Feed meta.
+	 * @param string $name      Field map setting name.
+	 * @return array CRM field key => form field ID, mapped rows only.
+	 */
+	function formscrm_gf_get_nested_field_map( $feed_meta, $name ) {
+		$field_map = array();
+
+		if ( ! is_array( $feed_meta ) || empty( $feed_meta[ $name ] ) || ! is_array( $feed_meta[ $name ] ) ) {
+			return $field_map;
+		}
+
+		foreach ( $feed_meta[ $name ] as $mapping ) {
+			// Skip unmapped rows so an all-blank map still triggers the adminLabel fallback.
+			if ( ! is_array( $mapping ) || empty( $mapping['key'] ) || ! isset( $mapping['value'] ) || ! is_scalar( $mapping['value'] ) || '' === (string) $mapping['value'] ) {
+				continue;
+			}
+
+			$field_map[ (string) $mapping['key'] ] = (string) $mapping['value'];
+		}
+
+		return $field_map;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_flatten_nested_field_map' ) ) {
+	/**
+	 * Converts a nested field map into Gravity Forms' "{name}_{key}" settings.
+	 *
+	 * When the CRM login fails while saving a feed, the field map is not
+	 * registered and Gravity Forms keeps the raw list of
+	 * array( 'key' => ..., 'value' => ... ) mappings under "{name}". This
+	 * rewrites it in the format a registered field map is saved in, so the
+	 * mapping survives any login failure. Existing "{name}_{key}" values win.
+	 *
+	 * @param array  $settings Feed settings about to be saved.
+	 * @param string $name     Field map setting name.
+	 * @return array Settings with the nested map replaced by "{name}_{key}" entries.
+	 */
+	function formscrm_gf_flatten_nested_field_map( $settings, $name ) {
+		if ( ! is_array( $settings ) || empty( $settings[ $name ] ) || ! is_array( $settings[ $name ] ) ) {
+			return $settings;
+		}
+
+		foreach ( $settings[ $name ] as $mapping ) {
+			if ( ! is_array( $mapping ) || empty( $mapping['key'] ) || ! is_scalar( $mapping['key'] ) ) {
+				continue;
+			}
+
+			$setting_key = $name . '_' . $mapping['key'];
+			if ( isset( $settings[ $setting_key ] ) ) {
+				continue;
+			}
+
+			$settings[ $setting_key ] = isset( $mapping['value'] ) && is_scalar( $mapping['value'] ) ? (string) $mapping['value'] : '';
+
+			// Keep the text of "Add Custom Value" mappings, stored apart from the map.
+			$custom_key = formscrm_gf_custom_value_meta_key( $name, (string) $mapping['key'] );
+			if ( 'gf_custom' === $settings[ $setting_key ] && ! isset( $settings[ $custom_key ] ) && isset( $mapping['custom_value'] ) && is_scalar( $mapping['custom_value'] ) ) {
+				$settings[ $custom_key ] = sanitize_text_field( (string) $mapping['custom_value'] );
+			}
+		}
+
+		unset( $settings[ $name ] );
+
+		return $settings;
+	}
+}
+
 if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	/**
 	 * Returns the label text for a GravityForms choice matching the given value.
@@ -877,6 +1167,59 @@ if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 			}
 		}
 		return '';
+	}
+}
+
+
+if ( ! function_exists( 'formscrm_gf_get_prefixed_map' ) ) {
+	/**
+	 * Reconstructs a flat key => value map from a settings/meta array storing it
+	 * as individual "{prefix}{key}" entries — the format Gravity Forms' field_map
+	 * setting actually persists (there is no single nested 'listFields' entry).
+	 *
+	 * @param array  $source Settings or feed meta array.
+	 * @param string $prefix Key prefix, e.g. 'listFields_'.
+	 * @return array Map of key (with the prefix stripped) to its scalar value.
+	 */
+	function formscrm_gf_get_prefixed_map( array $source, $prefix ) {
+		$map = array();
+		$len = strlen( $prefix );
+
+		foreach ( $source as $key => $value ) {
+			if ( is_string( $key ) && 0 === strpos( $key, $prefix ) && is_scalar( $value ) ) {
+				$map[ substr( $key, $len ) ] = (string) $value;
+			}
+		}
+
+		return $map;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_set_prefixed_map' ) ) {
+	/**
+	 * Replaces every "{prefix}{key}" entry in a settings/meta array with the
+	 * given values, dropping any existing prefixed entry that isn't in $values
+	 * (e.g. a field belonging to a module the feed no longer uses).
+	 *
+	 * @param array  $target Settings or feed meta array to modify.
+	 * @param string $prefix Key prefix, e.g. 'listFields_'.
+	 * @param array  $values Map of key (without the prefix) to value.
+	 * @return array Modified array.
+	 */
+	function formscrm_gf_set_prefixed_map( array $target, $prefix, array $values ) {
+		foreach ( array_keys( $target ) as $key ) {
+			if ( is_string( $key ) && 0 === strpos( $key, $prefix ) ) {
+				unset( $target[ $key ] );
+			}
+		}
+
+		foreach ( $values as $key => $value ) {
+			if ( '' !== $value && null !== $value ) {
+				$target[ $prefix . $key ] = $value;
+			}
+		}
+
+		return $target;
 	}
 }
 
@@ -910,11 +1253,13 @@ if ( ! function_exists( 'formscrm_gf_merge_field_map' ) ) {
 	 * Preserves previously mapped GravityForms field selections when the target
 	 * field map changes (e.g. the feed's CRM connection or module was switched).
 	 *
-	 * For every field of the current map that has no value in $new_values, this
-	 * looks for a previous value under the same key first, then falls back to
-	 * matching by label against $old_labels, so mappings survive a connection
-	 * change whenever the target field still exists under the same or a
-	 * differently-keyed but identically-labelled entry.
+	 * Only keys present in $new_field_map are kept in the result — a field that
+	 * belonged to the previous module/connection is dropped instead of lingering
+	 * as a stale mapping. For every field of the current map that has no value
+	 * in $new_values, this looks for a previous value under the same key first,
+	 * then falls back to matching by label against $old_labels, so mappings
+	 * survive a connection change whenever the target field still exists under
+	 * the same or a differently-keyed but identically-labelled entry.
 	 *
 	 * @param array $new_field_map Field map definitions currently being saved/rendered; each item has 'name' and optionally 'label'.
 	 * @param array $new_values    Values submitted in the current save (key => GravityForms merge tag), possibly incomplete.
@@ -936,7 +1281,7 @@ if ( ! function_exists( 'formscrm_gf_merge_field_map' ) ) {
 			}
 		}
 
-		$merged = $new_values;
+		$merged = array();
 
 		foreach ( (array) $new_field_map as $field ) {
 			if ( empty( $field['name'] ) ) {
@@ -944,8 +1289,9 @@ if ( ! function_exists( 'formscrm_gf_merge_field_map' ) ) {
 			}
 			$key = $field['name'];
 
-			if ( ! empty( $merged[ $key ] ) ) {
-				continue; // Already mapped in the current submission.
+			if ( ! empty( $new_values[ $key ] ) ) {
+				$merged[ $key ] = $new_values[ $key ];
+				continue;
 			}
 
 			if ( ! empty( $old_values[ $key ] ) ) {
@@ -968,6 +1314,71 @@ if ( ! function_exists( 'formscrm_gf_merge_field_map' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_gf_field_prop' ) ) {
+	/**
+	 * Reads a property from a Gravity Forms field, whether it's a GF_Field
+	 * object or a plain array (e.g. after a JSON round trip).
+	 *
+	 * @param object|array $field Gravity Forms field.
+	 * @param string       $prop  Property name.
+	 * @return mixed Property value, or '' when absent.
+	 */
+	function formscrm_gf_field_prop( $field, $prop ) {
+		if ( is_object( $field ) ) {
+			return isset( $field->$prop ) ? $field->$prop : '';
+		}
+		if ( is_array( $field ) ) {
+			return isset( $field[ $prop ] ) ? $field[ $prop ] : '';
+		}
+		return '';
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_build_form_field_labels' ) ) {
+	/**
+	 * Builds a field/input id => label map for a Gravity Forms form.
+	 *
+	 * Used to re-identify a mapped field by its label when importing a feed
+	 * export into a different form, since a numeric field id only has meaning
+	 * within the form it was created on.
+	 *
+	 * @param array $form Gravity Forms form array.
+	 * @return array Map of field (or input) id to label.
+	 */
+	function formscrm_gf_build_form_field_labels( $form ) {
+		$labels = array();
+
+		$fields = is_array( $form ) && isset( $form['fields'] ) ? $form['fields'] : array();
+		if ( ! is_array( $fields ) ) {
+			return $labels;
+		}
+
+		foreach ( $fields as $field ) {
+			$field_id    = (string) formscrm_gf_field_prop( $field, 'id' );
+			$field_label = (string) formscrm_gf_field_prop( $field, 'label' );
+
+			if ( '' === $field_id || '' === $field_label ) {
+				continue;
+			}
+
+			$labels[ $field_id ] = $field_label;
+
+			$inputs = formscrm_gf_field_prop( $field, 'inputs' );
+			if ( is_array( $inputs ) ) {
+				foreach ( $inputs as $input ) {
+					$input_id    = isset( $input['id'] ) ? (string) $input['id'] : '';
+					$input_label = isset( $input['label'] ) ? (string) $input['label'] : '';
+					if ( '' !== $input_id ) {
+						$labels[ $input_id ] = trim( $field_label . ' ' . $input_label );
+					}
+				}
+			}
+		}
+
+		return $labels;
+	}
+}
+
 if ( ! function_exists( 'formscrm_gf_build_feed_export' ) ) {
 	/**
 	 * Builds the exportable data structure for a Gravity Forms feed.
@@ -976,23 +1387,29 @@ if ( ! function_exists( 'formscrm_gf_build_feed_export' ) ) {
 	 * the export is meant to back up and transfer the field mapping, not the
 	 * account it was configured against.
 	 *
-	 * @param array $feed Gravity Forms feed array, as returned by GFAPI::get_feed().
+	 * @param array  $feed              Gravity Forms feed array, as returned by GFAPI::get_feed().
+	 * @param array  $form              The feed's form, as returned by GFAPI::get_form(); used to identify mapped fields by label.
+	 * @param string $resolved_crm_type The CRM type the feed actually uses (resolved from its own custom type, or the plugin's shared default).
 	 * @return array Exportable feed data.
 	 */
-	function formscrm_gf_build_feed_export( $feed ) {
+	function formscrm_gf_build_feed_export( $feed, $form = array(), $resolved_crm_type = '' ) {
 		$meta = isset( $feed['meta'] ) && is_array( $feed['meta'] ) ? $feed['meta'] : array();
 
 		return array(
 			'formscrm_feed_export' => true,
-			'schema_version'       => 1,
+			'schema_version'       => 2,
 			'feed_name'            => isset( $meta['feedName'] ) ? $meta['feedName'] : '',
 			'fc_crm_custom_type'   => isset( $meta['fc_crm_custom_type'] ) ? $meta['fc_crm_custom_type'] : 'no',
+			'fc_crm_type_resolved' => is_string( $resolved_crm_type ) ? $resolved_crm_type : '',
 			'fc_crm_module'        => isset( $meta['fc_crm_module'] ) ? $meta['fc_crm_module'] : '',
 			'fc_crm_merge_entry'   => isset( $meta['fc_crm_merge_entry'] ) ? $meta['fc_crm_merge_entry'] : '',
 			'fc_crm_webhook'       => isset( $meta['fc_crm_webhook'] ) ? $meta['fc_crm_webhook'] : '',
-			'listFields'           => isset( $meta['listFields'] ) && is_array( $meta['listFields'] ) ? $meta['listFields'] : array(),
+			'listFields'           => formscrm_gf_get_prefixed_map( $meta, 'listFields_' ),
+			'listFieldsCustom'     => formscrm_gf_get_prefixed_map( $meta, 'listFieldsCustom_' ),
 			'listFields_labels'    => isset( $meta['listFields_labels'] ) && is_array( $meta['listFields_labels'] ) ? $meta['listFields_labels'] : array(),
 			'optin'                => isset( $meta['optin'] ) ? $meta['optin'] : array(),
+			'source_form_id'       => isset( $feed['form_id'] ) ? (int) $feed['form_id'] : 0,
+			'source_fields'        => formscrm_gf_build_form_field_labels( $form ),
 		);
 	}
 }
@@ -1001,8 +1418,13 @@ if ( ! function_exists( 'formscrm_gf_feed_meta_from_import' ) ) {
 	/**
 	 * Validates and sanitizes an imported feed export back into feed meta.
 	 *
+	 * Only handles the feed's simple scalar settings; the field mapping itself
+	 * (listFields/listFieldsCustom/listFields_labels) is reconciled separately
+	 * by formscrm_gf_reconcile_imported_field_map() against the feed being
+	 * imported into.
+	 *
 	 * @param mixed $import_data Decoded JSON data from an exported feed file.
-	 * @return array|false Sanitized feed meta, or false when the data is not a valid export.
+	 * @return array|false Sanitized feed meta, or false when the data is not a valid export or names a CRM connector unavailable on this site.
 	 */
 	function formscrm_gf_feed_meta_from_import( $import_data ) {
 		if ( ! is_array( $import_data ) || empty( $import_data['formscrm_feed_export'] ) ) {
@@ -1015,7 +1437,13 @@ if ( ! function_exists( 'formscrm_gf_feed_meta_from_import' ) ) {
 			$meta['feedName'] = sanitize_text_field( $import_data['feed_name'] );
 		}
 		if ( isset( $import_data['fc_crm_custom_type'] ) && is_string( $import_data['fc_crm_custom_type'] ) ) {
-			$meta['fc_crm_custom_type'] = sanitize_text_field( $import_data['fc_crm_custom_type'] );
+			$custom_type = sanitize_text_field( $import_data['fc_crm_custom_type'] );
+			if ( 'no' !== $custom_type && ! formscrm_get_api_class( $custom_type ) ) {
+				// The imported connector isn't available on this site; refuse rather than
+				// leave a feed that will fatal in process_feed() on every submission.
+				return false;
+			}
+			$meta['fc_crm_custom_type'] = $custom_type;
 		}
 		if ( isset( $import_data['fc_crm_module'] ) && is_string( $import_data['fc_crm_module'] ) ) {
 			$meta['fc_crm_module'] = sanitize_text_field( $import_data['fc_crm_module'] );
@@ -1026,12 +1454,6 @@ if ( ! function_exists( 'formscrm_gf_feed_meta_from_import' ) ) {
 		if ( isset( $import_data['fc_crm_webhook'] ) && is_string( $import_data['fc_crm_webhook'] ) ) {
 			$meta['fc_crm_webhook'] = esc_url_raw( $import_data['fc_crm_webhook'] );
 		}
-		if ( isset( $import_data['listFields'] ) && is_array( $import_data['listFields'] ) ) {
-			$meta['listFields'] = array_map( 'sanitize_text_field', array_filter( $import_data['listFields'], 'is_string' ) );
-		}
-		if ( isset( $import_data['listFields_labels'] ) && is_array( $import_data['listFields_labels'] ) ) {
-			$meta['listFields_labels'] = array_map( 'sanitize_text_field', array_filter( $import_data['listFields_labels'], 'is_string' ) );
-		}
 		if ( isset( $import_data['optin'] ) && is_array( $import_data['optin'] ) ) {
 			$meta['optin'] = $import_data['optin'];
 		}
@@ -1039,6 +1461,270 @@ if ( ! function_exists( 'formscrm_gf_feed_meta_from_import' ) ) {
 		return $meta;
 	}
 }
+
+if ( ! function_exists( 'formscrm_gf_reconcile_imported_field_map' ) ) {
+	/**
+	 * Reconciles an imported field mapping against the feed it's being applied to.
+	 *
+	 * Remaps Gravity Forms field ids by label when importing into a different
+	 * form than the one the export came from (a plain field id is only valid
+	 * within its own form), then merges the result onto the target feed's
+	 * existing mapping with formscrm_gf_merge_field_map() — imported values win,
+	 * but a CRM field the import doesn't define keeps its current mapping
+	 * instead of being cleared.
+	 *
+	 * @param array $import_data      Decoded JSON data from an exported feed file.
+	 * @param array $target_form      The form the feed being imported into belongs to.
+	 * @param array $target_field_map Field map definitions for the feed's current CRM connection/module.
+	 * @param array $existing_values  The target feed's current listFields_* values (key => GravityForms merge tag).
+	 * @param array $existing_custom  The target feed's current listFieldsCustom_* values (key => fixed text).
+	 * @param array $existing_labels  The target feed's current listFields_labels snapshot.
+	 * @return array Has 'values', 'custom' and 'labels' keys, ready to be written with formscrm_gf_set_prefixed_map().
+	 */
+	function formscrm_gf_reconcile_imported_field_map( $import_data, $target_form, $target_field_map, $existing_values, $existing_custom, $existing_labels ) {
+		$imported_fields = isset( $import_data['listFields'] ) && is_array( $import_data['listFields'] )
+			? array_map( 'sanitize_text_field', array_filter( $import_data['listFields'], 'is_string' ) )
+			: array();
+		$imported_custom = isset( $import_data['listFieldsCustom'] ) && is_array( $import_data['listFieldsCustom'] )
+			? array_map( 'sanitize_text_field', array_filter( $import_data['listFieldsCustom'], 'is_string' ) )
+			: array();
+
+		$source_form_id = isset( $import_data['source_form_id'] ) ? (int) $import_data['source_form_id'] : 0;
+		$target_form_id = isset( $target_form['id'] ) ? (int) $target_form['id'] : 0;
+
+		if ( $target_form_id && $source_form_id && $source_form_id !== $target_form_id ) {
+			$source_fields = isset( $import_data['source_fields'] ) && is_array( $import_data['source_fields'] ) ? $import_data['source_fields'] : array();
+			$target_fields = formscrm_gf_build_form_field_labels( $target_form );
+
+			$target_ids_by_label = array();
+			foreach ( $target_fields as $target_id => $target_label ) {
+				$normalized = strtolower( trim( (string) $target_label ) );
+				if ( '' !== $normalized && ! isset( $target_ids_by_label[ $normalized ] ) ) {
+					// Array keys that look like integers (e.g. field id "9") are cast to int
+					// by PHP; cast back to string to match the format field ids are stored in.
+					$target_ids_by_label[ $normalized ] = (string) $target_id;
+				}
+			}
+
+			$remapped        = array();
+			$remapped_custom = array();
+			foreach ( $imported_fields as $crm_key => $source_field_id ) {
+				if ( 'gf_custom' === $source_field_id ) {
+					// Fixed values don't reference a form field; carry them over unchanged.
+					$remapped[ $crm_key ] = $source_field_id;
+					if ( isset( $imported_custom[ $crm_key ] ) ) {
+						$remapped_custom[ $crm_key ] = $imported_custom[ $crm_key ];
+					}
+					continue;
+				}
+
+				$source_label = isset( $source_fields[ $source_field_id ] ) ? strtolower( trim( (string) $source_fields[ $source_field_id ] ) ) : '';
+				if ( '' !== $source_label && isset( $target_ids_by_label[ $source_label ] ) ) {
+					$remapped[ $crm_key ] = $target_ids_by_label[ $source_label ];
+				}
+				// No safe match: leave this CRM field unmapped rather than pointing at an unrelated form field.
+			}
+
+			$imported_fields = $remapped;
+			$imported_custom = $remapped_custom;
+		}
+
+		$final_values = formscrm_gf_merge_field_map( $target_field_map, $imported_fields, $existing_values, $existing_labels );
+
+		$final_custom = array();
+		foreach ( $final_values as $key => $value ) {
+			if ( 'gf_custom' !== $value ) {
+				continue;
+			}
+			if ( isset( $imported_custom[ $key ] ) ) {
+				$final_custom[ $key ] = $imported_custom[ $key ];
+			} elseif ( isset( $existing_custom[ $key ] ) ) {
+				$final_custom[ $key ] = $existing_custom[ $key ];
+			}
+		}
+
+		return array(
+			'values' => $final_values,
+			'custom' => $final_custom,
+			'labels' => formscrm_gf_build_field_map_labels( $target_field_map ),
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_custom_value_option_html' ) ) {
+	/**
+	 * Returns the "Custom value" option appended to field mapping selects.
+	 *
+	 * @param string $selected_value Currently saved mapping value.
+	 * @return string Option HTML.
+	 */
+	function formscrm_custom_value_option_html( $selected_value ) {
+		return sprintf(
+			'<option value="%1$s"%2$s>%3$s</option>',
+			esc_attr( FORMSCRM_CUSTOM_VALUE ),
+			FORMSCRM_CUSTOM_VALUE === $selected_value ? ' selected="selected"' : '',
+			esc_html__( 'Custom value', 'formscrm' )
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_custom_value_input_html' ) ) {
+	/**
+	 * Returns the text input shown when "Custom value" is selected.
+	 *
+	 * The input is toggled by includes/assets/js/custom-value.js and must be a
+	 * sibling of the select that carries the data-formscrm-custom attribute.
+	 *
+	 * @param string $name           Input name.
+	 * @param string $value          Saved custom value.
+	 * @param string $selected_value Currently saved mapping value.
+	 * @return string Input HTML.
+	 */
+	function formscrm_custom_value_input_html( $name, $value, $selected_value ) {
+		return sprintf(
+			'<input type="text" class="formscrm-custom-value widefat" name="%1$s" value="%2$s" placeholder="%3$s" style="margin-top:4px;%4$s" />',
+			esc_attr( $name ),
+			esc_attr( $value ),
+			esc_attr__( 'Fixed value, e.g. Web or {id:field}', 'formscrm' ),
+			FORMSCRM_CUSTOM_VALUE === $selected_value ? '' : 'display:none;'
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_enqueue_custom_value_script' ) ) {
+	/**
+	 * Enqueues the script that shows the custom value input for mapping selects.
+	 *
+	 * @return void
+	 */
+	function formscrm_enqueue_custom_value_script() {
+		wp_enqueue_script(
+			'formscrm-custom-value',
+			FORMSCRM_PLUGIN_URL . 'includes/assets/js/custom-value.js',
+			array(),
+			FORMSCRM_VERSION,
+			true
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_replace_id_placeholders' ) ) {
+	/**
+	 * Replaces {id:field} placeholders with submitted values.
+	 *
+	 * @param string $value Value that may contain placeholders.
+	 * @param array  $data  Submitted values keyed by field ID or name.
+	 * @return string
+	 */
+	function formscrm_replace_id_placeholders( $value, array $data ) {
+		$value = (string) $value;
+
+		if ( false === strpos( $value, '{id:' ) ) {
+			return $value;
+		}
+
+		return preg_replace_callback(
+			'/\{id:([^}]+)\}/',
+			function ( $matches ) use ( $data ) {
+				if ( ! array_key_exists( $matches[1], $data ) ) {
+					return $matches[0];
+				}
+
+				$field_value = $data[ $matches[1] ];
+
+				return is_array( $field_value ) ? implode( ', ', $field_value ) : (string) $field_value;
+			},
+			$value
+		);
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_custom_value_meta_key' ) ) {
+	/**
+	 * Returns the feed meta key that stores the custom (fixed) value of a mapped CRM field.
+	 *
+	 * Uses a "{field}Custom_" prefix instead of "{field}_" so the stored values
+	 * are not returned by GFAddOn::get_field_map_fields() as mapped fields.
+	 *
+	 * @param string $field_name Field map setting name (e.g. "listFields").
+	 * @param string $key        CRM field key.
+	 * @return string Feed meta key.
+	 */
+	function formscrm_gf_custom_value_meta_key( $field_name, $key ) {
+		return $field_name . 'Custom_' . $key;
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_get_custom_value_template' ) ) {
+	/**
+	 * Returns the custom (fixed) value template saved in a feed for a CRM field.
+	 *
+	 * @param array  $feed       Gravity Forms feed.
+	 * @param string $key        CRM field key.
+	 * @param string $field_name Field map setting name.
+	 * @return string Custom value template, or empty string when not set.
+	 */
+	function formscrm_gf_get_custom_value_template( $feed, $key, $field_name = 'listFields' ) {
+		$meta_key = formscrm_gf_custom_value_meta_key( $field_name, $key );
+
+		if ( ! is_array( $feed ) || ! isset( $feed['meta'][ $meta_key ] ) || ! is_scalar( $feed['meta'][ $meta_key ] ) ) {
+			return '';
+		}
+
+		return (string) $feed['meta'][ $meta_key ];
+	}
+}
+
+if ( ! function_exists( 'formscrm_normalize_phone_number' ) ) {
+	/**
+	 * Normalizes a GravityForms Phone field value for CRM submission.
+	 *
+	 * GravityForms 3.0's "international (formatted)" Phone format stores the
+	 * entry value as a JSON object ({"country":"ES","national":"...",
+	 * "formatted":"...","e164":"..."}) rather than a plain string, so it is
+	 * unwrapped to its "e164" value first. Otherwise, this keeps only the
+	 * digits and a leading "+" (when present), giving CRMs a consistent value
+	 * regardless of which format (standard or international) was used.
+	 *
+	 * @param string $phone_number Raw phone value as stored in the entry.
+	 * @return string Normalized phone number.
+	 */
+	function formscrm_normalize_phone_number( $phone_number ) {
+		$phone_number = trim( (string) $phone_number );
+
+		if ( '' === $phone_number ) {
+			return $phone_number;
+		}
+
+		if ( '{' === $phone_number[0] ) {
+			$decoded = json_decode( $phone_number, true );
+
+			if ( is_array( $decoded ) ) {
+				$phone_number = '';
+				foreach ( array( 'e164', 'formatted', 'national' ) as $json_key ) {
+					if ( ! empty( $decoded[ $json_key ] ) ) {
+						$phone_number = (string) $decoded[ $json_key ];
+						break;
+					}
+				}
+
+				if ( '' === $phone_number ) {
+					return '';
+				}
+			}
+		}
+
+		$has_plus_prefix = ( '+' === $phone_number[0] );
+		$digits_only     = preg_replace( '/\D+/', '', $phone_number );
+
+		if ( '' === $digits_only ) {
+			return $phone_number;
+		}
+
+		return ( $has_plus_prefix ? '+' : '' ) . $digits_only;
+	}
+}
+
 
 if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 	/**
@@ -1070,5 +1756,28 @@ if ( ! function_exists( 'formscrm_render_connection_status' ) ) {
 		);
 
 		echo wp_kses( formscrm_get_connection_status_html( $settings, $output_type, $help_text ), $allowed_html );
+	}
+}
+
+if ( ! function_exists( 'formscrm_record_sync_status' ) ) {
+	/**
+	 * Records the latest result of sending an entry to a CRM.
+	 *
+	 * Safe to call from any integration; it never throws.
+	 *
+	 * @param string $form_type Form type slug ('gravityforms', 'wpforms'...).
+	 * @param int    $form_id   Form ID.
+	 * @param int    $entry_id  Entry ID.
+	 * @param string $crm_type  CRM slug.
+	 * @param array  $data      Keys: status ('success'|'error'), contact_id, crm_name, message.
+	 * @return bool
+	 */
+	function formscrm_record_sync_status( $form_type, $form_id, $entry_id, $crm_type, array $data = array() ) {
+		try {
+			return FormsCRM_Sync_Status::record( $form_type, $form_id, $entry_id, $crm_type, $data );
+		} catch ( Throwable $e ) {
+			formscrm_debug_message( 'Sync status not recorded: ' . $e->getMessage() );
+			return false;
+		}
 	}
 }

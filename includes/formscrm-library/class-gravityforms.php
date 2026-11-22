@@ -123,6 +123,13 @@ class GFCRM extends GFFeedAddOn {
 	private $crmlib;
 
 	/**
+	 * Hosted payment redirect URLs keyed by form ID for the active request.
+	 *
+	 * @var array<int,string>
+	 */
+	private $payment_redirects = array();
+
+	/**
 	 * Get singleton instance.
 	 *
 	 * @return GFCRM
@@ -133,6 +140,138 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		return self::$_instance;
+	}
+
+	/**
+	 * Init functions.
+	 *
+	 * @return void
+	 */
+	public function init() {
+		parent::init();
+
+		// Hosted payment gateways (e.g. Redsys) must run synchronously so their
+		// redirect_url is available before Gravity Forms builds the confirmation.
+		add_filter( 'gform_is_feed_asynchronous', array( $this, 'maybe_sync_payment_feed' ), 10, 4 );
+		add_filter( 'gform_confirmation', array( $this, 'maybe_redirect_payment_confirmation' ), 20, 4 );
+
+		// Injects the hidden input the Analytics PLUS tracking script fills
+		// with Clientify's tracking identifier before submission, and stores
+		// its value as entry meta so (async) feeds can read it later.
+		add_filter( 'gform_form_tag', array( $this, 'inject_analytics_plus_fields' ), 10, 2 );
+		add_action( 'gform_entry_created', array( $this, 'save_analytics_plus_entry_meta' ) );
+	}
+
+	/**
+	 * Appends FormsCRM's own hidden input for Clientify's tracking identifier
+	 * (Analytics PLUS visitor_uuid or legacy `vk` cookie) to any form with a
+	 * Clientify Contacts feed, so the tracking script has somewhere to write
+	 * the value it captures in the browser. Also reports, via the shared
+	 * filter, that the tracking script is needed on this page.
+	 *
+	 * This is a raw input outside Gravity Forms' field list on purpose: adding
+	 * a GF field at render time only (gform_pre_render) shifts the honeypot
+	 * field ID (max field ID + 1) between render and validation, so the
+	 * honeypot check ends up reading this filled input and flags every entry
+	 * as spam.
+	 *
+	 * @param string $form_tag Form opening tag.
+	 * @param array  $form     Form configuration.
+	 * @return string Form tag, with the tracking input appended if needed.
+	 */
+	public function inject_analytics_plus_fields( $form_tag, $form ) {
+		if ( empty( $form['id'] ) || ! $this->form_has_clientify_contacts_feed( $form['id'] ) ) {
+			return $form_tag;
+		}
+
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		return $form_tag . '<input type="hidden" name="formscrm_vk" class="formscrm-vk" value="" />';
+	}
+
+	/**
+	 * Stores the submitted Clientify tracking identifier as entry meta, since
+	 * the input is not a Gravity Forms field and feeds may run asynchronously
+	 * (without the original $_POST). The input is only rendered on forms with
+	 * a Clientify Contacts feed, so no feed lookup is needed here.
+	 *
+	 * @param array $entry Entry just created.
+	 * @return void
+	 */
+	public function save_analytics_plus_entry_meta( $entry ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
+		$visitor_key = isset( $_POST['formscrm_vk'] ) ? sanitize_text_field( wp_unslash( $_POST['formscrm_vk'] ) ) : '';
+		if ( '' === $visitor_key || empty( $entry['id'] ) ) {
+			return;
+		}
+
+		gform_update_meta( $entry['id'], 'formscrm_vk', $visitor_key );
+	}
+
+	/**
+	 * Whether a Clientify Contacts feed exists on this form.
+	 *
+	 * @param int $form_id Form ID.
+	 * @return bool
+	 */
+	public function form_has_clientify_contacts_feed( $form_id ) {
+		foreach ( $this->get_feeds( $form_id ) as $feed ) {
+			$settings = $this->get_api_settings_custom( $feed );
+			if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
+				continue;
+			}
+
+			$module = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : 'Contacts';
+			$module = str_replace( '-deals', '', sanitize_title( $module ) );
+
+			if ( 'contacts' === $module ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Forces synchronous processing for feeds using a hosted payment gateway.
+	 *
+	 * @param bool  $is_asynchronous Whether the feed processes asynchronously.
+	 * @param array $feed            Feed configuration.
+	 * @param array $entry           Entry data.
+	 * @param array $form            Form configuration.
+	 * @return bool
+	 */
+	public function maybe_sync_payment_feed( $is_asynchronous, $feed, $entry, $form ) {
+		$settings = $this->get_api_settings_custom( $feed );
+
+		if ( empty( $settings['fc_crm_type'] ) || 'redsys' !== $settings['fc_crm_type'] ) {
+			return $is_asynchronous;
+		}
+
+		// Only force synchronous processing if the connector actually loads;
+		// otherwise a deactivated/missing addon would fatal on the main
+		// request instead of failing quietly in the background as before.
+		return formscrm_get_api_class( $settings['fc_crm_type'] ) ? false : $is_asynchronous;
+	}
+
+	/**
+	 * Makes Gravity Forms follow the payment gateway handoff instead of its
+	 * normal confirmation, when the feed just processed one for this entry.
+	 *
+	 * @param array|string $confirmation Confirmation configuration.
+	 * @param array        $form         Form configuration.
+	 * @param array        $entry        Entry data.
+	 * @param bool         $ajax         Whether this is an AJAX request.
+	 * @return array|string
+	 */
+	public function maybe_redirect_payment_confirmation( $confirmation, $form, $entry, $ajax ) {
+		$form_id = isset( $form['id'] ) ? absint( $form['id'] ) : 0;
+
+		if ( empty( $this->payment_redirects[ $form_id ] ) ) {
+			return $confirmation;
+		}
+
+		return array( 'redirect' => $this->payment_redirects[ $form_id ] );
 	}
 
 	/**
@@ -255,76 +394,29 @@ class GFCRM extends GFFeedAddOn {
 			return array();
 		}
 
-		$crm_fields = array(
-			array(
-				'name'          => $prefix . 'url',
-				'label'         => __( 'CRM URL', 'formscrm' ),
-				'type'          => 'text',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Use the URL with http and the ending slash /.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_url(),
-				),
-			),
-			array(
-				'name'       => $prefix . 'username',
-				'label'      => __( 'Username', 'formscrm' ),
-				'type'       => 'text',
+		$crm_fields  = array();
+		$definitions = formscrm_get_crm_field_definitions();
+		foreach ( $definitions as $def ) {
+			$gf_field = array(
+				'name'       => $prefix . $def['name'],
+				'label'      => $def['label'],
+				'type'       => $def['type'],
 				'class'      => 'medium',
 				'dependency' => array(
 					'field'  => $field_name,
-					'values' => formscrm_get_dependency_username(),
+					'values' => call_user_func( $def['dependency'] ),
 				),
-			),
-			array(
-				'name'          => $prefix . 'password',
-				'label'         => __( 'Password', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Use the password of the actual user.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_password(),
-				),
-			),
-			array(
-				'name'          => $prefix . 'apipassword',
-				'label'         => __( 'API Password for User', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( 'Find the API Password in the profile of the user in CRM.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_apipassword(),
-				),
-			),
-			array(
-				'name'          => $prefix . 'apisales',
-				'label'         => __( 'Password and Security Key', 'formscrm' ),
-				'type'          => 'api_key',
-				'class'         => 'medium',
-				'tooltip'       => __( '"Password""SecurityKey" Go to My Settings / Reset my Security Key.', 'formscrm' ),
-				'tooltip_class' => 'tooltipclass',
-				'dependency'    => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_apisales(),
-				),
-			),
-			array(
-				'name'       => $prefix . 'odoodb',
-				'label'      => __( 'Odoo DB Name', 'formscrm' ),
-				'type'       => 'text',
-				'class'      => 'medium',
-				'dependency' => array(
-					'field'  => $field_name,
-					'values' => formscrm_get_dependency_odoodb(),
-				),
-			),
-		);
+			);
+			if ( ! empty( $def['tooltip'] ) ) {
+				$gf_field['tooltip']       = $def['tooltip'];
+				$gf_field['tooltip_class'] = 'tooltipclass';
+			}
+			if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+				$gf_field['choices'] = $def['choices'];
+			}
+			$crm_fields[] = $gf_field;
+		}
+
 		if ( $select_crm_type ) {
 			$crm_fields = array_merge(
 				array(
@@ -555,11 +647,15 @@ class GFCRM extends GFFeedAddOn {
 		}
 
 		$feed = GFAPI::get_feed( $feed_id );
-		if ( is_wp_error( $feed ) || empty( $feed ) ) {
+		if ( is_wp_error( $feed ) || empty( $feed ) || ! $this->feed_belongs_to_addon( $feed ) ) {
 			wp_die( esc_html__( 'Feed not found.', 'formscrm' ) );
 		}
 
-		$export_data = formscrm_gf_build_feed_export( $feed );
+		$form              = GFAPI::get_form( isset( $feed['form_id'] ) ? $feed['form_id'] : 0 );
+		$export_settings   = $this->get_api_settings_custom( $feed );
+		$resolved_crm_type = isset( $export_settings['fc_crm_type'] ) ? $export_settings['fc_crm_type'] : '';
+
+		$export_data = formscrm_gf_build_feed_export( $feed, is_array( $form ) ? $form : array(), $resolved_crm_type );
 		$filename    = 'formscrm-feed-' . $feed_id . '.json';
 		$json        = wp_json_encode( $export_data, JSON_PRETTY_PRINT );
 
@@ -608,6 +704,8 @@ class GFCRM extends GFFeedAddOn {
 			exit;
 		}
 
+		$target_form = GFAPI::get_form( $form_id );
+
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_get_contents -- Reading an uploaded temp file, not a plugin/theme file.
 		$contents    = file_get_contents( $_FILES['formscrm_import_file']['tmp_name'] );
 		$import_data = json_decode( (string) $contents, true );
@@ -615,78 +713,50 @@ class GFCRM extends GFFeedAddOn {
 
 		$current_feed = GFAPI::get_feed( $feed_id );
 
-		if ( false === $meta || is_wp_error( $current_feed ) || empty( $current_feed ) ) {
+		// Validate the data, the target form, and that the feed id actually belongs to this
+		// form and add-on — a crafted feed id must not let an import overwrite another
+		// form's (or add-on's) feed.
+		if ( false === $meta || ! is_array( $target_form ) || is_wp_error( $current_feed ) || empty( $current_feed )
+			|| (int) rgar( $current_feed, 'form_id' ) !== $form_id || ! $this->feed_belongs_to_addon( $current_feed ) ) {
 			wp_safe_redirect( add_query_arg( 'formscrm_import_status', 'error', $redirect_url ) );
 			exit;
 		}
 
-		$current_meta = isset( $current_feed['meta'] ) && is_array( $current_feed['meta'] ) ? $current_feed['meta'] : array();
+		$current_meta    = isset( $current_feed['meta'] ) && is_array( $current_feed['meta'] ) ? $current_feed['meta'] : array();
+		$target_settings = $this->get_api_settings_custom( $current_feed );
+		$target_crm_type = isset( $target_settings['fc_crm_type'] ) ? $target_settings['fc_crm_type'] : '';
 
-		// Reconcile the imported field mapping against the feed's current connection, matching by key then by label.
-		if ( isset( $meta['listFields'] ) ) {
-			$settings      = $this->get_api_settings_custom( $current_feed );
-			$crm_type      = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
-			$crmlib        = $crm_type ? formscrm_get_api_class( $crm_type ) : null;
-			$module        = isset( $current_meta['fc_crm_module'] ) ? $current_meta['fc_crm_module'] : '';
-			$new_field_map = $crmlib ? $crmlib->list_fields( $settings, $module ) : array();
-			$imported      = $meta['listFields'];
-			$imported_lbls = isset( $meta['listFields_labels'] ) ? $meta['listFields_labels'] : array();
-
-			$existing_values   = isset( $current_meta['listFields'] ) && is_array( $current_meta['listFields'] ) ? $current_meta['listFields'] : array();
-			$reconciled_import = formscrm_gf_merge_field_map( $new_field_map, $imported, $imported, $imported_lbls );
-
-			$meta['listFields']        = array_merge( $existing_values, array_filter( $reconciled_import ) );
-			$meta['listFields_labels'] = formscrm_gf_build_field_map_labels( $new_field_map );
+		// Reject the import outright when it relies on this site's shared CRM connection but
+		// that connection resolves to a different CRM here than where the feed was exported
+		// from — applying its module and mapping to an unrelated CRM would send bad data.
+		if ( ( empty( $meta['fc_crm_custom_type'] ) || 'no' === $meta['fc_crm_custom_type'] )
+			&& ! empty( $import_data['fc_crm_type_resolved'] ) && is_string( $import_data['fc_crm_type_resolved'] )
+			&& $target_crm_type && $target_crm_type !== $import_data['fc_crm_type_resolved'] ) {
+			wp_safe_redirect( add_query_arg( 'formscrm_import_status', 'error', $redirect_url ) );
+			exit;
 		}
+
+		$target_module    = isset( $current_meta['fc_crm_module'] ) ? $current_meta['fc_crm_module'] : '';
+		$target_crmlib    = $target_crm_type ? formscrm_get_api_class( $target_crm_type ) : null;
+		$target_field_map = $target_crmlib ? formscrm_sanitize_field_map( $target_crmlib->list_fields( $target_settings, $target_module ) ) : array();
+
+		$existing_values = formscrm_gf_get_prefixed_map( $current_meta, 'listFields_' );
+		$existing_custom = formscrm_gf_get_prefixed_map( $current_meta, 'listFieldsCustom_' );
+		$existing_labels = isset( $current_meta['listFields_labels'] ) && is_array( $current_meta['listFields_labels'] ) ? $current_meta['listFields_labels'] : array();
+
+		$reconciled = formscrm_gf_reconcile_imported_field_map( $import_data, $target_form, $target_field_map, $existing_values, $existing_custom, $existing_labels );
+
+		$meta = formscrm_gf_set_prefixed_map( $meta, 'listFields_', $reconciled['values'] );
+		$meta = formscrm_gf_set_prefixed_map( $meta, 'listFieldsCustom_', $reconciled['custom'] );
+
+		$meta['listFields_labels'] = $reconciled['labels'];
 
 		$merged_meta = array_merge( $current_meta, $meta );
 		$updated     = GFAPI::update_feed( $feed_id, $merged_meta, $form_id );
+		$import_ok   = ! is_wp_error( $updated ) && false !== $updated;
 
-		wp_safe_redirect( add_query_arg( 'formscrm_import_status', $updated ? 'success' : 'error', $redirect_url ) );
+		wp_safe_redirect( add_query_arg( 'formscrm_import_status', $import_ok ? 'success' : 'error', $redirect_url ) );
 		exit;
-	}
-
-	/**
-	 * Save Feed Settings
-	 *
-	 * Preserves previously mapped fields when the feed's CRM connection or module
-	 * changes, matching by field key first and then by label, so a switch of
-	 * connection does not silently wipe out an existing field mapping.
-	 *
-	 * @param int   $feed_id  Feed id.
-	 * @param int   $form_id  Form id.
-	 * @param array $settings Feed settings being saved.
-	 * @return int|bool
-	 */
-	public function save_feed_settings( $feed_id, $form_id, $settings ) {
-		if ( ! empty( $feed_id ) && isset( $settings['listFields'] ) && is_array( $settings['listFields'] ) ) {
-			$new_settings = $this->get_api_settings_custom();
-			$new_crm_type = isset( $new_settings['fc_crm_type'] ) ? $new_settings['fc_crm_type'] : '';
-			$new_module   = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
-			$new_crmlib   = $new_crm_type ? formscrm_get_api_class( $new_crm_type ) : null;
-
-			if ( $new_crmlib ) {
-				$old_feed   = GFAPI::get_feed( $feed_id );
-				$old_values = ( ! is_wp_error( $old_feed ) && ! empty( $old_feed['meta']['listFields'] ) ) ? $old_feed['meta']['listFields'] : array();
-				$old_labels = ( ! is_wp_error( $old_feed ) && ! empty( $old_feed['meta']['listFields_labels'] ) ) ? $old_feed['meta']['listFields_labels'] : array();
-
-				$new_field_map = $new_crmlib->list_fields(
-					array_merge(
-						$new_settings,
-						array( 'fc_crm_merge_entry' => isset( $settings['fc_crm_merge_entry'] ) ? $settings['fc_crm_merge_entry'] : '' )
-					),
-					$new_module
-				);
-
-				if ( ! empty( $old_values ) || ! empty( $old_labels ) ) {
-					$settings['listFields'] = formscrm_gf_merge_field_map( $new_field_map, $settings['listFields'], $old_values, $old_labels );
-				}
-
-				$settings['listFields_labels'] = formscrm_gf_build_field_map_labels( $new_field_map );
-			}
-		}
-
-		return parent::save_feed_settings( $feed_id, $form_id, $settings );
 	}
 
 	/**
@@ -837,10 +907,10 @@ class GFCRM extends GFFeedAddOn {
 			$crm_feed_fields[] = array(
 				'name'       => 'listFields',
 				'label'      => __( 'Map Fields', 'formscrm' ),
-				'type'       => 'field_map',
+				'type'       => $this->get_field_map_type(),
 				'dependency' => 'fc_crm_module',
-				'field_map'  => $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ),
-				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list.', 'formscrm' ),
+				'field_map'  => formscrm_sanitize_field_map( $this->crmlib->list_fields( array_merge( $settings, array( 'fc_crm_merge_entry' => $this->get_actual_feed_value( 'fc_crm_merge_entry', $feed_settings ) ) ), $module ) ),
+				'tooltip'    => '<h6>' . __( 'Map Fields', 'formscrm' ) . '</h6>' . __( 'Associate your CRM custom fields to the appropriate Gravity Form fields by selecting the appropriate form field from the list. Choose "Add Custom Value" to send a fixed value; it can include merge tags and {id:X} / {label:X} placeholders.', 'formscrm' ),
 			);
 
 			$crm_feed_fields[] = array(
@@ -859,6 +929,181 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Saves the feed settings.
+	 *
+	 * If the CRM login fails while saving, the field map is not registered and
+	 * Gravity Forms would store it as a raw nested array that the feed can't read
+	 * later. It is stored as "listFields_{key}" instead, whatever the login result.
+	 *
+	 * Then, when the feed's CRM connection or module actually changed (not on an
+	 * ordinary save), the previous field mapping is reconciled onto the new one:
+	 * matched first by target field key, then by label against a stored
+	 * "listFields_labels" snapshot, so a connection switch doesn't silently wipe
+	 * out a working mapping. A field no longer present in the new module is
+	 * dropped rather than left lingering under its old key.
+	 *
+	 * @param int   $feed_id  Feed ID, 0 for a new feed.
+	 * @param int   $form_id  Form ID.
+	 * @param array $settings Feed settings.
+	 * @return int|false Feed ID or false on failure.
+	 */
+	public function save_feed_settings( $feed_id, $form_id, $settings ) {
+		$settings = formscrm_gf_flatten_nested_field_map( $settings, 'listFields' );
+
+		if ( ! empty( $feed_id ) ) {
+			$new_settings = $this->get_api_settings_custom();
+			$new_crm_type = isset( $new_settings['fc_crm_type'] ) ? $new_settings['fc_crm_type'] : '';
+			$new_module   = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
+			$new_crmlib   = $new_crm_type ? formscrm_get_api_class( $new_crm_type ) : null;
+
+			if ( $new_crmlib ) {
+				$old_feed = GFAPI::get_feed( $feed_id );
+				$old_meta = ( ! is_wp_error( $old_feed ) && ! empty( $old_feed['meta'] ) && is_array( $old_feed['meta'] ) ) ? $old_feed['meta'] : array();
+
+				$old_crm_type       = $this->resolve_feed_crm_type( $old_meta );
+				$old_module         = isset( $old_meta['fc_crm_module'] ) ? $old_meta['fc_crm_module'] : '';
+				$connection_changed = ( $old_crm_type !== $new_crm_type ) || ( $old_module !== $new_module );
+
+				$new_field_map = formscrm_sanitize_field_map(
+					$new_crmlib->list_fields(
+						array_merge(
+							$new_settings,
+							array( 'fc_crm_merge_entry' => isset( $settings['fc_crm_merge_entry'] ) ? $settings['fc_crm_merge_entry'] : '' )
+						),
+						$new_module
+					)
+				);
+
+				// Only reconcile against the previous mapping when the connection/module actually
+				// changed; otherwise an admin deliberately clearing a mapping on an ordinary save
+				// would have it silently restored.
+				if ( $connection_changed ) {
+					$old_values = formscrm_gf_get_prefixed_map( $old_meta, 'listFields_' );
+					$old_custom = formscrm_gf_get_prefixed_map( $old_meta, 'listFieldsCustom_' );
+					$old_labels = isset( $old_meta['listFields_labels'] ) && is_array( $old_meta['listFields_labels'] ) ? $old_meta['listFields_labels'] : array();
+
+					if ( empty( $old_labels ) && ! empty( $old_values ) ) {
+						// Feed saved before listFields_labels existed, or its very first
+						// connection switch: reconstruct the previous field map to still get
+						// label matching on this one.
+						$old_labels = formscrm_gf_build_field_map_labels( $this->get_old_field_map_for_labels( $old_crm_type, $old_module, $old_feed ) );
+					}
+
+					if ( ! empty( $old_values ) || ! empty( $old_labels ) ) {
+						$new_values = formscrm_gf_get_prefixed_map( $settings, 'listFields_' );
+						$merged     = formscrm_gf_merge_field_map( $new_field_map, $new_values, $old_values, $old_labels );
+
+						$settings = formscrm_gf_set_prefixed_map( $settings, 'listFields_', $merged );
+
+						// Carry over fixed ("Add Custom Value") text for keys that kept the same name.
+						$merged_custom = array();
+						foreach ( $merged as $key => $value ) {
+							if ( 'gf_custom' === $value && isset( $old_custom[ $key ] ) && ! isset( $settings[ 'listFieldsCustom_' . $key ] ) ) {
+								$merged_custom[ $key ] = $old_custom[ $key ];
+							}
+						}
+						foreach ( $merged_custom as $key => $value ) {
+							$settings[ 'listFieldsCustom_' . $key ] = $value;
+						}
+					}
+				}
+
+				$settings['listFields_labels'] = formscrm_gf_build_field_map_labels( $new_field_map );
+			}
+		}
+
+		return parent::save_feed_settings( $feed_id, $form_id, $settings );
+	}
+
+	/**
+	 * Resolves the CRM type a feed actually uses: its own custom type, or the
+	 * plugin's shared/default one.
+	 *
+	 * @param array $feed_meta Feed meta array.
+	 * @return string CRM type slug, or empty string if none is configured.
+	 */
+	private function resolve_feed_crm_type( $feed_meta ) {
+		if ( ! empty( $feed_meta['fc_crm_custom_type'] ) && 'no' !== $feed_meta['fc_crm_custom_type'] ) {
+			return $feed_meta['fc_crm_custom_type'];
+		}
+
+		$settings = $this->get_plugin_settings();
+		return isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
+	}
+
+	/**
+	 * Best-effort reconstruction of the field map a feed previously used, to
+	 * backfill a label snapshot for feeds saved before listFields_labels existed
+	 * (or on a feed's very first connection/module switch).
+	 *
+	 * @param string $old_crm_type Old feed's resolved CRM type.
+	 * @param string $old_module   Old feed's CRM module.
+	 * @param array  $old_feed     Old feed array, for its own stored credentials when it uses a feed-level custom connection.
+	 * @return array Field map definitions, or an empty array if the old CRM can't be resolved.
+	 */
+	private function get_old_field_map_for_labels( $old_crm_type, $old_module, $old_feed ) {
+		if ( empty( $old_crm_type ) ) {
+			return array();
+		}
+
+		$old_crmlib = formscrm_get_api_class( $old_crm_type );
+		if ( ! $old_crmlib ) {
+			return array();
+		}
+
+		$old_meta = isset( $old_feed['meta'] ) && is_array( $old_feed['meta'] ) ? $old_feed['meta'] : array();
+
+		if ( ! empty( $old_meta['fc_crm_custom_type'] ) && 'no' !== $old_meta['fc_crm_custom_type'] ) {
+			$old_settings = array( 'fc_crm_type' => $old_crm_type );
+			foreach ( FORMSCRM_CRED_VARIABLES as $variable ) {
+				if ( isset( $old_meta[ 'fc_crm_custom_' . $variable ] ) ) {
+					$old_settings[ 'fc_crm_' . $variable ] = $old_meta[ 'fc_crm_custom_' . $variable ];
+				}
+			}
+		} else {
+			$old_settings = $this->get_plugin_settings();
+		}
+
+		return formscrm_sanitize_field_map( $old_crmlib->list_fields( $old_settings, $old_module ) );
+	}
+
+	/**
+	 * Whether a feed belongs to this add-on. Permissive when the 'addon_slug'
+	 * key is absent (older Gravity Forms versions), strict otherwise — used to
+	 * stop a crafted feed id from reaching another add-on's feed.
+	 *
+	 * @param array $feed Feed array.
+	 * @return bool
+	 */
+	private function feed_belongs_to_addon( $feed ) {
+		return ! isset( $feed['addon_slug'] ) || $this->_slug === $feed['addon_slug'];
+	}
+
+	/**
+	 * Returns the field map setting type, registering the custom one when available.
+	 *
+	 * Falls back to the native field_map on Gravity Forms versions without the
+	 * 2.5+ Settings API.
+	 *
+	 * @return string Setting type.
+	 */
+	private function get_field_map_type() {
+		$fields_class = '\\Gravity_Forms\\Gravity_Forms\\Settings\\Fields';
+
+		if ( ! class_exists( $fields_class ) || ! class_exists( '\\Gravity_Forms\\Gravity_Forms\\Settings\\Fields\\Field_Map' ) ) {
+			return 'field_map';
+		}
+
+		require_once __DIR__ . '/class-gravityforms-field-map.php';
+
+		if ( ! $fields_class::exists( FormsCRM_GF_Field_Map::TYPE ) ) {
+			$fields_class::register( FormsCRM_GF_Field_Map::TYPE, 'FormsCRM_GF_Field_Map' );
+		}
+
+		return FormsCRM_GF_Field_Map::TYPE;
+	}
+
+	/**
 	 * Get Settings with custom CRM in feed
 	 *
 	 * @param array $feed Feed settings array.
@@ -873,20 +1118,13 @@ class GFCRM extends GFFeedAddOn {
 		if ( 'no' === $custom_crm ) {
 			return $settings;
 		}
+		$global_crm              = isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$settings['fc_crm_type'] = $custom_crm;
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms.
-		foreach ( FORMSCRM_CRED_VARIABLES as $variable ) {
-			if ( isset( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) ) {
-				$settings[ 'fc_crm_' . $variable ] = sanitize_text_field( wp_unslash( $_POST[ '_gform_setting_fc_crm_custom_' . $variable ] ) );
-			} elseif ( isset( $feed['meta'][ 'fc_crm_custom_' . $variable ] ) ) {
-				$settings[ 'fc_crm_' . $variable ] = $feed['meta'][ 'fc_crm_custom_' . $variable ];
-			} elseif ( isset( $settings[ 'fc_crm_custom_' . $variable ] ) ) {
-				$settings[ 'fc_crm_' . $variable ] = $settings[ 'fc_crm_custom_' . $variable ];
-				unset( $settings[ 'fc_crm_custom_' . $variable ] );
-			}
-		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-		return $settings;
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Gravity Forms; values are sanitized in the helper.
+		$posted    = wp_unslash( $_POST );
+		$feed_meta = ! empty( $feed['meta'] ) && is_array( $feed['meta'] ) ? $feed['meta'] : array();
+
+		return formscrm_merge_custom_crm_credentials( $settings, is_array( $posted ) ? $posted : array(), $feed_meta, $global_crm === $custom_crm );
 	}
 
 	/**
@@ -1082,6 +1320,40 @@ class GFCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Adds an entry note, optionally using the connector's own display name.
+	 *
+	 * @param int         $entry_id  Entry ID.
+	 * @param string      $note      Note content.
+	 * @param string|null $sub_type  Note subtype.
+	 * @param string      $user_name Display name for the connector.
+	 * @return int
+	 */
+	public function add_note( $entry_id, $note, $sub_type = null, $user_name = '' ) {
+		$user_name = '' === $user_name ? $this->_short_title : sanitize_text_field( $user_name );
+
+		return GFFormsModel::add_note( $entry_id, 0, $user_name, $note, $this->get_slug(), $sub_type );
+	}
+
+	/**
+	 * Gets the display name for a note created by a connector.
+	 *
+	 * @param array $settings        Current feed settings.
+	 * @param array $response_result Connector response.
+	 * @return string
+	 */
+	private function get_note_author( $settings, $response_result = array() ) {
+		$author = ! empty( $response_result['note_author'] ) ? $response_result['note_author'] : $this->_short_title;
+
+		return apply_filters(
+			'formscrm_entry_note_author',
+			$author,
+			isset( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '',
+			$settings,
+			$response_result
+		);
+	}
+
+	/**
 	 * Sends data to API
 	 *
 	 * @param array  $feed  Feed data.
@@ -1094,23 +1366,41 @@ class GFCRM extends GFFeedAddOn {
 		$feed_type    = ! empty( $settings['fc_crm_type'] ) ? $settings['fc_crm_type'] : '';
 		$this->crmlib = formscrm_get_api_class( $feed_type );
 
-		$merge_vars         = array();
-		$field_maps         = $this->get_field_map_fields( $feed, 'listFields' );
-		$field_clientify_id = 0;
+		$merge_vars = array();
+		$field_maps = $this->get_field_map_fields( $feed, 'listFields' );
+		if ( empty( $field_maps ) ) {
+			// Feeds saved while the CRM login failed store the raw field map.
+			$field_maps = formscrm_gf_get_nested_field_map( rgar( $feed, 'meta' ), 'listFields' );
+		}
 
 		if ( ! empty( $field_maps ) ) {
 			// Normal WAY.
 			foreach ( $field_maps as $var_key => $field_id ) {
-				if ( ! empty( $field_id ) ) {
+				if ( 'gf_custom' === $field_id ) {
+					$merge_vars[] = $this->get_custom_value( $var_key, $feed, $entry, $form );
+				} elseif ( ! empty( $field_id ) ) {
 					$merge_vars[] = $this->get_value_from_field( $var_key, $field_id, $entry, $form );
 				}
 			}
 		}
 
+		// Clientify's visitor tracking identifier, auto-injected by
+		// inject_analytics_plus_fields(), filled client-side and stored as
+		// entry meta — never part of the admin field-map UI.
+		if ( ! empty( $entry['id'] ) ) {
+			$tracking_data = array( 'formscrm_vk' => (string) gform_get_meta( $entry['id'], 'formscrm_vk' ) );
+			$merge_vars    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $feed_type, $tracking_data ) );
+		}
+
 		// Dynamic Fields.
 		foreach ( $form['fields'] as $field ) {
 			if ( empty( $field_maps ) ) {
-				if ( ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
+				if ( $field && 'phone' === RGFormsModel::get_input_type( $field ) && ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
+					$merge_vars[] = array(
+						'name'  => $field->adminLabel,
+						'value' => formscrm_normalize_phone_number( $entry[ $field->id ] ),
+					);
+				} elseif ( ! empty( $field->adminLabel ) && ! empty( $entry[ $field->id ] ) ) {
 					$merge_vars[] = array(
 						'name'  => $field->adminLabel,
 						'value' => $entry[ $field->id ],
@@ -1127,17 +1417,6 @@ class GFCRM extends GFFeedAddOn {
 					);
 				}
 			}
-			if ( 'clientify' === $feed_type && isset( $field->adminLabel ) && 'clientify_visitor_key' === $field->adminLabel ) {
-				$field_clientify_id = $field->id;
-			}
-		}
-
-		// Adds Clientify visitor key.
-		if ( ! empty( $field_clientify_id ) && ! empty( $entry[ $field_clientify_id ] ) ) {
-			$merge_vars[] = array(
-				'name'  => 'visitor_key',
-				'value' => $entry[ $field_clientify_id ],
-			);
 		}
 
 		$override_custom_fields = apply_filters( 'formscrm_override_blank_custom_fields', false, $entry, $form, $feed );
@@ -1168,7 +1447,30 @@ class GFCRM extends GFFeedAddOn {
 
 		// Sends the entry to CRM.
 		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
-		$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
+
+		if ( ! is_array( $response_result ) ) {
+			$form_info = array(
+				'form_type'       => 'gravityforms',
+				'form_type_title' => 'Gravity Forms',
+				'form_id'         => isset( $form['id'] ) ? $form['id'] : '',
+				'form_name'       => isset( $form['title'] ) ? $form['title'] : '',
+				'entry_id'        => isset( $entry['id'] ) ? $entry['id'] : '',
+			);
+			formscrm_alert_error( $settings['fc_crm_type'], __( 'The CRM did not return a valid response.', 'formscrm' ), $merge_vars, '', '', $form_info );
+			formscrm_record_sync_status(
+				'gravityforms',
+				isset( $form['id'] ) ? $form['id'] : 0,
+				isset( $entry['id'] ) ? $entry['id'] : 0,
+				$feed_type,
+				array(
+					'status'  => 'error',
+					'message' => __( 'The CRM did not return a valid response.', 'formscrm' ),
+				)
+			);
+			return;
+		}
+
+		$api_status = isset( $response_result['status'] ) ? $response_result['status'] : '';
 
 		if ( 'error' === $api_status ) {
 			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
@@ -1193,12 +1495,37 @@ class GFCRM extends GFFeedAddOn {
 				$url,
 				$query
 			);
-			$this->add_note( $entry['id'], $response_message, 'error' );
+			$this->add_note( $entry['id'], $response_message, 'error', $this->get_note_author( $settings, $response_result ) );
+			formscrm_record_sync_status(
+				'gravityforms',
+				$form['id'],
+				$entry['id'],
+				$feed_type,
+				array(
+					'status'   => 'error',
+					'crm_name' => isset( $settings['fc_crm_name'] ) ? $settings['fc_crm_name'] : '',
+					'message'  => $message,
+				)
+			);
 		} else {
+			if ( ! empty( $response_result['redirect_url'] ) ) {
+				// Hosted payment gateways, such as Redsys, return a local
+				// one-time handoff URL. Picked up by maybe_redirect_payment_confirmation().
+				$this->payment_redirects[ (int) $form['id'] ] = esc_url_raw( $response_result['redirect_url'] );
+			}
+
 			$crm_action   = isset( $response_result['action'] ) ? $response_result['action'] : '';
 			$crm_strategy = isset( $response_result['strategy'] ) ? $response_result['strategy'] : '';
+			$crm_message  = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
-			if ( ! empty( $crm_action ) ) {
+			// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
+			if ( ! empty( $response_result['fc_crm_name'] ) ) {
+				$settings['fc_crm_name'] = $response_result['fc_crm_name'];
+			}
+
+			if ( ! empty( $crm_message ) ) {
+				$response_message = esc_html( $crm_message );
+			} elseif ( ! empty( $crm_action ) ) {
 				$response_message = sprintf(
 				// translators: %1$s CRM name %2$s CRM type %3$s ID %4$s action (created/updated) %5$s strategy field.
 					__( 'Success %4$s %1$s (%2$s) Entry ID: %3$s. Strategy: %5$s', 'formscrm' ),
@@ -1217,7 +1544,19 @@ class GFCRM extends GFFeedAddOn {
 					$response_result['id']
 				);
 			}
-			$this->add_note( $entry['id'], $response_message, 'success' );
+			$this->add_note( $entry['id'], $response_message, 'success', $this->get_note_author( $settings, $response_result ) );
+			formscrm_record_sync_status(
+				'gravityforms',
+				$form['id'],
+				$entry['id'],
+				$feed_type,
+				array(
+					'status'     => 'success',
+					'contact_id' => isset( $response_result['id'] ) ? $response_result['id'] : '',
+					'crm_name'   => isset( $settings['fc_crm_name'] ) ? $settings['fc_crm_name'] : '',
+					'message'    => wp_strip_all_tags( $response_message ),
+				)
+			);
 			formscrm_debug_message( $response_result['id'] );
 			formscrm_send_webhook( $settings, $response_result );
 			gform_add_meta( $entry['id'], $settings['fc_crm_type'], $response_result['id'], $form['id'] );
@@ -1267,9 +1606,12 @@ class GFCRM extends GFFeedAddOn {
 		if ( isset( $field['type'] ) && GFCommon::is_product_field( $field['type'] ) && rgar( $field, 'enablePrice' ) ) {
 			$ary          = explode( '|', $entry[ $field_id ] );
 			$product_name = count( $ary ) > 0 ? $ary[0] : '';
+			// Payment-gateway CRMs (e.g. Redsys) map their amount field to the
+			// price, not the product label.
+			$value = 'amount' === $var_key && isset( $ary[1] ) ? $ary[1] : $product_name;
 			return array(
 				'name'  => $var_key,
-				'value' => $product_name,
+				'value' => $value,
 			);
 		} elseif ( $field && 'checkbox' === RGFormsModel::get_input_type( $field ) ) {
 			$value = '';
@@ -1324,6 +1666,14 @@ class GFCRM extends GFFeedAddOn {
 				'name'  => $var_key,
 				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
 			);
+		} elseif ( $field && 'phone' === RGFormsModel::get_input_type( $field ) ) {
+			// Covers both the classic (standard) and GravityForms 3.0 international Phone format.
+			$value = apply_filters( 'formscrm_field_value_phone', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );
+			$value = $this->fill_dynamic_value( $value, $entry, $form );
+			return array(
+				'name'  => $var_key,
+				'value' => formscrm_normalize_phone_number( $value ),
+			);
 		} elseif ( $field && 'name' === RGFormsModel::get_input_type( $field ) && false === strpos( $field_id, '.' ) ) {
 			$value = rgar( $entry, $field_id . '.3' ) . ' ' . rgar( $entry, $field_id . '.6' );
 			return array(
@@ -1337,6 +1687,31 @@ class GFCRM extends GFFeedAddOn {
 				'value' => $this->fill_dynamic_value( $value, $entry, $form ),
 			);
 		}
+	}
+
+	/**
+	 * Gets the fixed value mapped to a CRM field with "Add Custom Value".
+	 *
+	 * Resolves {id:X} / {label:X} placeholders and Gravity Forms merge tags.
+	 *
+	 * @param string $var_key CRM field key.
+	 * @param array  $feed    Feed configuration.
+	 * @param array  $entry   Entry data.
+	 * @param array  $form    Form configuration.
+	 * @return array Merge var with name and value.
+	 */
+	public function get_custom_value( $var_key, $feed, $entry, $form ) {
+		$value = formscrm_gf_get_custom_value_template( $feed, $var_key );
+		$value = $this->fill_dynamic_value( $value, $entry, $form );
+
+		if ( false !== strpos( $value, '{' ) ) {
+			$value = GFCommon::replace_variables( $value, $form, $entry, false, false, false, 'text' );
+		}
+
+		return array(
+			'name'  => $var_key,
+			'value' => apply_filters( 'formscrm_field_value_custom', $value, $form['id'], $var_key, $entry ),
+		);
 	}
 
 	/**

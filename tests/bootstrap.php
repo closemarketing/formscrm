@@ -43,10 +43,18 @@ function _manually_load_plugin() {
 	// Only require Contact Form 7 if it exists.
 	$cf7_path = WP_CORE_DIR . '/wp-content/plugins/contact-form-7/wp-contact-form-7.php';
 	if ( file_exists( $cf7_path ) ) {
+		// CF7 >= 6.2 does `require 'vendor/autoload.php'` with a relative path,
+		// which resolves against the CWD first and picks up FormsCRM's own
+		// autoloader when tests run from the plugin root. Load CF7's explicitly.
+		$cf7_autoload = dirname( $cf7_path ) . '/vendor/autoload.php';
+		if ( file_exists( $cf7_autoload ) ) {
+			require_once $cf7_autoload;
+		}
 		require_once $cf7_path;
 	}
 	// Load form integration classes used in tests (normally loaded conditionally by loader.php).
 	require_once TESTS_PLUGIN_DIR . '/tests/stubs/stub-elementor.php';
+	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/elementor-ajax.php';
 	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-elementor.php';
 	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-contactform7.php';
 	require __DIR__ . '/../formscrm.php';
