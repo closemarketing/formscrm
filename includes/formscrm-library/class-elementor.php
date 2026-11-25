@@ -87,89 +87,32 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 			)
 		);
 
-		// URL field.
-		$widget->add_control(
-			'fc_crm_url',
-			array(
-				'label'       => __( 'URL:', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::URL,
-				'placeholder' => 'https://domain.com',
-				'label_block' => true,
-				'description' => __( 'CRM URL', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_url(),
-				),
-			)
-		);
-
-		// Username field.
-		$widget->add_control(
-			'fc_crm_username',
-			array(
-				'label'       => __( 'Username', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Username for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_username(),
-				),
-			)
-		);
-
-		// Password field.
-		$widget->add_control(
-			'fc_crm_password',
-			array(
-				'label'       => __( 'Password', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Password for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_password(),
-				),
-			)
-		);
-
-		// API Password field.
-		$widget->add_control(
-			'fc_crm_apipassword',
-			array(
-				'label'       => __( 'API Password', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'API Password for authentication.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
-			)
-		);
-
-		// API Sales field.
-		$widget->add_control(
-			'fc_crm_apisales',
-			array(
-				'label'       => __( 'API Sales', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
+		foreach ( formscrm_get_crm_field_definitions() as $def ) {
+			$control_name = 'fc_crm_' . $def['name'];
+			$control_args = array(
+				'label'       => $def['label'],
 				'label_block' => true,
 				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apisales(),
+					'fc_crm_type' => call_user_func( $def['dependency'] ),
 				),
-			)
-		);
-
-		// Odoo DB field.
-		$widget->add_control(
-			'fc_crm_odoodb',
-			array(
-				'label'       => __( 'Odoo DB', 'formscrm' ),
-				'type'        => \Elementor\Controls_Manager::TEXT,
-				'label_block' => true,
-				'description' => __( 'Odoo DB to connect this form.', 'formscrm' ),
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_odoodb(),
-				),
-			)
-		);
+			);
+			if ( ! empty( $def['tooltip'] ) ) {
+				$control_args['description'] = $def['tooltip'];
+			}
+			if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+				$control_args['type']    = \Elementor\Controls_Manager::SELECT;
+				$control_args['options'] = array();
+				foreach ( $def['choices'] as $choice ) {
+					$control_args['options'][ $choice['value'] ] = $choice['label'];
+				}
+			} else {
+				$control_args['type'] = \Elementor\Controls_Manager::TEXT;
+				if ( 'url' === $def['name'] ) {
+					$control_args['placeholder'] = 'https://domain.com';
+				}
+			}
+			$widget->add_control( $control_name, $control_args );
+		}
 
 		// Expert Mode.
 		$widget->add_control(
@@ -208,20 +151,14 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 				'button_type' => 'info',
 				'text'        => esc_html__( 'Connect', 'formscrm' ),
 				'event'       => 'formscrm:editor:connectCRM',
-				'condition'   => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
 			)
 		);
 
 		$widget->add_control(
 			'formscrm_html',
 			array(
-				'type'      => \Elementor\Controls_Manager::RAW_HTML,
-				'raw'       => '<div id="formscrm-popup"></div>',
-				'condition' => array(
-					'fc_crm_type' => formscrm_get_dependency_apipassword(),
-				),
+				'type' => \Elementor\Controls_Manager::RAW_HTML,
+				'raw'  => '<div id="formscrm-popup"></div>',
 			)
 		);
 
@@ -250,8 +187,25 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	public static function get_merge_vars( $formscrm_settings, $raw_fields ) {
 		$merge_vars = array();
 		foreach ( $formscrm_settings as $field_crm => $field_form ) {
-			$field_crm    = str_replace( 'fc_crm_field-', '', $field_crm );
-			$field_value  = $raw_fields[ $field_form ]['value'] ?? '';
+			// Custom values are read below with their mapping, not as CRM fields.
+			if ( 0 === strpos( $field_crm, 'fc_crm_custom-' ) ) {
+				continue;
+			}
+
+			$field_crm = str_replace( 'fc_crm_field-', '', $field_crm );
+
+			if ( FORMSCRM_CUSTOM_VALUE === $field_form ) {
+				$submitted   = array_map(
+					function ( $raw_field ) {
+						return is_array( $raw_field ) && isset( $raw_field['value'] ) ? $raw_field['value'] : '';
+					},
+					$raw_fields
+				);
+				$field_value = formscrm_replace_id_placeholders( sanitize_text_field( (string) ( $formscrm_settings[ 'fc_crm_custom-' . $field_crm ] ?? '' ) ), $submitted );
+			} else {
+				$field_value = $raw_fields[ $field_form ]['value'] ?? '';
+			}
+
 			$merge_vars[] = array(
 				'name'  => $field_crm,
 				'value' => is_array( $field_value ) ? implode( ', ', $field_value ) : $field_value,
@@ -284,10 +238,15 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 
 		// Unpack hidden settings for the form.
 		$formscrm_fields = array();
+		$merge_entry     = '';
 		if ( isset( $settings['formscrm_settings_hidden'] ) ) {
 			$formscrm_fields = json_decode( $settings['formscrm_settings_hidden'], true );
 			$module          = $formscrm_fields[ $crm_type ] ?? '';
 			unset( $formscrm_fields[ $crm_type ] );
+
+			// Merge strategy is a meta setting, not a field mapping — pull it out before building merge vars.
+			$merge_entry = $formscrm_fields['fc_crm_merge_entry'] ?? '';
+			unset( $formscrm_fields['fc_crm_merge_entry'] );
 		}
 
 		if ( empty( $module ) ) {
@@ -301,22 +260,30 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 		// Normalize the Form data.
 		$merge_vars = self::get_merge_vars( $formscrm_fields, $raw_fields );
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verification handled by Elementor forms.
-		if ( ! empty( $_POST['visitor_key'] ) ) {
-			$merge_vars['visitor_key'] = array(
-				'name'  => 'visitor_key',
-				'value' => sanitize_text_field( wp_unslash( $_POST['visitor_key'] ) ),
-			);
-		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$tracking_data = array( 'formscrm_vk' => $raw_fields['formscrm_vk']['value'] ?? '' );
+		$merge_vars    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $crm_type, $tracking_data ) );
+
 		// Create contact in CRM.
-		$settings        = formscrm_elementor_process_settings( $settings, $module );
-		$this->crmlib    = formscrm_get_api_class( $settings['fc_crm_type'] );
-		$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, array() );
-		$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
+		$settings                       = formscrm_elementor_process_settings( $settings, $module );
+		$settings['fc_crm_merge_entry'] = $merge_entry;
+		$this->crmlib                   = formscrm_get_api_class( $settings['fc_crm_type'] );
+		$merge_vars                     = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings, array() );
+		$response_result                = $this->crmlib->create_entry( $settings, $merge_vars );
+
+		if ( ! is_array( $response_result ) ) {
+			$ajax_handler->add_error_message( __( 'Could not process the form submission.', 'formscrm' ) );
+			return;
+		}
+
+		// Hosted payment gateways, such as Redsys, return a local one-time
+		// handoff URL. Elementor follows redirect_url after a successful AJAX
+		// submission, keeping the signed payment parameters server-side.
+		if ( ! empty( $response_result['redirect_url'] ) ) {
+			$ajax_handler->add_response_data( 'redirect_url', esc_url_raw( $response_result['redirect_url'] ) );
+		}
 
 		$response_message = '';
-		if ( 'error' === $response_result['status'] ) {
+		if ( isset( $response_result['status'] ) && 'error' === $response_result['status'] ) {
 			$url     = isset( $response_result['url'] ) ? $response_result['url'] : '';
 			$query   = isset( $response_result['query'] ) ? $response_result['query'] : '';
 			$message = isset( $response_result['message'] ) ? $response_result['message'] : '';
@@ -360,4 +327,43 @@ class FormsCRM_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms
 	 * @param \ElementorPro\Modules\Forms\Classes\Form_Record $element Form element.
 	 */
 	public function on_export( $element ) {}
+
+	/**
+	 * Injects FormsCRM's own hidden fields for Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) into any form with
+	 * Clientify configured, so the tracking script has somewhere to write the
+	 * values it captures in the browser. Field values are read directly from
+	 * the submitted fields in run(), never through the admin field-map UI.
+	 * Also reports, via the shared filter, that the tracking script is needed
+	 * on this page.
+	 *
+	 * @param string                                   $widget_content Rendered widget HTML.
+	 * @param \ElementorPro\Modules\Forms\Widgets\Form $widget          Widget instance.
+	 * @return string Widget HTML, with the tracking fields injected if needed.
+	 */
+	public static function inject_analytics_plus_fields( $widget_content, $widget ) {
+		if ( ! $widget instanceof \ElementorPro\Modules\Forms\Widgets\Form ) {
+			return $widget_content;
+		}
+
+		$settings = $widget->get_settings_for_display();
+		if ( empty( $settings['fc_crm_type'] ) || 'clientify' !== $settings['fc_crm_type'] ) {
+			return $widget_content;
+		}
+
+		if ( false !== strpos( $widget_content, 'name="form_fields[formscrm_vk]"' ) ) {
+			return $widget_content;
+		}
+
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		$hidden_fields = '<input type="hidden" name="form_fields[formscrm_vk]" class="formscrm-vk" />';
+
+		$pos_button = strpos( $widget_content, '<button' );
+		if ( false === $pos_button ) {
+			return $widget_content;
+		}
+
+		return substr_replace( $widget_content, $hidden_fields, $pos_button, 0 );
+	}
 }

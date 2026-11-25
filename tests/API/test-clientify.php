@@ -55,6 +55,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	 */
 	public function tearDown(): void {
 		remove_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10 );
+		unset( $_COOKIE['vk'] );
 		parent::tearDown();
 	}
 
@@ -106,6 +107,18 @@ class ClientifyTests extends WP_UnitTestCase {
 			return $this->response( 200, file_get_contents( UNIT_TESTS_DATA_PLUGIN_DIR . $file ) );
 		}
 
+		// v1 contact detail: the only API that returns taxpayer_identification_number.
+		if ( preg_match( '#api\.clientify\.net/v1/contacts/(contact-[a-z0-9]+)/#', $url, $detail ) && 'GET' === $r['method'] ) {
+			$taxpayer = array(
+				'contact-789' => '50997453J',
+				'contact-790' => '50997454-K',
+			);
+			if ( isset( $taxpayer[ $detail[1] ] ) ) {
+				return $this->response( 200, wp_json_encode( array( 'id' => $detail[1], 'taxpayer_identification_number' => $taxpayer[ $detail[1] ] ) ) );
+			}
+			return $this->response( 404, '{"detail":"Not found."}' );
+		}
+
 		// Search endpoint (GET contacts/companies with query).
 		if ( false !== strpos( $url, 'contacts/' ) && 'GET' === $r['method'] && false === strpos( $url, 'contacts/deals' ) ) {
 			// The v2 API rejects any GET request without a `fields` param. Real
@@ -115,14 +128,72 @@ class ClientifyTests extends WP_UnitTestCase {
 			}
 			// Search found existing contact.
 			if ( false !== strpos( $url, 'query=test%40example.com' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"contact-123","first_name":"John","email":"test@example.com"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-123', 'first_name' => 'John', 'email' => 'test@example.com' ) ) );
 			}
 			// Search found existing contact by NIF/DNI. Confirmed against the real
 			// Clientify API: it does NOT support filtering by
 			// taxpayer_identification_number as a literal query param — only the
 			// generic `query` param matches it.
 			if ( false !== strpos( $url, 'query=50997453J' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-789', 'first_name' => 'Antonio', 'taxpayer_identification_number' => '50997453J' ) ) );
+			}
+			// Contact that mirrors its tax number in a custom field; v1 detail doesn't know it.
+			if ( false !== strpos( $url, 'query=50997458P' ) ) {
+				return $this->restricted_results_response(
+					$url,
+					$is_v2_base,
+					array(
+						array(
+							'id'            => 'contact-795',
+							'first_name'    => 'Nuria',
+							'custom_fields' => array(
+								array( 'field' => 'Otro campo', 'value' => 'x' ),
+								array( 'field' => 'NIF alterno', 'value' => '50997458-p' ),
+							),
+						),
+					)
+				);
+			}
+			// 409 fallback: tax number search finds nothing, the email does.
+			if ( false !== strpos( $url, 'query=conflict%40example.com' ) ) {
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-791', 'email' => 'conflict@example.com' ) ) );
+			}
+			// 409 fallback: tax number search finds a single contact whose tax number can't be read (v1 detail fails).
+			if ( false !== strpos( $url, 'query=50997456M' ) ) {
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-792', 'first_name' => 'Sara' ) ) );
+			}
+			// 409 fallback: two contacts match, never auto-selected.
+			if ( false !== strpos( $url, 'query=50997457N' ) ) {
+				return $this->restricted_results_response(
+					$url,
+					$is_v2_base,
+					array(
+						array( 'id' => 'contact-793', 'first_name' => 'Ana' ),
+						array( 'id' => 'contact-794', 'first_name' => 'Ana' ),
+					)
+				);
+			}
+			// Existing contact whose stored tax number is formatted differently.
+			if ( false !== strpos( $url, 'query=50997454K' ) ) {
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-790', 'first_name' => 'Marta' ) ) );
+			}
+			// Substring false-positive: `query` is a substring match on Clientify's
+			// side, so searching for an exact email must not silently adopt an
+			// unrelated contact whose email merely contains it as a substring.
+			if ( false !== strpos( $url, 'query=molina%40gmail.com' ) ) {
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'contact-wrong', 'email' => 'aestepamolina@gmail.com' ) ) );
+			}
+			// Ambiguous: two contacts already share this exact email. Must not
+			// silently pick one of them to update.
+			if ( false !== strpos( $url, 'query=duplicate%40example.com' ) ) {
+				return $this->restricted_results_response(
+					$url,
+					$is_v2_base,
+					array(
+						array( 'id' => 'contact-dup-1', 'email' => 'duplicate@example.com' ),
+						array( 'id' => 'contact-dup-2', 'email' => 'duplicate@example.com' ),
+					)
+				);
 			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
@@ -134,7 +205,7 @@ class ClientifyTests extends WP_UnitTestCase {
 			}
 			// Search found existing company.
 			if ( false !== strpos( $url, 'query=ACME' ) ) {
-				return $this->response( 200, '{"count":1,"results":[{"id":"company-456","name":"ACME Corp"}]}' );
+				return $this->restricted_results_response( $url, $is_v2_base, array( array( 'id' => 'company-456', 'name' => 'ACME Corp' ) ) );
 			}
 			// Search not found.
 			return $this->response( 200, '{"count":0,"results":[]}' );
@@ -148,7 +219,7 @@ class ClientifyTests extends WP_UnitTestCase {
 			// determine_search_by() that would stop mapping
 			// taxpayer_identification_number to the `query` search param.
 			if ( ! empty( $this->last_contact_body['taxpayer_identification_number'] )
-				&& '50997453J' === $this->last_contact_body['taxpayer_identification_number'] ) {
+				&& in_array( $this->last_contact_body['taxpayer_identification_number'], array( '50997453J', '50997455L', '50997456M', '50997457N' ), true ) ) {
 				return $this->response( 409, '{"detail":"Contact with this taxpayer_identification_number already exists."}' );
 			}
 			return $this->response( 201, '{"id":"contact-new","first_name":"Jane","email":"new@example.com"}' );
@@ -156,6 +227,12 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		if ( false !== strpos( $url, 'contacts/' ) && 'PATCH' === $r['method'] ) {
 			$this->last_contact_body = json_decode( $r['body'], true );
+			if ( preg_match( '#contacts/(contact-79[1-5])/#', $url, $patched ) ) {
+				return $this->response( 200, wp_json_encode( array( 'id' => $patched[1], 'updated' => true ) ) );
+			}
+			if ( false !== strpos( $url, 'contacts/contact-790/' ) ) {
+				return $this->response( 200, '{"id":"contact-790","first_name":"Marta","updated":true}' );
+			}
 			if ( false !== strpos( $url, 'contacts/contact-789/' ) ) {
 				return $this->response( 200, '{"id":"contact-789","first_name":"Antonio","taxpayer_identification_number":"50997453J","updated":true}' );
 			}
@@ -195,6 +272,49 @@ class ClientifyTests extends WP_UnitTestCase {
 				'code'    => $code,
 				'message' => 200 === $code ? 'OK' : 'Error',
 			),
+		);
+	}
+
+	/**
+	 * Builds a search response, restricting each entry to whatever fields the
+	 * request's `fields=` query param actually asked for (plus 'id', which the
+	 * real v2 API always returns) — v1 is not fields-restricted. This mirrors
+	 * the real API's behavior and catches a regression where
+	 * create_or_update_entry() reads a field on a result entry it never asked
+	 * the API to include, which would make every match look like a non-match.
+	 *
+	 * @param string $url    Request URL.
+	 * @param bool   $is_v2  Whether this is a v2-base request.
+	 * @param array  $entries Full mocked entries.
+	 * @return array
+	 */
+	protected function restricted_results_response( $url, $is_v2, array $entries ) {
+		if ( $is_v2 ) {
+			$requested = array( 'id' );
+			if ( preg_match( '/[?&]fields=([^&]+)/', $url, $matches ) ) {
+				$requested = array_unique( array_merge( $requested, explode( ',', urldecode( $matches[1] ) ) ) );
+			}
+
+			// The real v2 API does not expose taxpayer_identification_number at all,
+			// even when it is requested in `fields`.
+			$requested = array_diff( $requested, array( 'taxpayer_identification_number' ) );
+
+			$entries = array_map(
+				function ( $entry ) use ( $requested ) {
+					return array_intersect_key( $entry, array_flip( $requested ) );
+				},
+				$entries
+			);
+		}
+
+		return $this->response(
+			200,
+			wp_json_encode(
+				array(
+					'count'   => count( $entries ),
+					'results' => $entries,
+				)
+			)
 		);
 	}
 
@@ -527,6 +647,159 @@ class ClientifyTests extends WP_UnitTestCase {
 	}
 
 	/**
+	 * v2: Merge by taxpayer_identification_number. The stored tax number has a dash
+	 * ("50997454-K") while the form sends "50997454K" — still the same person, so it
+	 * must be updated instead of created again (which Clientify answers with a 409).
+	 */
+	public function test_create_entry_v2_merge_nif_differently_formatted_patched() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Marta',
+			),
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997454K',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'contact-790', $result['id'] );
+	}
+
+	/**
+	 * v2: A site that mirrors the tax number in a custom field can opt in through the
+	 * formscrm_clientify_taxpayer_custom_field filter, which verifies the exact match
+	 * from the v2 result alone (the v1 detail doesn't know this contact).
+	 */
+	public function test_create_entry_v2_merge_nif_verified_with_custom_field_filter() {
+		add_filter(
+			'formscrm_clientify_taxpayer_custom_field',
+			function () {
+				return 'NIF alterno';
+			}
+		);
+
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997458P',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+		remove_all_filters( 'formscrm_clientify_taxpayer_custom_field' );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'contact-795', $result['id'] );
+	}
+
+	/**
+	 * v2: Without the filter nothing is assumed about custom fields: the same
+	 * contact is not matched and the entry is created, as before.
+	 */
+	public function test_create_entry_v2_merge_nif_ignores_custom_fields_without_filter() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997458P',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'contact-new', $result['id'] );
+	}
+
+	/**
+	 * v2: The tax number search finds nothing, Clientify answers 409 on create, and
+	 * the contact is found by its exact email — updated instead of failing. The
+	 * create-only default (marketing_status) must not be sent on the update.
+	 */
+	public function test_create_entry_v2_merge_nif_409_falls_back_to_email_patch() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'email',
+				'value' => 'conflict@example.com',
+			),
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997455L',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'contact-791', $result['id'] );
+		$this->assertArrayNotHasKey( 'marketing_status', $this->last_contact_body );
+	}
+
+	/**
+	 * v2: The v1 detail used to read the tax number is unavailable, the search
+	 * returned a single candidate and the create got a 409 — that single candidate
+	 * is updated.
+	 */
+	public function test_create_entry_v2_merge_nif_409_falls_back_to_single_candidate() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997456M',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'contact-792', $result['id'] );
+	}
+
+	/**
+	 * v2: A 409 with several candidates and no exact email match is left as an
+	 * error: it never picks one of them.
+	 */
+	public function test_create_entry_v2_merge_nif_409_ambiguous_stays_error() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'taxpayer_identification_number';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'taxpayer_identification_number',
+				'value' => '50997457N',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayNotHasKey( 'id', $result );
+	}
+
+	/**
 	 * v2: Merge by taxpayer_identification_number. Contact not found (NIF not in
 	 * Clientify) — created via POST, no error.
 	 */
@@ -612,7 +885,7 @@ class ClientifyTests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * v1: Merge by business_name (companies). Company found — updated via PATCH.
+	 * v1: Merge by business_name (companies), exact match. Company found — updated via PATCH.
 	 */
 	public function test_create_entry_v1_merge_business_name_found_patched() {
 		$this->mock_api_mode                  = 'v1_via_account_status';
@@ -627,7 +900,7 @@ class ClientifyTests extends WP_UnitTestCase {
 			),
 			array(
 				'name'  => 'business_name',
-				'value' => 'ACME',
+				'value' => 'ACME Corp',
 			),
 		);
 
@@ -636,6 +909,180 @@ class ClientifyTests extends WP_UnitTestCase {
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'id', $result );
 		$this->assertSame( 'company-456', $result['id'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Merge strategy exact-match safety (issue #286).
+	//
+	// Clientify's `query` param performs a SUBSTRING search, not an exact one.
+	// These tests guard against create_or_update_entry() picking results[0] and
+	// PATCHing an unrelated contact/company just because its value happens to
+	// contain the searched-for text.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * v2: Merge by email. Search value is only a substring of an existing
+	 * contact's email ("molina@gmail.com" is contained in
+	 * "aestepamolina@gmail.com") — must NOT be treated as a match. A new
+	 * contact is created instead of overwriting the unrelated one.
+	 */
+	public function test_create_entry_v2_merge_email_substring_false_positive_creates_new() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Molina',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'molina@gmail.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		// Must be the POST-created id, never the unrelated substring-matched contact.
+		$this->assertSame( 'contact-new', $result['id'] );
+		$this->assertNotSame( 'contact-wrong', $result['id'] );
+	}
+
+	/**
+	 * v1: Merge by business_name. Search value ("ACME") is only a substring of
+	 * an existing company's name ("ACME Corp") — must NOT be treated as a
+	 * match. A new company is created instead of overwriting the unrelated one.
+	 */
+	public function test_create_entry_v1_merge_business_name_substring_false_positive_creates_new() {
+		$this->mock_api_mode                  = 'v1_via_account_status';
+		$this->settings['fc_crm_module']      = 'Companies';
+		$this->settings['fc_crm_merge_entry'] = 'business_name';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'name',
+				'value' => 'ACME',
+			),
+			array(
+				'name'  => 'business_name',
+				'value' => 'ACME',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'company-new', $result['id'] );
+	}
+
+	/**
+	 * v2: Merge by email. Two existing contacts already share the exact same
+	 * email (ambiguous). Must not silently pick one to update — creates a new
+	 * entry instead.
+	 */
+	public function test_create_entry_v2_merge_email_ambiguous_exact_matches_creates_new() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'Dup',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'duplicate@example.com',
+			),
+		);
+
+		$result = $this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'id', $result );
+		$this->assertSame( 'contact-new', $result['id'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// marketing_status create-only default (issue #286).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * v2: No merge field configured — creating a contact defaults
+	 * marketing_status to 2 (Marketing Contact) when not explicitly mapped.
+	 */
+	public function test_create_entry_v2_no_merge_defaults_marketing_status_on_create() {
+		$this->settings['fc_crm_module'] = 'Contacts';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'email',
+				'value' => 'new@example.com',
+			),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertSame( 2, $this->last_contact_body['marketing_status'] );
+	}
+
+	/**
+	 * v2: Merge by email, contact found — the PATCH sent to update the existing
+	 * contact must NOT inject a marketing_status default. Doing so would
+	 * silently flip a contact intentionally set as Sales Contact (1) back to
+	 * Marketing Contact (2) on every resubmission.
+	 */
+	public function test_create_entry_v2_merge_email_found_does_not_default_marketing_status_on_update() {
+		$this->settings['fc_crm_module']      = 'Contacts';
+		$this->settings['fc_crm_merge_entry'] = 'email';
+		$this->crm_clientify->login( $this->settings );
+
+		$entry_data = array(
+			array(
+				'name'  => 'first_name',
+				'value' => 'John',
+			),
+			array(
+				'name'  => 'email',
+				'value' => 'test@example.com',
+			),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $entry_data );
+
+		$this->assertArrayNotHasKey( 'marketing_status', $this->last_contact_body );
+	}
+
+	// -------------------------------------------------------------------------
+	// Field-mapping label collision (issue #286).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The native 'email' field and the 'emails|4' (Email Main, from the typed
+	 * emails list) field must not render with the same label — mapping the
+	 * wrong one silently defeats the merge strategy lookup, since it only
+	 * reads $data_array['email'].
+	 */
+	public function test_list_fields_email_and_emails_main_have_distinct_labels() {
+		$this->crm_clientify->login( $this->settings );
+
+		$fields = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
+		$labels = array();
+		foreach ( $fields as $field ) {
+			if ( 'email' === $field['name'] || 'emails|4' === $field['name'] ) {
+				$labels[ $field['name'] ] = $field['label'];
+			}
+		}
+
+		$this->assertArrayHasKey( 'email', $labels );
+		$this->assertArrayHasKey( 'emails|4', $labels );
+		$this->assertNotSame( $labels['email'], $labels['emails|4'] );
 	}
 
 	// gdpr_accept bool normalization tests.
@@ -767,6 +1214,68 @@ class ClientifyTests extends WP_UnitTestCase {
 
 		$this->assertNotContains( 'empty_field', $field_keys, 'Empty deal custom_field must not be sent.' );
 		$this->assertContains( 'filled_field', $field_keys, 'Non-empty deal custom_field must be sent.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// visitor_key / visitor_key2 (Clientify tracking identifiers) tests.
+	//
+	// Both are captured client-side (browser cookie / localStorage) by
+	// analytics-plus-tracking.js and forwarded as regular merge vars by each
+	// form integration — never exposed as a mappable field, since a person
+	// could never fill either value in correctly by hand. See
+	// formscrm_get_analytics_plus_merge_vars() for the capture/forwarding tests.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Neither tracking identifier should appear in the mappable field list —
+	 * their value is dynamic per visit and must never be set by hand.
+	 */
+	public function test_list_fields_contacts_excludes_tracking_identifiers() {
+		$this->crm_clientify->login( $this->settings );
+
+		$fields      = $this->crm_clientify->list_fields( $this->settings, 'Contacts' );
+		$field_names = array_column( $fields, 'name' );
+
+		$this->assertNotContains( 'visitor_key', $field_names );
+		$this->assertNotContains( 'visitor_key2', $field_names );
+	}
+
+	/**
+	 * visitor_key2, once forwarded into merge_vars by a form integration,
+	 * must be sent to the API as-is.
+	 */
+	public function test_create_entry_visitor_key2_from_merge_vars_is_sent() {
+		$this->last_contact_body = null;
+
+		$merge_vars = array(
+			array( 'name' => 'email',        'value' => 'test@example.com' ),
+			array( 'name' => 'visitor_key2', 'value' => 'MTIzYWJjLi4uMjAyNS0wNy0wNg==' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body = $this->last_contact_body ?? array();
+		$this->assertArrayHasKey( 'visitor_key2', $body );
+		$this->assertSame( 'MTIzYWJjLi4uMjAyNS0wNy0wNg==', $body['visitor_key2'] );
+	}
+
+	/**
+	 * visitor_key, once forwarded into merge_vars by a form integration, must
+	 * be sent to the API as-is.
+	 */
+	public function test_create_entry_visitor_key_from_merge_vars_is_sent() {
+		$this->last_contact_body = null;
+
+		$merge_vars = array(
+			array( 'name' => 'email',       'value' => 'test@example.com' ),
+			array( 'name' => 'visitor_key', 'value' => 'legacy-cookie-value' ),
+		);
+
+		$this->crm_clientify->create_entry( $this->settings, $merge_vars );
+
+		$body = $this->last_contact_body ?? array();
+		$this->assertArrayHasKey( 'visitor_key', $body );
+		$this->assertSame( 'legacy-cookie-value', $body['visitor_key'] );
 	}
 
 	// -------------------------------------------------------------------------

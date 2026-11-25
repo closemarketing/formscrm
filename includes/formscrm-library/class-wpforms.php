@@ -34,7 +34,18 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		'fc_crm_apipassword',
 		'fc_crm_apisales',
 		'fc_crm_odoodb',
+		'fc_crm_fuc',
+		'fc_crm_terminal',
+		'fc_crm_sha_secret',
+		'fc_crm_redsys_mode',
 	);
+
+	/**
+	 * Hosted payment redirect URLs keyed by form ID for the active request.
+	 *
+	 * @var array<int,string>
+	 */
+	private $payment_redirects = array();
 
 	/**
 	 * Initialize.
@@ -48,6 +59,8 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		$this->slug     = 'formscrm';
 		$this->priority = 14;
 		$this->icon     = plugins_url( '../assets/addon-icon-wpforms.png', __FILE__ );
+		add_filter( 'wpforms_process_entry_confirmation_redirect_confirmations', array( $this, 'payment_confirmation_redirect' ), 20, 4 );
+		add_action( 'wpforms_builder_enqueues', 'formscrm_enqueue_custom_value_script' );
 	}
 
 	/**
@@ -68,8 +81,11 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 		// Fire for each connection.
 		foreach ( $form_data['providers'][ $this->slug ] as $connection ) {
-			$account_id                = $connection['account_id'];
-			$settings                  = $this->api_connect( $account_id );
+			$account_id = $connection['account_id'];
+			$settings   = $this->api_connect( $account_id );
+			if ( is_wp_error( $settings ) ) {
+				return;
+			}
 			$settings['fc_crm_module'] = $connection['list_id'];
 			$merge_vars                = array();
 			$entry_meta                = wpforms()->get( 'entry_meta' );
@@ -114,6 +130,16 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			foreach ( $connection['fields'] as $conn_field_name => $conn_field ) {
 				// If the custom field isn't map, skip it.
 				if ( empty( $conn_field ) ) {
+					continue;
+				}
+
+				// Fixed value typed in the builder for this CRM field.
+				if ( FORMSCRM_CUSTOM_VALUE === $conn_field ) {
+					$custom_value = isset( $connection['custom_values'][ $conn_field_name ] ) ? sanitize_text_field( (string) $connection['custom_values'][ $conn_field_name ] ) : '';
+					$merge_vars[] = array(
+						'name'  => $conn_field_name,
+						'value' => $this->fill_dynamic_value( $custom_value, $fields ),
+					);
 					continue;
 				}
 
@@ -174,10 +200,14 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			// Submit to API.
 			$message = '';
 			try {
-				$merge_vars      = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
-				$response_result = $this->crmlib->create_entry( $settings, $merge_vars );
-				$api_status      = isset( $response_result['status'] ) ? $response_result['status'] : '';
-				$api_message     = isset( $response_result['message'] ) ? $response_result['message'] : '';
+				$settings['formscrm_form_type'] = 'wpforms';
+				$merge_vars                     = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $settings );
+				$response_result                = $this->crmlib->create_entry( $settings, $merge_vars );
+				if ( is_array( $response_result ) && ! empty( $response_result['redirect_url'] ) ) {
+					$this->payment_redirects[ $form_id ] = esc_url_raw( $response_result['redirect_url'] );
+				}
+				$api_status  = isset( $response_result['status'] ) ? $response_result['status'] : '';
+				$api_message = isset( $response_result['message'] ) ? $response_result['message'] : '';
 
 				if ( 'error' === $api_status ) {
 					$form_info = array(
@@ -189,14 +219,46 @@ class FormsCRM_WPForms extends WPForms_Provider {
 					);
 					formscrm_alert_error( $settings['fc_crm_type'], 'Error ' . $api_message, $merge_vars, '', '', $form_info );
 					$message = __( 'Error', 'formscrm' );
+					formscrm_record_sync_status(
+						'wpforms',
+						$form_id,
+						$entry_id,
+						$settings['fc_crm_type'],
+						array(
+							'status'  => 'error',
+							'message' => $api_message,
+						)
+					);
 				} else {
 					// CRM classes may report a display name (e.g. "Holded v2") via the create_entry() result.
 					$crm_name = formscrm_format_crm_success_label( $response_result, $settings['fc_crm_type'] );
 					$message  = __( 'Success creating:', 'formscrm' ) . ' ' . $crm_name . ' ' . $settings['fc_crm_module'] . ' ' . $response_result['id'];
+					formscrm_record_sync_status(
+						'wpforms',
+						$form_id,
+						$entry_id,
+						$settings['fc_crm_type'],
+						array(
+							'status'     => 'success',
+							'contact_id' => $response_result['id'],
+							'crm_name'   => formscrm_get_crm_display_name( $response_result, '' ),
+							'message'    => $api_message,
+						)
+					);
 				}
 				$message .= ' ' . $api_message;
 			} catch ( Exception $e ) {
 				$message = __( 'Error sending information to CRM.', 'formscrm' ) . ' ' . $e->getMessage();
+				formscrm_record_sync_status(
+					'wpforms',
+					$form_id,
+					$entry_id,
+					$settings['fc_crm_type'],
+					array(
+						'status'  => 'error',
+						'message' => $e->getMessage(),
+					)
+				);
 			}
 
 			// Add note final.
@@ -211,6 +273,32 @@ class FormsCRM_WPForms extends WPForms_Provider {
 				'entry_meta'
 			);
 		}
+	}
+
+	/**
+	 * Makes WPForms follow the Redsys handoff instead of its normal confirmation.
+	 *
+	 * The provider is called before WPForms resolves confirmations, so this is
+	 * scoped to the current submission and cannot affect another form request.
+	 *
+	 * @param array $confirmations Confirmation configuration.
+	 * @param array $form_data Form data.
+	 * @param array $fields Submitted fields.
+	 * @param int   $entry_id Entry ID.
+	 * @return array
+	 */
+	public function payment_confirmation_redirect( $confirmations, $form_data, $fields, $entry_id ) {
+		$form_id = absint( $form_data['id'] ?? 0 );
+		if ( empty( $this->payment_redirects[ $form_id ] ) ) {
+			return $confirmations;
+		}
+
+		$confirmations[1] = array(
+			'type'     => 'redirect',
+			'redirect' => $this->payment_redirects[ $form_id ],
+		);
+
+		return $confirmations;
 	}
 
 	/**
@@ -483,6 +571,8 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			return $output;
 		}
 
+		$output = $this->add_custom_value_controls( $output, $connection_id, $connection );
+
 		$virtual_fields = apply_filters( 'formscrm_wpforms_virtual_fields', array() );
 
 		if ( empty( $virtual_fields ) ) {
@@ -534,6 +624,40 @@ class FormsCRM_WPForms extends WPForms_Provider {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Adds the "Custom value" option and its text input to each field select.
+	 *
+	 * The fixed value is saved in the connection under custom_values[tag].
+	 *
+	 * @param string $output        Provider fields HTML.
+	 * @param string $connection_id Connection ID.
+	 * @param array  $connection    Connection data.
+	 * @return string
+	 */
+	private function add_custom_value_controls( $output, $connection_id, $connection ) {
+		$prefix = sprintf( 'providers[%s][%s][fields][', $this->slug, $connection_id );
+
+		return preg_replace_callback(
+			'/<select name="' . preg_quote( $prefix, '/' ) . '([^"]*)\]">(.*?)<\/select>/s',
+			function ( $matches ) use ( $connection_id, $connection ) {
+				$tag          = html_entity_decode( $matches[1], ENT_QUOTES );
+				$saved        = isset( $connection['fields'][ $tag ] ) ? (string) $connection['fields'][ $tag ] : '';
+				$custom_value = isset( $connection['custom_values'][ $tag ] ) ? (string) $connection['custom_values'][ $tag ] : '';
+				$input_name   = sprintf( 'providers[%s][%s][custom_values][%s]', $this->slug, $connection_id, $tag );
+
+				return sprintf(
+					'<select name="%1$s%2$s]" data-formscrm-custom="1">%3$s%4$s</select>%5$s',
+					esc_attr( sprintf( 'providers[%s][%s][fields][', $this->slug, $connection_id ) ),
+					$matches[1],
+					$matches[2],
+					formscrm_custom_value_option_html( $saved ),
+					formscrm_custom_value_input_html( $input_name, $custom_value, $saved )
+				);
+			},
+			$output
+		);
 	}
 
 	/*************************************************************************
@@ -621,41 +745,26 @@ class FormsCRM_WPForms extends WPForms_Provider {
 			$select_page // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		);
 
-		// CRM URL.
-		printf(
-			'<input type="text" name="fc_crm_url" class="fc_crm_url" placeholder="%s">',
-			esc_html__( 'CRM URL', 'formscrm' )
-		);
-
-		// CRM Username.
-		printf(
-			'<input type="text" name="fc_crm_username" class="fc_crm_username" placeholder="%s">',
-			esc_html__( 'CRM Username', 'formscrm' )
-		);
-
-		// CRM Password.
-		printf(
-			'<input type="text" name="fc_crm_password" class="fc_crm_password" placeholder="%s">',
-			esc_html__( 'CRM Password', 'formscrm' )
-		);
-
-		// CRM API Password.
-		printf(
-			'<input type="text" name="fc_crm_apipassword" class="fc_crm_apipassword" placeholder="%s">',
-			esc_html__( 'CRM API Password', 'formscrm' )
-		);
-
-		// CRM API Sales.
-		printf(
-			'<input type="text" name="fc_crm_apisales" class="fc_crm_apisales" placeholder="%s">',
-			esc_html__( 'CRM API Sales', 'formscrm' )
-		);
-
-		// CRM Odoo DB.
-		printf(
-			'<input type="text" name="fc_crm_odoodb" class="fc_crm_odoodb" placeholder="%s">',
-			esc_html__( 'CRM Odoo DB', 'formscrm' )
-		);
+		foreach ( formscrm_get_crm_field_definitions() as $def ) {
+			$input_name = 'fc_crm_' . $def['name'];
+			$css_class  = 'fc_crm_' . $def['name'];
+			if ( 'select' === $def['type'] && ! empty( $def['choices'] ) ) {
+				echo '<select name="' . esc_attr( $input_name ) . '" class="' . esc_attr( $css_class ) . '" placeholder="' . esc_attr( $def['label'] ) . '">';
+				foreach ( $def['choices'] as $choice ) {
+					echo '<option value="' . esc_attr( $choice['value'] ) . '">' . esc_html( $choice['label'] ) . '</option>';
+				}
+				echo '</select>';
+			} else {
+				$input_type = 'api_key' === $def['type'] ? 'password' : 'text';
+				printf(
+					'<input type="%s" name="%s" class="%s" placeholder="%s">',
+					esc_attr( $input_type ),
+					esc_attr( $input_name ),
+					esc_attr( $css_class ),
+					esc_attr( $def['label'] )
+				);
+			}
+		}
 
 		printf(
 			'<input type="checkbox" name="fc_crm_mode_expert" class="fc_crm_mode_expert" value="on" /><label for="fc_crm_mode_expert">%s</label>',
@@ -664,50 +773,16 @@ class FormsCRM_WPForms extends WPForms_Provider {
 
 		$js_dependency = '';
 		foreach ( formscrm_get_choices() as $crm ) {
-			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_html( $crm['value'] ) . "') {";
-
-			// URL dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_url(), true ) ) {
-				$js_dependency .= '$(".fc_crm_url").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_url").hide();';
+			$js_dependency .= "if ($('#fc_crm_type option:selected').val() == '" . esc_js( $crm['value'] ) . "') {";
+			foreach ( formscrm_get_crm_field_definitions() as $def ) {
+				$css_class  = 'fc_crm_' . $def['name'];
+				$dependency = call_user_func( $def['dependency'] );
+				if ( in_array( $crm['value'], $dependency, true ) ) {
+					$js_dependency .= '$(".' . esc_js( $css_class ) . '").show();';
+				} else {
+					$js_dependency .= '$(".' . esc_js( $css_class ) . '").hide();';
+				}
 			}
-
-			// Username dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_username(), true ) ) {
-				$js_dependency .= '$(".fc_crm_username").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_username").hide();';
-			}
-
-			// Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_password(), true ) ) {
-				$js_dependency .= '$(".fc_crm_password").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_password").hide();';
-			}
-
-			// API Password dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apipassword(), true ) ) {
-				$js_dependency .= '$(".fc_crm_apipassword").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_apipassword").hide();';
-			}
-
-			// API Sales dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_apisales(), true ) ) {
-				$js_dependency .= '$(".fc_crm_apisales").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_apisales").hide();';
-			}
-
-			// API Odoo DB dependency.
-			if ( in_array( $crm['value'], formscrm_get_dependency_odoodb(), true ) ) {
-				$js_dependency .= '$(".fc_crm_odoodb").show();';
-			} else {
-				$js_dependency .= '$(".fc_crm_odoodb").hide();';
-			}
-
 			$js_dependency .= '}';
 		}
 
