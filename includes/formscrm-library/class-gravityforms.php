@@ -1305,10 +1305,10 @@ class GFCRM extends GFFeedAddOn {
 		} elseif ( $field && ( 'select' === RGFormsModel::get_input_type( $field ) || 'radio' === RGFormsModel::get_input_type( $field ) ) ) {
 			$entry_value = rgar( $entry, $field_id );
 			$choices     = isset( $field['choices'] ) ? $field['choices'] : array();
-			$label       = formscrm_gf_get_label_by_value( $choices, $entry_value );
+			$mode        = formscrm_gf_get_choice_output_mode( $form['id'], $field_id, $entry );
 			return array(
 				'name'  => $var_key,
-				'value' => '' !== $label ? $label : $entry_value,
+				'value' => formscrm_gf_get_choice_output( $choices, $entry_value, $mode ),
 			);
 		} elseif ( $field && 'multiselect' === RGFormsModel::get_input_type( $field ) ) {
 			$value = apply_filters( 'formscrm_field_value_multiselect', rgar( $entry, $field_id ), $form['id'], $field_id, $entry );

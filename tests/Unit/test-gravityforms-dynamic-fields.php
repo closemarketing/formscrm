@@ -202,4 +202,92 @@ class GravityFormsDynamicFieldsTest extends WP_UnitTestCase {
 		$this->assertEquals( 'Only Option', formscrm_gf_get_label_by_value( $choices, 'only' ) );
 		$this->assertSame( '', formscrm_gf_get_label_by_value( $choices, 'other' ) );
 	}
+
+	// -------------------------------------------------------------------------
+	// Label or value output (formscrm_gf_choice_output)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Choices where the label has an accent and the value does not.
+	 *
+	 * @return array
+	 */
+	private function accent_choices() {
+		return array(
+			array( 'text' => 'Sí', 'value' => 'si' ),
+			array( 'text' => 'Atención al cliente', 'value' => 'atencion' ),
+		);
+	}
+
+	/**
+	 * The label is sent by default, as before.
+	 */
+	public function test_choice_output_sends_the_label_by_default() {
+		$mode = formscrm_gf_get_choice_output_mode( 1, 6, array() );
+
+		$this->assertSame( 'label', $mode );
+		$this->assertSame( 'Sí', formscrm_gf_get_choice_output( $this->accent_choices(), 'si', $mode ) );
+		$this->assertSame( 'Atención al cliente', formscrm_gf_get_choice_output( $this->accent_choices(), 'atencion' ) );
+	}
+
+	/**
+	 * With the filter set to 'value' the stored value is sent, without the accent.
+	 */
+	public function test_choice_output_sends_the_value_when_the_filter_asks_for_it() {
+		add_filter(
+			'formscrm_gf_choice_output',
+			function () {
+				return 'value';
+			}
+		);
+		$mode = formscrm_gf_get_choice_output_mode( 1, 6, array() );
+
+		$this->assertSame( 'value', $mode );
+		$this->assertSame( 'si', formscrm_gf_get_choice_output( $this->accent_choices(), 'si', $mode ) );
+		$this->assertSame( 'atencion', formscrm_gf_get_choice_output( $this->accent_choices(), 'atencion', $mode ) );
+	}
+
+	/**
+	 * The filter gets the form, the field and the entry, so a site can choose per field.
+	 */
+	public function test_choice_output_filter_can_decide_per_field() {
+		add_filter(
+			'formscrm_gf_choice_output',
+			function ( $mode, $form_id, $field_id ) {
+				return 3 === (int) $form_id && 6 === (int) $field_id ? 'value' : $mode;
+			},
+			10,
+			3
+		);
+
+		$this->assertSame( 'value', formscrm_gf_get_choice_output_mode( 3, 6, array() ) );
+		$this->assertSame( 'label', formscrm_gf_get_choice_output_mode( 3, 7, array() ) );
+		$this->assertSame( 'label', formscrm_gf_get_choice_output_mode( 4, 6, array() ) );
+	}
+
+	/**
+	 * Anything the filter returns other than 'value' keeps the label.
+	 */
+	public function test_choice_output_ignores_invalid_filter_results() {
+		foreach ( array( 'Value', 'values', '', null, false, array( 'value' ), 1 ) as $bad ) {
+			add_filter(
+				'formscrm_gf_choice_output',
+				function () use ( $bad ) {
+					return $bad;
+				},
+				99
+			);
+			$this->assertSame( 'label', formscrm_gf_get_choice_output_mode( 1, 6, array() ), var_export( $bad, true ) );
+			remove_all_filters( 'formscrm_gf_choice_output' );
+		}
+	}
+
+	/**
+	 * Label mode falls back to the stored value when no choice matches (old behaviour).
+	 */
+	public function test_choice_output_label_mode_falls_back_to_the_stored_value() {
+		$this->assertSame( 'other', formscrm_gf_get_choice_output( $this->accent_choices(), 'other', 'label' ) );
+		$this->assertSame( '', formscrm_gf_get_choice_output( $this->accent_choices(), '', 'label' ) );
+		$this->assertSame( 'x', formscrm_gf_get_choice_output( array(), 'x', 'label' ) );
+	}
 }
