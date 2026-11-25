@@ -23,6 +23,7 @@ This plugin will connect different Forms plugins to CRM. We support at this time
 - [WooCommerce](https://wordpress.org/plugins/woocommerce/)
 - [WPForms PRO](https://close.marketing/likes/wpforms/)
 - [JetForms](https://wordpress.org/plugins/jetformbuilder/)
+- [Formidable Forms](https://wordpress.org/plugins/formidable/)
 
 If you need to support more Forms plugins, please contact in forum support.
 
@@ -269,6 +270,9 @@ WordPress installation and then activate the Plugin from Plugins page.
 [Official Repository GitHub](https://github.com/closemarketing/formscrm/)
 
 == Changelog ==
+
+= 4.4.7 =
+* Added: Formidable Forms integration. Map any Formidable form's fields to a CRM from a new FormsCRM settings page under the Formidable Forms admin menu; entries are sent to the CRM right after they are created, with file fields resolved to their attachment URL and checkbox/multi-select fields flattened to a comma-separated value.
 
 = 4.4.6 =
 * Fixed: Gravity Forms feed settings no longer stop with a fatal error ("Cannot access offset of type string on string") when the CRM returns an error instead of its field list (e.g. invalid API key). The field map is shown empty and the CRM error is written to the PHP error log.
