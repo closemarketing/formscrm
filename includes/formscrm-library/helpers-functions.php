@@ -1170,6 +1170,57 @@ if ( ! function_exists( 'formscrm_gf_get_label_by_value' ) ) {
 	}
 }
 
+if ( ! function_exists( 'formscrm_gf_get_choice_output_mode' ) ) {
+	/**
+	 * Whether a Gravity Forms radio or select sends the choice label or its value.
+	 *
+	 * Labels are sent by default, as before. A site whose choice values are what the
+	 * CRM expects (e.g. "si" for the label "Sí", or an ID) returns 'value' from the
+	 * formscrm_gf_choice_output filter.
+	 *
+	 * @param int|string $form_id  Form ID.
+	 * @param int|string $field_id Field ID.
+	 * @param array      $entry    Entry data.
+	 * @return string 'label' or 'value'.
+	 */
+	function formscrm_gf_get_choice_output_mode( $form_id, $field_id, $entry ) {
+		/**
+		 * Filters what a Gravity Forms radio or select field sends to the CRM.
+		 *
+		 * @param string     $mode     'label' (default) sends the text of the choice; 'value' sends its value.
+		 * @param int|string $form_id  Form ID.
+		 * @param int|string $field_id Field ID.
+		 * @param array      $entry    Entry data.
+		 */
+		$mode = apply_filters( 'formscrm_gf_choice_output', 'label', $form_id, $field_id, $entry );
+
+		return 'value' === $mode ? 'value' : 'label';
+	}
+}
+
+if ( ! function_exists( 'formscrm_gf_get_choice_output' ) ) {
+	/**
+	 * Gets what a radio or select choice sends to the CRM: its label or its value.
+	 *
+	 * With 'label' the text of the selected choice, or the stored value when no
+	 * choice matches (as before). With 'value' the stored value, untouched.
+	 *
+	 * @param array  $choices     Field choices.
+	 * @param mixed  $entry_value Value stored in the entry.
+	 * @param string $mode        'label' or 'value'.
+	 * @return mixed
+	 */
+	function formscrm_gf_get_choice_output( array $choices, $entry_value, $mode = 'label' ) {
+		if ( 'value' === $mode ) {
+			return $entry_value;
+		}
+
+		$label = formscrm_gf_get_label_by_value( $choices, $entry_value );
+
+		return '' !== $label ? $label : $entry_value;
+	}
+}
+
 if ( ! function_exists( 'formscrm_custom_value_option_html' ) ) {
 	/**
 	 * Returns the "Custom value" option appended to field mapping selects.
