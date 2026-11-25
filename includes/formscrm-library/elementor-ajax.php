@@ -213,7 +213,7 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 						</label>
 					</td>
 					<td class="elementor-map-column elementor-map-column-value">
-						<select class="wide" name="fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>" >
+						<select class="wide" name="fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>" data-formscrm-custom="1">
 							<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 							<?php
 							$form_fields     = isset( $_POST['formFields'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['formFields'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
@@ -232,8 +232,14 @@ function elementor_formscrm_connect_crm() { // phpcs:ignore WordPress.NamingConv
 							 * @param string $crm_field_name  CRM field machine name.
 							 */
 							do_action( 'formscrm_elementor_field_select_options', $saved_field_val, $crm_field_name );
+
+							echo formscrm_custom_value_option_html( $saved_field_val ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
 							?>
 						</select>
+						<?php
+						$saved_custom_val = isset( $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] ) && is_scalar( $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] ) ? (string) $hidden_settings[ 'fc_crm_custom-' . $crm_field_name ] : '';
+						echo formscrm_custom_value_input_html( 'fc_crm_custom-' . $crm_field_name, $saved_custom_val, $saved_field_val ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
+						?>
 					</td>
 				</tr>
 				<?php

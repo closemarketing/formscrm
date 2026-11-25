@@ -172,7 +172,11 @@ class FORMSCRM_JFB_Action extends Base {
 			if ( empty( $crm_field_name ) ) {
 				continue;
 			}
-			$value = $request[ $form_field_name ] ?? $form_field_name;
+			if ( FORMSCRM_CUSTOM_VALUE === $form_field_name ) {
+				$value = sanitize_text_field( (string) ( $this->settings['custom_values'][ $crm_field_name ] ?? '' ) );
+			} else {
+				$value = $request[ $form_field_name ] ?? $form_field_name;
+			}
 			if ( is_array( $value ) ) {
 				$value = implode( ',', $value );
 			}

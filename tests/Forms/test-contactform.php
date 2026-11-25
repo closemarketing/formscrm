@@ -1,13 +1,83 @@
 <?php
 /**
  * Class ContactFormsTest
- * 
+ *
  * Command: composer test-debug --filter ContactFormsTest
  *
  * @package Formscrm
  */
 
 class ContactFormsTest extends WP_UnitTestCase {
+
+	/**
+	 * Creates a real wpcf7_contact_form post and makes it CF7's "current"
+	 * form via WPCF7_ContactForm::get_instance(), the same way CF7 itself
+	 * sets it while rendering/processing a form. WPCF7_ContactForm's
+	 * constructor is private and $current isn't settable directly, so this
+	 * is the only way to get FORMSCRM_CF7_Settings::inject_analytics_plus_fields()
+	 * — which reads WPCF7_ContactForm::get_current() — into a known state.
+	 *
+	 * @return int The created post's ID.
+	 */
+	private function make_current_contact_form() {
+		$post_id = $this->factory()->post->create( array( 'post_type' => 'wpcf7_contact_form' ) );
+		WPCF7_ContactForm::get_instance( $post_id );
+		return $post_id;
+	}
+
+	/**
+	 * Tear down: reset the shared tracking-needed filter.
+	 */
+	public function tearDown(): void {
+		remove_all_filters( 'formscrm_needs_analytics_plus_tracking' );
+		parent::tearDown();
+	}
+
+	/**
+	 * A Clientify-connected form must get the fixed-name hidden field
+	 * injected before its submit button, and report needing the tracking script.
+	 */
+	public function test_inject_analytics_plus_fields_adds_hidden_field() {
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
+
+		$settings  = new FORMSCRM_CF7_Settings();
+		$form_html = $settings->inject_analytics_plus_fields( '<form><input type="submit" value="Send" /></form>' );
+
+		$this->assertStringContainsString( '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />', $form_html );
+		$this->assertTrue( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
+	}
+
+	/**
+	 * Fields must not be injected, nor the tracking script requested, for a
+	 * form whose CRM isn't Clientify.
+	 */
+	public function test_inject_analytics_plus_fields_skips_non_clientify_forms() {
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'holded' ) );
+
+		$settings  = new FORMSCRM_CF7_Settings();
+		$original  = '<form><input type="submit" value="Send" /></form>';
+		$form_html = $settings->inject_analytics_plus_fields( $original );
+
+		$this->assertSame( $original, $form_html );
+		$this->assertFalse( apply_filters( 'formscrm_needs_analytics_plus_tracking', false ) );
+	}
+
+	/**
+	 * Re-rendering the same form (e.g. AJAX re-validation) must not duplicate
+	 * the hidden field.
+	 */
+	public function test_inject_analytics_plus_fields_does_not_duplicate_field() {
+		$post_id = $this->make_current_contact_form();
+		update_option( 'cf7_crm_' . $post_id, array( 'fc_crm_type' => 'clientify' ) );
+
+		$settings  = new FORMSCRM_CF7_Settings();
+		$form_html = '<form><input type="hidden" name="formscrm_vk" class="formscrm-vk" /><input type="submit" value="Send" /></form>';
+		$form_html = $settings->inject_analytics_plus_fields( $form_html );
+
+		$this->assertSame( 1, substr_count( $form_html, 'name="formscrm_vk"' ) );
+	}
 
 	public function test_get_merge_vars() {
 		$cf7_crm = array(
@@ -130,5 +200,81 @@ class ContactFormsTest extends WP_UnitTestCase {
 		$this->assertSame( 'gdpr_accept', $merge_vars[0]['name'] );
 		$this->assertIsBool( $merge_vars[0]['value'] );
 		$this->assertSame( $expected_value, $merge_vars[0]['value'] );
+	}
+
+	/**
+	 * A mapping set to "Custom value" sends the fixed text with placeholders resolved.
+	 */
+	public function test_get_merge_vars_custom_value() {
+		$cf7_crm = array(
+			'fc_crm_type'          => 'clientify',
+			'fc_crm_field-source'  => FORMSCRM_CUSTOM_VALUE,
+			'fc_crm_custom-source' => 'Web - {id:your-name}',
+			'fc_crm_field-email'   => 'your-email',
+		);
+
+		$submitted_data = array(
+			'your-name'  => 'Ana',
+			'your-email' => 'ana@example.com',
+		);
+
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( $cf7_crm, $submitted_data );
+
+		$this->assertSame(
+			array(
+				array(
+					'name'  => 'source',
+					'value' => 'Web - Ana',
+				),
+				array(
+					'name'  => 'email',
+					'value' => 'ana@example.com',
+				),
+			),
+			$merge_vars
+		);
+	}
+
+	/**
+	 * A "Custom value" mapping without saved text sends an empty value.
+	 */
+	public function test_get_merge_vars_custom_value_missing_text() {
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars( array( 'fc_crm_field-source' => FORMSCRM_CUSTOM_VALUE ), array() );
+
+		$this->assertSame( '', $merge_vars[0]['value'] );
+	}
+
+	/**
+	 * A fixed value of "0" is sent, not dropped.
+	 */
+	public function test_get_merge_vars_custom_value_zero() {
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars(
+			array(
+				'fc_crm_field-priority'  => FORMSCRM_CUSTOM_VALUE,
+				'fc_crm_custom-priority' => '0',
+			),
+			array()
+		);
+
+		$this->assertSame( '0', $merge_vars[0]['value'] );
+	}
+
+	/**
+	 * A real form field named "formscrm_custom" is still read from the submission.
+	 */
+	public function test_get_merge_vars_field_named_like_old_sentinel() {
+		$merge_vars = FORMSCRM_CF7_Settings::get_merge_vars(
+			array( 'fc_crm_field-source' => 'formscrm_custom' ),
+			array( 'formscrm_custom' => 'Submitted' )
+		);
+
+		$this->assertSame( 'Submitted', $merge_vars[0]['value'] );
+	}
+
+	/**
+	 * The custom value sentinel cannot be a valid form field name.
+	 */
+	public function test_custom_value_sentinel_is_not_a_valid_field_name() {
+		$this->assertSame( 0, preg_match( '/^[A-Za-z0-9_-]+$/', FORMSCRM_CUSTOM_VALUE ) );
 	}
 }

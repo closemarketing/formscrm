@@ -76,7 +76,6 @@ class ElementorClientifyTest extends WP_UnitTestCase {
 	public function setUp(): void {
 		parent::setUp();
 		$this->requests = array();
-		unset( $_POST['visitor_key'] );
 		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
 	}
 
@@ -100,6 +99,7 @@ class ElementorClientifyTest extends WP_UnitTestCase {
 		$this->requests[] = array(
 			'url'    => $url,
 			'method' => $r['method'],
+			'body'   => isset( $r['body'] ) ? json_decode( $r['body'], true ) : null,
 		);
 
 		if ( false !== strpos( $url, 'me/' ) ) {
@@ -256,5 +256,52 @@ class ElementorClientifyTest extends WP_UnitTestCase {
 		$this->assertCount( 1, $create_requests );
 		$this->assertSame( 'POST', $create_requests[0]['method'] );
 		$this->assertStringNotContainsString( 'force_insert=true', $create_requests[0]['url'] );
+	}
+
+	/**
+	 * The tracking identifier filled client-side into the injected
+	 * formscrm_vk field must reach Clientify as visitor_key.
+	 */
+	public function test_run_forwards_tracking_identifier_as_visitor_key() {
+		$record = $this->make_record(
+			array(
+				'clientify'          => 'Contacts',
+				'fc_crm_field-email' => 'form-email',
+			),
+			array(
+				'form-email'  => array( 'value' => 'new@example.com' ),
+				'formscrm_vk' => array( 'value' => 'visitor-uuid-123' ),
+			)
+		);
+
+		( new FormsCRM_Elementor_Action_After_Submit() )->run( $record, new FormsCRM_Test_Fake_Ajax_Handler() );
+
+		$create_requests = $this->get_create_or_update_requests();
+
+		$this->assertCount( 1, $create_requests );
+		$this->assertSame( 'visitor-uuid-123', $create_requests[0]['body']['visitor_key'] );
+		$this->assertArrayNotHasKey( 'visitor_key2', $create_requests[0]['body'] );
+	}
+
+	/**
+	 * Without a tracking identifier, visitor_key must not be sent at all.
+	 */
+	public function test_run_without_tracking_identifier_omits_visitor_key() {
+		$record = $this->make_record(
+			array(
+				'clientify'          => 'Contacts',
+				'fc_crm_field-email' => 'form-email',
+			),
+			array(
+				'form-email' => array( 'value' => 'new@example.com' ),
+			)
+		);
+
+		( new FormsCRM_Elementor_Action_After_Submit() )->run( $record, new FormsCRM_Test_Fake_Ajax_Handler() );
+
+		$create_requests = $this->get_create_or_update_requests();
+
+		$this->assertCount( 1, $create_requests );
+		$this->assertArrayNotHasKey( 'visitor_key', $create_requests[0]['body'] );
 	}
 }

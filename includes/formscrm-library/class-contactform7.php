@@ -34,6 +34,48 @@ class FORMSCRM_CF7_Settings {
 		add_action( 'wpcf7_after_save', array( $this, 'crm_save_options' ) );
 		add_action( 'wpcf7_before_send_mail', array( $this, 'crm_process_entry' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_autosubmit_assets' ) );
+		add_filter( 'wpcf7_form_elements', array( $this, 'inject_analytics_plus_fields' ) );
+	}
+
+	/**
+	 * Injects FormsCRM's own hidden fields for Clientify's tracking identifiers
+	 * (legacy `vk` cookie and Analytics PLUS visitor_uuid) into any form with
+	 * Clientify configured, so the tracking script has somewhere to write the
+	 * values it captures in the browser. Field values are read directly from
+	 * the submitted data in crm_process_entry(), never through the admin
+	 * field-map UI. Also reports, via the shared filter, that the tracking
+	 * script is needed on this page.
+	 *
+	 * @param string $form_html Rendered form HTML.
+	 * @return string Form HTML, with the tracking fields injected if needed.
+	 */
+	public function inject_analytics_plus_fields( $form_html ) {
+		$contact_form = WPCF7_ContactForm::get_current();
+		if ( ! $contact_form ) {
+			return $form_html;
+		}
+
+		$cf7_crm  = get_option( 'cf7_crm_' . $contact_form->id() );
+		$crm_type = ! empty( $cf7_crm['fc_crm_type'] ) ? $cf7_crm['fc_crm_type'] : '';
+
+		if ( 'clientify' !== $crm_type ) {
+			return $form_html;
+		}
+
+		add_filter( 'formscrm_needs_analytics_plus_tracking', '__return_true' );
+
+		if ( false !== strpos( $form_html, 'name="formscrm_vk"' ) ) {
+			return $form_html;
+		}
+
+		$hidden_fields = '<input type="hidden" name="formscrm_vk" class="formscrm-vk" />';
+
+		$pos_submit = strpos( $form_html, '<input type="submit"' );
+		if ( false === $pos_submit ) {
+			return $form_html . $hidden_fields;
+		}
+
+		return substr_replace( $form_html, $hidden_fields, $pos_submit, 0 );
 	}
 
 	/**
@@ -211,20 +253,24 @@ class FORMSCRM_CF7_Settings {
 										</label>
 									</td>
 									<td class="cf7-map-column cf7-map-column-value">
-										<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>]" style="min-width:300px; margin-bottom: 10px;">
+										<?php $saved_mapping = isset( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] ) ? (string) $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] : ''; ?>
+										<select class="wide" name="wpcf7-crm[fc_crm_field-<?php echo esc_html( $crm_field_name ); ?>]" data-formscrm-custom="1" style="min-width:300px; margin-bottom: 10px;">
 											<option value=""><?php esc_html_e( 'Select a field', 'formscrm' ); ?></option>
 											<?php
 											foreach ( $form_fields as $form_field ) {
 												$field_value = isset( $form_field['name'] ) ? $form_field['name'] : '';
 												$field_label = ! empty( $form_field['label'] ) ? $form_field['label'] : $field_value;
 												echo '<option value="' . esc_attr( $field_value ) . '" ';
-												if ( isset( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ] ) ) {
-													selected( $cf7_crm[ 'fc_crm_field-' . $crm_field_name ], $field_value );
-												}
+												selected( $saved_mapping, $field_value );
 												echo '>' . esc_html( $field_label ) . '</option>';
 											}
+											echo formscrm_custom_value_option_html( $saved_mapping ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
 											?>
 										</select>
+										<?php
+										$custom_value = isset( $cf7_crm[ 'fc_crm_custom-' . $crm_field_name ] ) ? (string) $cf7_crm[ 'fc_crm_custom-' . $crm_field_name ] : '';
+										echo formscrm_custom_value_input_html( 'wpcf7-crm[fc_crm_custom-' . $crm_field_name . ']', $custom_value, $saved_mapping ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in helper.
+										?>
 									</td>
 							</tr>
 							<?php
@@ -256,7 +302,16 @@ class FORMSCRM_CF7_Settings {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput -- Nonce verification and sanitization handled by Contact Form 7.
 		if ( isset( $_POST['wpcf7-crm'] ) && is_array( $_POST['wpcf7-crm'] ) ) {
 			$crm_data = array_map( 'sanitize_text_field', wp_unslash( $_POST['wpcf7-crm'] ) );
-			update_option( 'cf7_crm_' . $args->id(), array_filter( $crm_data ) );
+			// Keep a fixed value of "0"; only drop empty strings.
+			update_option(
+				'cf7_crm_' . $args->id(),
+				array_filter(
+					$crm_data,
+					function ( $item ) {
+						return '' !== $item;
+					}
+				)
+			);
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput
 	}
@@ -286,7 +341,9 @@ class FORMSCRM_CF7_Settings {
 			formscrm_alert_error( $crm_type, sprintf( __( 'CRM class not found for type: %s', 'formscrm' ), $crm_type ), array(), '', '', $form_info );
 			return;
 		}
-		$merge_vars                    = self::get_merge_vars( $cf7_crm, $submission->get_posted_data() );
+		$posted_data                   = $submission->get_posted_data();
+		$merge_vars                    = self::get_merge_vars( $cf7_crm, $posted_data );
+		$merge_vars                    = array_merge( $merge_vars, formscrm_get_analytics_plus_merge_vars( $crm_type, $posted_data ) );
 		$merge_vars                    = apply_filters( 'formscrm_merge_vars_before_send', $merge_vars, $cf7_crm, array() );
 		$cf7_crm['formscrm_form_type'] = 'contactform7';
 		$response_result               = $this->crmlib->create_entry( $cf7_crm, $merge_vars );
@@ -334,7 +391,9 @@ class FORMSCRM_CF7_Settings {
 			}
 			$crm_key = str_replace( 'fc_crm_field-', '', $key );
 
-			if ( array_key_exists( $value, $submitted_data ) ) {
+			if ( FORMSCRM_CUSTOM_VALUE === $value ) {
+				$value = isset( $cf7_crm[ 'fc_crm_custom-' . $crm_key ] ) ? (string) $cf7_crm[ 'fc_crm_custom-' . $crm_key ] : '';
+			} elseif ( array_key_exists( $value, $submitted_data ) ) {
 				$value = $submitted_data[ $value ];
 			}
 
@@ -378,6 +437,8 @@ class FORMSCRM_CF7_Settings {
 			FORMSCRM_VERSION,
 			'all'
 		);
+
+		formscrm_enqueue_custom_value_script();
 
 		// Enqueue JavaScript.
 		wp_enqueue_script(

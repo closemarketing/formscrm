@@ -43,7 +43,7 @@ class FormsCRM_WooCommerce {
 	 */
 	private function get_woocommerce_order_fields() {
 		// Function name and Label.
-		return array(
+		$fields = array(
 			''                             => '',
 			'customer_note'                => __( 'Customer Note', 'formscrm' ),
 			'billing_first_name'           => __( 'Billing First name', 'formscrm' ),
@@ -71,6 +71,16 @@ class FormsCRM_WooCommerce {
 			'customer_id'                  => __( 'Customer ID', 'formscrm' ),
 			'user_id'                      => __( 'User ID', 'formscrm' ),
 		);
+
+		/**
+		 * Filters the order fields offered in the field mapping.
+		 *
+		 * A key that is not an order getter is not read from the order, so an add-on
+		 * can offer a value of its own and resolve it with formscrm_merge_vars_before_send.
+		 *
+		 * @param array $fields Order field key => label.
+		 */
+		return apply_filters( 'formscrm_woocommerce_order_fields', $fields );
 	}
 
 	/**

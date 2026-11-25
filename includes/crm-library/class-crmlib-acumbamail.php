@@ -37,20 +37,31 @@ class CRMLIB_AcumbaMail {
 			$fields = array_merge( $fields, $data );
 		}
 
-		$response = wp_remote_post(
-			$url,
-			array(
-				'method'      => 'POST',
-				'httpversion' => '1.0',
-				'blocking'    => true,
-				'headers'     => array(
-					'header' => 'Content-type: application/x-www-form-urlencoded',
-				),
-				'body'        => $fields,
-			)
+		$args = array(
+			'method'      => 'POST',
+			'httpversion' => '1.0',
+			'blocking'    => true,
+			'headers'     => array(
+				'header' => 'Content-type: application/x-www-form-urlencoded',
+			),
+			'body'        => $fields,
 		);
-		error_log( '$fields' . print_r( $fields, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
-		error_log( '$response' . print_r( $response, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
+
+		$response = wp_remote_post( $url, $args );
+
+		// The API allows 5 requests per second: wait for the window to reset and retry once.
+		if ( ! is_wp_error( $response ) && 429 === (int) wp_remote_retrieve_response_code( $response ) ) {
+			formscrm_debug_message( 'AcumbaMail rate limit reached (' . $module . '), retrying once.' );
+			sleep( 1 );
+			$response = wp_remote_post( $url, $args );
+		}
+
+		// Never log the request: it carries the API token.
+		if ( is_wp_error( $response ) ) {
+			formscrm_debug_message( 'AcumbaMail ' . $module . ' request failed: ' . $response->get_error_message() );
+		} else {
+			formscrm_debug_message( 'AcumbaMail ' . $module . ' responded HTTP ' . wp_remote_retrieve_response_code( $response ) );
+		}
 
 		$code = intval( wp_remote_retrieve_response_code( $response ) / 100 );
 		if ( is_wp_error( $response ) ) {
@@ -80,6 +91,58 @@ class CRMLIB_AcumbaMail {
 	}
 
 	/**
+	 * Lists cached for the current request, by API key hash.
+	 *
+	 * @var array
+	 */
+	private static $lists_cache = array();
+
+	/**
+	 * Gets the lists of the account, cached.
+	 *
+	 * Building a feed screen asks for the lists several times (login, module
+	 * dropdown, fields, module id) and the API only allows 5 requests per second,
+	 * so extra calls were rejected and the CRM Module dropdown came out empty.
+	 * Successful results are kept for the request and for one minute.
+	 *
+	 * @param string $apikey API key for connection.
+	 * @return array Same format as post().
+	 */
+	private function get_lists( $apikey ) {
+		if ( '' === (string) $apikey ) {
+			return array(
+				'status' => 'error',
+				'data'   => 'No API key.',
+			);
+		}
+
+		$hash = md5( (string) $apikey );
+
+		if ( isset( self::$lists_cache[ $hash ] ) ) {
+			return self::$lists_cache[ $hash ];
+		}
+
+		$transient_key = 'formscrm_acumba_lists_' . $hash;
+		$cached        = get_transient( $transient_key );
+		if ( is_array( $cached ) && ! empty( $cached ) ) {
+			self::$lists_cache[ $hash ] = array(
+				'status' => 'ok',
+				'data'   => $cached,
+			);
+			return self::$lists_cache[ $hash ];
+		}
+
+		$result = $this->post( $apikey, 'getLists' );
+
+		if ( 'ok' === $result['status'] && ! empty( $result['data'] ) && is_array( $result['data'] ) ) {
+			self::$lists_cache[ $hash ] = $result;
+			set_transient( $transient_key, $result['data'], MINUTE_IN_SECONDS );
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Gets module id from AcumbaMail
 	 *
 	 * @param string $apikey API key for connection.
@@ -88,7 +151,7 @@ class CRMLIB_AcumbaMail {
 	 */
 	private function get_module_id( $apikey, $module ) {
 		$module_id        = null;
-		$get_result_lists = $this->post( $apikey, 'getLists' );
+		$get_result_lists = $this->get_lists( $apikey );
 
 		if ( ! empty( $get_result_lists['data'] ) && is_array( $get_result_lists['data'] ) ) {
 			foreach ( $get_result_lists['data'] as $key => $list ) {
@@ -108,7 +171,7 @@ class CRMLIB_AcumbaMail {
 	 */
 	public function login( $settings ) {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$get_result = $this->post( $apikey, 'getLists' );
+		$get_result = $this->get_lists( $apikey );
 
 		if ( $apikey && ! empty( $get_result['data'] ) ) {
 			return true;
@@ -125,7 +188,7 @@ class CRMLIB_AcumbaMail {
 	 */
 	public function list_modules( $settings ) {
 		$apikey     = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
-		$get_result = $this->post( $apikey, 'getLists' );
+		$get_result = $this->get_lists( $apikey );
 		$modules    = array();
 
 		if ( ! empty( $get_result['data'] ) && is_array( $get_result['data'] ) ) {
@@ -204,7 +267,6 @@ class CRMLIB_AcumbaMail {
 				if ( empty( $list ) ) {
 					continue;
 				}
-				error_log( '$subscriber:' . print_r( $list, true ) . ' ' . print_r( $subscriber, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
 				$result = $this->post(
 					$apikey,
 					'addSubscriber',

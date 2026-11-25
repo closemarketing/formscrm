@@ -28,6 +28,9 @@ const { useFields } = window.jfb.blocksToActions;
 // ─── Data provided by wp_localize_script in class-jetformbuilder.php ──────────
 const { restUrl, nonce, choices: crmChoices, virtualFields: extraFields = [] } = window.formsCrmJfb || {};
 
+// Mapping value meaning "send the fixed text typed below the select".
+const CUSTOM_VALUE = '@formscrm_custom';
+
 /**
  * Map the raw formscrm_get_choices() array into WP SelectControl options.
  */
@@ -77,7 +80,7 @@ function CredentialFields( { settings, onChangeSettingObj } ) {
 			el( StyledSelectControl, {
 				value: type,
 				options: crmTypeOptions,
-				onChange: ( v ) => onChangeSettingObj( { fc_crm_type: v, fc_crm_module: '', fields_map: {} } ),
+				onChange: ( v ) => onChangeSettingObj( { fc_crm_type: v, fc_crm_module: '', fields_map: {}, custom_values: {} } ),
 			} )
 		),
 
@@ -200,7 +203,7 @@ function ModuleSelector( { settings, onChangeSettingObj } ) {
 				: el( StyledSelectControl, {
 					value: module,
 					options,
-					onChange: ( v ) => onChangeSettingObj( { fc_crm_module: v, fields_map: {} } ),
+					onChange: ( v ) => onChangeSettingObj( { fc_crm_module: v, fields_map: {}, custom_values: {} } ),
 				} )
 	);
 }
@@ -208,7 +211,7 @@ function ModuleSelector( { settings, onChangeSettingObj } ) {
 /**
  * Fields mapping table — shows CRM fields on the left, form fields on the right.
  */
-function FieldsMap( { settings, getMapField, setMapField } ) {
+function FieldsMap( { settings, onChangeSettingObj, getMapField, setMapField } ) {
 	const { useState, useEffect } = window.React;
 	const [ crmFields, setCrmFields ] = useState( [] );
 	const [ loading, setLoading ] = useState( false );
@@ -217,7 +220,9 @@ function FieldsMap( { settings, getMapField, setMapField } ) {
 	const formFields = [
 		...useFields( { withInner: false, placeholder: '--' } ),
 		...extraFields,
+		{ value: CUSTOM_VALUE, label: __( 'Custom value', 'formscrm' ) },
 	];
+	const customValues = settings.custom_values || {};
 
 	const type   = settings.fc_crm_type || '';
 	const module = settings.fc_crm_module || '';
@@ -260,15 +265,27 @@ function FieldsMap( { settings, getMapField, setMapField } ) {
 			Flex,
 			{ direction: 'column', gap: 4 },
 			...crmFields.map( ( field ) =>
-				el( FieldsMapField, {
-					key: field.name,
-					tag: field.name,
-					label: field.label,
-					isRequired: field.required,
-					formFields,
-					value: getMapField( { name: field.name } ),
-					onChange: ( v ) => setMapField( { nameField: field.name, value: v } ),
-				} )
+				el(
+					'div',
+					{ key: field.name },
+					el( FieldsMapField, {
+						tag: field.name,
+						label: field.label,
+						isRequired: field.required,
+						formFields,
+						value: getMapField( { name: field.name } ),
+						onChange: ( v ) => setMapField( { nameField: field.name, value: v } ),
+					} ),
+					CUSTOM_VALUE === getMapField( { name: field.name } ) &&
+						el( TextControl, {
+							placeholder: __( 'Fixed value, e.g. Web or {id:field}', 'formscrm' ),
+							value: customValues[ field.name ] || '',
+							onChange: ( v ) =>
+								onChangeSettingObj( {
+									custom_values: { ...customValues, [ field.name ]: v },
+								} ),
+						} )
+				)
 			)
 		)
 	);
@@ -323,7 +340,7 @@ function FormsCrmEdit( { settings, onChangeSettingObj, getMapField, setMapField 
 		( settings.fc_crm_module ) && el( WideLine, null ),
 
 		// Field mapping.
-		el( FieldsMap, { settings: effectiveSettings, getMapField, setMapField } ),
+		el( FieldsMap, { settings: effectiveSettings, onChangeSettingObj, getMapField, setMapField } ),
 	);
 }
 

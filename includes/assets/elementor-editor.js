@@ -121,6 +121,15 @@ jQuery(document).ready(function($) {
 			if ( fieldValue ) settings[fieldName] = fieldValue;
 		});
 
+		// Fixed values typed for mappings set to "Custom value".
+		$form.find('.active .formscrm-custom-value').each(function() {
+			let fieldName = $(this).attr('name');
+			let mappingName = fieldName.replace( 'fc_crm_custom-', 'fc_crm_field-' );
+			let fieldValue = $(this).val();
+
+			if ( fieldValue && '@formscrm_custom' === settings[mappingName] ) settings[fieldName] = fieldValue;
+		});
+
 		let settingsModel = elementor.getPanelView().getCurrentPageView().model;
 
 		// add model
@@ -141,6 +150,10 @@ jQuery(document).ready(function($) {
 	});
 
 	$(document).on('change', '.elementor-map-column select', function() {
+		saveFieldSettings();
+	});
+
+	$(document).on('input', '.elementor-map-column .formscrm-custom-value', function() {
 		saveFieldSettings();
 	});
 

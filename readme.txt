@@ -4,8 +4,8 @@ Tags: gravityforms, wpforms, crm, vtiger, odoo
 Donate link: https://close.marketing/go/donate/
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 4.4.4-beta.1
-Version: 4.4.4-beta.1
+Stable tag: 4.4.6
+Version: 4.4.6
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -241,8 +241,10 @@ Each Markdown file includes:
 **Important: API v2 Migration**
 Since version 4.3.2, FormsCRM uses the Clientify API v2 (api-plus.clientify.com). Your existing API key will continue to work without changes. The migration is fully backward compatible with existing feed configurations.
 
-**Instructions for adding Clientify cookie in the forms**
-Clientify cookie adds the ability to merge the contact with the Clientify cookie in the form. You will see if Clientify is added as CRM, a new hidden field in your form. You could check if is already in the form, but if you don't have it you can add it and put as css *clientify_cookie* .
+**Clientify tracking and attribution (visitor_key)**
+FormsCRM automatically captures Clientify's visitor tracking identifier in the visitor's browser and forwards it as `visitor_key` when the contact is created — no field mapping, hidden field, or extra setup needed on any Clientify-connected form. It prefers the Analytics PLUS pixel's `visitor_uuid` (from the `__<pixel_key>_visitor_uuid` key in the browser's `localStorage`), for attribution to the visit Analytics PLUS tracked, falling back to the legacy `vk` tracking cookie when Analytics PLUS isn't present. (Clientify's `visitor_key2` field isn't processed by their production API yet, so Analytics PLUS attribution goes through `visitor_key` for now.)
+
+Neither value can be read reliably on the server (the cookie may be set/refreshed by the pixel after the page loads, and `localStorage` is browser-only), so both are read by a small script FormsCRM adds automatically to any page with a Clientify-connected form.
 
 **Add Pipeline name or ID in Opportunities**
 You can add a new field that fits with the Pipeline name (pipeline_desc) or Pipeline ID (pipeline_id) in Opportunities in Clientify. You can also specify the Pipeline Stage Name (pipeline_stage_desc). You will need to use the same name or ID as the Pipeline in Clientify.
@@ -269,13 +271,34 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
-= next =
+= 4.4.7 =
 * Added: Formidable Forms integration. Map any Formidable form's fields to a CRM from a new FormsCRM settings page under the Formidable Forms admin menu; entries are sent to the CRM right after they are created, with file fields resolved to their attachment URL and checkbox/multi-select fields flattened to a comma-separated value.
+
+= 4.4.6 =
+* Fixed: Gravity Forms feed settings no longer stop with a fatal error ("Cannot access offset of type string on string") when the CRM returns an error instead of its field list (e.g. invalid API key). The field map is shown empty and the CRM error is written to the PHP error log.
+* Added: CRM columns in the Gravity Forms entries list. For every CRM connected to a form, a status column and a contact ID column show the result of the latest send, resend or automatic retry. Nothing is shown by default: each column is added manually from Gravity Forms' own column selector (gear icon of the entries list). The columns are offered for every CRM connected through the form's feeds, and entries sent before this version are filled in automatically from their FormsCRM notes the first time they are listed.
+* Added: FormsCRM now records the latest sync result (status, contact ID, CRM name, message) per entry and CRM in its own table, for Gravity Forms and WPForms.
+* Fixed: Clientify contacts were not found by the "Taxpayer Identification number" merge strategy, so an existing contact was created again and Clientify answered with `HTTP 409: Conflict`, leaving the submission in the error log. The v2 API never returns the tax number in its search results, so the exact match could not succeed. It is now read from the contact in the v1 API, and compared ignoring case, spaces, dots and dashes. If Clientify still answers 409 on create (the contact exists but could not be matched), the contact is now found by its exact email, or by the merge search when it returned a single candidate, and updated instead of failing. With several candidates nothing is guessed and the submission stays in the error log.
+* Added: `formscrm_clientify_taxpayer_custom_field` filter. Sites that keep a copy of the tax number in a Clientify custom field can return that field's name to verify the exact match of the "Taxpayer Identification number" merge strategy from the v2 API alone, without depending on v1. Off by default: no custom field is assumed.
+* Added: Field mappings can send a fixed value to a CRM field instead of requiring a hidden form field. Choose "Add Custom Value" (Gravity Forms) or "Custom value" (Contact Form 7, Elementor, WPForms, JetFormBuilder) and type the value; it can include `{id:field}` placeholders, plus merge tags and `{label:X}` in Gravity Forms. Existing mappings keep working unchanged.
+* Fixed: Saving a Gravity Forms feed that uses its own CRM settings with a blank credential field (e.g. API password) no longer breaks the field mapping. The blank field overrode the inherited credential, the CRM login failed while saving, and the mapping was stored in a format the feed could not read, so entries were sent without mapped fields. Feeds already saved this way are read correctly again, and a mapping saved while the CRM login fails is now stored in the right format instead of the broken one.
+* Fixed: the CRM Module dropdown of AcumbaMail feeds came out empty. Building the feed screen asked AcumbaMail for the lists several times in a row (login, modules, fields) and its API only allows 5 requests per second, so the extra requests were rejected. The lists are now requested once and cached for a minute, and a throttled request is retried once.
+* Fixed: the AcumbaMail connector logged every request to the PHP error log, including the API token and the subscriber data. It no longer does.
+
+= 4.4.5 =
+* Fixed: Gravity Forms entries on forms with a Clientify feed were flagged as spam by the honeypot since 4.4.4. The Clientify tracking field was added as a Gravity Forms field only when rendering the form, which shifted the honeypot field ID, so the honeypot check read the filled tracking field. It is now a plain hidden input stored as entry meta, which also restores `visitor_key` attribution for Gravity Forms. Entries already flagged as spam can be marked as not spam and their feeds resent.
+
+= 4.4.4 =
+* Added: Support for Clientify's Analytics PLUS contact attribution. FormsCRM automatically captures the pixel's `visitor_uuid` from `localStorage` in the browser and forwards it as `visitor_key` on contact creation, linking the contact to the visit the Analytics PLUS pixel tracked. (Clientify's `visitor_key2` field isn't processed by their production API yet, so this rides on `visitor_key` for now — confirmed directly against the API.)
+* Enhanced: Clientify's legacy `vk` tracking cookie is now captured client-side (the cookie may be set/refreshed by the pixel after the page has already loaded, so the server-side copy isn't reliable) and forwarded automatically as `visitor_key` too, as a fallback when there's no Analytics PLUS visitor_uuid.
+* Changed: Every Clientify-connected form (Gravity Forms, Contact Form 7, Elementor) now gets FormsCRM's own hidden field injected automatically to carry the tracking identifier, filled by a small script FormsCRM enqueues on demand. It's not a mappable field — its value is dynamic per visit and can't be entered by hand.
 * Fixed: Clientify merge strategy could update the wrong contact/company. Clientify's `query` search param is a substring match (e.g. searching "molina@gmail.com" could match "aestepamolina@gmail.com"), and the merge strategy took the first search result without verifying it was an exact match. It now only updates when there is exactly one exact match for the searched field, and creates a new entry otherwise.
 * Fixed: the "Email Main" field-mapping option and the "Email Main" typed-email option showed the same label, so mapping the wrong one silently defeated the merge strategy (fell back to creating instead of updating) with no warning. The native field is now labeled "Email Main (single field)".
 * Fixed: `marketing_status` defaulted to "Marketing Contact" was also sent when updating an existing contact via the merge strategy, silently overwriting a contact intentionally set as "Sales Contact". The default is now only applied when creating a new contact.
 * Enhanced: Added support for GravityForms 3.0's international Phone field format, normalizing the number (digits and leading "+") before sending it to the CRM.
 * Fixed: Elementor forms connected to Clientify always forced contact creation (`force_insert=true`), causing an HTTP 409 Conflict on every resubmission from an existing contact. The merge strategy field (used to search and update instead of create) is now available for Elementor, same as Gravity Forms.
+* Developers: New `formscrm_alert_error_labels` filter to customize the wording of error alerts (email subject, headers, Slack title and labels), so addons can describe their own failure types (e.g. a payment error) instead of the generic lead creation error.
+* Tests: Pinned Contact Form 7 to 6.1.7 in the PHPUnit installer, since Contact Form 7 6.2+ requires PHP 8.3 and broke the test suite on PHP 7.4 and 8.1.
 
 = 4.4.3 =
 * Fixed: Clientify API v1 requests occasionally failing with `HTTP 504 Gateway Timeout` on `api.clientify.net`. All requests (reads, lead/contact creation, updates, deals) now retry once against the `api.clientify.com` fallback before failing; this is a temporary workaround suggested by Clientify support while they investigate the root cause.
