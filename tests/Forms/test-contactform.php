@@ -277,4 +277,41 @@ class ContactFormsTest extends WP_UnitTestCase {
 	public function test_custom_value_sentinel_is_not_a_valid_field_name() {
 		$this->assertSame( 0, preg_match( '/^[A-Za-z0-9_-]+$/', FORMSCRM_CUSTOM_VALUE ) );
 	}
+
+	/**
+	 * Unregisters the auto-submit script so each case starts clean.
+	 */
+	private function reset_autosubmit_script() {
+		wp_dequeue_script( 'formscrm-cf7-autosubmit' );
+		wp_deregister_script( 'formscrm-cf7-autosubmit' );
+	}
+
+	/**
+	 * The auto-submit assets load on the CF7 edit page, whether CF7 owns a
+	 * top-level menu or another plugin moved it under a parent menu.
+	 */
+	public function test_autosubmit_assets_load_on_the_cf7_page_wherever_its_menu_lives() {
+		$settings = new FORMSCRM_CF7_Settings();
+
+		foreach ( array( 'toplevel_page_wpcf7', 'contacto_page_wpcf7', 'admin_page_wpcf7' ) as $hook ) {
+			$this->reset_autosubmit_script();
+			$settings->enqueue_autosubmit_assets( $hook );
+			$this->assertTrue( wp_script_is( 'formscrm-cf7-autosubmit', 'enqueued' ), $hook );
+		}
+		$this->reset_autosubmit_script();
+	}
+
+	/**
+	 * Other admin pages, including other CF7 screens, do not get the assets.
+	 */
+	public function test_autosubmit_assets_do_not_load_on_other_admin_pages() {
+		$settings = new FORMSCRM_CF7_Settings();
+
+		foreach ( array( 'edit.php', 'index.php', 'toplevel_page_wpcf7-new', 'contacto_page_wpcf7-new', 'toplevel_page_foo-wpcf7', 'page_wpcf7', 'wpcf7', '' ) as $hook ) {
+			$this->reset_autosubmit_script();
+			$settings->enqueue_autosubmit_assets( $hook );
+			$this->assertFalse( wp_script_is( 'formscrm-cf7-autosubmit', 'enqueued' ), var_export( $hook, true ) );
+		}
+		$this->reset_autosubmit_script();
+	}
 }

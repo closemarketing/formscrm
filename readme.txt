@@ -272,6 +272,7 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 = 4.4.7 =
 * Added: `formscrm_gf_choice_output` filter. Gravity Forms radio and select fields keep sending the text of the chosen option (e.g. "Sí"); a site can return `'value'` (all fields, or only some by form and field ID) to send the option's value instead (e.g. "si"), so an accent in the label no longer reaches the CRM.
+* Fixed: the Contact Form 7 field-mapping panel (custom value and auto-submit scripts) did not load when another plugin moves the Contact Form 7 menu under a parent menu, because FormsCRM only recognised CF7 as a top-level menu.
 
 = 4.4.6 =
 * Fixed: Gravity Forms feed settings no longer stop with a fatal error ("Cannot access offset of type string on string") when the CRM returns an error instead of its field list (e.g. invalid API key). The field map is shown empty and the CRM error is written to the PHP error log.
