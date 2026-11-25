@@ -425,7 +425,8 @@ class FORMSCRM_CF7_Settings {
 	 */
 	public function enqueue_autosubmit_assets( $hook ) {
 		// Only load on CF7 edit pages.
-		if ( 'toplevel_page_wpcf7' !== $hook ) {
+		// CF7 is a top-level menu ('toplevel_page_wpcf7') unless another plugin owns it, then it is '{parent}_page_wpcf7'.
+		if ( 'toplevel_page_wpcf7' !== $hook && '_page_wpcf7' !== substr( (string) $hook, -11 ) ) {
 			return;
 		}
 
