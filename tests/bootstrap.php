@@ -57,6 +57,7 @@ function _manually_load_plugin() {
 	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/elementor-ajax.php';
 	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-elementor.php';
 	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-contactform7.php';
+	require_once TESTS_PLUGIN_DIR . '/includes/formscrm-library/class-sureforms.php';
 	require __DIR__ . '/../formscrm.php';
 }
 
