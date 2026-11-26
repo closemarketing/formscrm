@@ -270,6 +270,10 @@ WordPress installation and then activate the Plugin from Plugins page.
 
 == Changelog ==
 
+= Unreleased =
+* Added: MailerLite Classic subscriber status. The field map now offers "Subscriber status" (active, unconfirmed, unsubscribed) and "Resubscribe" (true or false), which can be set with a fixed value ("Add Custom Value" / "Custom value"). This lets signups be saved as Active when MailerLite would otherwise leave them Unconfirmed because of the account's double opt-in. Nothing is sent unless mapped, so existing feeds behave as before. Invalid values are ignored.
+* Added: `formscrm_mailerlite_subscriber` filter to change the MailerLite subscriber payload before it is sent.
+
 = 4.4.6 =
 * Fixed: Gravity Forms feed settings no longer stop with a fatal error ("Cannot access offset of type string on string") when the CRM returns an error instead of its field list (e.g. invalid API key). The field map is shown empty and the CRM error is written to the PHP error log.
 * Added: CRM columns in the Gravity Forms entries list. For every CRM connected to a form, a status column and a contact ID column show the result of the latest send, resend or automatic retry. Nothing is shown by default: each column is added manually from Gravity Forms' own column selector (gear icon of the entries list). The columns are offered for every CRM connected through the form's feeds, and entries sent before this version are filled in automatically from their FormsCRM notes the first time they are listed.

@@ -21,6 +21,21 @@ defined( 'ABSPATH' ) || exit;
 class CRMLIB_Mailerlite {
  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Legacy class name, changing would break compatibility.
 	/**
+	 * Virtual field name to set the subscriber status.
+	 */
+	const OPTION_TYPE = 'formscrm_subscriber_type';
+
+	/**
+	 * Virtual field name to reactivate unsubscribed subscribers.
+	 */
+	const OPTION_RESUBSCRIBE = 'formscrm_subscriber_resubscribe';
+
+	/**
+	 * Status values accepted by the MailerLite Classic API when adding a subscriber.
+	 */
+	const ALLOWED_TYPES = array( 'active', 'unconfirmed', 'unsubscribed' );
+
+	/**
 	 * Mailer Lite Connector API
 	 *
 	 * @param string $method Method to connect: GET, POST..
@@ -199,7 +214,73 @@ class CRMLIB_Mailerlite {
 				'label' => $custom_field['title'],
 			);
 		}
-		return $field_map;
+
+		return array_merge( $field_map, $this->get_subscriber_option_fields() );
+	}
+
+	/**
+	 * Virtual fields that map to subscriber options instead of custom fields.
+	 *
+	 * They are shown in the field map so they can be set with "Add Custom Value".
+	 * Names are prefixed to never collide with MailerLite custom field keys.
+	 *
+	 * @return array
+	 */
+	private function get_subscriber_option_fields() {
+		return array(
+			array(
+				'name'  => self::OPTION_TYPE,
+				'label' => __( 'Subscriber status (active, unconfirmed, unsubscribed)', 'formscrm' ),
+			),
+			array(
+				'name'  => self::OPTION_RESUBSCRIBE,
+				'label' => __( 'Resubscribe if already unsubscribed (true or false)', 'formscrm' ),
+			),
+		);
+	}
+
+	/**
+	 * Builds the subscriber payload sent to the API.
+	 *
+	 * Status options are only sent when mapped, so MailerLite keeps deciding the
+	 * status (double opt-in setting of the account) when they are not.
+	 *
+	 * @param  array $merge_vars Array of name/value pairs from the form.
+	 * @param  array $settings   Settings from the feed.
+	 * @return array
+	 */
+	private function build_subscriber( $merge_vars, $settings = array() ) {
+		$subscriber = array();
+
+		foreach ( $merge_vars as $element ) {
+			$name  = $element['name'];
+			$value = $element['value'];
+
+			if ( 'email' === $name ) {
+				$subscriber['email'] = $value;
+			} elseif ( self::OPTION_TYPE === $name ) {
+				$type = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+				if ( in_array( $type, self::ALLOWED_TYPES, true ) ) {
+					$subscriber['type'] = $type;
+				}
+			} elseif ( self::OPTION_RESUBSCRIBE === $name ) {
+				$resubscribe = filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+				if ( null !== $resubscribe ) {
+					$subscriber['resubscribe'] = $resubscribe;
+				}
+			} else {
+				$subscriber['fields'][ $name ] = $value;
+			}
+		}
+
+		/**
+		 * Filters the MailerLite subscriber payload before it is sent.
+		 *
+		 * @param array $subscriber Payload: email, fields, type, resubscribe...
+		 * @param array $settings   Feed settings.
+		 * @param array $merge_vars Original name/value pairs.
+		 */
+		return apply_filters( 'formscrm_mailerlite_subscriber', $subscriber, $settings, $merge_vars );
 	}
 
 	/**
@@ -213,15 +294,7 @@ class CRMLIB_Mailerlite {
 		$apikey  = isset( $settings['fc_crm_apipassword'] ) ? $settings['fc_crm_apipassword'] : '';
 		$list_id = isset( $settings['fc_crm_module'] ) ? $settings['fc_crm_module'] : '';
 
-		$subscriber = array();
-
-		foreach ( $merge_vars as $element ) {
-			if ( 'email' === $element['name'] ) {
-				$subscriber[ $element['name'] ] = $element['value'];
-			} else {
-				$subscriber['fields'][ $element['name'] ] = $element['value'];
-			}
-		}
+		$subscriber = $this->build_subscriber( $merge_vars, $settings );
 
 		try {
 			// Subscribe user.
